@@ -87,6 +87,7 @@ public final class ModernEnhancements {
             LinearLayout row = new LinearLayout(service);
             row.setTag("popup-modern-controls");
             row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(android.view.Gravity.RIGHT | android.view.Gravity.CENTER_VERTICAL);
             state.speed = button(service, row, "速度", () -> choose(object, 1));
             state.quality = button(service, row, "画質", () -> choose(object, 0));
             state.loop = button(service, row, "ループ", () -> {
@@ -98,10 +99,9 @@ public final class ModernEnhancements {
                     update(object);
                 } catch (Exception ex) { error(service, ex); }
             });
-            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(-1,
-                Math.round(40 * service.getResources().getDisplayMetrics().density));
+            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(-2,
+                Math.round(44 * service.getResources().getDisplayMetrics().density));
             params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-            params.addRule(RelativeLayout.RIGHT_OF, service.getResources().getIdentifier("infobutton", "id", service.getPackageName()));
             params.addRule(RelativeLayout.LEFT_OF, service.getResources().getIdentifier("commentbutton", "id", service.getPackageName()));
             ((RelativeLayout) controller).addView(row, params);
             update(object);
@@ -112,7 +112,8 @@ public final class ModernEnhancements {
         b.setText(title);
         b.setContentDescription(title);
         b.setTextColor(0xffffffff);
-        b.setTextSize(12);
+        b.setTextSize(14);
+        b.setTypeface(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD);
         b.setAllCaps(false);
         b.setMinimumWidth(0);
         b.setMinimumHeight(0);
@@ -121,8 +122,9 @@ public final class ModernEnhancements {
         b.setPadding(0, 0, 0, 0);
         b.setBackgroundColor(0x00000000);
         b.setOnClickListener(v -> action.run());
-        int height = Math.round(40 * c.getResources().getDisplayMetrics().density);
-        row.addView(b, new LinearLayout.LayoutParams(0, height, 1));
+        int height = Math.round(44 * c.getResources().getDisplayMetrics().density);
+        int width = Math.round(56 * c.getResources().getDisplayMetrics().density);
+        row.addView(b, new LinearLayout.LayoutParams(width, height));
         return b;
     }
     private static void choose(Object object, int mode) {

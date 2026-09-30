@@ -112,7 +112,7 @@ index d2013b5..1a42b33 100644
          <item name="colorPrimaryDark">@android:color/system_accent1_900</item>
          <item name="colorAccent">@android:color/system_accent1_200</item>
 diff --git a/res/xml/pref.xml b/res/xml/pref.xml
-index dc620db..451767b 100644
+index dc620db..04eda78 100644
 --- a/res/xml/pref.xml
 +++ b/res/xml/pref.xml
 @@ -30,6 +30,7 @@
@@ -136,6 +136,13 @@ index dc620db..451767b 100644
      <PreferenceCategory android:title="@string/settingLanguage">
          <ListPreference android:entries="@array/commentLangString" android:title="@string/settingPlayerLanguage" android:key="player_lang" android:summary="@string/settingPlayerLanguageSub" android:defaultValue="-1" android:entryValues="@array/commentLang" />
          <ListPreference android:entries="@array/appLangString" android:title="@string/settingAppLanguage" android:key="app_lang" android:summary="@string/settingAppLanguageSub" android:defaultValue="@string/settingDefaultCommentLanguage" android:entryValues="@array/appLang" />
+@@ -50,5 +57,6 @@
+         <Preference android:title="@string/settingLicense" android:key="license" />
+         <Preference android:title="@string/settingTranslation" android:key="app_translation" android:summary="@string/settingTranslator" />
+         <Preference android:title="Version.1.0" android:key="info" android:summary="Copyright (c) sauzask" />
++        <Preference android:title="パッチバージョン" android:key="nicoid_patch_version" android:summary="0.90（開発版）" android:selectable="false" />
+     </PreferenceCategory>
+ </PreferenceScreen>
 diff --git a/AndroidManifest.xml b/AndroidManifest.xml
 index a896e32..d9c434e 100644
 --- a/AndroidManifest.xml
@@ -177,7 +184,7 @@ index a896e32..d9c434e 100644
      </application>
  </manifest>
 diff --git a/apktool.yml b/apktool.yml
-index f5cafdf..e0cc8b1 100644
+index f5cafdf..c9b37c7 100644
 --- a/apktool.yml
 +++ b/apktool.yml
 @@ -12,8 +12,8 @@ packageInfo:
@@ -186,8 +193,8 @@ index f5cafdf..e0cc8b1 100644
  versionInfo:
 -  versionCode: 149
 -  versionName: 6.49
-+  versionCode: 196
-+  versionName: 6.49.47-modern
++  versionCode: 197
++  versionName: '6.49'
  sharedLibrary: false
  sparseResources: false
  compactEntries: false
@@ -692,3 +699,84 @@ index e9d1c79..ad2f8d6 100644
 +    invoke-static {v0}, Le/e/a/ModernEnhancements;->prepared(Ljava/lang/Object;)V
      return-void
  .end method
+diff --git a/smali/e/e/a/ModernControls.smali b/smali/e/e/a/ModernControls.smali
+index 73d8966..cb1a7eb 100644
+--- a/smali/e/e/a/ModernControls.smali
++++ b/smali/e/e/a/ModernControls.smali
+@@ -56,8 +56,15 @@
+     invoke-virtual {v0, v2}, Landroid/widget/Button;->setText(Ljava/lang/CharSequence;)V
+     const/4 v2, -0x1
+     invoke-virtual {v0, v2}, Landroid/widget/Button;->setTextColor(I)V
+-    const/high16 v2, 0x41400000
++    const/high16 v2, 0x41600000
+     invoke-virtual {v0, v2}, Landroid/widget/Button;->setTextSize(F)V
++    sget-object v2, Landroid/graphics/Typeface;->DEFAULT:Landroid/graphics/Typeface;
++    const/4 v3, 0x1
++    invoke-virtual {v0, v2, v3}, Landroid/widget/Button;->setTypeface(Landroid/graphics/Typeface;I)V
++    const/high16 v2, 0x40000000
++    const/high16 v3, 0x3f800000
++    const/high16 v4, -0x1000000
++    invoke-virtual {v0, v2, v3, v3, v4}, Landroid/widget/Button;->setShadowLayer(FFFI)V
+     const/4 v2, 0x0
+     invoke-virtual {v0, v2}, Landroid/widget/Button;->setBackgroundColor(I)V
+     const/4 v2, 0x0
+@@ -66,7 +73,7 @@
+     invoke-direct {v3, p1, p4}, Le/e/a/ModernControls$Open;-><init>(Lcom/sauzask/nicoid/NicoidVideoFragment;I)V
+     invoke-virtual {v0, v3}, Landroid/widget/Button;->setOnClickListener(Landroid/view/View$OnClickListener;)V
+     new-instance v3, Landroid/widget/LinearLayout$LayoutParams;
+-    const/high16 v5, 0x42200000
++    const/high16 v5, 0x42600000
+     invoke-virtual {v1}, Landroid/content/Context;->getResources()Landroid/content/res/Resources;
+     move-result-object v1
+     invoke-virtual {v1}, Landroid/content/res/Resources;->getDisplayMetrics()Landroid/util/DisplayMetrics;
+@@ -74,7 +81,10 @@
+     iget v1, v1, Landroid/util/DisplayMetrics;->density:F
+     mul-float/2addr v5, v1
+     float-to-int v5, v5
+-    invoke-direct {v3, v5, v5}, Landroid/widget/LinearLayout$LayoutParams;-><init>(II)V
++    const/high16 v4, 0x42300000
++    mul-float/2addr v4, v1
++    float-to-int v4, v4
++    invoke-direct {v3, v5, v4}, Landroid/widget/LinearLayout$LayoutParams;-><init>(II)V
+     invoke-virtual {v0, v5}, Landroid/widget/Button;->setMinimumWidth(I)V
+     invoke-virtual {v0, v2, v2, v2, v2}, Landroid/widget/Button;->setPadding(IIII)V
+     invoke-virtual {p0, v0, v2, v3}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;ILandroid/view/ViewGroup$LayoutParams;)V
+diff --git a/res/values/strings.xml b/res/values/strings.xml
+index cba5825..333b6c4 100644
+--- a/res/values/strings.xml
++++ b/res/values/strings.xml
+@@ -29,7 +29,7 @@
+     <string name="abc_toolbar_collapse_description">Collapse</string>
+     <string name="allDeselect">全解除</string>
+     <string name="allSelect">全選択</string>
+-    <string name="app_name">nicoid Mod</string>
++    <string name="app_name">nicoid mod</string>
+     <string name="backTop">トップ画面に戻りますか？</string>
+     <string name="backgroundplayNotifyText">再生準備中</string>
+     <string name="backgroundplayNotifyTitle">nicoid background</string>
+diff --git a/res/values-en/strings.xml b/res/values-en/strings.xml
+index 4222070..d51c88f 100644
+--- a/res/values-en/strings.xml
++++ b/res/values-en/strings.xml
+@@ -2,7 +2,7 @@
+ <resources>
+     <string name="allDeselect">CANCEL</string>
+     <string name="allSelect">Select all</string>
+-    <string name="app_name">nicoid Mod</string>
++    <string name="app_name">nicoid mod</string>
+     <string name="backTop">Do you return to the top screen?</string>
+     <string name="cache">Cache</string>
+     <string name="cacheAddMessage">Do you want to get the cache?</string>
+diff --git a/res/values-zh-rTW/strings.xml b/res/values-zh-rTW/strings.xml
+index 4786b57..42b7413 100644
+--- a/res/values-zh-rTW/strings.xml
++++ b/res/values-zh-rTW/strings.xml
+@@ -29,7 +29,7 @@
+     <string name="abc_toolbar_collapse_description">收合</string>
+     <string name="allDeselect">全部取消選擇</string>
+     <string name="allSelect">全部選擇</string>
+-    <string name="app_name">nicoid Mod</string>
++    <string name="app_name">nicoid mod</string>
+     <string name="backTop">請您返回到頂部的屏幕？</string>
+     <string name="cache">快取</string>
+     <string name="cacheAddMessage">你想要得到的現金？</string>

@@ -1,7 +1,10 @@
 # nicoid Mod Patches
 
 Private Morphe patch development for nicoid 6.49.
-Input: `com.sauzask.nicoid` / 6.49. Output: `com.sauzask.nicoid.hls` / 6.49.47-modern.
+Input: `com.sauzask.nicoid` / 6.49. Output: `com.sauzask.nicoid.hls` / 6.49, display name `nicoid mod`.
+Development patch version: `0.90`, displayed below the app version in Settings.
+Android versionCode advances for updates; the displayed app versionName remains `6.49`.
+Changing versionName does not make a modified APK a supported input: the original APK is still required.
 Original APK SHA-256: `17fc6b46228af184437ade7e6f5573915bc655b86996307ff3270fdf35279cce`.
 The patch verifies the original DEX, manifest and resource table before writing.
 
@@ -14,6 +17,7 @@ The patch verifies the original DEX, manifest and resource table before writing.
 - Restore position and playing/paused state after quality changes.
 - Fix light-mode uploader/action surfaces and comment-list text, including system dark mode with the app's light theme.
 - Place compact popup speed, quality and loop controls at the top, leaving the bottom seek bar unobstructed.
+- Right-align popup controls; use 14sp bold text and 56x44dp hit areas for both popup and normal text controls.
 - Show available video resolutions in player quality settings after playback metadata is loaded; otherwise describe video-dependent resolution levels.
 - Correct the high-quality preference mapping to the highest available stream.
 - Remove advertising startup components and ad-removal billing screen registration; disable banner creation and remaining ad requests.

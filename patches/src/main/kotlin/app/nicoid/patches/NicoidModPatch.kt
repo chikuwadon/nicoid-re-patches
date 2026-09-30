@@ -73,7 +73,7 @@ private val nicoidResources = rawResourcePatch {
 @Suppress("unused")
 val nicoidModPatch = bytecodePatch(
     name = "nicoid Mod",
-    description = "6.49.47: modern playback, readable light theme, compact popup controls, resolution labels and disabled advertising.",
+    description = "Patch 0.90 (development): modern playback, bold right-aligned controls, readable themes, resolution labels and disabled advertising. App version remains 6.49.",
     default = true
 ) {
     compatibleWith(nicoid649)

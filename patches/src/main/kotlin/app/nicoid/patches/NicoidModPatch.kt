@@ -29,11 +29,19 @@ private val nicoid649 = Compatibility(
 private val nicoidResources = rawResourcePatch {
     compatibleWith(nicoid649)
     execute {
+        // RAW_ONLY stages compiled resources differently from decoded resource patches.
+        val root = get("classes.dex").parentFile
+        val workspace = root.parentFile
+        fun original(path: String) = when (path) {
+            "AndroidManifest.xml" -> workspace.resolve("AndroidManifest.xml.bin")
+            "resources.arsc" -> workspace.resolve(path)
+            else -> root.resolve(path)
+        }
         Payload.open("input-hashes.txt").bufferedReader().useLines { lines ->
             lines.filter { it.isNotBlank() }.forEach { line ->
                 val (expected, path) = line.split(" ", limit = 2)
                 val digest = MessageDigest.getInstance("SHA-256")
-                get(path).inputStream().use { input ->
+                original(path).inputStream().use { input ->
                     val buffer = ByteArray(8192)
                     while (true) {
                         val size = input.read(buffer)
@@ -51,7 +59,7 @@ private val nicoidResources = rawResourcePatch {
                 val path = entry.name
                 check(!path.contains("..") && !path.startsWith("/") &&
                     (path == "AndroidManifest.xml" || path == "resources.arsc" || path.startsWith("res/")))
-                val output = get(path, false)
+                val output = if (path == "AndroidManifest.xml") original(path) else root.resolve(path)
                 output.parentFile.mkdirs()
                 output.outputStream().use { zip.copyTo(it) }
                 zip.closeEntry()
@@ -103,3 +111,4 @@ val nicoidModPatch = bytecodePatch(
         }
     }
 }
+

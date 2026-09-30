@@ -1,12 +1,17 @@
 # nicoid Mod Patches
 
-Private Morphe patch development for nicoid 6.49.
+Morphe patches for nicoid 6.49.
 Input: `com.sauzask.nicoid` / 6.49. Output: `com.sauzask.nicoid.hls` / 6.49, display name `nicoid mod`.
 Stable patch version: `1.00`, displayed below the app version in Settings. The SemVer bundle/release tag is `1.0.0`.
 Android versionCode advances for updates; the displayed app versionName remains `6.49`.
 Changing versionName does not make a modified APK a supported input: the original APK is still required.
 Original APK SHA-256: `17fc6b46228af184437ade7e6f5573915bc655b86996307ff3270fdf35279cce`.
 The patch verifies the original DEX, manifest and resource table before writing.
+
+## Patch releases
+
+<!-- PATCHES_START EXPANDED -->
+<!-- PATCHES_END -->
 
 ## Changes
 

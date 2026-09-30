@@ -2,7 +2,7 @@
 
 Private Morphe patch development for nicoid 6.49.
 Input: `com.sauzask.nicoid` / 6.49. Output: `com.sauzask.nicoid.hls` / 6.49, display name `nicoid mod`.
-Development patch version: `0.90`, displayed below the app version in Settings.
+Development patch version: `0.91`, displayed below the app version in Settings.
 Android versionCode advances for updates; the displayed app versionName remains `6.49`.
 Changing versionName does not make a modified APK a supported input: the original APK is still required.
 Original APK SHA-256: `17fc6b46228af184437ade7e6f5573915bc655b86996307ff3270fdf35279cce`.
@@ -10,6 +10,9 @@ The patch verifies the original DEX, manifest and resource table before writing.
 
 ## Changes
 
+- Two-finger popup pinch resize: preserves aspect ratio, clamps size/position to screen bounds,
+  cancels child button/seek actions and suppresses remaining finger events until release.
+  Existing single-finger movement and corner drag resize are retained; resized bounds are saved.
 - Fix popup-to-normal comment renderer transfer crash.
 - Five comment sizes: 60%, 80%, 100%, 120%, 140%; normal and popup playback. Applied on next playback.
 - Move Google Cast connect/disconnect below comment settings; remove menu/sidebar entries.

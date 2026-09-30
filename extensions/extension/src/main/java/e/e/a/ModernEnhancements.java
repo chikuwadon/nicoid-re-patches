@@ -79,6 +79,7 @@ public final class ModernEnhancements {
         Service service = (Service) object;
         try {
             View root = (View) get(object, "a");
+            if (root instanceof PopupPinchLayout) ((PopupPinchLayout) root).bind(object);
             int id = service.getResources().getIdentifier("topmenulay", "id", service.getPackageName());
             View controller = root.findViewById(id);
             if (!(controller instanceof RelativeLayout) || root.findViewWithTag("popup-modern-controls") != null) return;

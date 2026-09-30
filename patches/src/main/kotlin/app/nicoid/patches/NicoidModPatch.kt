@@ -59,7 +59,9 @@ private val nicoidResources = rawResourcePatch {
                 val path = entry.name
                 check(!path.contains("..") && !path.startsWith("/") &&
                     (path == "AndroidManifest.xml" || path == "resources.arsc" || path.startsWith("res/")))
-                val output = if (path == "AndroidManifest.xml") original(path) else root.resolve(path)
+                // Root entries are the files Morphe carries into the rebuilt APK.
+                // The raw decoder's .bin manifest is a read-only input for verification.
+                val output = root.resolve(path)
                 output.parentFile.mkdirs()
                 output.outputStream().use { zip.copyTo(it) }
                 zip.closeEntry()

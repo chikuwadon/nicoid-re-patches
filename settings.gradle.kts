@@ -1,4 +1,4 @@
-rootProject.name = "morphe-patches-template"
+rootProject.name = "nicoid-mod-patches"
 
 pluginManagement {
     repositories {
@@ -19,3 +19,4 @@ pluginManagement {
 plugins {
     id("app.morphe.patches") version "1.3.4"
 }
+

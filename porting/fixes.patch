@@ -1,0 +1,255 @@
+diff --git a/smali/e/e/a/t.smali b/smali/e/e/a/t.smali
+index e47499d..0ea671f 100644
+--- a/smali/e/e/a/t.smali
++++ b/smali/e/e/a/t.smali
+@@ -909,6 +909,10 @@
+ 
+     div-float/2addr p1, p2
+ 
++    invoke-virtual {p0}, Landroid/view/View;->getContext()Landroid/content/Context;
++    move-result-object v0
++    invoke-static {v0, p1}, Le/e/a/ModernEnhancements;->commentSize(Landroid/content/Context;F)F
++    move-result p1
+     iput p1, p0, Le/e/a/t;->K:F
+ 
+     iget p1, p0, Le/e/a/t;->K:F
+@@ -5735,6 +5739,25 @@
+ .method public setRyuuyou(Landroid/view/View;)V
+     .locals 2
+ 
++    instance-of v0, p1, Le/e/a/u;
++    if-eqz v0, :same_renderer
++    check-cast p1, Le/e/a/u;
++    iget-boolean v0, p1, Le/e/a/u;->g:Z
++    iput-boolean v0, p0, Le/e/a/t;->g:Z
++    iget-object v0, p1, Le/e/a/u;->i:Ljava/util/ArrayList;
++    iput-object v0, p0, Le/e/a/t;->i:Ljava/util/ArrayList;
++    iget-boolean v0, p1, Le/e/a/u;->m:Z
++    iput-boolean v0, p0, Le/e/a/t;->m:Z
++    iget-object v0, p1, Le/e/a/u;->n:Ljava/util/ArrayList;
++    iput-object v0, p0, Le/e/a/t;->n:Ljava/util/ArrayList;
++    iget-boolean v0, p1, Le/e/a/u;->b:Z
++    iput-boolean v0, p0, Le/e/a/t;->b:Z
++    iget-object v0, p1, Le/e/a/u;->c:Ljava/util/ArrayList;
++    iput-object v0, p0, Le/e/a/t;->c:Ljava/util/ArrayList;
++    return-void
++
++    :same_renderer
++
+     check-cast p1, Le/e/a/t;
+ 
+     iget-boolean v0, p1, Le/e/a/t;->g:Z
+diff --git a/smali/e/e/a/u.smali b/smali/e/e/a/u.smali
+index 7af256f..092b52d 100644
+--- a/smali/e/e/a/u.smali
++++ b/smali/e/e/a/u.smali
+@@ -886,6 +886,10 @@
+ 
+     div-float/2addr p1, p2
+ 
++    invoke-virtual {p0}, Landroid/view/View;->getContext()Landroid/content/Context;
++    move-result-object v0
++    invoke-static {v0, p1}, Le/e/a/ModernEnhancements;->commentSize(Landroid/content/Context;F)F
++    move-result p1
+     iput p1, p0, Le/e/a/u;->J:F
+ 
+     iget p1, p0, Le/e/a/u;->J:F
+diff --git a/smali/com/sauzask/nicoid/NicoidSetting.smali b/smali/com/sauzask/nicoid/NicoidSetting.smali
+index cbc3df4..f3c6ad3 100644
+--- a/smali/com/sauzask/nicoid/NicoidSetting.smali
++++ b/smali/com/sauzask/nicoid/NicoidSetting.smali
+@@ -700,6 +700,7 @@
+     const p1, 0x7f120001
+ 
+     invoke-virtual {p0, p1}, Landroid/preference/PreferenceActivity;->addPreferencesFromResource(I)V
++    invoke-static {p0}, Le/e/a/ModernEnhancements;->settings(Landroid/preference/PreferenceActivity;)V
+ 
+     const-string p1, "material_you_mode"
+     invoke-virtual {p0, p1}, Landroid/preference/PreferenceActivity;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
+diff --git a/smali/com/sauzask/nicoid/NicoidPopupViewService.smali b/smali/com/sauzask/nicoid/NicoidPopupViewService.smali
+index 6462812..b5cee3d 100644
+--- a/smali/com/sauzask/nicoid/NicoidPopupViewService.smali
++++ b/smali/com/sauzask/nicoid/NicoidPopupViewService.smali
+@@ -2175,6 +2175,7 @@
+ .method public onDestroy()V
+     .locals 3
+ 
++    invoke-static {p0}, Le/e/a/ModernEnhancements;->destroy(Ljava/lang/Object;)V
+     iget-object v0, p0, Lcom/sauzask/nicoid/NicoidPopupViewService;->V:Landroid/media/AudioManager;
+ 
+     if-eqz v0, :cond_0
+@@ -2800,6 +2801,7 @@
+     move-result v1
+ 
+     iput-boolean v1, p0, Lcom/sauzask/nicoid/NicoidPopupViewService;->v:Z
++    invoke-static {p0}, Le/e/a/ModernEnhancements;->attach(Ljava/lang/Object;)V
+ 
+     iget-object v1, p0, Lcom/sauzask/nicoid/NicoidPopupViewService;->Q:Landroid/content/SharedPreferences;
+ 
+diff --git a/smali/com/sauzask/nicoid/NicoidPopupViewService$c.smali b/smali/com/sauzask/nicoid/NicoidPopupViewService$c.smali
+index b3fdd96..6ca6122 100644
+--- a/smali/com/sauzask/nicoid/NicoidPopupViewService$c.smali
++++ b/smali/com/sauzask/nicoid/NicoidPopupViewService$c.smali
+@@ -100,5 +100,7 @@
+     invoke-static {v0}, Lcom/sauzask/nicoid/NicoidPopupViewService;->a(Lcom/sauzask/nicoid/NicoidPopupViewService;)V
+ 
+     :cond_1
++    iget-object v0, p0, Lcom/sauzask/nicoid/NicoidPopupViewService$c;->a:Lcom/sauzask/nicoid/NicoidPopupViewService;
++    invoke-static {v0}, Le/e/a/ModernEnhancements;->prepared(Ljava/lang/Object;)V
+     return-void
+ .end method
+diff --git a/smali/com/sauzask/nicoid/NicoidTopActivity.smali b/smali/com/sauzask/nicoid/NicoidTopActivity.smali
+index 44d853a..a64414e 100644
+--- a/smali/com/sauzask/nicoid/NicoidTopActivity.smali
++++ b/smali/com/sauzask/nicoid/NicoidTopActivity.smali
+@@ -411,93 +411,7 @@
+ 
+     invoke-static/range {v1 .. v6}, Lcom/sauzask/nicoid/NicoidTopActivity;->a(Ljava/util/ArrayList;ZLjava/lang/String;Ljava/lang/String;Landroid/content/Intent;I)V
+ 
+-    const-string v1, "com.google.android.gms"
+-
+-    :try_start_0
+-    invoke-virtual/range {p0 .. p0}, Landroid/content/Context;->getPackageManager()Landroid/content/pm/PackageManager;
+-
+-    move-result-object v2
+-
+-    const/16 v3, 0x80
+-
+-    invoke-virtual {v2, v1, v3}, Landroid/content/pm/PackageManager;->getApplicationInfo(Ljava/lang/String;I)Landroid/content/pm/ApplicationInfo;
+-
+-    const/4 v2, 0x1
+-
+-    const v1, 0x7f0f01c2
+-
+-    invoke-virtual {v0, v1}, Landroid/content/Context;->getString(I)Ljava/lang/String;
+-
+-    move-result-object v3
+-
+-    const-string v4, ""
+-
+-    const/4 v5, 0x0
+-
+-    const/4 v6, 0x0
+-
+-    move-object v1, v7
+-
+-    invoke-static/range {v1 .. v6}, Lcom/sauzask/nicoid/NicoidTopActivity;->a(Ljava/util/ArrayList;ZLjava/lang/String;Ljava/lang/String;Landroid/content/Intent;I)V
+-
+-    new-instance v5, Landroid/content/Intent;
+-
+-    invoke-direct {v5, v10}, Landroid/content/Intent;-><init>(Ljava/lang/String;)V
+-
+-    const-string v1, "com.sauzask.nicoid.NicoidChromecastReceiverSelect"
+-
+-    invoke-virtual {v5, v11, v1}, Landroid/content/Intent;->setClassName(Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;
+-
+-    const/4 v2, 0x0
+-
+-    const v1, 0x7f0f01c3
+-
+-    invoke-virtual {v0, v1}, Landroid/content/Context;->getString(I)Ljava/lang/String;
+-
+-    move-result-object v3
+-
+-    const v1, 0x7f0f01c4
+-
+-    invoke-virtual {v0, v1}, Landroid/content/Context;->getString(I)Ljava/lang/String;
+-
+-    move-result-object v4
+-
+-    const/4 v6, 0x0
+-
+-    move-object v1, v7
+-
+-    invoke-static/range {v1 .. v6}, Lcom/sauzask/nicoid/NicoidTopActivity;->a(Ljava/util/ArrayList;ZLjava/lang/String;Ljava/lang/String;Landroid/content/Intent;I)V
+-
+-    const/4 v2, 0x0
+-
+-    const v1, 0x7f0f01c5
+-
+-    invoke-virtual {v0, v1}, Landroid/content/Context;->getString(I)Ljava/lang/String;
+-
+-    move-result-object v3
+-
+-    const v1, 0x7f0f01c6
+-
+-    invoke-virtual {v0, v1}, Landroid/content/Context;->getString(I)Ljava/lang/String;
+-
+-    move-result-object v4
+-
+-    const/4 v5, 0x0
+-
+-    const/4 v6, 0x3
+-
+-    move-object v1, v7
+-
+-    invoke-static/range {v1 .. v6}, Lcom/sauzask/nicoid/NicoidTopActivity;->a(Ljava/util/ArrayList;ZLjava/lang/String;Ljava/lang/String;Landroid/content/Intent;I)V
+-    :try_end_0
+-    .catch Landroid/content/pm/PackageManager$NameNotFoundException; {:try_start_0 .. :try_end_0} :catch_0
+-
+-    goto :goto_1
+-
+-    :catch_0
+-    nop
+-
+-    :goto_1
++    # Google Cast controls are available below comment settings.
+     const/4 v2, 0x1
+     const-string v3, "設定"
+     const-string v4, ""
+diff --git a/res/values/arrays.xml b/res/values/arrays.xml
+index e52fe9f..5b606ce 100644
+--- a/res/values/arrays.xml
++++ b/res/values/arrays.xml
+@@ -188,4 +188,11 @@
+         <item>@string/popupmenuBackgroundPlay</item>
+         <item>@string/popupmenuPopup</item>
+     </string-array>
++    <string-array name="commentSizeLabels">
++        <item>最小（60%）</item><item>小（80%）</item><item>標準（100%）</item><item>大（120%）</item><item>最大（140%）</item>
++    </string-array>
++    <string-array name="commentSizeValues">
++        <item>0</item><item>1</item><item>2</item><item>3</item><item>4</item>
++    </string-array>
+ </resources>
++ 
+diff --git a/res/xml/pref.xml b/res/xml/pref.xml
+index 46f2909..57aac88 100644
+--- a/res/xml/pref.xml
++++ b/res/xml/pref.xml
+@@ -30,6 +30,7 @@
+         <CheckBoxPreference android:title="@string/settingSleepPlay" android:key="player_sleep_play" android:summary="@string/settingSleepPlaySub" />
+     </PreferenceCategory>
+     <PreferenceCategory android:title="@string/settingComment" android:key="comment">
++        <ListPreference android:entries="@array/commentSizeLabels" android:title="コメントの大きさ" android:key="comment_size_level" android:summary="最小・小・標準・大・最大（次の再生から反映）" android:defaultValue="2" android:entryValues="@array/commentSizeValues" />
+         <ListPreference android:entries="@array/commentFpsString" android:title="@string/settingCommentFrameRate" android:key="comment_fps" android:summary="@string/settingCommentFrameRateSub" android:defaultValue="60" android:entryValues="@array/commentFps" />
+         <ListPreference android:entries="@array/commentAlphaString" android:title="@string/settingCommentAlpha" android:key="comment_alpha" android:summary="@string/settingCommentAlphaSub" android:defaultValue="255" android:entryValues="@array/commentAlpha" />
+         <ListPreference android:entries="@array/commentShadowString" android:title="@string/settingCommentShadow" android:key="comment_shadow" android:summary="@string/settingCommentShadowSub" android:defaultValue="0" android:entryValues="@array/commentShadow" />
+@@ -38,6 +39,12 @@
+         <CheckBoxPreference android:title="@string/settingCommentCast" android:key="comment_cast_min" android:summary="@string/settingCommentCastSub" android:defaultValue="true" />
+         <CheckBoxPreference android:title="コメント取得数の上限を拡張" android:key="comment_limit_extended" android:summary="従来形式の動画で取得するコメント数を増やします。通信量と描画負荷が増えます" android:defaultValue="false" />
+     </PreferenceCategory>
++    <PreferenceCategory android:title="Google Cast" android:key="google_cast">
++        <Preference android:title="接続" android:key="google_cast_connect" android:summary="接続する端末を選択">
++            <intent android:action="android.intent.action.VIEW" android:targetPackage="com.sauzask.nicoid.hls" android:targetClass="com.sauzask.nicoid.NicoidChromecastReceiverSelect" />
++        </Preference>
++        <Preference android:title="接続解除" android:key="google_cast_disconnect" android:summary="Google Cast の接続を解除" />
++    </PreferenceCategory>
+     <PreferenceCategory android:title="@string/settingLanguage">
+         <ListPreference android:entries="@array/commentLangString" android:title="@string/settingPlayerLanguage" android:key="player_lang" android:summary="@string/settingPlayerLanguageSub" android:defaultValue="-1" android:entryValues="@array/commentLang" />
+         <ListPreference android:entries="@array/appLangString" android:title="@string/settingAppLanguage" android:key="app_lang" android:summary="@string/settingAppLanguageSub" android:defaultValue="@string/settingDefaultCommentLanguage" android:entryValues="@array/appLang" />
+diff --git a/apktool.yml b/apktool.yml
+index ca24965..942d8ff 100644
+--- a/apktool.yml
++++ b/apktool.yml
+@@ -12,8 +12,8 @@ packageInfo:
+   forcedPackageId: 127
+   renameManifestPackage: null
+ versionInfo:
+-  versionCode: 149
+-  versionName: 6.49
++  versionCode: 195
++  versionName: 6.49.46-modern
+ sharedLibrary: false
+ sparseResources: false
+ compactEntries: false

@@ -10,10 +10,12 @@ import android.os.Handler;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
+import android.preference.ListPreference;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 import java.lang.reflect.Field;
 import java.util.WeakHashMap;
@@ -48,6 +50,22 @@ public final class ModernEnhancements {
         catch (RuntimeException ex) { return base; }
     }
     public static void settings(PreferenceActivity activity) {
+        ListPreference quality = (ListPreference) activity.findPreference("quality_mode");
+        if (quality != null) {
+            CharSequence[] labels = new CharSequence[]{"最大画質（最大解像度・動画により変動）",
+                "高画質（最大解像度・動画により変動）", "標準画質（2番目の解像度・動画により変動）",
+                "低画質（3番目の解像度・動画により変動）"};
+            try {
+                for (int i = 0; i < 3; i++) {
+                    String label = (String) Class.forName("e.e.a.ModernControls")
+                        .getMethod("qualityOption", int.class).invoke(null, i);
+                    if (label.contains("（")) labels[i + 1] = label;
+                    if (i == 0 && label.contains("（")) labels[0] = label.replace("高画質", "最大画質");
+                }
+            } catch (Exception ignored) { }
+            quality.setEntries(labels);
+            quality.setSummary("%s");
+        }
         Preference disconnect = activity.findPreference("google_cast_disconnect");
         if (disconnect != null) disconnect.setOnPreferenceClickListener(p -> {
             try {
@@ -61,17 +79,16 @@ public final class ModernEnhancements {
         Service service = (Service) object;
         try {
             View root = (View) get(object, "a");
-            int id = service.getResources().getIdentifier("controller", "id", service.getPackageName());
+            int id = service.getResources().getIdentifier("topmenulay", "id", service.getPackageName());
             View controller = root.findViewById(id);
-            if (!(controller instanceof LinearLayout) || root.findViewWithTag("popup-modern-controls") != null) return;
+            if (!(controller instanceof RelativeLayout) || root.findViewWithTag("popup-modern-controls") != null) return;
             State state = new State();
             STATES.put(object, state);
             LinearLayout row = new LinearLayout(service);
             row.setTag("popup-modern-controls");
             row.setOrientation(LinearLayout.HORIZONTAL);
-            row.setBackgroundColor(0xaa000000);
-            state.quality = button(service, row, "画質", () -> choose(object, 0));
             state.speed = button(service, row, "速度", () -> choose(object, 1));
+            state.quality = button(service, row, "画質", () -> choose(object, 0));
             state.loop = button(service, row, "ループ", () -> {
                 try {
                     boolean enabled = !(Boolean) get(object, "v");
@@ -81,7 +98,12 @@ public final class ModernEnhancements {
                     update(object);
                 } catch (Exception ex) { error(service, ex); }
             });
-            ((LinearLayout) controller).addView(row, 0);
+            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(-1,
+                Math.round(40 * service.getResources().getDisplayMetrics().density));
+            params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+            params.addRule(RelativeLayout.RIGHT_OF, service.getResources().getIdentifier("infobutton", "id", service.getPackageName()));
+            params.addRule(RelativeLayout.LEFT_OF, service.getResources().getIdentifier("commentbutton", "id", service.getPackageName()));
+            ((RelativeLayout) controller).addView(row, params);
             update(object);
         } catch (Exception ex) { error(service, ex); }
     }
@@ -93,6 +115,9 @@ public final class ModernEnhancements {
         b.setTextSize(12);
         b.setAllCaps(false);
         b.setMinimumWidth(0);
+        b.setMinimumHeight(0);
+        b.setSingleLine(true);
+        b.setShadowLayer(2, 1, 1, 0xff000000);
         b.setPadding(0, 0, 0, 0);
         b.setBackgroundColor(0x00000000);
         b.setOnClickListener(v -> action.run());
@@ -200,9 +225,16 @@ public final class ModernEnhancements {
         if (state == null) return;
         Object model = get(object, "z");
         int quality = model == null ? 0 : (Integer) get(model, "e");
-        state.quality.setText("画質 " + (quality == 4 ? "低" : quality == 3 ? "標準" : "高"));
-        state.speed.setText("速度 " + speed() + "×");
-        state.loop.setText("ループ " + ((Boolean) get(object, "v") ? "ON" : "OFF"));
+        String option = (String) Class.forName("e.e.a.ModernControls").getMethod("qualityOption", int.class)
+            .invoke(null, quality == 4 ? 2 : quality == 3 ? 1 : 0);
+        java.util.regex.Matcher resolution = java.util.regex.Pattern.compile("[0-9]{3,4}p").matcher(option);
+        state.quality.setText(resolution.find() ? resolution.group() : quality == 4 ? "低画質" : quality == 3 ? "標準" : "高画質");
+        state.quality.setContentDescription("画質: " + option);
+        state.speed.setText(speed() + "×");
+        state.speed.setContentDescription("再生速度: " + speed() + "倍");
+        boolean loop = (Boolean) get(object, "v");
+        state.loop.setText(loop ? "↻ ON" : "↻ OFF");
+        state.loop.setContentDescription("ループ再生: " + (loop ? "ON" : "OFF"));
     }
     private static void error(Context c, Exception ex) {
         android.util.Log.w("nicoid-enhancements", "Control failed", ex);

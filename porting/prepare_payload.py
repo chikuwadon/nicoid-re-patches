@@ -40,9 +40,9 @@ def main():
         run('git', '-C', decoded, 'apply', ROOT / patch)
     helper_classes, helper_dex = work / 'helper-classes', work / 'helper-dex'
     helper_classes.mkdir(); helper_dex.mkdir()
-    source = ROOT.parent / 'extensions/extension/src/main/java/e/e/a/ModernEnhancements.java'
+    sources = sorted((ROOT.parent / 'extensions/extension/src/main/java/e/e/a').glob('*.java'))
     run(javac, '-encoding', 'UTF-8', '-source', '8', '-target', '8',
-        '-classpath', args.android_jar, '-d', helper_classes, source)
+        '-classpath', args.android_jar, '-d', helper_classes, *sources)
     run(jar, 'cf', work / 'helper.jar', '-C', helper_classes, '.')
     # Calling D8's main class avoids platform-specific launcher scripts.
     d8 = args.android_sdk / 'build-tools/36.0.0/lib/d8.jar'

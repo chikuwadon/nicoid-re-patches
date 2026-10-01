@@ -1,3 +1,9 @@
+## [1.2.0-dev.4](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.2.0-dev.3...v1.2.0-dev.4) (2026-10-01)
+
+### 🐛 Bug Fixes
+
+* refresh search via normal loading flow and theme indicator ([073d422](https://github.com/chikuwadon/nicoid-re-patches/commit/073d422c7f32c9de7901a3f182dcb6adaa1a5668))
+
 ## [1.2.0-dev.3](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.2.0-dev.2...v1.2.0-dev.3) (2026-10-01)
 
 ### ✨ New Features

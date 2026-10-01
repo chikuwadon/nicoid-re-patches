@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-10-01T10:16:17",
-  "description": "## [1.2.0-dev.3](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.2.0-dev.2...v1.2.0-dev.3) (2026-10-01)\n\n### ✨ New Features\n\n* refresh ranking and search lists with pull gesture ([d440fae](https://github.com/chikuwadon/nicoid-re-patches/commit/d440fae35d0f87aee9b0ecd4b88d2df395c373d9))",
-  "download_url": "https://github.com/chikuwadon/nicoid-re-patches/releases/download/v1.2.0-dev.3/patches-1.2.0-dev.3.mpp",
+  "created_at": "2026-10-01T10:53:35",
+  "description": "## [1.2.0-dev.4](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.2.0-dev.3...v1.2.0-dev.4) (2026-10-01)\n\n### 🐛 Bug Fixes\n\n* refresh search via normal loading flow and theme indicator ([073d422](https://github.com/chikuwadon/nicoid-re-patches/commit/073d422c7f32c9de7901a3f182dcb6adaa1a5668))",
+  "download_url": "https://github.com/chikuwadon/nicoid-re-patches/releases/download/v1.2.0-dev.4/patches-1.2.0-dev.4.mpp",
   "signature_download_url": "",
-  "version": "1.2.0-dev.3"
+  "version": "1.2.0-dev.4"
 }

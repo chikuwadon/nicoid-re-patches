@@ -81,14 +81,14 @@ def patches_table(patches):
         "|----------|----------------|-----------|",
     ]
     for p in sorted(patches, key=lambda x: x["name"]):
-        a = anchor(p["name"])
+        a = "変更点" if p["name"] == "nicoid Mod" else anchor(p["name"])
         options = p.get("options") or []
         if options:
             # Show only option titles as a bullet list
             parts = [opt.get("title") or opt.get("key") or "" for opt in options]
             opts_cell = "<br>".join(f"• {t}" for t in parts)
         else:
-            opts_cell = ""
+            opts_cell = "なし"
         desc = (p.get("description") or "").replace("\n", "<br>")
         rows.append(f"| [{p['name']}](#{a}) | {desc} | {opts_cell} |")
     return "\n".join(rows)

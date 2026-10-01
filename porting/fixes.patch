@@ -138,7 +138,7 @@ index 9720fd6..69e18eb 100644
      <string name="allDeselect">CANCEL</string>
      <string name="allSelect">Select all</string>
 -    <string name="app_name">nicoid Mod</string>
-+    <string name="app_name">nicoid mod</string>
++    <string name="app_name">nicoid Re</string>
      <string name="backTop">Do you return to the top screen?</string>
      <string name="cache">Cache</string>
      <string name="cacheAddMessage">Do you want to get the cache?</string>
@@ -164,7 +164,7 @@ index 669185c..3edf297 100644
      <string name="allDeselect">全部取消選擇</string>
      <string name="allSelect">全部選擇</string>
 -    <string name="app_name">nicoid Mod</string>
-+    <string name="app_name">nicoid mod</string>
++    <string name="app_name">nicoid Re</string>
      <string name="backTop">請您返回到頂部的屏幕？</string>
      <string name="cache">快取</string>
      <string name="cacheAddMessage">你想要得到的現金？</string>
@@ -205,7 +205,7 @@ index 6361d14..b387b74 100644
      <string name="allDeselect">全解除</string>
      <string name="allSelect">全選択</string>
 -    <string name="app_name">nicoid Mod</string>
-+    <string name="app_name">nicoid mod</string>
++    <string name="app_name">nicoid Re</string>
      <string name="backTop">トップ画面に戻りますか？</string>
      <string name="backgroundplayNotifyText">再生準備中</string>
      <string name="backgroundplayNotifyTitle">nicoid background</string>
@@ -251,7 +251,7 @@ index 46f2909..a123bb8 100644
          <Preference android:title="@string/settingLicense" android:key="license" />
          <Preference android:title="@string/settingTranslation" android:key="app_translation" android:summary="@string/settingTranslator" />
          <Preference android:title="Version.1.0" android:key="info" android:summary="Copyright (c) sauzask" />
-+        <Preference android:title="パッチバージョン" android:key="nicoid_patch_version" android:summary="0.91（開発版）" android:selectable="false" />
++        <Preference android:title="パッチバージョン" android:key="nicoid_patch_version" android:summary="1.00" android:selectable="false" />
      </PreferenceCategory>
  </PreferenceScreen>
 diff --git a/smali/com/sauzask/nicoid/NicoidPopupViewService.smali b/smali/com/sauzask/nicoid/NicoidPopupViewService.smali

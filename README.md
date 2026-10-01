@@ -1,7 +1,7 @@
 # nicoid Mod Patches
 
 Morphe patches for nicoid 6.49.
-Input: `com.sauzask.nicoid` / 6.49. Output: `com.sauzask.nicoid.hls` / 6.49, display name `nicoid mod`.
+Input: `com.sauzask.nicoid` / 6.49. Output: `com.sauzask.nicoid.hls` / 6.49, display name `nicoid Re`.
 Stable patch version: `1.00`, displayed below the app version in Settings. The SemVer bundle/release tag is `1.0.0`.
 Android versionCode advances for updates; the displayed app versionName remains `6.49`.
 Changing versionName does not make a modified APK a supported input: the original APK is still required.
@@ -11,22 +11,6 @@ The patch verifies the original DEX, manifest and resource table before writing.
 ## Patch releases
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0-dev.1](https://github.com/chikuwadon/nicoid-mod-patches/releases/tag/v1.0.0-dev.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
-<details open>
-<summary>📦 nicoid&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 6.49 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [nicoid Mod](#nicoid-mod) | Patch 0.91 (development): pinch-resizable popup, modern playback, bold right-aligned controls, readable themes, resolution labels and disabled advertising. App version remains 6.49. |  |
-
-</details>
-
 <!-- PATCHES_END -->
 
 ## Changes

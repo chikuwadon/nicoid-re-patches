@@ -63,17 +63,35 @@ private val nicoidResources = rawResourcePatch {
                 // The raw decoder's .bin manifest is a read-only input for verification.
                 val output = root.resolve(path)
                 output.parentFile.mkdirs()
-                output.outputStream().use { zip.copyTo(it) }
+                val bytes = zip.readBytes()
+                val patched = if (path == "resources.arsc") withAppLabel(bytes) else bytes
+                output.writeBytes(patched)
                 zip.closeEntry()
             }
         }
     }
 }
 
+// Keep the compiled resource table layout and all string offsets stable while changing only
+// the label value. The shorter replacement leaves one padding NUL before the next string.
+private fun withAppLabel(table: ByteArray): ByteArray {
+    val old = byteArrayOf(10, 10) + "nicoid mod".toByteArray(Charsets.UTF_8) + byteArrayOf(0)
+    val replacement = byteArrayOf(9, 9) + "nicoid Re".toByteArray(Charsets.UTF_8) + byteArrayOf(0, 0)
+    var match = -1
+    for (start in 0..table.size - old.size) {
+        if (old.indices.all { table[start + it] == old[it] }) {
+            check(match == -1) { "Ambiguous app label in compiled resources." }
+            match = start
+        }
+    }
+    check(match >= 0) { "Expected nicoid mod app label in compiled resources." }
+    return table.copyOf().also { replacement.copyInto(it, match) }
+}
+
 @Suppress("unused")
 val nicoidModPatch = bytecodePatch(
     name = "nicoid Mod",
-    description = "Patch 0.91 (development): pinch-resizable popup, modern playback, bold right-aligned controls, readable themes, resolution labels and disabled advertising. App version remains 6.49.",
+    description = "nicoid Re patch v1.00 (stable): pinch-resizable popup, modern playback, bold right-aligned controls, readable themes, resolution labels and disabled advertising. App version remains 6.49.",
     default = true
 ) {
     compatibleWith(nicoid649)

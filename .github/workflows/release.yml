@@ -9,6 +9,7 @@ jobs:
     name: Release
     permissions:
       contents: write
+      issues: write
       packages: write
       id-token: write
       attestations: write
@@ -56,3 +57,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew :patches:buildAndroid clean --no-daemon
+

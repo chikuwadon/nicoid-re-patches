@@ -15,17 +15,17 @@ SHA-256：`17fc6b46228af184437ade7e6f5573915bc655b86996307ff3270fdf35279cce`
 ## パッチ配布
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0](https://github.com/chikuwadon/nicoid-mod-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+> **[v1.1.0](https://github.com/chikuwadon/nicoid-mod-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`ブランチ&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件
 <details open>
-<summary>📦 nicoid&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 nicoid&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件</summary>
 <br>
 
-**🎯 Supported versions:**
+**🎯 対応バージョン：**
 
 | 6.49 |
 | :---: |
 
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+| 💊 パッチ | 📜 説明 | ⚙️ 設定 |
 |----------|----------------|-----------|
 | [nicoid Mod](#nicoid-mod) | nicoid Reパッチ：関連動画から通常再生・ポップアップ再生・バックグラウンド再生を選択できます。Android 16に対応します。 |  |
 
@@ -67,3 +67,4 @@ SHA-256：`17fc6b46228af184437ade7e6f5573915bc655b86996307ff3270fdf35279cce`
 ## ライセンス
 
 テンプレート由来のコードは[GPLv3](LICENSE)および[NOTICE](NOTICE)に従います。
+

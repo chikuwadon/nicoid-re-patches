@@ -1,3 +1,9 @@
+## [1.2.0](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.1.0...v1.2.0) (2026-10-01)
+
+### ✨ New Features
+
+* rename patch entry to nicoid Re ([3852687](https://github.com/chikuwadon/nicoid-re-patches/commit/3852687e134c206f02e70a98159be229aaf5b4fa))
+
 ## [1.1.0](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.0.0...v1.1.0) (2026-10-01)
 
 ### 🐛 Bug Fixes

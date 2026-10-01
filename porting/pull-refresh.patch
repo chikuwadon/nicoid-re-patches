@@ -10,43 +10,11 @@ diff --git a/smali/com/sauzask/nicoid/NicoidVideoListFragment.smali b/smali/com/
      return-void
  .end method
  
-diff --git a/smali/com/sauzask/nicoid/NicoidVideoListFragment$d.smali b/smali/com/sauzask/nicoid/NicoidVideoListFragment$d.smali
---- a/smali/com/sauzask/nicoid/NicoidVideoListFragment$d.smali
-+++ b/smali/com/sauzask/nicoid/NicoidVideoListFragment$d.smali
-@@ -53,6 +53,9 @@
- 
- .method public a(Ljava/lang/String;)V
-     .locals 2
-+
-+    iget-object v0, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment$d;->a:Lcom/sauzask/nicoid/NicoidVideoListFragment;
-+    invoke-static {v0}, Le/e/a/PullRefresh;->finish(Lcom/sauzask/nicoid/NicoidVideoListFragment;)V
- 
-     iget-object v0, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment$d;->a:Lcom/sauzask/nicoid/NicoidVideoListFragment;
- 
-@@ -79,6 +82,9 @@
-     .end annotation
- 
-     iget-object v0, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment$d;->a:Lcom/sauzask/nicoid/NicoidVideoListFragment;
-+    invoke-static {v0}, Le/e/a/PullRefresh;->replace(Lcom/sauzask/nicoid/NicoidVideoListFragment;)V
-+
-+    iget-object v0, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment$d;->a:Lcom/sauzask/nicoid/NicoidVideoListFragment;
- 
-     .line 42
-     iget-boolean v1, v0, Lcom/sauzask/nicoid/NicoidVideoListFragment;->m0:Z
-@@ -199,6 +205,8 @@
-     invoke-virtual {p1}, Ljava/lang/Exception;->printStackTrace()V
- 
-     :goto_1
-+    iget-object p1, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment$d;->a:Lcom/sauzask/nicoid/NicoidVideoListFragment;
-+    invoke-static {p1}, Le/e/a/PullRefresh;->finish(Lcom/sauzask/nicoid/NicoidVideoListFragment;)V
-     return-void
- .end method
- 
 diff --git a/smali/e/e/a/PullRefresh.smali b/smali/e/e/a/PullRefresh.smali
 new file mode 100644
 --- /dev/null
 +++ b/smali/e/e/a/PullRefresh.smali
-@@ -0,0 +1,149 @@
+@@ -0,0 +1,110 @@
 +.class public final Le/e/a/PullRefresh;
 +.super Ljava/lang/Object;
 +.source "PullRefresh.java"
@@ -55,7 +23,6 @@ new file mode 100644
 +
 +.field private final fragment:Lcom/sauzask/nicoid/NicoidVideoListFragment;
 +.field private final layout:Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;
-+.field private pending:Z
 +
 +.method private constructor <init>(Lcom/sauzask/nicoid/NicoidVideoListFragment;Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;)V
 +    .locals 0
@@ -65,39 +32,14 @@ new file mode 100644
 +    return-void
 +.end method
 +
-+.method private static current(Lcom/sauzask/nicoid/NicoidVideoListFragment;)Le/e/a/PullRefresh;
-+    .locals 2
-+    iget-object v0, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment;->b0:Landroid/widget/ListView;
-+    if-eqz v0, :none
-+    invoke-virtual {v0}, Landroid/view/View;->getParent()Landroid/view/ViewParent;
-+    move-result-object v0
-+    instance-of v1, v0, Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;
-+    if-eqz v1, :none
-+    check-cast v0, Landroid/view/View;
-+    invoke-virtual {v0}, Landroid/view/View;->getTag()Ljava/lang/Object;
-+    move-result-object v0
-+    instance-of v1, v0, Le/e/a/PullRefresh;
-+    if-eqz v1, :none
-+    check-cast v0, Le/e/a/PullRefresh;
-+    return-object v0
-+    :none
-+    const/4 v0, 0x0
-+    return-object v0
-+.end method
-+
 +.method public static install(Lcom/sauzask/nicoid/NicoidVideoListFragment;)V
 +    .locals 9
 +    iget-object v0, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment;->d0:Ljava/lang/String;
 +    if-eqz v0, :done
-+    const-string v1, "nicovideo.jp/ranking/"
-+    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
-+    move-result v1
-+    if-nez v1, :allowed
 +    const-string v1, "nvapi.nicovideo.jp/v1/search/video"
 +    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
 +    move-result v1
 +    if-eqz v1, :done
-+    :allowed
 +    iget-object v1, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment;->b0:Landroid/widget/ListView;
 +    if-eqz v1, :done
 +    invoke-virtual {v1}, Landroid/view/View;->getParent()Landroid/view/ViewParent;
@@ -137,62 +79,49 @@ new file mode 100644
 +    invoke-direct {v7, v8, v8}, Landroid/view/ViewGroup$LayoutParams;-><init>(II)V
 +    invoke-virtual {v6, v1, v7}, Landroid/view/ViewGroup;->addView(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V
 +    invoke-virtual {v3, v6, v4, v5}, Landroid/view/ViewGroup;->addView(Landroid/view/View;ILandroid/view/ViewGroup$LayoutParams;)V
++    new-instance v8, Landroid/util/TypedValue;
++    invoke-direct {v8}, Landroid/util/TypedValue;-><init>()V
++    invoke-virtual {v6}, Landroid/view/View;->getContext()Landroid/content/Context;
++    move-result-object v7
++    invoke-virtual {v7}, Landroid/content/Context;->getTheme()Landroid/content/res/Resources$Theme;
++    move-result-object v7
++    const v5, 0x7f03005e
++    const/4 v4, 0x1
++    invoke-virtual {v7, v5, v8, v4}, Landroid/content/res/Resources$Theme;->resolveAttribute(ILandroid/util/TypedValue;Z)Z
++    move-result v7
++    if-eqz v7, :color_done
++    iget v7, v8, Landroid/util/TypedValue;->data:I
++    new-array v8, v4, [I
++    const/4 v4, 0x0
++    aput v7, v8, v4
++    invoke-virtual {v6, v8}, Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;->setColorSchemeColors([I)V
++    :color_done
++    new-instance v8, Landroid/util/TypedValue;
++    invoke-direct {v8}, Landroid/util/TypedValue;-><init>()V
++    const v5, 0x1010031  # android:colorBackground
++    invoke-virtual {v6}, Landroid/view/View;->getContext()Landroid/content/Context;
++    move-result-object v7
++    invoke-virtual {v7}, Landroid/content/Context;->getTheme()Landroid/content/res/Resources$Theme;
++    move-result-object v7
++    const/4 v4, 0x1
++    invoke-virtual {v7, v5, v8, v4}, Landroid/content/res/Resources$Theme;->resolveAttribute(ILandroid/util/TypedValue;Z)Z
++    move-result v7
++    if-eqz v7, :done
++    iget v7, v8, Landroid/util/TypedValue;->data:I
++    invoke-virtual {v6, v7}, Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;->setProgressBackgroundColorSchemeColor(I)V
 +    :done
 +    return-void
 +.end method
 +
 +.method public a()V
-+    .locals 3
-+    iget-boolean v0, p0, Le/e/a/PullRefresh;->pending:Z
-+    if-nez v0, :stop
-+    iget-object v0, p0, Le/e/a/PullRefresh;->fragment:Lcom/sauzask/nicoid/NicoidVideoListFragment;
-+    iget-object v0, v0, Lcom/sauzask/nicoid/NicoidVideoListFragment;->c0:Le/e/a/e0;
-+    if-eqz v0, :stop
-+    iget-boolean v1, v0, Le/e/a/e0;->n:Z
-+    if-nez v1, :stop
-+    const/4 v1, 0x1
-+    iput-boolean v1, p0, Le/e/a/PullRefresh;->pending:Z
-+    const/4 v2, 0x0
-+    iput v2, v0, Le/e/a/e0;->j:I
-+    iput v2, v0, Le/e/a/e0;->f:I
-+    iput-boolean v2, v0, Le/e/a/e0;->o:Z
-+    iget-object v2, v0, Le/e/a/e0;->b:Ljava/lang/String;
-+    iput-object v2, v0, Le/e/a/e0;->a:Ljava/lang/String;
-+    invoke-virtual {v0}, Le/e/a/e0;->a()V
-+    return-void
-+    :stop
++    .locals 2
 +    iget-object v0, p0, Le/e/a/PullRefresh;->layout:Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;
 +    const/4 v1, 0x0
 +    invoke-virtual {v0, v1}, Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;->setRefreshing(Z)V
-+    return-void
-+.end method
-+
-+.method public static replace(Lcom/sauzask/nicoid/NicoidVideoListFragment;)V
-+    .locals 2
-+    invoke-static {p0}, Le/e/a/PullRefresh;->current(Lcom/sauzask/nicoid/NicoidVideoListFragment;)Le/e/a/PullRefresh;
-+    move-result-object v0
++    iget-object v0, p0, Le/e/a/PullRefresh;->fragment:Lcom/sauzask/nicoid/NicoidVideoListFragment;
++    iget-object v0, v0, Lcom/sauzask/nicoid/NicoidVideoListFragment;->o0:Landroid/app/Activity;
 +    if-eqz v0, :done
-+    iget-boolean v0, v0, Le/e/a/PullRefresh;->pending:Z
-+    if-eqz v0, :done
-+    iget-object v0, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment;->a0:Ljava/util/ArrayList;
-+    invoke-virtual {v0}, Ljava/util/ArrayList;->clear()V
-+    iget-object v0, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment;->p0:Le/e/a/b0;
-+    invoke-virtual {v0}, Le/e/a/b0;->notifyDataSetChanged()V
-+    :done
-+    return-void
-+.end method
-+
-+.method public static finish(Lcom/sauzask/nicoid/NicoidVideoListFragment;)V
-+    .locals 2
-+    invoke-static {p0}, Le/e/a/PullRefresh;->current(Lcom/sauzask/nicoid/NicoidVideoListFragment;)Le/e/a/PullRefresh;
-+    move-result-object v0
-+    if-eqz v0, :done
-+    iget-boolean v1, v0, Le/e/a/PullRefresh;->pending:Z
-+    if-eqz v1, :done
-+    const/4 v1, 0x0
-+    iput-boolean v1, v0, Le/e/a/PullRefresh;->pending:Z
-+    iget-object v0, v0, Le/e/a/PullRefresh;->layout:Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;
-+    invoke-virtual {v0, v1}, Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;->setRefreshing(Z)V
++    invoke-virtual {v0}, Landroid/app/Activity;->recreate()V
 +    :done
 +    return-void
 +.end method

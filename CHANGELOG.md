@@ -1,3 +1,9 @@
+## [1.2.1](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.2.0...v1.2.1) (2026-10-01)
+
+### 🐛 Bug Fixes
+
+* update patch description ([52a37cb](https://github.com/chikuwadon/nicoid-re-patches/commit/52a37cbf3d8616c3f856bb73f878f00a6124e7bf))
+
 ## [1.2.0](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.1.0...v1.2.0) (2026-10-01)
 
 ### ✨ New Features

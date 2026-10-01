@@ -1,10 +1,10 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "patches": [
     {
       "name": "nicoid Re",
-      "description": "nicoid向けのMorpheパッチです。現在のニコニコ動画の仕様に対応し、ダークモードとAndroid 16をサポートします。その他、各種機能の改善・追加を行っています。",
+      "description": "nicoid向けのMorpheパッチ。現在のニコニコ動画の仕様に対応。ダークモードとAndroid 16にサポート。その他、各種機能の改善・追加。",
       "default": true,
       "category": null,
       "dependencies": [

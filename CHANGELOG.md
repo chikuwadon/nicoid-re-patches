@@ -1,3 +1,9 @@
+## [1.2.0-dev.5](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.2.0-dev.4...v1.2.0-dev.5) (2026-10-01)
+
+### ✨ New Features
+
+* add portrait short-video feed and guarded swipe navigation ([887b3ee](https://github.com/chikuwadon/nicoid-re-patches/commit/887b3eea6cc90befe77c2a38681f8eb48f669128))
+
 ## [1.2.0-dev.4](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.2.0-dev.3...v1.2.0-dev.4) (2026-10-01)
 
 ### 🐛 Bug Fixes

@@ -1,5 +1,10 @@
 group = "app.nicoid"
 
+repositories {
+    google()
+    mavenCentral()
+}
+
 patches {
     // TODO: Update this section with your project details.
     about {
@@ -16,10 +21,75 @@ patches {
 // Separate configuration so gson is available at runtime for the
 // generatePatchesList task but never bundled into the APK.
 val patchListGeneratorClasspath = configurations.create("patchListGeneratorClasspath")
+val nicoidD8 = configurations.create("nicoidD8")
 
 dependencies {
     compileOnly(libs.gson)
     patchListGeneratorClasspath(libs.gson)
+    add(nicoidD8.name, "com.android.tools:r8:9.4.28")
+}
+
+val androidJar = providers.provider {
+    val sdk = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
+        ?: error("Android SDK was not found")
+    val platforms = file("$sdk/platforms").listFiles { f -> f.isDirectory && f.name.startsWith("android-") }
+        ?.sortedByDescending { it.name.removePrefix("android-").toIntOrNull() ?: 0 }.orEmpty()
+    platforms.firstOrNull()?.resolve("android.jar")?.takeIf { it.isFile }
+        ?: error("Android SDK platform android.jar was not found")
+}
+val generatedVersion = layout.buildDirectory.file("generated/nicoid-version/e/e/a/PatchVersion.java")
+val generateNicoidVersion = tasks.register("generateNicoidVersion") {
+    inputs.property("patchVersion", providers.gradleProperty("version").orElse(project.version.toString()))
+    outputs.file(generatedVersion)
+    doLast {
+        val version = providers.gradleProperty("version").orElse(project.version.toString()).get()
+        val suffix = if (version.contains("-dev.")) "（検証版）" else "（正式版）"
+        val file = generatedVersion.get().asFile
+        file.parentFile.mkdirs()
+        file.writeText("package e.e.a; public final class PatchVersion { public static final String DISPLAY = \"v$version $suffix\"; private PatchVersion() {} }\n", Charsets.UTF_8)
+    }
+}
+val compileNicoidHelpers = tasks.register<JavaCompile>("compileNicoidHelpers") {
+    dependsOn(generateNicoidVersion)
+    source(fileTree(rootProject.file("extensions/extension/src/main/java")) { include("**/*.java") })
+    source(generatedVersion)
+    classpath = files(androidJar)
+    destinationDirectory.set(layout.buildDirectory.dir("nicoid/helper-classes"))
+    options.encoding = "UTF-8"
+    options.release.set(8)
+}
+val nicoidHelpersJar = tasks.register<Jar>("nicoidHelpersJar") {
+    dependsOn(compileNicoidHelpers)
+    archiveFileName.set("nicoid-helpers.jar")
+    destinationDirectory.set(layout.buildDirectory.dir("nicoid"))
+    from(compileNicoidHelpers.flatMap { it.destinationDirectory })
+}
+val nicoidHelpersDex = tasks.register<JavaExec>("nicoidHelpersDex") {
+    dependsOn(nicoidHelpersJar)
+    classpath = nicoidD8
+    mainClass.set("com.android.tools.r8.D8")
+    val output = layout.buildDirectory.dir("nicoid/helper-dex")
+    doFirst { output.get().asFile.deleteRecursively() }
+    args("--min-api", "21", "--lib", androidJar.get().absolutePath,
+        "--lib", System.getProperty("java.home"), "--output", output.get().asFile.absolutePath,
+        nicoidHelpersJar.get().archiveFile.get().asFile.absolutePath)
+}
+val prepareNicoidHelpers = tasks.register("prepareNicoidHelpers") {
+    dependsOn(nicoidHelpersDex)
+    doLast {
+        val dex = layout.buildDirectory.file("nicoid/helper-dex/classes.dex").get().asFile
+        check(dex.isFile && dex.readBytes().take(4).toByteArray().contentEquals(byteArrayOf(0x64, 0x65, 0x78, 0x0a))) {
+            "Compiled nicoid helper DEX is missing or invalid"
+        }
+        val version = providers.gradleProperty("version").orElse(project.version.toString()).get()
+        val dexText = String(dex.readBytes(), Charsets.ISO_8859_1)
+        check(dexText.contains("v$version")) { "Patch version is missing from the compiled settings helper" }
+        listOf("setMeasureBasedOnAspectRatioEnabled", "nicoid_debug_category", "nicoid_other_category",
+            "ショート動画を読み込んでいます").forEach { marker ->
+            check(dexText.contains(marker)) { "Compiled helpers are missing expected Shorts/settings behavior: $marker" }
+        }
+        dex.copyTo(rootProject.file("patches/src/main/resources/nicoid/helpers.mpe"), overwrite = true)
+    }
 }
 
 tasks {
@@ -27,6 +97,7 @@ tasks {
         description = "Build patch with patch list"
 
         dependsOn(build)
+        dependsOn(prepareNicoidHelpers)
 
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
         mainClass.set("util.PatchListGeneratorKt")
@@ -38,3 +109,6 @@ tasks {
     }
 }
 
+tasks.named("buildAndroid") { dependsOn(prepareNicoidHelpers) }
+tasks.named("build") { dependsOn(prepareNicoidHelpers) }
+tasks.named("processResources") { dependsOn(prepareNicoidHelpers) }

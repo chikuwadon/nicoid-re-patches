@@ -1,8 +1,26 @@
-# nicoid Mod Patches
+# nicoid Re / nicoid Mod Patches
+
+nicoid 6.49を「nicoid Re」として改修する、コミュニティ開発のMorpheパッチです。動画再生機能とAndroid互換性の改善を目的としています。
+Community-maintained Morphe patches that modernize nicoid 6.49 as **nicoid Re**, improving video playback and Android compatibility.
+
+## 日本語
+
+- アプリ名は **nicoid Re**、Androidの表示バージョンは **6.49** 固定です。変更はパッチの版数で管理します。
+- 関連動画の選択メニューには「動画再生」「動画情報」「ポップアップ再生」「バックグラウンド再生」「キャッシュの取得」を表示します。動画を直接タップしたときの既定動作は維持します。
+- Material Youに対応した速度・画質選択、9段階の再生速度、デフォルト速度設定、任意の再生位置保存に対応します。
+- アプリ切替時・戻る操作時の動作を設定できます。初期値「何もしない」は従来の停止・画面終了動作を維持します。再生位置保存の初期値はOFFです。
+- ポップアップのピンチ拡大縮小、コメントサイズ設定、画質変更時の位置・一時停止状態の復元、イヤホン切断時の一時停止に対応します。
+- 正式版は **v1.0.0**、開発・検証版は **dev** で管理します。実機での確認結果を確認するまで正式版に昇格しません。
+- 正確な元APKが必要です。元APK、実機ログ、署名鍵をこのリポジトリにアップロードしないでください。
+
+以下に英語の仕様、変更内容、ビルド方法、検証上の注意を記載します。
+The English specification, change list, build instructions, and validation notes follow.
+
+## English
 
 Morphe patches for nicoid 6.49.
 Input: `com.sauzask.nicoid` / 6.49. Output: `com.sauzask.nicoid.hls` / 6.49, display name `nicoid Re`.
-Stable release remains `1.0.0` (app display `1.00`). This development candidate is `1.1.0-dev.1` (app display `1.10-dev.1`).
+Stable release remains `1.0.0` (app display `1.00`). This development candidate is `1.1.0-dev.2` (app display `1.10-dev.2`).
 Android versionCode advances for updates; the displayed app versionName remains `6.49`.
 Changing versionName does not make a modified APK a supported input: the original APK is still required.
 Original APK SHA-256: `17fc6b46228af184437ade7e6f5573915bc655b86996307ff3270fdf35279cce`.
@@ -82,4 +100,5 @@ paused-state restoration, speed and repeat on a physical device.
 ## License
 
 Template-derived code follows [GPLv3](LICENSE) and [NOTICE](NOTICE).
+
 

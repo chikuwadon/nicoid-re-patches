@@ -48,7 +48,7 @@ index f5cafdf..6188f02 100644
  versionInfo:
 -  versionCode: 149
 -  versionName: 6.49
-+  versionCode: 199
++  versionCode: 200
 +  versionName: '6.49'
  sharedLibrary: false
  sparseResources: false
@@ -264,7 +264,7 @@ index dc620db..caca8ab 100644
          <Preference android:title="@string/settingLicense" android:key="license" />
          <Preference android:title="@string/settingTranslation" android:key="app_translation" android:summary="@string/settingTranslator" />
          <Preference android:title="Version.1.0" android:key="info" android:summary="Copyright (c) sauzask" />
-+        <Preference android:title="パッチバージョン" android:key="nicoid_patch_version" android:summary="1.10-dev.1（検証版）" android:selectable="false" />
++        <Preference android:title="パッチバージョン" android:key="nicoid_patch_version" android:summary="1.10-dev.2（検証版）" android:selectable="false" />
      </PreferenceCategory>
  </PreferenceScreen>
 diff --git a/smali/com/sauzask/nicoid/NicoidPopupViewService.smali b/smali/com/sauzask/nicoid/NicoidPopupViewService.smali
@@ -1000,3 +1000,29 @@ index c8e5b0a..e8c22c7 100644
  .end method
  
  .method public static a(I)Ljava/lang/CharSequence;
+
+diff --git a/smali/e/e/a/b0$a.smali b/smali/e/e/a/b0$a.smali
+--- a/smali/e/e/a/b0$a.smali
++++ b/smali/e/e/a/b0$a.smali
+@@ -221,10 +221,6 @@
+     iget-object v2, p0, Le/e/a/b0$a;->e:Le/e/a/b0;
+ 
+     .line 15
+-    iget-boolean v9, v2, Le/e/a/b0;->k:Z
+-
+-    if-eqz v9, :cond_7
+-
+     .line 16
+     iget-object v9, v0, Ld/b/q/z;->a:Ld/b/p/i/g;
+ 
+@@ -248,10 +244,6 @@
+     iget-object v1, p0, Le/e/a/b0$a;->e:Le/e/a/b0;
+ 
+     .line 19
+-    iget-boolean v2, v1, Le/e/a/b0;->k:Z
+-
+-    if-eqz v2, :cond_8
+-
+     .line 20
+     iget-object v2, v0, Ld/b/q/z;->a:Ld/b/p/i/g;
+ 

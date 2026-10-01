@@ -1,3 +1,9 @@
+## [1.1.0-dev.1](https://github.com/chikuwadon/nicoid-mod-patches/compare/v1.0.0...v1.1.0-dev.1) (2026-10-01)
+
+### ✨ New Features
+
+* add playback policies and improve popup and video information ([3ea7f8a](https://github.com/chikuwadon/nicoid-mod-patches/commit/3ea7f8a56b7c11f3659d5bb78a8958313f50b116))
+
 ## 1.0.0 (2026-10-01)
 
 ### ✨ New Features

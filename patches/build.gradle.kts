@@ -46,22 +46,22 @@ val androidJar = providers.provider {
     platforms.firstOrNull()?.resolve("android.jar")?.takeIf { it.isFile }
         ?: error("Android SDK platform android.jar was not found")
 }
-val generatedVersion = layout.buildDirectory.file("generated/nicoid-version/e/e/a/PatchVersion.java")
+val modernShortsSource = rootProject.file("extensions/extension/src/main/java/e/e/a/ModernShorts.java")
 val generateNicoidVersion = tasks.register("generateNicoidVersion") {
     inputs.property("patchVersion", providers.gradleProperty("version").orElse(project.version.toString()))
-    outputs.file(generatedVersion)
+    outputs.file(modernShortsSource)
     doLast {
         val version = providers.gradleProperty("version").orElse(project.version.toString()).get()
         val suffix = if (version.contains("-dev.")) "（検証版）" else "（正式版）"
-        val file = generatedVersion.get().asFile
-        file.parentFile.mkdirs()
-        file.writeText("package e.e.a; public final class PatchVersion { public static final String DISPLAY = \"v$version $suffix\"; private PatchVersion() {} }\n", Charsets.UTF_8)
+        val source = modernShortsSource.readText(Charsets.UTF_8)
+        val marker = Regex("    private static final String PATCH_VERSION = \"[^\"]*\";")
+        check(marker.containsMatchIn(source)) { "Patch version marker is missing from ModernShorts.java" }
+        modernShortsSource.writeText(marker.replace(source, "    private static final String PATCH_VERSION = \"v$version $suffix\";"), Charsets.UTF_8)
     }
 }
 val compileNicoidHelpers = tasks.register<JavaCompile>("compileNicoidHelpers") {
     dependsOn(generateNicoidVersion)
     source(fileTree(rootProject.file("extensions/extension/src/main/java")) { include("**/*.java") })
-    source(generatedVersion)
     classpath = files(androidJar)
     destinationDirectory.set(layout.buildDirectory.dir("nicoid/helper-classes"))
     options.encoding = "UTF-8"
@@ -121,3 +121,10 @@ tasks {
 tasks.named("buildAndroid") { dependsOn(prepareNicoidHelpers) }
 tasks.named("build") { dependsOn(prepareNicoidHelpers) }
 tasks.named("processResources") { dependsOn(prepareNicoidHelpers) }
+
+val patchesProject = project
+gradle.projectsEvaluated {
+    val versionTask = patchesProject.tasks.named("generateNicoidVersion")
+    patchesProject.rootProject.findProject(":extensions:extension")?.tasks?.matching { it.name.contains("JavaWithJavac") }
+        ?.configureEach { dependsOn(versionTask) }
+}

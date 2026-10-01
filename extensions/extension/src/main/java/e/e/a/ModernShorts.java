@@ -32,6 +32,7 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -49,6 +50,7 @@ import org.json.JSONObject;
 
 /** Short feeds reuse nicoid's existing player, comments and playback policies. */
 public final class ModernShorts {
+    private static final String PATCH_VERSION = "v1.2.0-dev.5（検証版）";
     private static final String PLAYER = "com.sauzask.nicoid.NicoidVideoActivity";
     private static final String MODE = "nicoid_re_shorts";
     private static final String SESSION = "nicoid_re_shorts_session";
@@ -121,7 +123,7 @@ public final class ModernShorts {
             p.setDefaultValue(true); group.addPreference(p);
         }
         Preference version = a.findPreference("nicoid_patch_version");
-        if (version != null) version.setSummary(PatchVersion.DISPLAY);
+        if (version != null) version.setSummary(PATCH_VERSION);
         addSettingsSection(a, screen, "setting_whole", "nicoid_other_category", "その他", "nicoid_restart_app",
             "アプリを再起動", "設定を反映するため、アプリを終了して再度起動します。再生中の動画は停止します。", true);
         addSettingsSection(a, screen, null, "nicoid_debug_category", "デバッグ", "nicoid_share_debug",

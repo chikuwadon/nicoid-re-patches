@@ -33,6 +33,30 @@ SHA-256：`17fc6b46228af184437ade7e6f5573915bc655b86996307ff3270fdf35279cce`
 
 <!-- PATCHES_END -->
 
+## Morphe Managerへの追加と更新
+
+### Morpheへリポジトリを追加する
+
+Morphe ManagerをインストールしたAndroid端末で、次のリンクを開きます。Morpheの確認画面でソース名とURLを確認し、「追加」をタップしてください。
+
+[Morpheへnicoid Reを追加](https://morphe.software/add-source?github=chikuwadon%2Fnicoid-re-patches&name=nicoid%20Re)
+
+リンクを開けない場合は、Morphe Managerで次の手順を行います。
+
+1. ホーム画面下部の「Sources」をタップします。
+2. 「＋」をタップし、「Remote」を選びます。
+3. 次のURLを入力して「Add」をタップします。
+
+```
+https://github.com/chikuwadon/nicoid-re-patches
+```
+
+### パッチを更新する
+
+リポジトリを追加すると、Morphe Managerが新しいパッチを定期的に確認します。すぐに確認する場合は、「Sources」を開き、nicoid Reのソースカードにある更新ボタン（↻）をタップします。
+
+新しいパッチを適用するには、ホーム画面でnicoid Reのカードに「Update」が表示されたときにカードを開き、画面の案内に沿って再パッチしてください。ソースの更新と、アプリへのパッチ適用は別の操作です。
+
 ## 変更点
 
 - Android 16に対応しました。

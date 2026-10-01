@@ -1,10 +1,10 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.0.0-dev.1",
+  "version": "1.0.0",
   "patches": [
     {
       "name": "nicoid Mod",
-      "description": "Patch 0.91 (development): pinch-resizable popup, modern playback, bold right-aligned controls, readable themes, resolution labels and disabled advertising. App version remains 6.49.",
+      "description": "nicoid Re patch v1.00 (stable): pinch-resizable popup, modern playback, bold right-aligned controls, readable themes, resolution labels and disabled advertising. App version remains 6.49.",
       "default": true,
       "category": null,
       "dependencies": [

@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-30T09:25:52",
-  "description": "## 1.0.0-dev.1 (2026-09-30)\n\n### ✨ New Features\n\n* prepare stable nicoid mod v1.00 release ([491641d](https://github.com/chikuwadon/nicoid-mod-patches/commit/491641d5f521bacf0e7b72e51ff1124a22398cdd))",
-  "download_url": "https://github.com/chikuwadon/nicoid-mod-patches/releases/download/v1.0.0-dev.1/patches-1.0.0-dev.1.mpp",
+  "created_at": "2026-10-01T01:15:02",
+  "description": "## 1.0.0 (2026-10-01)\n\n### ✨ New Features\n\n* prepare stable nicoid mod v1.00 release ([491641d](https://github.com/chikuwadon/nicoid-mod-patches/commit/491641d5f521bacf0e7b72e51ff1124a22398cdd))\n* release nicoid Re v1.00 ([bcc5118](https://github.com/chikuwadon/nicoid-mod-patches/commit/bcc5118bd10929ebe801c9f48a610185755e69df))",
+  "download_url": "https://github.com/chikuwadon/nicoid-mod-patches/releases/download/v1.0.0/patches-1.0.0.mpp",
   "signature_download_url": "",
-  "version": "1.0.0-dev.1"
+  "version": "1.0.0"
 }

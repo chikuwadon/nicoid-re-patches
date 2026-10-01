@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-10-01T06:36:21",
-  "description": "## [1.2.0-dev.1](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.1.0...v1.2.0-dev.1) (2026-10-01)\n\n### ✨ New Features\n\n* rename patch entry to nicoid Re ([92a8b53](https://github.com/chikuwadon/nicoid-re-patches/commit/92a8b53acd552940b3af128fa4648399a4bb1476))",
-  "download_url": "https://github.com/chikuwadon/nicoid-re-patches/releases/download/v1.2.0-dev.1/patches-1.2.0-dev.1.mpp",
+  "created_at": "2026-10-01T06:44:10",
+  "description": "## [1.2.0-dev.2](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.2.0-dev.1...v1.2.0-dev.2) (2026-10-01)\n\n### 🐛 Bug Fixes\n\n* update patch description ([6bd9db6](https://github.com/chikuwadon/nicoid-re-patches/commit/6bd9db6520e61f2612ad8380dc47fac327e60e8c))",
+  "download_url": "https://github.com/chikuwadon/nicoid-re-patches/releases/download/v1.2.0-dev.2/patches-1.2.0-dev.2.mpp",
   "signature_download_url": "",
-  "version": "1.2.0-dev.1"
+  "version": "1.2.0-dev.2"
 }

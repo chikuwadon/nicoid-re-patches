@@ -18,7 +18,7 @@ from pathlib import Path
 
 
 if len(sys.argv) < 3:
-    print("Usage: generate_patches_readme.py <owner/repo> <branch> [json] [readme]")
+    print("使い方：generate_patches_readme.py <owner/repo> <branch> [json] [readme]")
     sys.exit(1)
 
 repo_full   = sys.argv[1]
@@ -75,9 +75,9 @@ def anchor(name):
 
 
 def patches_table(patches):
-    """Render a sorted markdown table of patches with name, description, and options."""
+    """パッチ名、説明、設定を日本語の表にして出力する。"""
     rows = [
-        "| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |",
+        "| 💊 パッチ | 📜 説明 | ⚙️ 設定 |",
         "|----------|----------------|-----------|",
     ]
     for p in sorted(patches, key=lambda x: x["name"]):
@@ -95,9 +95,8 @@ def patches_table(patches):
 
 
 def versions_table(targets):
-    """Render a markdown table of supported versions.
-    Experimental versions get a 🧪 prefix.
-    Versions with a description get it shown in a second row below.
+    """対応バージョンを日本語の表にして出力する。
+    実験版には🧪を付け、説明がある場合は次の行に表示する。
     """
     if not targets:
         return ""
@@ -129,12 +128,12 @@ def spoiler(label, count, targets, tbl, expanded=False):
     """Wrap a patches table in a <details> spoiler with a versions sub-table.
     If expanded=True, the spoiler is open by default (for repos with few patches).
     """
-    noun = "patch" if count == 1 else "patches"
+    noun = "件"
     vtbl = versions_table(targets)
-    versions_section = f"**🎯 Supported versions:**\n\n{vtbl}\n\n" if vtbl else ""
+    versions_section = f"**🎯 対応バージョン：**\n\n{vtbl}\n\n" if vtbl else ""
     tag = "<details open>" if expanded else "<details>"
     return f"""{tag}
-<summary>{label}&nbsp;&nbsp;•&nbsp;&nbsp;{count} {noun}</summary>
+<summary>{label}&nbsp;&nbsp;•&nbsp;&nbsp;パッチ{count}件</summary>
 <br>
 
 {versions_section}{tbl}
@@ -146,8 +145,8 @@ def build_content(expanded=False):
     """Build the full generated patches section."""
     lines = [
         f"> **[v{ver}](https://github.com/{owner}/{repo}/releases/tag/v{ver})**"
-        f"&nbsp;&nbsp;•&nbsp;&nbsp;`{branch}`&nbsp;&nbsp;•&nbsp;&nbsp;"
-        f"{total} patches total"
+        f"&nbsp;&nbsp;•&nbsp;&nbsp;`{branch}`ブランチ&nbsp;&nbsp;•&nbsp;&nbsp;"
+        f"パッチ{total}件"
     ]
 
     # One spoiler per app, in the order they appear in the JSON
@@ -160,10 +159,10 @@ def build_content(expanded=False):
     # Universal patches (no specific app)
     if universal:
         uni_patches = list(universal.values())
-        noun = "patch" if len(uni_patches) == 1 else "patches"
+        noun = "件"
         tag  = "<details open>" if expanded else "<details>"
         lines.append(f"""{tag}
-<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;{len(uni_patches)} {noun}</summary>
+<summary>🌐 共通パッチ&nbsp;&nbsp;•&nbsp;&nbsp;パッチ{len(uni_patches)}件</summary>
 <br>
 
 {patches_table(uni_patches)}

@@ -1,10 +1,10 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.1.0-dev.2",
+  "version": "1.1.0",
   "patches": [
     {
       "name": "nicoid Mod",
-      "description": "nicoid Re 検証版 v1.10-dev.2：関連動画から通常・ポップアップ・バックグラウンド再生を選択。表示バージョンは6.49固定。 / nicoid Re dev patch v1.10-dev.2: select normal, popup or background playback from related videos. App version remains 6.49.",
+      "description": "nicoid Reパッチ：関連動画から通常再生・ポップアップ再生・バックグラウンド再生を選択できます。Android 16に対応します。",
       "default": true,
       "category": null,
       "dependencies": [

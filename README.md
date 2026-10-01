@@ -1,104 +1,96 @@
-# nicoid Re / nicoid Mod Patches
+# nicoid Re パッチ
 
-nicoid 6.49を「nicoid Re」として改修する、コミュニティ開発のMorpheパッチです。動画再生機能とAndroid互換性の改善を目的としています。
-Community-maintained Morphe patches that modernize nicoid 6.49 as **nicoid Re**, improving video playback and Android compatibility.
+nicoid 6.49向けのMorpheパッチです。アプリ名を「nicoid Re」に変更し、動画再生機能とAndroid互換性を改善します。
 
-## 日本語
+- アプリ名：**nicoid Re**
+- 対象アプリ：`com.sauzask.nicoid`（バージョン`6.49`）
+- 適用後：`com.sauzask.nicoid.hls`（表示バージョン`6.49`）
+- 正式版：`v1.0.0`
+- 開発・検証版：`dev`ブランチで管理
+- アプリの表示バージョンは`6.49`に固定し、変更はパッチの版数で管理します。
 
-- アプリ名は **nicoid Re**、Androidの表示バージョンは **6.49** 固定です。変更はパッチの版数で管理します。
-- 関連動画の選択メニューには「動画再生」「動画情報」「ポップアップ再生」「バックグラウンド再生」「キャッシュの取得」を表示します。動画を直接タップしたときの既定動作は維持します。
-- Material Youに対応した速度・画質選択、9段階の再生速度、デフォルト速度設定、任意の再生位置保存に対応します。
-- アプリ切替時・戻る操作時の動作を設定できます。初期値「何もしない」は従来の停止・画面終了動作を維持します。再生位置保存の初期値はOFFです。
-- ポップアップのピンチ拡大縮小、コメントサイズ設定、画質変更時の位置・一時停止状態の復元、イヤホン切断時の一時停止に対応します。
-- 正式版は **v1.0.0**、開発・検証版は **dev** で管理します。実機での確認結果を確認するまで正式版に昇格しません。
-- 正確な元APKが必要です。元APK、実機ログ、署名鍵をこのリポジトリにアップロードしないでください。
+適用には指定の元APKが必要です。バージョン名が同じでも別のAPKには適用できません。パッチは適用前に元APKのDEX、マニフェスト、リソーステーブルを照合します。
 
-以下に英語の仕様、変更内容、ビルド方法、検証上の注意を記載します。
-The English specification, change list, build instructions, and validation notes follow.
+元APKのSHA-256：`17fc6b46228af184437ade7e6f5573915bc655b86996307ff3270fdf35279cce`
 
-## English
+元APK、実機ログ、署名鍵はこのリポジトリに登録しないでください。
 
-Morphe patches for nicoid 6.49.
-Input: `com.sauzask.nicoid` / 6.49. Output: `com.sauzask.nicoid.hls` / 6.49, display name `nicoid Re`.
-Stable release remains `1.0.0` (app display `1.00`). This development candidate is `1.1.0-dev.2` (app display `1.10-dev.2`).
-Android versionCode advances for updates; the displayed app versionName remains `6.49`.
-Changing versionName does not make a modified APK a supported input: the original APK is still required.
-Original APK SHA-256: `17fc6b46228af184437ade7e6f5573915bc655b86996307ff3270fdf35279cce`.
-The patch verifies the original DEX, manifest and resource table before writing.
-
-## Patch releases
+## パッチ配布
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0-dev.2](https://github.com/chikuwadon/nicoid-mod-patches/releases/tag/v1.1.0-dev.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+> **[v1.1.0-dev.2](https://github.com/chikuwadon/nicoid-mod-patches/releases/tag/v1.1.0-dev.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`ブランチ&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件
 <details open>
-<summary>📦 nicoid&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 nicoid&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件</summary>
 <br>
 
-**🎯 Supported versions:**
+**🎯 対応バージョン：**
 
 | 6.49 |
 | :---: |
 
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+| 💊 パッチ | 📜 説明 | ⚙️ 設定 |
 |----------|----------------|-----------|
-| [nicoid Mod](#nicoid-mod) | nicoid Re 検証版 v1.10-dev.2：関連動画から通常・ポップアップ・バックグラウンド再生を選択。表示バージョンは6.49固定。 / nicoid Re dev patch v1.10-dev.2: select normal, popup or background playback from related videos. App version remains 6.49. |  |
+| [nicoid Mod](#nicoid-mod) | 関連動画から通常再生・ポップアップ再生・バックグラウンド再生を選択できます。アプリ表示バージョンは6.49固定です。 |  |
 
 </details>
 
 <!-- PATCHES_END -->
 
-## Changes
+## 主な変更内容
 
-- Two-finger popup pinch resize: preserves aspect ratio, clamps size/position to screen bounds,
-  cancels child button/seek actions and suppresses remaining finger events until release.
-  Existing single-finger movement and corner drag resize are retained; resized bounds are saved.
-- Fix popup-to-normal comment renderer transfer crash.
-- Five comment sizes: 60%, 80%, 100%, 120%, 140%; normal and popup playback. Applied on next playback.
-- Move Google Cast connect/disconnect below comment settings; remove menu/sidebar entries.
-- Popup controller row: quality, nine speeds (0.5/0.75/1/1.15/1.25/1.4/1.5/1.75/2x), loop.
-- Themed speed and quality dialogs in both players, including dynamic-color popup dialogs.
-- Repair the information-only activity layout after removing the advertising anchor; accept numeric and string metadata versions.
-- Related-video menus always expose normal, background and popup playback alongside information/cache actions. Default tap behavior is unchanged.
-- Player settings: default speed, app-switch and Back playback policies, optional per-video playback-position saving.
-  Policy `none` retains existing behavior; background/popup policies apply to active normal playback.
-  Position saves every five seconds and at lifecycle boundaries. Near-complete videos restart from zero.
-- Pause normal/popup/background playback on `AUDIO_BECOMING_NOISY`; suppress automatic popup retries after unplugging.
-- Restore position and playing/paused state after quality changes.
-- Fix light-mode uploader/action surfaces and comment-list text, including system dark mode with the app's light theme.
-- Place compact popup speed, quality and loop controls at the top, leaving the bottom seek bar unobstructed.
-- Right-align popup controls; use 14sp bold text and 56x44dp hit areas for both popup and normal text controls.
-- Show available video resolutions in player quality settings after playback metadata is loaded; otherwise describe video-dependent resolution levels.
-- Correct the high-quality preference mapping to the highest available stream.
-- Remove advertising startup components and ad-removal billing screen registration; disable banner creation and remaining ad requests.
-- Advertising SDK classes remain inert for binary compatibility; this is not a claim that every SDK byte was removed.
+- ポップアップ画面を2本指で拡大・縮小できます。縦横比を保ち、画面内に収まるように調整します。従来の1本指での移動と角を使ったサイズ変更も利用できます。サイズと位置は保存されます。
+- ポップアップ再生から通常再生に切り替える際に、コメント表示機能で発生するクラッシュを修正しました。
+- コメントの大きさを5段階（60%、80%、100%、120%、140%）から設定できます。次回の再生から反映されます。
+- Google Castの接続・切断設定をコメント設定の下に移動し、メニューとサイドバーから項目を削除しました。
+- ポップアップ画面に画質、再生速度、ループ再生の操作ボタンを追加しました。再生速度は0.5、0.75、1.0、1.15、1.25、1.4、1.5、1.75、2.0倍から選べます。
+- 通常再生とポップアップ再生の速度・画質選択画面にMaterial Youテーマを適用しました。
+- 動画情報だけを表示する画面が空白になる不具合を修正し、数値形式と文字列形式の動画情報に対応しました。
+- 関連動画の選択メニューに「動画再生」「動画情報」「ポップアップ再生」「バックグラウンド再生」「キャッシュの取得」を表示します。動画をタップしたときの既定動作は従来どおりです。
+- プレイヤー設定でデフォルト再生速度、アプリ切替時と「戻る」操作時の動作、動画ごとの再生位置保存を設定できます。
+- 動作設定の初期値「何もしない」は、従来の停止・画面終了動作を維持します。再生位置保存の初期値はOFFです。
+- 再生位置は5秒ごとと画面の終了時に保存されます。動画の終わりに近い位置から再生を再開すると、先頭から再生します。
+- イヤホン切断時に通常・ポップアップ・バックグラウンド再生を一時停止し、切断をきっかけとしたポップアップの自動再試行を抑止します。
+- 画質変更時に再生位置と一時停止状態を復元します。
+- ライトテーマやダークテーマで、一部の投稿画面・操作画面・コメント一覧の表示を修正しました。
+- ポップアップ画面の操作ボタンを上部に配置し、シークバーを操作しやすくしました。通常再生とポップアップ再生の操作ボタンの文字位置・大きさも調整しました。
+- 再生情報の読み込み後、画質選択に利用可能な解像度を表示します。情報がない場合は動画によって解像度が異なることを案内します。
+- 高画質設定が利用可能な最高画質を選ぶように修正しました。
+- 広告の起動処理と広告除去の課金画面を無効にし、広告バナーと広告リクエストを停止しました。互換性のため広告関連クラスの一部は残っています。
 
-## Build
+## ビルド方法
 
-Run `./gradlew :patches:buildAndroid --no-daemon`.
-Output: `patches/build/libs/*.mpp`.
-Local builds require GitHub Packages read authentication for Morphe.
-The Private patch build on `dev` stores the bundle as a private Actions artifact for seven days.
-Original APK, device log and signing keys are excluded.
+リポジトリのルートで次のコマンドを実行します。
 
-The host build and policy tests do not prove device behavior. Verify information-only display,
-light/dark dynamic dialogs, all speeds, both mode-switch policies, saved positions, and wired/Bluetooth disconnects on Android before promoting this candidate.
+```sh
+./gradlew :patches:buildAndroid --no-daemon
+```
 
-## Porting
+生成先は`patches/build/libs/*.mpp`です。ローカルでビルドする場合、MorpheのGitHub Packagesを読み取るための認証が必要です。
 
-`method-delta.dex` contains changed methods only; `helpers.mpe` contains added helper classes only.
-The patch edits class members through Morphe APIs and does not replace the whole application DEX.
-`resources.zip` contains compiled resource differences locked to the exact original input.
+`dev`ブランチへのプッシュでPrivate patch buildが実行され、生成物は7日間Actionsの成果物として保存されます。
 
-## Validation
+## 検証
 
-Modified smali/resources compiled successfully with Apktool 2.11.1.
-Additional controls compiled with the Android SDK.
-Morphe bundle build/application and physical-device verification are recorded separately.
-Verify popup -> normal -> popup, all comment sizes, Cast connect/disconnect, quality position restoration,
-paused-state restoration, speed and repeat on a physical device.
+ソースのビルドや自動チェックだけでは、Android端末上での動作確認を完了したことにはなりません。正式版へ反映する前に、実機で次の項目を確認してください。
 
-## License
+- 動画情報のみを表示する画面
+- Material Youの速度・画質選択画面
+- 9段階の再生速度とデフォルト速度
+- アプリ切替時と「戻る」操作時の各動作設定
+- 再生位置の保存と復元
+- 有線・Bluetoothイヤホンの切断時の一時停止
+- 通常再生、ポップアップ再生、バックグラウンド再生と関連動画メニュー
+- ポップアップ画面の拡大・縮小、移動、再表示時のサイズ復元
+- コメントサイズ、Google Cast接続・切断、画質変更後の再生状態
 
-Template-derived code follows [GPLv3](LICENSE) and [NOTICE](NOTICE).
+## パッチの構成
 
+- `method-delta.dex`：変更したメソッド
+- `helpers.mpe`：追加した補助クラス
+- `resources.zip`：指定の元APKに対応するコンパイル済みリソース差分
 
+パッチはMorpheの仕組みを使って対象クラスのメンバーを変更します。アプリ全体のDEXを置き換えるものではありません。
+
+## ライセンス
+
+テンプレート由来のコードは[GPLv3](LICENSE)および[NOTICE](NOTICE)に従います。

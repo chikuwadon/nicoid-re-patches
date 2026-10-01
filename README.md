@@ -15,7 +15,7 @@ SHA-256：`17fc6b46228af184437ade7e6f5573915bc655b86996307ff3270fdf35279cce`
 ## パッチ配布
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0](https://github.com/chikuwadon/nicoid-re-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`ブランチ&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件
+> **[v1.2.0-dev.1](https://github.com/chikuwadon/nicoid-re-patches/releases/tag/v1.2.0-dev.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`ブランチ&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件
 <details open>
 <summary>📦 nicoid&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件</summary>
 <br>
@@ -27,7 +27,7 @@ SHA-256：`17fc6b46228af184437ade7e6f5573915bc655b86996307ff3270fdf35279cce`
 
 | 💊 パッチ | 📜 説明 | ⚙️ 設定 |
 |----------|----------------|-----------|
-| [nicoid Mod](#変更点) | nicoid向けのMorpheパッチです。現在のニコニコ動画の仕様に対応し、ダークモードとAndroid 16をサポートします。その他、各種機能の改善・追加を行っています。 | なし |
+| [nicoid Re](#nicoid-re) | nicoid向けのMorpheパッチです。現在のニコニコ動画の仕様に対応し、ダークモードとAndroid 16をサポートします。その他、各種機能の改善・追加を行っています。 | なし |
 
 </details>
 

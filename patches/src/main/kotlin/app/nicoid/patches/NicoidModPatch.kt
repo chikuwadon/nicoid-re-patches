@@ -75,7 +75,7 @@ private val nicoidResources = rawResourcePatch {
 @Suppress("unused")
 val nicoidModPatch = bytecodePatch(
     name = "nicoid Mod",
-    description = "nicoid Re 検証版 v1.10-dev.2：関連動画から通常・ポップアップ・バックグラウンド再生を選択。表示バージョンは6.49固定。 / nicoid Re dev patch v1.10-dev.2: select normal, popup or background playback from related videos. App version remains 6.49.",
+    description = "nicoid Reパッチ：関連動画から通常再生・ポップアップ再生・バックグラウンド再生を選択できます。Android 16に対応します。",
     default = true
 ) {
     compatibleWith(nicoid649)

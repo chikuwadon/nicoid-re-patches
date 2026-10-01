@@ -22,12 +22,13 @@ import java.util.WeakHashMap;
 
 /** Exact nicoid 6.49 field names; the patch verifies the input before installing. */
 public final class ModernEnhancements {
-    private static final float[] SPEEDS = {.75f, 1f, 1.25f, 1.5f, 2f};
+    private static final float[] SPEEDS = PlaybackSession.SPEEDS;
     private static final float[] SIZES = {.6f, .8f, 1f, 1.2f, 1.4f};
     private static final WeakHashMap<Object, State> STATES = new WeakHashMap<>();
     private static final class State {
         long seek = -1;
         boolean resume;
+        boolean unplugged;
         int generation;
         boolean alive = true;
         Button quality, speed, loop;
@@ -50,6 +51,7 @@ public final class ModernEnhancements {
         catch (RuntimeException ex) { return base; }
     }
     public static void settings(PreferenceActivity activity) {
+        PlaybackSession.settings(activity);
         ListPreference quality = (ListPreference) activity.findPreference("quality_mode");
         if (quality != null) {
             CharSequence[] labels = new CharSequence[]{"最大画質（最大解像度・動画により変動）",
@@ -129,12 +131,13 @@ public final class ModernEnhancements {
         return b;
     }
     private static void choose(Object object, int mode) {
+        PlaybackSession.interaction(object,true);
         Service service = (Service) object;
         try {
             String[] labels;
             int selected = 1;
             if (mode == 1) {
-                labels = new String[]{"0.75×", "1.0×", "1.25×", "1.5×", "2.0×"};
+                labels = PlaybackSession.LABELS;
                 float current = speed();
                 for (int i = 0; i < SPEEDS.length; i++) if (SPEEDS[i] == current) selected = i;
             } else {
@@ -144,7 +147,7 @@ public final class ModernEnhancements {
                 int current = (Integer) get(get(object, "z"), "e");
                 selected = current == 4 ? 2 : current == 3 ? 1 : 0;
             }
-            AlertDialog dialog = new AlertDialog.Builder(service)
+            AlertDialog dialog = new AlertDialog.Builder(PlaybackSession.dialogContext(service))
                 .setTitle(mode == 1 ? "再生速度" : "画質")
                 .setSingleChoiceItems(labels, selected, (d, index) -> {
                     d.dismiss();
@@ -160,6 +163,7 @@ public final class ModernEnhancements {
             dialog.getWindow().setType(Build.VERSION.SDK_INT >= 26 ?
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY : WindowManager.LayoutParams.TYPE_PHONE);
             dialog.show();
+            PlaybackSession.styleDialog(dialog);
         } catch (Exception ex) { error(service, ex); }
     }
     private static float speed() throws Exception {
@@ -180,6 +184,7 @@ public final class ModernEnhancements {
             if (previous == quality) return;
             long position = (Long) call(player, "getCurrentPosition", new Class<?>[0]);
             boolean playing = (Boolean) call(player, "isPlaying", new Class<?>[0]);
+            state.unplugged = false;
             int generation = ++state.generation;
             set(model, "e", quality);
             new Thread(() -> {
@@ -191,7 +196,7 @@ public final class ModernEnhancements {
                             if (!state.alive || state.generation != generation || !video.equals(get(object, "f"))) return;
                             if (url == null || url.isEmpty()) { set(model, "e", previous); throw new IllegalStateException("画質を取得できませんでした"); }
                             state.seek = position;
-                            state.resume = playing;
+                            state.resume = playing && !state.unplugged;
                             call(object, "c", new Class<?>[]{String.class}, url);
                             update(object);
                         } catch (Exception ex) { error(service, ex); }
@@ -207,6 +212,7 @@ public final class ModernEnhancements {
         } catch (Exception ex) { error(service, ex); }
     }
     public static void prepared(Object object) {
+        PlaybackSession.prepared(object, true);
         try {
             Object player = get(object, "e");
             call(player, "setPlaybackSpeed", new Class<?>[]{float.class}, speed());
@@ -220,8 +226,13 @@ public final class ModernEnhancements {
         } catch (Exception ex) { error((Context) object, ex); }
     }
     public static void destroy(Object object) {
+        PlaybackSession.destroy(object, true);
         State state = STATES.remove(object);
         if (state != null) { state.alive = false; state.generation++; }
+    }
+    public static void noisy(Object object) {
+        State state = STATES.get(object);
+        if (state != null) { state.resume = false; state.unplugged = true; }
     }
     private static void update(Object object) throws Exception {
         State state = STATES.get(object);

@@ -1,5 +1,15 @@
 # Popup pinch host regression checks
 
+Playback policy checks (no Android runtime required):
+
+```sh
+javac -d /tmp/nicoid-playback-tests extensions/extension/src/main/java/e/e/a/PlaybackRules.java porting/tests/PlaybackRulesTest.java
+java -cp /tmp/nicoid-playback-tests PlaybackRulesTest
+```
+
+The 38 checks cover all nine speeds, invalid preference fallback, metadata-version formats,
+completion/reset behavior and preserving an explicit seek or cross-mode transfer.
+
 From the repository root (JDK required):
 
 ```sh

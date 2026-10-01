@@ -78,7 +78,10 @@ val nicoidHelpersDex = tasks.register<JavaExec>("nicoidHelpersDex") {
     classpath = nicoidD8
     mainClass.set("com.android.tools.r8.D8")
     val output = layout.buildDirectory.dir("nicoid/helper-dex")
-    doFirst { output.get().asFile.deleteRecursively() }
+    doFirst {
+        output.get().asFile.deleteRecursively()
+        check(output.get().asFile.mkdirs()) { "Could not create D8 output directory" }
+    }
     args("--min-api", "21", "--lib", androidJar.get().absolutePath,
         "--lib", System.getProperty("java.home"), "--output", output.get().asFile.absolutePath,
         nicoidHelpersJar.get().archiveFile.get().asFile.absolutePath)

@@ -92,3 +92,6 @@ https://github.com/chikuwadon/nicoid-re-patches
 
 テンプレート由来のコードは[GPLv3](LICENSE)および[NOTICE](NOTICE)に従います。
 
+## クレジット
+
+- nicoid：© sauza-sk

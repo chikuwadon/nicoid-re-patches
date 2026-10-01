@@ -29,7 +29,7 @@ The patch verifies the original DEX, manifest and resource table before writing.
 ## Patch releases
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0-dev.1](https://github.com/chikuwadon/nicoid-mod-patches/releases/tag/v1.1.0-dev.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+> **[v1.1.0-dev.2](https://github.com/chikuwadon/nicoid-mod-patches/releases/tag/v1.1.0-dev.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
 <details open>
 <summary>📦 nicoid&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -41,7 +41,7 @@ The patch verifies the original DEX, manifest and resource table before writing.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [nicoid Mod](#nicoid-mod) | nicoid Re patch v1.10-dev.1: themed popup dialogs, playback policies, nine speeds, default speed, per-video resume, explicit playback actions and headphone disconnect pause. App version remains 6.49. |  |
+| [nicoid Mod](#nicoid-mod) | nicoid Re 検証版 v1.10-dev.2：関連動画から通常・ポップアップ・バックグラウンド再生を選択。表示バージョンは6.49固定。 / nicoid Re dev patch v1.10-dev.2: select normal, popup or background playback from related videos. App version remains 6.49. |  |
 
 </details>
 

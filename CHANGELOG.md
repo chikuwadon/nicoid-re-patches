@@ -1,3 +1,9 @@
+## [1.1.0-dev.2](https://github.com/chikuwadon/nicoid-mod-patches/compare/v1.1.0-dev.1...v1.1.0-dev.2) (2026-10-01)
+
+### 🐛 Bug Fixes
+
+* expose popup and background playback in related-video menus ([cd0fa3d](https://github.com/chikuwadon/nicoid-mod-patches/commit/cd0fa3dffd2f250495bfcedf787fa3f10a2ffb21))
+
 ## [1.1.0-dev.1](https://github.com/chikuwadon/nicoid-mod-patches/compare/v1.0.0...v1.1.0-dev.1) (2026-10-01)
 
 ### ✨ New Features

@@ -18,6 +18,10 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+      - name: Check short gesture policy
+        run: |
+          javac -d /tmp/nicoid-shorts-tests extensions/extension/src/main/java/e/e/a/ShortsRules.java porting/tests/ShortsRulesTest.java
+          java -cp /tmp/nicoid-shorts-tests ShortsRulesTest
       - name: Build Morphe bundle
         run: ./gradlew :patches:buildAndroid --no-daemon
         env:

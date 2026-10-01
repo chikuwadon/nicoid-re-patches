@@ -1,4 +1,4 @@
-rootProject.name = "nicoid-mod-patches"
+rootProject.name = "nicoid-re-patches"
 
 pluginManagement {
     repositories {

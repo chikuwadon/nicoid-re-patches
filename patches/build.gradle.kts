@@ -3,9 +3,9 @@ group = "app.nicoid"
 patches {
     // TODO: Update this section with your project details.
     about {
-        name = "nicoid Mod Patches"
-        description = "Private nicoid 6.49 modernization patches"
-        source = "https://github.com/chikuwadon/nicoid-mod-patches"
+        name = "nicoid Re Patches"
+        description = "nicoid Re 6.49 modernization patches"
+        source = "https://github.com/chikuwadon/nicoid-re-patches"
         author = "chikuwadon"
         contact = "na"
         website = "na"

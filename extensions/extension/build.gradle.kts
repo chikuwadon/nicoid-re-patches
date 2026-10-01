@@ -3,5 +3,6 @@ extension {
 }
 
 android {
-    namespace = "app.template.extension"
+    namespace = "app.nicoid.extension"
 }
+

@@ -1,12 +1,12 @@
-group = "app.template"
+group = "app.nicoid"
 
 patches {
     // TODO: Update this section with your project details.
     about {
-        name = "UserXYZ Patches"
-        description = "Patches for apps I like"
-        source = "git@github.com:UserXYZ/morphe-patches.git"
-        author = "Awesome dev"
+        name = "nicoid Mod Patches"
+        description = "Private nicoid 6.49 modernization patches"
+        source = "https://github.com/chikuwadon/nicoid-mod-patches"
+        author = "chikuwadon"
         contact = "na"
         website = "na"
         license = "GPLv3"
@@ -37,3 +37,4 @@ tasks {
         dependsOn("generatePatchesList")
     }
 }
+

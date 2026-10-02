@@ -34,6 +34,38 @@ public final class BikeRunModelTest {
         check(Math.abs(worldY-(old+(-650+1600*.02f)*.02f))<.01f,"hill jump keeps continuous world height");
         for(int n=0;n<70;n++)m.step(.02f);
         check(m.y==0&&!m.over,"hill jump lands on changing terrain");
+        m.reset(); m.spawn=100000; m.tap();
+        for(int n=0;n<18;n++)m.step(.02f);
+        float firstHeight=m.y; m.tap();
+        check(m.velocity==BikeRunModel.JUMP,"second touch immediately starts airborne jump");
+        m.step(.02f); float secondVelocity=m.velocity; m.tap();
+        check(m.velocity==secondVelocity,"third touch cannot add another jump");
+        for(int n=0;n<12;n++)m.step(.02f);
+        check(m.y<firstHeight-90,"double jump reaches higher than single jump");
+        for(int n=0;n<90;n++)m.step(.02f);
+        check(m.y==0&&!m.over,"double jump lands safely");
+        m.tap(); m.step(.02f); m.tap(); check(m.velocity==BikeRunModel.JUMP,"landing restores two jumps");
+        // Identical tall obstacle: single jump fails, a timed double jump clears it.
+        for(int attempt=0;attempt<2;attempt++) {
+            m.reset(); m.spawn=100000;
+            m.hazards.add(new BikeRunModel.Hazard(350,45,175,false)); m.tap();
+            for(int n=0;n<60&&!m.over;n++) { if(attempt==1&&n==16)m.tap(); m.step(.02f); }
+            check(m.over==(attempt==0),"tall obstacle requires and permits double jump");
+        }
+        for(int attempt=0;attempt<2;attempt++) {
+            m.reset(); m.spawn=100000; m.hazards.add(new BikeRunModel.Hazard(145,335,0,true)); m.tap();
+            for(int n=0;n<65&&!m.over;n++) { if(attempt==1&&n==20)m.tap(); m.step(.02f); }
+            check(m.over==(attempt==0),"wide gap requires and permits double jump");
+        }
+        boolean tall=false,wide=false;
+        for(int seed=0;seed<100;seed++) {
+            m=new BikeRunModel(seed*9973L);m.distance=2000;m.started=true;m.spawn=0;m.step(.01f);
+            BikeRunModel.Hazard h=m.hazards.get(0);
+            if(h.height>=165)tall=true;if(h.gap&&h.width>300)wide=true;
+            check(m.spawn>=h.width+m.speed()*1.2f,"spawn spacing allows landing before next hazard");
+        }
+        check(tall&&wide,"generator includes both double-jump challenges");
         System.out.println("Bicycle runner physics checks passed");
     }
 }
+

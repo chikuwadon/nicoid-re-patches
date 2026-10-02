@@ -137,6 +137,10 @@ val nicoidModPatch = bytecodePatch(
         val translatedStrings = Payload.open("ui-strings.txt").bufferedReader().useLines { lines ->
             lines.map { it.replace("\\n", "\n") }.toSet()
         }
+        fun isUiResource(ref: MethodReference) = ref.name == "getString" &&
+            ref.returnType == "Ljava/lang/String;" &&
+            (ref.definingClass.startsWith("Landroid/content/") || ref.definingClass.startsWith("Landroid/app/") ||
+                ref.definingClass.startsWith("Landroid/preference/") || ref.definingClass.startsWith("Lcom/sauzask/nicoid/"))
         val uiClasses = mutableListOf<String>()
         classDefForEach { cls ->
             if ((cls.type.startsWith("Lcom/sauzask/nicoid/") || cls.type.startsWith("Le/e/a/")) &&
@@ -144,7 +148,7 @@ val nicoidModPatch = bytecodePatch(
                 if (cls.methods.any { method -> method.implementation?.instructions?.any { insn ->
                     val ref = (insn as? ReferenceInstruction)?.reference
                     (ref is StringReference && ref.string in translatedStrings) ||
-                        (ref is MethodReference && ref.name == "getString" && ref.returnType == "Ljava/lang/String;")
+                        (ref is MethodReference && isUiResource(ref))
                 } == true }) uiClasses.add(cls.type)
             }
         }
@@ -158,7 +162,7 @@ val nicoidModPatch = bytecodePatch(
                         (insn as? OneRegisterInstruction)?.registerA
                     insn.opcode == Opcode.MOVE_RESULT_OBJECT && index > 0 -> {
                         val call = (instructions[index - 1] as? ReferenceInstruction)?.reference as? MethodReference
-                        if (call?.name == "getString" && call.returnType == "Ljava/lang/String;")
+                        if (call != null && isUiResource(call))
                             (insn as OneRegisterInstruction).registerA else null
                     }
                     else -> null

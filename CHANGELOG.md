@@ -1,3 +1,10 @@
+## [1.3.0-dev.2](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.3.0-dev.1...v1.3.0-dev.2) (2026-10-02)
+
+### 🐛 Bug Fixes
+
+* fill Shorts video area and reorganize playback and menu controls ([475d654](https://github.com/chikuwadon/nicoid-re-patches/commit/475d6549613774ef288f364a319be1916a8fad5c))
+* import Shorts list and debug preference widgets ([c3e75d1](https://github.com/chikuwadon/nicoid-re-patches/commit/c3e75d1d15efc8806648f4e7a6ee31545a2ea984))
+
 ## [1.3.0-dev.1](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.2.1...v1.3.0-dev.1) (2026-10-02)
 
 ### 🐛 Bug Fixes

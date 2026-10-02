@@ -1,0 +1,23 @@
+name: Sync release notes
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/release-notes/*.md'
+      - '.github/workflows/sync-release-notes.yml'
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Update existing release descriptions
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for notes in .github/release-notes/*.md; do
+            tag="$(basename "$notes" .md)"
+            gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null
+            gh release edit "$tag" --notes-file "$notes" --repo "$GITHUB_REPOSITORY"
+          done

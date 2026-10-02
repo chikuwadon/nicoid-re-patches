@@ -1,6 +1,12 @@
-# nicoid Re パッチ
+<a id="nicoid-re"></a>
 
-nicoid 6.49向けのMorpheパッチです。アプリ名を「nicoid Re」に変更し、動画再生機能や画面表示を拡張します。
+# nicoid Re — ニコニコ動画アプリnicoid向けMorpheパッチ
+
+**nicoid Re**は、Android向けニコニコ動画プレイヤー「nicoid（ニコイド）」を、現在のニコニコ動画の仕様に対応させるMorpheパッチです。ダークモード、Material You、Android 16、ニコニコショートに対応し、バックグラウンド再生やポップアップ再生などの機能を改善・追加しています。
+
+nicoid 6.49の元APKにMorphe Managerでパッチを適用すると、「nicoid Re」として利用できます。
+
+[最新版のnicoid Reパッチをダウンロード](https://github.com/chikuwadon/nicoid-re-patches/releases/latest) · [Morphe Managerにnicoid Reを追加](https://morphe.software/add-source?github=chikuwadon%2Fnicoid-re-patches&name=nicoid%20Re)
 
 - 対象アプリ：`com.sauzask.nicoid`（バージョン`6.49`）
 - 適用後のアプリ名：**nicoid Re**

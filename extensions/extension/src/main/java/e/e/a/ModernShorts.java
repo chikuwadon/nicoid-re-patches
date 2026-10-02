@@ -208,6 +208,10 @@ public final class ModernShorts {
         Preference version = a.findPreference("nicoid_patch_version");
         if (version != null) {
             version.setSummary(PATCH_VERSION);
+            // The bundled XML marks this informational row non-selectable.
+            // Enable selection before registering its hidden tap action.
+            version.setEnabled(true);
+            version.setSelectable(true);
             final int[] taps = {0}; final long[] lastTap = {0};
             version.setOnPreferenceClickListener(p -> {
                 long now = SystemClock.uptimeMillis();

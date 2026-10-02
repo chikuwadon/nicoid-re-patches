@@ -5,7 +5,7 @@ nicoid 6.49向けのMorpheパッチです。アプリ名を「nicoid Re」に変
 - 対象アプリ：`com.sauzask.nicoid`（バージョン`6.49`）
 - 適用後のアプリ名：**nicoid Re**
 - 適用後のパッケージ名：`com.sauzask.nicoid.hls`
-- 正式版：`v1.3.0`
+- 正式版：`v1.3.1`
 - 開発版：`dev`ブランチで管理
 
 パッチ適用には次の元APKを使用してください。

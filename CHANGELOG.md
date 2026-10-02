@@ -1,3 +1,9 @@
+## [1.3.0-dev.4](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.3.0-dev.3...v1.3.0-dev.4) (2026-10-02)
+
+### 🐛 Bug Fixes
+
+* center the niconico return icon on Shorts home ([98fe020](https://github.com/chikuwadon/nicoid-re-patches/commit/98fe020d27062bec57fe4e243a5004b02c255b4c))
+
 ## [1.3.0-dev.3](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.3.0-dev.2...v1.3.0-dev.3) (2026-10-02)
 
 ### 🐛 Bug Fixes

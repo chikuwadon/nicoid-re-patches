@@ -1,3 +1,9 @@
+## [1.2.0-dev.7](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.2.0-dev.6...v1.2.0-dev.7) (2026-10-02)
+
+### 🐛 Bug Fixes
+
+* preserve existing helper classes when building DEX ([4c0d77a](https://github.com/chikuwadon/nicoid-re-patches/commit/4c0d77ad992b9811c8391a513b5e5846b984064c))
+
 ## [1.2.0-dev.6](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.2.0-dev.5...v1.2.0-dev.6) (2026-10-02)
 
 ### 🐛 Bug Fixes

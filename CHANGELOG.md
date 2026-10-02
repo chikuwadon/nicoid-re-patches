@@ -1,3 +1,17 @@
+## [1.2.0-dev.6](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.2.0-dev.5...v1.2.0-dev.6) (2026-10-02)
+
+### 🐛 Bug Fixes
+
+* check DEX using stable markers ([9553293](https://github.com/chikuwadon/nicoid-re-patches/commit/9553293b64aa45105da9016e2df220f43d704ded))
+* create D8 output directory ([b981cec](https://github.com/chikuwadon/nicoid-re-patches/commit/b981cece710eee160dc568466fef01b789b9258a))
+* generate patch version before helper compilation ([4882741](https://github.com/chikuwadon/nicoid-re-patches/commit/488274103bb0f3009fb07c6006bd7941368735e3))
+* match shorts loading text in build check ([efa1ac9](https://github.com/chikuwadon/nicoid-re-patches/commit/efa1ac9fd99f53fd0c1929f9b6ba2e7dede75a9d))
+* retain Morphe package repository for CI builds ([80f5caa](https://github.com/chikuwadon/nicoid-re-patches/commit/80f5caaff1ba6809b1689db62c8926c87fee5150))
+
+### ✨ New Features
+
+* modernize shorts feed, settings and refresh behavior ([1d8e74e](https://github.com/chikuwadon/nicoid-re-patches/commit/1d8e74e72e0168d28518dae8e94e273bb5877129))
+
 ## [1.2.0-dev.5](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.2.0-dev.4...v1.2.0-dev.5) (2026-10-01)
 
 ### ✨ New Features

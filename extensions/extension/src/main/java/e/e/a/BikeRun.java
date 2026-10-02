@@ -55,7 +55,7 @@ public final class BikeRun {
             background=color(c,android.R.attr.colorBackground,0xff191b20);
             foreground=color(c,android.R.attr.textColorPrimary,0xffeeeeee);
             best=PreferenceManager.getDefaultSharedPreferences(c).getInt("bike_run_best",0);
-            setContentDescription("自転車ラン。タップでジャンプ。障害物と穴を避けます。終了後はタップで再挑戦。");
+            setContentDescription("自転車ラン。タップで2段ジャンプ。障害物と穴を避けます。終了後はタップで再挑戦。");
             setFocusable(true);
         }
         void line(Canvas c,float x,float y,float xx,float yy) { c.drawLine(x,y,xx,yy,paint); }
@@ -71,7 +71,7 @@ public final class BikeRun {
             canvas.drawColor(background);
             float scale=getWidth()/720f; if(scale<=0)return;
             canvas.save(); canvas.scale(scale,scale);
-            float height=getHeight()/scale,ground=Math.max(230,height/3+50);
+            float height=getHeight()/scale,ground=Math.max(230,height*2/3+43);
             paint.setStyle(Paint.Style.FILL); paint.setColor(foreground); paint.setTextSize(25);
             canvas.drawText("自転車ラン",24,44,paint); paint.setTextSize(18);
             canvas.drawText("距離 "+game.score()+" m   ベスト "+best+" m",24,78,paint);
@@ -109,7 +109,7 @@ public final class BikeRun {
             line(canvas,x+5,y-16,x-4,y); line(canvas,x-4,y-50,x+16,y-35);
             canvas.restore();
             paint.setStyle(Paint.Style.FILL); paint.setColor(foreground); paint.setTextAlign(Paint.Align.CENTER); paint.setTextSize(22);
-            canvas.drawText("タップでジャンプ",360,height-72,paint);
+            canvas.drawText("タップで2段ジャンプ",360,height-72,paint);
             if(!game.started||game.over) {
                 paint.setTextSize(32); canvas.drawText(game.over?"ゲームオーバー":"障害物と穴をジャンプで避けよう",360,height/2,paint);
                 paint.setTextSize(22); canvas.drawText(game.over?"タップで再挑戦":"タップしてスタート",360,height/2+42,paint);
@@ -130,3 +130,4 @@ public final class BikeRun {
         protected void onDetachedFromWindow() { active=false; super.onDetachedFromWindow(); }
     }
 }
+

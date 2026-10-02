@@ -199,6 +199,7 @@ public final class ModernShorts {
     }
     public static void settings(PreferenceActivity a) {
         PreferenceScreen screen = a.getPreferenceScreen(); if (screen == null) return;
+        UiText.preferences(screen);
         PreferenceGroup group = (PreferenceGroup)a.findPreference("player"); if (group == null) group = screen;
         if (a.findPreference("show_shorts_menu") == null) {
             CheckBoxPreference p = new CheckBoxPreference(a); p.setKey("show_shorts_menu");
@@ -241,6 +242,7 @@ public final class ModernShorts {
                 return true;
             }); debug.addPreference(share);
         }
+        UiText.preferences(screen);
     }
     private static void removeMovedMenuRows(ArrayList<?> rows) {
         for (Iterator<?> it = rows.iterator(); it.hasNext();) {
@@ -789,3 +791,4 @@ public final class ModernShorts {
     }
     private static void log(Exception e) { Log.w("nicoid-shorts", e.getClass().getSimpleName()); }
 }
+

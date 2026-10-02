@@ -17,9 +17,10 @@ public final class BikeRunModel {
     private final Random random;
     public float y, velocity, distance, spawn;
     private float gapTime;
+    private int jumpsUsed;
     public boolean started, over;
     public BikeRunModel(long seed) { random = new Random(seed); reset(); }
-    public void reset() { hazards.clear(); y=velocity=distance=gapTime=0; spawn=700; started=over=false; }
+    public void reset() { hazards.clear(); y=velocity=distance=gapTime=0; spawn=700; jumpsUsed=0; started=over=false; }
     // Smooth hill, then a level section. Screen and physics share this profile.
     public static float terrain(float worldX) {
         if (worldX<=600) return 0;
@@ -33,7 +34,7 @@ public final class BikeRunModel {
     public void tap() {
         if (over) reset();
         started=true;
-        if (y==0 && velocity==0) { velocity=JUMP; gapTime=0; }
+        if (jumpsUsed < 2) { velocity=JUMP; gapTime=0; jumpsUsed++; }
     }
     public void step(float dt) {
         if (!started || over || dt<=0) return;
@@ -49,8 +50,13 @@ public final class BikeRunModel {
         }
         if (spawn<=0) {
             boolean gap=random.nextBoolean();
-            hazards.add(new Hazard(760, gap ? 115+random.nextInt(40) : 36+random.nextInt(22), gap ? 0 : 28+random.nextInt(27), gap));
-            spawn=440+random.nextInt(220);
+            // Introduce double-jump challenges after the opening section.
+            boolean tall = distance > 1000 && random.nextInt(4) == 0;
+            float width = gap ? (tall ? speed() * .95f : 115 + random.nextInt(40)) : 36 + random.nextInt(22);
+            float height = gap ? 0 : tall ? 165 + random.nextInt(16) : 28 + random.nextInt(27);
+            hazards.add(new Hazard(760, width, height, gap));
+            // Leave room to land and recharge both jumps before the next obstacle.
+            spawn=Math.max(440 + random.nextInt(220), width + speed() * 1.25f);
         }
         boolean unsupported=false;
         for (int n=hazards.size()-1; n>=0; n--) {
@@ -66,7 +72,9 @@ public final class BikeRunModel {
             if (h.x+h.width<0) hazards.remove(n);
         }
         gapTime=unsupported?gapTime+dt:0;
+        if (!unsupported && y==0 && velocity==0) jumpsUsed=0;
         if (gapTime>EDGE_GRACE) over=true;
     }
     public int score() { return (int)(distance/10); }
 }
+

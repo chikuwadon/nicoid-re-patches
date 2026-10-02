@@ -224,3 +224,4 @@ new_readme = re.sub(
 )
 readme_path.write_text(new_readme, encoding="utf-8")
 print(f"✅ Injected patches section into {readme_path} (v{ver}, branch={branch}, {total} patches, expanded={expanded})")
+

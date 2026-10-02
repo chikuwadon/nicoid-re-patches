@@ -135,6 +135,13 @@ public final class ModernShorts {
                 if ("prev".equals(kind)) { path.moveTo(15, 5); path.lineTo(8, 12); path.lineTo(15, 19); }
                 else if ("next".equals(kind)) { path.moveTo(9, 5); path.lineTo(16, 12); path.lineTo(9, 19); }
                 else if ("home".equals(kind)) { path.moveTo(3, 11); path.lineTo(12, 3); path.lineTo(21, 11); path.moveTo(6, 9); path.lineTo(6, 21); path.lineTo(10, 21); path.lineTo(10, 15); path.lineTo(14, 15); path.lineTo(14, 21); path.lineTo(18, 21); path.lineTo(18, 9); }
+                else if ("niconico".equals(kind)) {
+                    canvas.drawRoundRect(3, 7, 21, 20, 2, 2, paint);
+                    path.moveTo(8, 3); path.lineTo(12, 7); path.lineTo(16, 3);
+                    path.moveTo(7, 12); path.lineTo(7, 14); path.moveTo(17, 12); path.lineTo(17, 14);
+                    path.moveTo(9, 16); path.lineTo(12, 18); path.lineTo(15, 16);
+                    path.moveTo(6, 20); path.lineTo(6, 22); path.moveTo(18, 20); path.lineTo(18, 22);
+                }
                 else if ("info".equals(kind)) { canvas.drawCircle(12, 12, 9, paint); path.moveTo(12, 11); path.lineTo(12, 17); canvas.drawCircle(12, 7, .6f, paint); }
                 else { canvas.drawArc(4, 4, 20, 20, 45, 290, false, paint); path.moveTo(20, 3); path.lineTo(20, 9); path.lineTo(14, 9); }
                 canvas.drawPath(path, paint); canvas.restore();
@@ -289,9 +296,14 @@ public final class ModernShorts {
         scroll.setClipToPadding(false); h.rows = new LinearLayout(a); h.rows.setOrientation(LinearLayout.HORIZONTAL);
         scroll.addView(h.rows); h.root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
         h.retry = button(a, "再試行"); h.retry.setVisibility(View.GONE); h.root.addView(h.retry);
-        LinearLayout footer = new LinearLayout(a); footer.setGravity(Gravity.CENTER_VERTICAL);
-        Button back = button(a, "アプリに戻る"); back.setOnClickListener(v -> a.finish()); footer.addView(back, new LinearLayout.LayoutParams(0, dp(a, 56), 1));
-        h.refresh = icon(a, "refresh", "ショート一覧を更新"); footer.addView(h.refresh, new LinearLayout.LayoutParams(dp(a, 56), dp(a, 56))); h.root.addView(footer);
+        FrameLayout footer = new FrameLayout(a);
+        ImageButton back = icon(a, "niconico", "ニコニコ動画のホームに戻る");
+        back.setOnClickListener(v -> a.finish());
+        if (android.os.Build.VERSION.SDK_INT >= 26) back.setTooltipText("ニコニコ動画に戻る");
+        footer.addView(back, new FrameLayout.LayoutParams(dp(a, 56), dp(a, 56), Gravity.CENTER));
+        h.refresh = icon(a, "refresh", "ショート一覧を更新");
+        footer.addView(h.refresh, new FrameLayout.LayoutParams(dp(a, 56), dp(a, 56), Gravity.END | Gravity.CENTER_VERTICAL));
+        h.root.addView(footer, new LinearLayout.LayoutParams(-1, dp(a, 56)));
         return h;
     }
     private static void retryHome(Activity a, State s, Home h) {

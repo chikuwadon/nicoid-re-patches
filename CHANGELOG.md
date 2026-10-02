@@ -1,3 +1,10 @@
+## 1.3.3 (2026-10-02)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Add missing English and Traditional Chinese translations and improve interface wording.
+* **nicoid:** Update the patch description in Morphe Manager to English.
+
 ## 1.3.2 (2026-10-02)
 
 ### 🐛 Bug Fixes

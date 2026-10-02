@@ -175,6 +175,15 @@ diff --git a/smali/com/sauzask/nicoid/NicoidTopActivity.smali b/smali/com/sauzas
  
      const v1, 0x7f0f01d4
  
+@@ -530,6 +532,8 @@
+     invoke-static/range {v1 .. v6}, Lcom/sauzask/nicoid/NicoidTopActivity;->a(Ljava/util/ArrayList;ZLjava/lang/String;Ljava/lang/String;Landroid/content/Intent;I)V
+ 
++    invoke-static {v0, v7}, Le/e/a/ModernShorts;->finishMenu(Landroid/content/Context;Ljava/util/ArrayList;)V
++
+     if-nez p1, :cond_1
+ 
+     new-instance v1, Lcom/sauzask/nicoid/NicoidListView;
+     invoke-direct {v1, v0}, Lcom/sauzask/nicoid/NicoidListView;-><init>(Landroid/content/Context;)V
 diff --git a/smali/com/sauzask/nicoid/NicoidSetting.smali b/smali/com/sauzask/nicoid/NicoidSetting.smali
 --- a/smali/com/sauzask/nicoid/NicoidSetting.smali
 +++ b/smali/com/sauzask/nicoid/NicoidSetting.smali

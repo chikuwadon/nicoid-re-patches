@@ -102,7 +102,10 @@ public final class ModernShorts {
     private static int dp(Context c, int n) { return Math.round(c.getResources().getDisplayMetrics().density * n); }
     private static int color(Context c, int attr, int fallback) {
         TypedValue v = new TypedValue();
-        return c.getTheme().resolveAttribute(attr, v, true) ? v.data : fallback;
+        if (!c.getTheme().resolveAttribute(attr, v, true)) return fallback;
+        if (v.resourceId != 0) try { return c.getResources().getColorStateList(v.resourceId).getDefaultColor(); }
+        catch (Exception ignored) { }
+        return v.data;
     }
     private static void tint(Context c, ProgressBar p) {
         p.getIndeterminateDrawable().mutate().setColorFilter(color(c, 0x7f03005e, 0xff52cca3), PorterDuff.Mode.SRC_IN);
@@ -113,7 +116,8 @@ public final class ModernShorts {
         b.setTypeface(android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL));
         b.setPadding(dp(c, 16), 0, dp(c, 16), 0);
         GradientDrawable bg = new GradientDrawable(); bg.setColor(color(c, android.R.attr.colorBackground, 0xff1b1d22));
-        bg.setCornerRadius(dp(c, 24)); b.setBackground(bg); return b;
+        bg.setCornerRadius(dp(c, 24)); b.setBackground(new android.graphics.drawable.RippleDrawable(
+            android.content.res.ColorStateList.valueOf((color(c, 0x7f03005e, 0xff52cca3) & 0x00ffffff) | 0x33000000), bg, null)); return b;
     }
     private static Intent player(Context c, String id) {
         return new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.nicovideo.jp/watch/" + id))
@@ -122,12 +126,32 @@ public final class ModernShorts {
     public static void addMenu(Context c, ArrayList<?> rows) {
         register(c);
         removeMovedMenuRows(rows);
-        addMenuRow(rows, true, "その他", "", null, 0);
-        addMenuRow(rows, false, "アプリを再起動", "設定を反映して最初から開く", null, 4);
         if (c instanceof Activity) MENU_STATE.put((Activity)c, prefs(c).getBoolean("show_shorts_menu", true));
         if (!prefs(c).getBoolean("show_shorts_menu", true)) return;
         Intent i = player(c, "ss0").setData(Uri.parse("nicoid-re://shorts"));
-        addMenuRow(rows, false, "ショート", "縦型動画をスワイプで切り替え", i, 0);
+        addMenuRow(rows, false, "ショート", "ショート動画の視聴", i, 0);
+    }
+    /** Runs after all original menu rows have been added, before adapter binding. */
+    public static void finishMenu(Context c, ArrayList<?> rows) {
+        for (Iterator<?> it = rows.iterator(); it.hasNext();) {
+            Object row = it.next();
+            if (hasTitle(row, "アプリを再起動") || hasTitle(row, "デバッグログを共有") || hasTitle(row, "その他")) it.remove();
+        }
+        ArrayList<Object> extra = new ArrayList<>();
+        addMenuRow(extra, true, "その他", "", null, 0);
+        addMenuRow(extra, false, "アプリを再起動", "設定を反映して最初から開く", null, 4);
+        int at = rows.size();
+        for (int n = 0; n < rows.size(); n++) if (hasTitle(rows.get(n), "アプリ設定")) { at = n + 1; break; }
+        @SuppressWarnings("unchecked") ArrayList<Object> mutable = (ArrayList<Object>)(ArrayList<?>)rows;
+        mutable.addAll(at, extra);
+    }
+    private static boolean hasTitle(Object row, String title) {
+        for (Class<?> type = row.getClass(); type != null; type = type.getSuperclass()) {
+            for (java.lang.reflect.Field f : type.getDeclaredFields()) if (f.getType() == String.class) try {
+                f.setAccessible(true); if (title.equals(f.get(row))) return true;
+            } catch (Exception ignored) { }
+        }
+        return false;
     }
     private static void addMenuRow(ArrayList<?> rows, boolean category, String title, String summary,
                                    Intent intent, int action) {
@@ -146,6 +170,26 @@ public final class ModernShorts {
         }
         Preference version = a.findPreference("nicoid_patch_version");
         if (version != null) version.setSummary(PATCH_VERSION);
+        if (a.findPreference("nicoid_share_debug") == null) {
+            PreferenceCategory debug = new PreferenceCategory(a); debug.setKey("nicoid_debug_category"); debug.setTitle("デバッグ");
+            int after = screen.getPreferenceCount();
+            for (int n = 0; n < screen.getPreferenceCount(); n++) {
+                Preference v = screen.getPreference(n);
+                if ("言語".contentEquals(v.getTitle() == null ? "" : v.getTitle())) { after = n + 1; break; }
+            }
+            // Assign explicit root order so the section follows the entire language group.
+            ArrayList<Preference> sections = new ArrayList<>();
+            for (int n = 0; n < screen.getPreferenceCount(); n++) sections.add(screen.getPreference(n));
+            for (int n = 0; n < sections.size(); n++) sections.get(n).setOrder(n < after ? n * 2 : n * 2 + 2);
+            debug.setOrder(after * 2 - 1); screen.addPreference(debug);
+            Preference share = new Preference(a); share.setKey("nicoid_share_debug"); share.setTitle("デバッグログを共有");
+            share.setSummary("再生エラーや通信先、応答コードなどの診断ログを共有します。不具合の報告時に利用できます。共有前にログの内容と送信先を確認してください。");
+            share.setOnPreferenceClickListener(v -> {
+                try { Class.forName("e.e.a.ModernDebug").getMethod("share", Context.class).invoke(null, a); }
+                catch (Exception e) { log(e); }
+                return true;
+            }); debug.addPreference(share);
+        }
     }
     private static void removeMovedMenuRows(ArrayList<?> rows) {
         for (Iterator<?> it = rows.iterator(); it.hasNext();) {
@@ -352,6 +396,7 @@ public final class ModernShorts {
             video.setLayoutParams(videoLayoutParams);
         }
         View videoView = find(a, "video_view");
+        fillVideo(a);
         if (videoView != null) try {
             videoView.getClass().getMethod("setMeasureBasedOnAspectRatioEnabled", boolean.class).invoke(videoView, false);
             ViewGroup.LayoutParams params = videoView.getLayoutParams();
@@ -373,6 +418,8 @@ public final class ModernShorts {
         bar.setPadding(dp(a, 10), dp(a, 6), dp(a, 10), dp(a, 6));
         GradientDrawable barBg = new GradientDrawable(); barBg.setColor(color(a, android.R.attr.colorBackground, 0xff1b1d22));
         barBg.setCornerRadius(dp(a, 22)); bar.setBackground(barBg);
+        Button home = button(a, "⌂"); home.setTextSize(24); home.setContentDescription("ショートのホーム");
+        home.setOnClickListener(v -> a.finish()); bar.addView(home, new LinearLayout.LayoutParams(dp(a, 48), -1));
         Button prev = button(a, "前へ"); prev.setOnClickListener(v -> step(a, s, -1)); bar.addView(prev, new LinearLayout.LayoutParams(-2, -1));
         TextView number = new TextView(a); number.setGravity(Gravity.CENTER); number.setTextColor(color(a, android.R.attr.textColorPrimary, 0xffffffff)); s.number = number;
         bar.addView(number, new LinearLayout.LayoutParams(0, -1, 1));
@@ -382,13 +429,10 @@ public final class ModernShorts {
         number.setOnClickListener(v -> showList(a, s)); number.setClickable(true);
         FrameLayout.LayoutParams barLp = new FrameLayout.LayoutParams(-1, dp(a, 64), Gravity.BOTTOM);
         barLp.setMargins(dp(a, 12), 0, dp(a, 12), dp(a, 8)); content.addView(bar, barLp); update(s);
-        TextView home = new TextView(a); home.setText("⌂  ショートのホーム"); home.setTextSize(14);
-        home.setTextColor(color(a, 0x7f03005e, 0xff52cca3)); home.setGravity(Gravity.CENTER_VERTICAL);
-        home.setPadding(dp(a, 16), 0, dp(a, 16), 0); home.setBackground(barBg); home.setOnClickListener(v -> a.finish());
-        FrameLayout.LayoutParams homeLp = new FrameLayout.LayoutParams(-2, dp(a, 48), Gravity.TOP | Gravity.START);
-        homeLp.setMargins(dp(a, 12), dp(a, 10), 0, 0); content.addView(home, homeLp);
         s.listener = () -> {
             if (s.dead) return;
+            fillVideo(a);
+            liftController(a);
             ViewGroup.LayoutParams lp = video.getLayoutParams();
             if (lp != null && (lp.width != ViewGroup.LayoutParams.MATCH_PARENT || lp.height != ViewGroup.LayoutParams.MATCH_PARENT)) {
                 lp.width = ViewGroup.LayoutParams.MATCH_PARENT; lp.height = ViewGroup.LayoutParams.MATCH_PARENT;
@@ -401,13 +445,57 @@ public final class ModernShorts {
         Toast.makeText(a, "上にスワイプで次、下にスワイプで前の動画", Toast.LENGTH_SHORT).show();
     }
     private static View find(Activity a, String name) { return a.findViewById(a.getResources().getIdentifier(name, "id", a.getPackageName())); }
-    private static void update(State s) { if (s.number != null) s.number.setText("ショート " + (s.index + 1) + "/" + s.feed.items.size()); }
+    private static void update(State s) { if (s.number != null) s.number.setText( (s.index + 1) + "/" + s.feed.items.size()); }
     private static void showList(Activity a, State s) {
-        String[] labels = new String[s.feed.items.size()];
-        for (int n = 0; n < labels.length; n++) labels[n] = s.feed.items.get(n).title;
-        new AlertDialog.Builder(a).setTitle("ショート動画").setSingleChoiceItems(labels, s.index, (d, n) -> { d.dismiss(); if (n != s.index && !s.busy) launch(a, s, n); })
-            .setPositiveButton("一覧を更新", (d, n) -> extend(a, s, s.feed.items.get(s.index).id, false)).setNegativeButton("閉じる", null).show();
+        LinearLayout panel = new LinearLayout(a); panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setPadding(dp(a, 16), dp(a, 12), dp(a, 16), dp(a, 12));
+        GradientDrawable panelBg = new GradientDrawable(); panelBg.setCornerRadius(dp(a, 24));
+        panelBg.setColor(color(a, android.R.attr.colorBackground, 0xff1b1d22)); panel.setBackground(panelBg);
+        TextView title = new TextView(a); title.setText("ショート動画"); title.setTextSize(22);
+        title.setTextColor(color(a, android.R.attr.textColorPrimary, 0xffffffff)); panel.addView(title);
+        ScrollView scroll = new ScrollView(a); LinearLayout rows = new LinearLayout(a); rows.setOrientation(LinearLayout.VERTICAL);
+        scroll.addView(rows); panel.addView(scroll, new LinearLayout.LayoutParams(-1, dp(a, 400)));
+        AlertDialog dialog = new AlertDialog.Builder(a).setView(panel).create();
+        for (int n = 0; n < s.feed.items.size(); n++) {
+            final int index = n; Item item = s.feed.items.get(n);
+            LinearLayout row = new LinearLayout(a); row.setGravity(Gravity.CENTER_VERTICAL); row.setPadding(dp(a, 8), dp(a, 8), dp(a, 8), dp(a, 8));
+            GradientDrawable bg = new GradientDrawable(); bg.setCornerRadius(dp(a, 16));
+            bg.setColor(color(a, android.R.attr.colorBackground, 0xff1b1d22));
+            if (n == s.index) bg.setStroke(dp(a, 2), color(a, 0x7f03005e, 0xff52cca3));
+            row.setBackground(bg);
+            FrameLayout thumb = new FrameLayout(a); ImageView image = new ImageView(a); image.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            thumb.addView(image, new FrameLayout.LayoutParams(-1, -1)); TextView placeholder = new TextView(a);
+            placeholder.setText("▶"); placeholder.setGravity(Gravity.CENTER); placeholder.setTextColor(color(a, 0x7f03005e, 0xff52cca3));
+            thumb.addView(placeholder, new FrameLayout.LayoutParams(-1, -1)); row.addView(thumb, new LinearLayout.LayoutParams(dp(a, 70), dp(a, 100)));
+            loadThumbnail(item.thumbnail, image, placeholder);
+            TextView label = new TextView(a); label.setText((n + 1) + "  " + item.title); label.setTextSize(15); label.setMaxLines(3);
+            label.setEllipsize(android.text.TextUtils.TruncateAt.END); label.setPadding(dp(a, 12), 0, 0, 0);
+            label.setTextColor(color(a, android.R.attr.textColorPrimary, 0xffffffff)); row.addView(label, new LinearLayout.LayoutParams(0, -2, 1));
+            row.setOnClickListener(v -> { dialog.dismiss(); if (index != s.index && !s.busy) launch(a, s, index); });
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, -2); lp.topMargin = dp(a, 8); rows.addView(row, lp);
+        }
+        LinearLayout actions = new LinearLayout(a); actions.setGravity(Gravity.END);
+        Button refresh = button(a, "更新"); refresh.setOnClickListener(v -> { dialog.dismiss(); extend(a, s, s.feed.items.get(s.index).id, false); });
+        Button close = button(a, "閉じる"); close.setOnClickListener(v -> dialog.dismiss()); actions.addView(refresh); actions.addView(close); panel.addView(actions);
+        dialog.show();
+        if (dialog.getWindow() != null) dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
     }
+    private static void fillVideo(Activity a) {
+        for (String name : new String[]{"videoLayout", "video", "video_view"}) {
+            View v = find(a, name); if (v == null) continue;
+            ViewGroup.LayoutParams lp = v.getLayoutParams();
+            if (lp != null && (lp.width != -1 || lp.height != -1)) { lp.width = -1; lp.height = -1; v.setLayoutParams(lp); }
+        }
+    }
+    private static void liftController(Activity a) {
+        View controller = find(a, "controller"); if (controller == null) return;
+        ViewGroup.LayoutParams lp = controller.getLayoutParams();
+        if (lp instanceof ViewGroup.MarginLayoutParams) {
+            ViewGroup.MarginLayoutParams margins = (ViewGroup.MarginLayoutParams)lp;
+            if (margins.bottomMargin != dp(a, 80)) { margins.bottomMargin = dp(a, 80); controller.setLayoutParams(lp); }
+        }
+    }
+
     private static void step(Activity a, State s, int direction) {
         if (s.busy || s.dead || a.isFinishing()) return;
         int n = s.index + direction;

@@ -1,3 +1,10 @@
+## [1.3.0-dev.3](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.3.0-dev.2...v1.3.0-dev.3) (2026-10-02)
+
+### 🐛 Bug Fixes
+
+* hide Shorts controls, search short videos and finalize home menu ([5b0aefc](https://github.com/chikuwadon/nicoid-re-patches/commit/5b0aefcce6f9a2b1dd80ca6217c8ebc33e06a1ad))
+* verify the short-only search endpoint in helper builds ([eaf384a](https://github.com/chikuwadon/nicoid-re-patches/commit/eaf384a9061e6bd8635b548cb268505e722fcaf2))
+
 ## [1.3.0-dev.2](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.3.0-dev.1...v1.3.0-dev.2) (2026-10-02)
 
 ### 🐛 Bug Fixes

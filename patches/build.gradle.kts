@@ -116,7 +116,7 @@ val prepareNicoidHelpers = tasks.register("prepareNicoidHelpers") {
         val dexText = String(dex.readBytes(), Charsets.ISO_8859_1)
         check(dexText.contains("v$version")) { "Patch version is missing from the compiled settings helper" }
         listOf("setMeasureBasedOnAspectRatioEnabled", "CENTER_CROP", "@chikuwadon",
-            "search.nicovideo.jp/api/v2/snapshot/video/contents/search", "postDelayed").forEach { marker ->
+            "nvapi.nicovideo.jp/v2/search/video", "selectContentType", "shortUrl", "controlsTapped", "postDelayed").forEach { marker ->
             check(dexText.contains(marker)) { "Compiled helpers are missing expected Shorts/settings behavior: $marker" }
         }
         listOf("DynamicTheme", "ModernDebug").forEach { marker ->

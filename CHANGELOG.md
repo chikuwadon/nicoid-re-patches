@@ -1,27 +1,31 @@
-## v1.3.2
-
-Bug fixes.
-
-## v1.3.1
-
-Bug fixes.
-
-## v1.3.0
+## 1.3.2 (2026-10-02)
 
 ### 🐛 Bug Fixes
 
-- Fix pull-to-refresh getting stuck on search results.
-- Fix Shorts video sizing, seek bar visibility, and swipe navigation.
-- Apply Material You colors to loading indicators and new screens.
+* **nicoid:** Minor fixes have been made.
+
+## 1.3.1 (2026-10-02)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Minor fixes have been made.
+
+## 1.3.0 (2026-10-02)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix pull-to-refresh getting stuck on search results.
+* **nicoid:** Fix Shorts video sizing, seek bar visibility, and swipe navigation.
+* **nicoid:** Apply Material You colors to loading indicators and new screens.
 
 ### ✨ New Features
 
-- Add NicoNico Shorts playback with full-screen portrait video and comments.
-- Add swipe navigation and tap-to-show controls for the Shorts list, home, and video information.
-- Add a Shorts home with horizontal thumbnails, keyword search, and refresh.
-- Add an option to hide the Shorts menu entry.
-- Add pull-to-refresh for search results.
-- Add app restart to the menu and debug log sharing to settings.
+* **nicoid:** Add NicoNico Shorts playback with full-screen portrait video and comments.
+* **nicoid:** Add swipe navigation and tap-to-show controls for the Shorts list, home, and video information.
+* **nicoid:** Add a Shorts home with horizontal thumbnails, keyword search, and refresh.
+* **nicoid:** Add an option to hide the Shorts menu entry.
+* **nicoid:** Add pull-to-refresh for search results.
+* **nicoid:** Add app restart to the menu and debug log sharing to settings.
 
 ## [1.3.0-dev.4](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.3.0-dev.3...v1.3.0-dev.4) (2026-10-02)
 

@@ -1,6 +1,9 @@
 package app.nicoid.patches
 
 import app.morphe.patcher.patch.*
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutable
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import com.android.tools.smali.dexlib2.Opcodes
@@ -113,6 +116,20 @@ val nicoidModPatch = bytecodePatch(
                 target.setAccessFlags(source.accessFlags)
             }
         }
+        val menu = mutableClassDefBy("Lcom/sauzask/nicoid/NicoidTopActivity;").methods.single {
+            it.name == "a" && it.parameterTypes == listOf("Landroid/content/Context;", "Landroid/widget/ListView;", "Z")
+        }
+        val code = checkNotNull(menu.implementation)
+        val bind = code.instructions.indexOfFirst {
+            val reference = (it as? ReferenceInstruction)?.reference as? MethodReference
+            reference?.definingClass == "Landroid/widget/ListView;" && reference.name == "setAdapter"
+        }
+        check(bind >= 0) { "nicoid menu adapter binding was not found" }
+        // The supported method-delta keeps Context in v0 and its complete row list in v7.
+        menu.addInstructions(bind + 1, """
+            invoke-static {v0, v7}, Le/e/a/ModernShorts;->finishMenu(Landroid/content/Context;Ljava/util/ArrayList;)V
+            invoke-virtual {v8}, Landroid/widget/BaseAdapter;->notifyDataSetChanged()V
+        """.trimIndent())
     }
 }
 

@@ -91,12 +91,13 @@ public final class ModernShorts {
         Feed feed;
         int index;
         boolean home;
-        boolean busy, dead, dragging, blocked, launching, cancelling;
+        boolean busy, dead, dragging, blocked, launching, cancelling, controlsTapped;
         float x, y;
         long downTime;
         TextView number;
         ProgressBar progress;
-        View video;
+        View video, bar;
+        ViewTreeObserver.OnPreDrawListener controlsListener;
         ViewTreeObserver.OnGlobalLayoutListener listener;
     }
     private ModernShorts() {}
@@ -120,6 +121,32 @@ public final class ModernShorts {
         GradientDrawable bg = new GradientDrawable(); bg.setColor(color(c, android.R.attr.colorBackground, 0xff1b1d22));
         bg.setCornerRadius(dp(c, 24)); b.setBackground(new android.graphics.drawable.RippleDrawable(
             android.content.res.ColorStateList.valueOf((color(c, 0x7f03005e, 0xff52cca3) & 0x00ffffff) | 0x33000000), bg, null)); return b;
+    }
+    private static ImageButton icon(Context c, String kind, String label) {
+        ImageButton b = new ImageButton(c); b.setContentDescription(label); b.setPadding(dp(c, 12), dp(c, 12), dp(c, 12), dp(c, 12));
+        final int ink = color(c, 0x7f03005e, 0xff52cca3);
+        b.setImageDrawable(new android.graphics.drawable.Drawable() {
+            private final android.graphics.Paint paint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+            public void draw(android.graphics.Canvas canvas) {
+                android.graphics.Rect bounds = getBounds(); canvas.save(); canvas.translate(bounds.left, bounds.top);
+                canvas.scale(bounds.width() / 24f, bounds.height() / 24f); paint.setColor(ink);
+                paint.setStrokeWidth(2f); paint.setStyle(android.graphics.Paint.Style.STROKE); paint.setStrokeCap(android.graphics.Paint.Cap.ROUND);
+                android.graphics.Path path = new android.graphics.Path();
+                if ("prev".equals(kind)) { path.moveTo(15, 5); path.lineTo(8, 12); path.lineTo(15, 19); }
+                else if ("next".equals(kind)) { path.moveTo(9, 5); path.lineTo(16, 12); path.lineTo(9, 19); }
+                else if ("home".equals(kind)) { path.moveTo(3, 11); path.lineTo(12, 3); path.lineTo(21, 11); path.moveTo(6, 9); path.lineTo(6, 21); path.lineTo(10, 21); path.lineTo(10, 15); path.lineTo(14, 15); path.lineTo(14, 21); path.lineTo(18, 21); path.lineTo(18, 9); }
+                else if ("info".equals(kind)) { canvas.drawCircle(12, 12, 9, paint); path.moveTo(12, 11); path.lineTo(12, 17); canvas.drawCircle(12, 7, .6f, paint); }
+                else { canvas.drawArc(4, 4, 20, 20, 45, 290, false, paint); path.moveTo(20, 3); path.lineTo(20, 9); path.lineTo(14, 9); }
+                canvas.drawPath(path, paint); canvas.restore();
+            }
+            public void setAlpha(int alpha) { paint.setAlpha(alpha); }
+            public void setColorFilter(android.graphics.ColorFilter filter) { paint.setColorFilter(filter); }
+            public int getOpacity() { return android.graphics.PixelFormat.TRANSLUCENT; }
+            public int getIntrinsicWidth() { return dp(c, 24); }
+            public int getIntrinsicHeight() { return dp(c, 24); }
+        });
+        b.setBackground(new android.graphics.drawable.RippleDrawable(android.content.res.ColorStateList.valueOf((ink & 0xffffff) | 0x33000000), null, null));
+        return b;
     }
     private static Intent player(Context c, String id) {
         return new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.nicovideo.jp/watch/" + id))
@@ -148,6 +175,7 @@ public final class ModernShorts {
         mutable.addAll(at, extra);
     }
     private static boolean hasTitle(Object row, String title) {
+        if (row instanceof java.util.Map) return title.equals(((java.util.Map<?, ?>)row).get("title"));
         for (Class<?> type = row.getClass(); type != null; type = type.getSuperclass()) {
             for (java.lang.reflect.Field f : type.getDeclaredFields()) if (f.getType() == String.class) try {
                 f.setAccessible(true); if (title.equals(f.get(row))) return true;
@@ -195,17 +223,8 @@ public final class ModernShorts {
     }
     private static void removeMovedMenuRows(ArrayList<?> rows) {
         for (Iterator<?> it = rows.iterator(); it.hasNext();) {
-            Object row = it.next(); boolean remove = false;
-            for (Class<?> type = row.getClass(); type != null && !remove; type = type.getSuperclass()) {
-                for (java.lang.reflect.Field f : type.getDeclaredFields()) {
-                    if (f.getType() != String.class) continue;
-                    try { f.setAccessible(true); Object value = f.get(row);
-                        if ("アプリを再起動".equals(value) || "デバッグログを共有".equals(value) ||
-                            "その他".equals(value) || "ショート".equals(value)) { remove = true; break; }
-                    } catch (Exception ignored) { }
-                }
-            }
-            if (remove) it.remove();
+            Object row = it.next();
+            if (hasTitle(row, "アプリを再起動") || hasTitle(row, "デバッグログを共有") || hasTitle(row, "その他") || hasTitle(row, "ショート")) it.remove();
         }
     }
     /** Called after Activity.super.onCreate, before nicoid parses a watch URL. */
@@ -236,7 +255,7 @@ public final class ModernShorts {
         TextView message;
         EditText query;
         ProgressBar progress;
-        Button retry, refresh, search;
+        Button retry, search; ImageButton refresh;
     }
     private static Home buildHome(Activity a) {
         Home h = new Home(); h.root = new LinearLayout(a); h.root.setOrientation(LinearLayout.VERTICAL);
@@ -250,7 +269,7 @@ public final class ModernShorts {
         TextView subtitle = new TextView(a); subtitle.setText("気になる動画を選んで再生"); subtitle.setTextSize(14);
         subtitle.setTextColor(color(a, android.R.attr.textColorSecondary, 0xffb8bbc5));
         titles.addView(title); titles.addView(subtitle); header.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        h.refresh = button(a, "更新"); header.addView(h.refresh); h.root.addView(header);
+        h.root.addView(header);
         LinearLayout searchRow = new LinearLayout(a); searchRow.setGravity(Gravity.CENTER_VERTICAL);
         searchRow.setPadding(0, dp(a, 12), 0, dp(a, 8));
         h.query = new EditText(a); h.query.setSingleLine(true); h.query.setTextSize(16);
@@ -270,7 +289,9 @@ public final class ModernShorts {
         scroll.setClipToPadding(false); h.rows = new LinearLayout(a); h.rows.setOrientation(LinearLayout.HORIZONTAL);
         scroll.addView(h.rows); h.root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
         h.retry = button(a, "再試行"); h.retry.setVisibility(View.GONE); h.root.addView(h.retry);
-        Button back = button(a, "アプリに戻る"); back.setOnClickListener(v -> a.finish()); h.root.addView(back);
+        LinearLayout footer = new LinearLayout(a); footer.setGravity(Gravity.CENTER_VERTICAL);
+        Button back = button(a, "アプリに戻る"); back.setOnClickListener(v -> a.finish()); footer.addView(back, new LinearLayout.LayoutParams(0, dp(a, 56), 1));
+        h.refresh = icon(a, "refresh", "ショート一覧を更新"); footer.addView(h.refresh, new LinearLayout.LayoutParams(dp(a, 56), dp(a, 56))); h.root.addView(footer);
         return h;
     }
     private static void retryHome(Activity a, State s, Home h) {
@@ -366,7 +387,8 @@ public final class ModernShorts {
             if (s.dead || a.isFinishing()) return;
             s.busy = false; h.progress.setVisibility(View.GONE);
             if (error != null || items.isEmpty()) {
-                h.message.setText("ショート動画が見つかりませんでした。キーワードを変えてお試しください。");
+                h.message.setText(error != null ? "検索結果を取得できませんでした。通信状態を確認して再試行してください。" : "ショート動画が見つかりませんでした。キーワードを変えてお試しください。");
+                if (error != null) h.retry.setVisibility(View.VISIBLE);
                 return;
             }
             s.feed = new Feed(); append(s.feed, items); remember(s.feed); renderHome(a, s, h);
@@ -420,15 +442,34 @@ public final class ModernShorts {
         bar.setPadding(dp(a, 10), dp(a, 6), dp(a, 10), dp(a, 6));
         GradientDrawable barBg = new GradientDrawable(); barBg.setColor(color(a, android.R.attr.colorBackground, 0xff1b1d22));
         barBg.setCornerRadius(dp(a, 22)); bar.setBackground(barBg);
-        Button home = button(a, "⌂"); home.setTextSize(24); home.setContentDescription("ショートのホーム");
-        home.setOnClickListener(v -> a.finish()); bar.addView(home, new LinearLayout.LayoutParams(dp(a, 48), -1));
-        Button prev = button(a, "前へ"); prev.setOnClickListener(v -> step(a, s, -1)); bar.addView(prev, new LinearLayout.LayoutParams(-2, -1));
-        TextView number = new TextView(a); number.setGravity(Gravity.CENTER); number.setTextColor(color(a, android.R.attr.textColorPrimary, 0xffffffff)); s.number = number;
-        bar.addView(number, new LinearLayout.LayoutParams(0, -1, 1));
+        s.bar = bar;
+        ImageButton prev = icon(a, "prev", "前のショート"); prev.setOnClickListener(v -> step(a, s, -1));
+        bar.addView(prev, new LinearLayout.LayoutParams(0, -1, 1));
+        FrameLayout numberCell = new FrameLayout(a);
+        TextView number = new TextView(a); number.setGravity(Gravity.CENTER); number.setTextSize(14);
+        number.setContentDescription("ショート動画一覧"); number.setTextColor(color(a, android.R.attr.textColorPrimary, 0xffffffff)); s.number = number;
+        numberCell.addView(number, new FrameLayout.LayoutParams(-1, -1)); bar.addView(numberCell, new LinearLayout.LayoutParams(0, -1, 1));
         ProgressBar p = new ProgressBar(a); tint(a, p); s.progress = p; p.setVisibility(s.busy ? View.VISIBLE : View.GONE);
-        bar.addView(p, new LinearLayout.LayoutParams(dp(a, 24), dp(a, 24)));
-        Button next = button(a, "次へ"); next.setOnClickListener(v -> step(a, s, 1)); bar.addView(next, new LinearLayout.LayoutParams(-2, -1));
+        numberCell.addView(p, new FrameLayout.LayoutParams(dp(a, 18), dp(a, 18), Gravity.TOP | Gravity.END));
+        ImageButton home = icon(a, "home", "ショートのホーム"); home.setOnClickListener(v -> a.finish());
+        bar.addView(home, new LinearLayout.LayoutParams(0, -1, 1));
+        ImageButton details = icon(a, "info", "動画情報"); details.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.nicovideo.jp/watch/" + s.feed.items.get(s.index).id));
+            intent.setClassName(a.getPackageName(), "com.sauzask.nicoid.NicoidVideoInfoActivity"); a.startActivity(intent);
+        }); bar.addView(details, new LinearLayout.LayoutParams(0, -1, 1));
+        ImageButton next = icon(a, "next", "次のショート"); next.setOnClickListener(v -> step(a, s, 1));
+        bar.addView(next, new LinearLayout.LayoutParams(0, -1, 1));
         number.setOnClickListener(v -> showList(a, s)); number.setClickable(true);
+        bar.setVisibility(View.GONE);
+        // Existing video taps and auto-hide control the seekbar; mirror that exact visibility.
+        View status = find(a, "statuslay"); if (status != null) status.setVisibility(View.INVISIBLE);
+        s.controlsListener = () -> {
+            View controller = find(a, "controller");
+            int visibility = s.controlsTapped && controller != null && controller.isShown() ? View.VISIBLE : View.GONE;
+            if (bar.getVisibility() != visibility) bar.setVisibility(visibility);
+            return true;
+        };
+        content.getViewTreeObserver().addOnPreDrawListener(s.controlsListener);
         FrameLayout.LayoutParams barLp = new FrameLayout.LayoutParams(-1, dp(a, 64), Gravity.BOTTOM);
         barLp.setMargins(dp(a, 12), 0, dp(a, 12), dp(a, 8)); content.addView(bar, barLp); update(s);
         s.listener = () -> {
@@ -548,6 +589,8 @@ public final class ModernShorts {
             if (!s.cancelling) { s.dragging = false; s.blocked = true; }
             return consumed;
         }
+        if (action == MotionEvent.ACTION_UP && !s.dragging && !s.busy &&
+            Math.abs(e.getRawX() - s.x) < dp(a, 16) && Math.abs(e.getRawY() - s.y) < dp(a, 16)) s.controlsTapped = true;
         if (s.blocked || e.getDownTime() != s.downTime) return false;
         int direction = ShortsRules.direction(e.getRawX() - s.x, e.getRawY() - s.y, a.getResources().getDisplayMetrics().density, false);
         if (action == MotionEvent.ACTION_MOVE && direction != 0 && !s.dragging) {
@@ -602,19 +645,17 @@ public final class ModernShorts {
         new Thread(() -> {
             ArrayList<Item> items = new ArrayList<>(); Exception error = null; HttpURLConnection c = null;
             try {
-                Uri uri = Uri.parse("https://api.search.nicovideo.jp/api/v2/snapshot/video/contents/search").buildUpon()
-                    .appendQueryParameter("q", query)
-                    .appendQueryParameter("targets", "title,tags")
-                    .appendQueryParameter("fields", "contentId,title,thumbnailUrl")
-                    .appendQueryParameter("_sort", "-viewCounter")
-                    .appendQueryParameter("_offset", "0")
-                    .appendQueryParameter("_limit", "50")
-                    .appendQueryParameter("_context", "nicoid_re_shorts")
-                    .build();
+                Uri uri = Uri.parse("https://nvapi.nicovideo.jp/v2/search/video").buildUpon()
+                    .appendQueryParameter("keyword", query).appendQueryParameter("selectContentType", "short")
+                    .appendQueryParameter("sortKey", "hot").appendQueryParameter("sortOrder", "none")
+                    .appendQueryParameter("pageSize", "50").appendQueryParameter("page", "1").build();
                 c = (HttpURLConnection)new URL(uri.toString()).openConnection();
                 c.setConnectTimeout(8000); c.setReadTimeout(10000);
                 c.setRequestProperty("Accept", "application/json");
-                c.setRequestProperty("User-Agent", "nicoid Re/1.0");
+                c.setRequestProperty("User-Agent", "nicoid Re");
+                c.setRequestProperty("X-Frontend-Id", "6"); c.setRequestProperty("X-Frontend-Version", "0");
+                c.setRequestProperty("Origin", "https://www.nicovideo.jp");
+                String sessionCookie = cookie(); if (!sessionCookie.isEmpty()) c.setRequestProperty("Cookie", sessionCookie);
                 StringBuilder body = new StringBuilder();
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(c.getInputStream(), "UTF-8"))) {
                     String line; while ((line = reader.readLine()) != null) {
@@ -623,28 +664,28 @@ public final class ModernShorts {
                 }
                 JSONObject json = new JSONObject(body.toString());
                 if (json.getJSONObject("meta").getInt("status") != 200) throw new IllegalStateException("Search unavailable");
-                JSONArray rows = json.getJSONArray("data");
+                JSONArray rows = json.getJSONObject("data").getJSONArray("items");
                 for (int n = 0; n < rows.length(); n++) {
-                    JSONObject row = rows.getJSONObject(n); String id = row.optString("contentId");
+                    JSONObject row = rows.getJSONObject(n); String id = row.optString("id", row.optString("watchId", ""));
                     if (!ShortsRules.videoId(id)) continue;
-                    items.add(new Item(id, row.optString("title", id), row.optString("thumbnailUrl", "")));
+                    items.add(new Item(id, row.optString("title", id), thumbnail(row, row)));
                 }
             } catch (Exception e) { error = e; log(e); } finally { if (c != null) c.disconnect(); }
             final Exception failure = error; MAIN.post(() -> result.done(items, failure));
         }, "nicoid-shorts-search").start();
     }
     private static String thumbnail(JSONObject row, JSONObject content) {
-        String value = row.optString("thumbnailUrl", "");
-        if (value.isEmpty() && content != null) {
-            value = content.optString("thumbnailUrl", "");
-            JSONObject thumbnail = content.optJSONObject("thumbnail");
-            if (value.isEmpty() && thumbnail != null) {
-                value = thumbnail.optString("listingUrl", "");
-                if (value.isEmpty()) value = thumbnail.optString("url", "");
+        for (JSONObject source : new JSONObject[]{content, row}) {
+            if (source == null) continue;
+            JSONObject thumb = source.optJSONObject("thumbnail");
+            if (thumb != null) for (String key : new String[]{"shortUrl", "largeUrl", "middleUrl", "url", "listingUrl"}) {
+                String url = thumb.optString(key, ""); if (url.startsWith("https://")) return url;
             }
+            String url = source.optString("thumbnailUrl", ""); if (url.startsWith("https://")) return url;
         }
-        return value;
+        return "";
     }
+
     private static String cookie() {
         try { Class<?> v = Class.forName("e.e.a.v0"); Object store = v.getField("b").get(null);
             if (store == null) return "";
@@ -681,7 +722,8 @@ public final class ModernShorts {
                 State s = STATES.remove(a); MENU_STATE.remove(a);
                 if (s != null) { s.dead = true; if (s.listener != null) {
                     ViewTreeObserver observer = a.findViewById(android.R.id.content).getViewTreeObserver();
-                    if (observer.isAlive()) observer.removeOnGlobalLayoutListener(s.listener);
+                    if (observer.isAlive()) { observer.removeOnGlobalLayoutListener(s.listener);
+                        if (s.controlsListener != null) observer.removeOnPreDrawListener(s.controlsListener); }
                 } }
             }
         });

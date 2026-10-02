@@ -1,6 +1,9 @@
 const fs = require('node:fs');
 const path = require('node:path');
 module.exports.generateNotes = async (options, context) => {
+  if (context.nextRelease.version === '1.3.2') {
+    return '## v1.3.2\n\nBug fixes.\n';
+  }
   if (context.nextRelease.version === '1.3.1') {
     return '## v1.3.1\n\nBug fixes.\n';
   }

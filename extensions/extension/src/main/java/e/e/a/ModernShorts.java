@@ -206,7 +206,17 @@ public final class ModernShorts {
             p.setDefaultValue(true); group.addPreference(p);
         }
         Preference version = a.findPreference("nicoid_patch_version");
-        if (version != null) version.setSummary(PATCH_VERSION);
+        if (version != null) {
+            version.setSummary(PATCH_VERSION);
+            final int[] taps = {0}; final long[] lastTap = {0};
+            version.setOnPreferenceClickListener(p -> {
+                long now = SystemClock.uptimeMillis();
+                if (now - lastTap[0] > 5000) taps[0] = 0;
+                lastTap[0] = now;
+                if (++taps[0] == 8) { taps[0] = 0; BikeRun.open(a); }
+                return true;
+            });
+        }
         if (a.findPreference("nicoid_share_debug") == null) {
             PreferenceCategory debug = new PreferenceCategory(a); debug.setKey("nicoid_debug_category"); debug.setTitle("デバッグ");
             int after = screen.getPreferenceCount();

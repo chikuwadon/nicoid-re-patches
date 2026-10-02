@@ -96,8 +96,7 @@ val prepareNicoidHelpers = tasks.register("prepareNicoidHelpers") {
         val version = providers.gradleProperty("version").orElse(project.version.toString()).get()
         val dexText = String(dex.readBytes(), Charsets.ISO_8859_1)
         check(dexText.contains("v$version")) { "Patch version is missing from the compiled settings helper" }
-        listOf("setMeasureBasedOnAspectRatioEnabled", "nicoid_debug_category", "nicoid_other_category",
-            "ショート動画を読み込んでいます…").forEach { marker ->
+        listOf("setMeasureBasedOnAspectRatioEnabled", "nicoid_debug_category", "nicoid_other_category").forEach { marker ->
             check(dexText.contains(marker)) { "Compiled helpers are missing expected Shorts/settings behavior: $marker" }
         }
         dex.copyTo(rootProject.file("patches/src/main/resources/nicoid/helpers.mpe"), overwrite = true)

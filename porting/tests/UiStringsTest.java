@@ -11,6 +11,13 @@ public final class UiStringsTest {
         check("none".equals(UiStrings.translate("none", Locale.US)), "Preference values unchanged");
         check("%s".equals(UiStrings.translate("%s", Locale.US)), "List summary placeholder unchanged");
         check(UiStrings.translate(null, Locale.US) == null, "Null is safe");
+        UiStrings.selectLanguage("ja");
+        check("ショート".equals(UiStrings.translate("ショート")), "App Japanese selection overrides device locale");
+        UiStrings.selectLanguage("en");
+        check("Shorts".equals(UiStrings.translate("ショート")), "App English selection overrides device locale");
+        UiStrings.selectLanguage("zh-TW");
+        check("短片".equals(UiStrings.translate("ショート")), "App Chinese selection overrides device locale");
+        UiStrings.selectLanguage("invalid");
         Locale previous = Locale.getDefault();
         try {
             Locale.setDefault(Locale.US);

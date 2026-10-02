@@ -7,6 +7,8 @@ import java.util.Map;
 /** Runtime UI translations use the locale selected by nicoid's app language setting. */
 public final class UiStrings {
     private static final Map<String, String[]> TEXT = new HashMap<>();
+    // 0 = Japanese, 1 = English, 2 = Traditional Chinese; -1 follows the device locale.
+    private static volatile int selectedLanguage = -1;
     static {
         TEXT.put("ショート", new String[]{"Shorts", "短片"});
         TEXT.put("ショート動画の視聴", new String[]{"Watch short videos", "觀看短片"});
@@ -402,7 +404,21 @@ public final class UiStrings {
         TEXT.put("連続再生", new String[]{"Play continuously", "連續播放"});
     }
     private UiStrings() { }
-    public static String translate(String source) { return translate(source, Locale.getDefault()); }
+    public static void selectLanguage(String preferenceValue) {
+        if (preferenceValue == null) { selectedLanguage = -1; return; }
+        String value = preferenceValue.trim().toLowerCase(Locale.ROOT);
+        if ("0".equals(value) || "ja".equals(value) || value.startsWith("ja-") || "japanese".equals(value)) selectedLanguage = 0;
+        else if ("1".equals(value) || "en".equals(value) || value.startsWith("en-") || "english".equals(value)) selectedLanguage = 1;
+        else if ("2".equals(value) || "zh".equals(value) || value.startsWith("zh-") || "chinese".equals(value)) selectedLanguage = 2;
+        else selectedLanguage = -1;
+    }
+    public static String translate(String source) {
+        int language = selectedLanguage;
+        if (language < 0) return translate(source, Locale.getDefault());
+        if (source == null || language == 0) return source;
+        String[] translated = TEXT.get(source);
+        return translated == null ? source : translated[language - 1];
+    }
     public static String translate(String source, Locale locale) {
         if (source == null) return null;
         String lang = locale.getLanguage();

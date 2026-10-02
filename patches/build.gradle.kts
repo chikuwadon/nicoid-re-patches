@@ -52,11 +52,10 @@ val generateNicoidVersion = tasks.register("generateNicoidVersion") {
     outputs.file(modernShortsSource)
     doLast {
         val version = providers.gradleProperty("version").orElse(project.version.toString()).get()
-        val suffix = if (version.contains("-dev.")) "（検証版）" else "（正式版）"
         val source = modernShortsSource.readText(Charsets.UTF_8)
         val marker = Regex("    private static final String PATCH_VERSION = \"[^\"]*\";")
         check(marker.containsMatchIn(source)) { "Patch version marker is missing from ModernShorts.java" }
-        modernShortsSource.writeText(marker.replace(source, "    private static final String PATCH_VERSION = \"v$version $suffix\";"), Charsets.UTF_8)
+        modernShortsSource.writeText(marker.replace(source, "    private static final String PATCH_VERSION = \"v$version @chikuwadon\";"), Charsets.UTF_8)
     }
 }
 val compileNicoidHelpers = tasks.register<JavaCompile>("compileNicoidHelpers") {
@@ -116,7 +115,8 @@ val prepareNicoidHelpers = tasks.register("prepareNicoidHelpers") {
         val version = providers.gradleProperty("version").orElse(project.version.toString()).get()
         val dexText = String(dex.readBytes(), Charsets.ISO_8859_1)
         check(dexText.contains("v$version")) { "Patch version is missing from the compiled settings helper" }
-        listOf("setMeasureBasedOnAspectRatioEnabled", "nicoid_debug_category", "nicoid_other_category").forEach { marker ->
+        listOf("setMeasureBasedOnAspectRatioEnabled", "CENTER_CROP", "@chikuwadon",
+            "search.nicovideo.jp/api/v2/snapshot/video/contents/search", "postDelayed").forEach { marker ->
             check(dexText.contains(marker)) { "Compiled helpers are missing expected Shorts/settings behavior: $marker" }
         }
         listOf("DynamicTheme", "ModernDebug").forEach { marker ->

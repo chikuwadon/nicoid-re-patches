@@ -1,3 +1,9 @@
+## [1.2.0-dev.8](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.2.0-dev.7...v1.2.0-dev.8) (2026-10-02)
+
+### ✨ New Features
+
+* improve Shorts playback and refresh behavior ([2aa2401](https://github.com/chikuwadon/nicoid-re-patches/commit/2aa2401939456fbc8362179966ea4442b689ce61))
+
 ## [1.2.0-dev.7](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.2.0-dev.6...v1.2.0-dev.7) (2026-10-02)
 
 ### 🐛 Bug Fixes

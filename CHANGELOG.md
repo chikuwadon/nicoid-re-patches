@@ -1,3 +1,7 @@
+## v1.3.2
+
+Bug fixes.
+
 ## v1.3.1
 
 Bug fixes.

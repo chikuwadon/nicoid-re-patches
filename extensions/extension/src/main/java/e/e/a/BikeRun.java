@@ -21,6 +21,7 @@ import android.widget.TextView;
 public final class BikeRun {
     private BikeRun() {}
     public static void open(Activity activity) {
+        UiStrings.selectLanguage(PreferenceManager.getDefaultSharedPreferences(activity).getString("app_lang", "0"));
         if (activity.isFinishing()) return;
         Dialog dialog=new Dialog(activity);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);

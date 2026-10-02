@@ -160,6 +160,7 @@ public final class ModernShorts {
             .setClassName(c.getPackageName(), PLAYER).putExtra("intentselect", true);
     }
     public static void addMenu(Context c, ArrayList<?> rows) {
+        UiStrings.selectLanguage(prefs(c).getString("app_lang", "0"));
         register(c);
         removeMovedMenuRows(rows);
         if (c instanceof Activity) MENU_STATE.put((Activity)c, prefs(c).getBoolean("show_shorts_menu", true));
@@ -169,6 +170,7 @@ public final class ModernShorts {
     }
     /** Runs after all original menu rows have been added, before adapter binding. */
     public static void finishMenu(Context c, ArrayList<?> rows) {
+        UiStrings.selectLanguage(prefs(c).getString("app_lang", "0"));
         for (Iterator<?> it = rows.iterator(); it.hasNext();) {
             Object row = it.next();
             if (hasTitle(row, "アプリを再起動") || hasTitle(row, "デバッグログを共有") || hasTitle(row, "その他")) it.remove();
@@ -198,6 +200,7 @@ public final class ModernShorts {
         } catch (Exception e) { log(e); }
     }
     public static void settings(PreferenceActivity a) {
+        UiStrings.selectLanguage(prefs(a).getString("app_lang", "0"));
         PreferenceScreen screen = a.getPreferenceScreen(); if (screen == null) return;
         UiText.preferences(screen);
         PreferenceGroup group = (PreferenceGroup)a.findPreference("player"); if (group == null) group = screen;
@@ -226,8 +229,11 @@ public final class ModernShorts {
             PreferenceCategory debug = new PreferenceCategory(a); debug.setKey("nicoid_debug_category"); debug.setTitle("デバッグ");
             int after = screen.getPreferenceCount();
             for (int n = 0; n < screen.getPreferenceCount(); n++) {
-                Preference v = screen.getPreference(n);
-                if ("言語".contentEquals(v.getTitle() == null ? "" : v.getTitle())) { after = n + 1; break; }
+                Preference section = screen.getPreference(n);
+                if (containsPreferenceKey(section, "app_lang") || containsPreferenceKey(section, "player_lang")) {
+                    after = n + 1;
+                    break;
+                }
             }
             // Assign explicit root order so the section follows the entire language group.
             ArrayList<Preference> sections = new ArrayList<>();
@@ -243,6 +249,15 @@ public final class ModernShorts {
             }); debug.addPreference(share);
         }
         UiText.preferences(screen);
+    }
+    private static boolean containsPreferenceKey(Preference preference, String key) {
+        if (key.equals(preference.getKey())) return true;
+        if (preference instanceof PreferenceGroup) {
+            PreferenceGroup group = (PreferenceGroup) preference;
+            for (int i = 0; i < group.getPreferenceCount(); i++)
+                if (containsPreferenceKey(group.getPreference(i), key)) return true;
+        }
+        return false;
     }
     private static void removeMovedMenuRows(ArrayList<?> rows) {
         for (Iterator<?> it = rows.iterator(); it.hasNext();) {
@@ -721,6 +736,7 @@ public final class ModernShorts {
         } catch (Exception e) { return ""; }
     }
     private static void register(Context c) {
+        UiStrings.selectLanguage(prefs(c).getString("app_lang", "0"));
         if (registered) return; registered = true;
         Application app = (Application)c.getApplicationContext();
         app.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {

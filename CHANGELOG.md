@@ -1,3 +1,9 @@
+## 1.3.4-dev.1 (2026-10-02)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** apply selected language to added UI ([0c1f182](https://github.com/chikuwadon/nicoid-re-patches/commit/0c1f1820679bfeafc4eb8230a844889da19e5ce6))
+
 ## 1.3.3 (2026-10-02)
 
 ### 🐛 Bug Fixes

@@ -86,18 +86,41 @@ val nicoidHelpersDex = tasks.register<JavaExec>("nicoidHelpersDex") {
         "--lib", System.getProperty("java.home"), "--output", output.get().asFile.absolutePath,
         nicoidHelpersJar.get().archiveFile.get().asFile.absolutePath)
 }
+val compileNicoidDexMerger = tasks.register<JavaCompile>("compileNicoidDexMerger") {
+    source(file("src/buildHelpers/java/NicoidDexMerger.java"))
+    classpath = sourceSets["main"].compileClasspath
+    destinationDirectory.set(layout.buildDirectory.dir("nicoid/dex-merger-classes"))
+    options.encoding = "UTF-8"
+    options.release.set(8)
+}
+val mergeNicoidHelpersDex = tasks.register<JavaExec>("mergeNicoidHelpersDex") {
+    dependsOn(nicoidHelpersDex, compileNicoidDexMerger)
+    classpath = files(compileNicoidDexMerger.flatMap { it.destinationDirectory }) + sourceSets["main"].compileClasspath
+    mainClass.set("app.nicoid.patches.NicoidDexMerger")
+    val generated = layout.buildDirectory.file("nicoid/helper-dex/classes.dex")
+    val original = rootProject.file("patches/src/main/resources/nicoid/helpers.mpe")
+    val output = layout.buildDirectory.file("nicoid/merged-helper-dex/classes.dex")
+    doFirst {
+        output.get().asFile.parentFile.mkdirs()
+        output.get().asFile.delete()
+    }
+    args(generated.get().asFile.absolutePath, original.absolutePath, output.get().asFile.absolutePath)
+}
 val prepareNicoidHelpers = tasks.register("prepareNicoidHelpers") {
-    dependsOn(nicoidHelpersDex)
+    dependsOn(mergeNicoidHelpersDex)
     doLast {
-        val dex = layout.buildDirectory.file("nicoid/helper-dex/classes.dex").get().asFile
+        val dex = layout.buildDirectory.file("nicoid/merged-helper-dex/classes.dex").get().asFile
         check(dex.isFile && dex.readBytes().take(4).toByteArray().contentEquals(byteArrayOf(0x64, 0x65, 0x78, 0x0a))) {
-            "Compiled nicoid helper DEX is missing or invalid"
+            "Merged nicoid helper DEX is missing or invalid"
         }
         val version = providers.gradleProperty("version").orElse(project.version.toString()).get()
         val dexText = String(dex.readBytes(), Charsets.ISO_8859_1)
         check(dexText.contains("v$version")) { "Patch version is missing from the compiled settings helper" }
         listOf("setMeasureBasedOnAspectRatioEnabled", "nicoid_debug_category", "nicoid_other_category").forEach { marker ->
             check(dexText.contains(marker)) { "Compiled helpers are missing expected Shorts/settings behavior: $marker" }
+        }
+        listOf("DynamicTheme", "ModernDebug").forEach { marker ->
+            check(dexText.contains(marker)) { "Merged helpers are missing the existing support class: $marker" }
         }
         dex.copyTo(rootProject.file("patches/src/main/resources/nicoid/helpers.mpe"), overwrite = true)
     }

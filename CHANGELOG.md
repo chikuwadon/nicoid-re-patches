@@ -1,3 +1,14 @@
+## 1.4.0 (2026-10-03)
+
+### ✨ New Features
+
+* **nicoid:** Add manual session-cookie sign-in for devices that cannot use the WebView sign-in screen, with Japanese, English, and Traditional Chinese UI.
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Restore video cache downloads with the required delivery cookie and Origin header.
+* **nicoid:** Open external pop-up playback links without bringing the main app to the foreground.
+
 ## 1.4.0-dev.1 (2026-10-03)
 
 ### ✨ New Features

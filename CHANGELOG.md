@@ -1,3 +1,9 @@
+## 1.4.1-dev.2 (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Dim video statistics icons in dark mode and remove the registration prompt and divider from video information.
+
 ## 1.4.1-dev.1 (2026-10-03)
 
 ### 🐛 Bug Fixes

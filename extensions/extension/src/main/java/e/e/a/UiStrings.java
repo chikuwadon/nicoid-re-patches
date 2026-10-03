@@ -133,6 +133,9 @@ public final class UiStrings {
         TEXT.put("この動画に対応する再生形式がありません", new String[]{"No supported playback format is available for this video", "這部影片沒有可支援的播放格式"});
         TEXT.put("再生情報の取得に失敗しました。通信状態や視聴権限を確認してください", new String[]{"Could not retrieve playback information. Check your connection and viewing permissions.", "無法取得播放資訊。請確認網路連線與觀看權限。"});
         TEXT.put("再生:%,d  コメント:%,d  マイリス:%,d  いいね:%,d", new String[]{"Views: %,d  Comments: %,d  Mylists: %,d  Likes: %,d", "觀看：%,d  留言：%,d  播放清單：%,d  按讚：%,d"});
+        TEXT.put("再生数", new String[]{"Views", "觀看"});
+        TEXT.put("いいね", new String[]{"Likes", "按讚"});
+        TEXT.put("マイリス", new String[]{"Mylists", "播放清單"});
         TEXT.put("動画再生", new String[]{"Play video", "播放影片"});
         TEXT.put("キャッシュ取得", new String[]{"Download cache", "下載快取"});
         TEXT.put("キャッシュの取得", new String[]{"Download cache", "下載快取"});

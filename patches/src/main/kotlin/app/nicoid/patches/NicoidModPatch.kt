@@ -183,6 +183,21 @@ val nicoidModPatch = bytecodePatch(
             invoke-static {v0, v7}, Le/e/a/ModernShorts;->finishMenu(Landroid/content/Context;Ljava/util/ArrayList;)V
             invoke-virtual {v8}, Landroid/widget/BaseAdapter;->notifyDataSetChanged()V
         """.trimIndent())
+        // Bind after the legacy Spanned-to-String conversion, so icon spans survive.
+        // The supported adapter keeps the count TextView in v12 (post time is v1).
+        val rows = mutableClassDefBy("Le/e/a/b0;").methods.single { it.name == "getView" }
+        var countBindings = 0
+        for ((index, instruction) in checkNotNull(rows.implementation).instructions.toList().withIndex()) {
+            val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            val call = instruction as? FiveRegisterInstruction ?: continue
+            if (ref?.definingClass == "Landroid/widget/TextView;" && ref.name == "setText" &&
+                ref.parameterTypes == listOf("Ljava/lang/CharSequence;") && call.registerC == 12) {
+                rows.replaceInstruction(index,
+                    "invoke-static {v${call.registerC}, v${call.registerD}}, Le/e/a/VideoCounts;->setText(Landroid/widget/TextView;Ljava/lang/CharSequence;)V")
+                countBindings++
+            }
+        }
+        check(countBindings == 1) { "Unexpected video count bindings: $countBindings" }
         // Only known UI text is translated. URLs, IDs and preference values are preserved.
         val translatedStrings = Payload.open("ui-strings.txt").bufferedReader().useLines { lines ->
             lines.map { it.replace("\\n", "\n") }.toSet()
@@ -194,7 +209,8 @@ val nicoidModPatch = bytecodePatch(
         val uiClasses = mutableListOf<String>()
         classDefForEach { cls ->
             if ((cls.type.startsWith("Lcom/sauzask/nicoid/") || cls.type.startsWith("Le/e/a/")) &&
-                !cls.type.startsWith("Le/e/a/UiStrings") && !cls.type.startsWith("Le/e/a/UiText")) {
+                !cls.type.startsWith("Le/e/a/UiStrings") && !cls.type.startsWith("Le/e/a/UiText") &&
+                !cls.type.startsWith("Le/e/a/VideoCount")) {
                 if (cls.methods.any { method -> method.implementation?.instructions?.any { insn ->
                     val ref = (insn as? ReferenceInstruction)?.reference
                     (ref is StringReference && ref.string in translatedStrings) ||
@@ -225,4 +241,3 @@ val nicoidModPatch = bytecodePatch(
         }
     }
 }
-

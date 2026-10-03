@@ -34,6 +34,10 @@ jobs:
         run: |
           javac -d /tmp/nicoid-cache-tests extensions/extension/src/main/java/e/e/a/CacheSupport.java porting/tests/CacheSupportTest.java
           java -cp /tmp/nicoid-cache-tests e.e.a.CacheSupportTest
+      - name: Check video count order and precision
+        run: |
+          javac -d /tmp/nicoid-count-tests extensions/extension/src/main/java/e/e/a/VideoCountRules.java porting/tests/VideoCountRulesTest.java
+          java -cp /tmp/nicoid-count-tests e.e.a.VideoCountRulesTest
       - name: Check manual login cookie input
         run: |
           javac -d /tmp/nicoid-cookie-tests extensions/extension/src/main/java/e/e/a/ManualCookie.java porting/tests/ManualCookieTest.java

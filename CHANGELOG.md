@@ -1,3 +1,9 @@
+## 1.4.1-dev.1 (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Show video statistics with play, comment, heart, and folder icons in the official order: views, comments, likes, and mylists. Keep every digit with comma separators.
+
 ## 1.4.0 (2026-10-03)
 
 ### ✨ New Features

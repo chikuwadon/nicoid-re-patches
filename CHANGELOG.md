@@ -1,3 +1,11 @@
+## 1.3.5-dev.1 (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Restore the delivery credential used by video cache downloads.
+* **nicoid:** Suppress the outdated Android 11 migration prompt for the current app-specific folder.
+* **nicoid:** Clarify cache storage options.
+
 ## 1.3.4 (2026-10-02)
 
 ### 🐛 Bug Fixes

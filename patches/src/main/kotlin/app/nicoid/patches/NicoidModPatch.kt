@@ -2,6 +2,8 @@ package app.nicoid.patches
 
 import app.morphe.patcher.patch.*
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -119,7 +121,55 @@ val nicoidModPatch = bytecodePatch(
                 target.setAccessFlags(source.accessFlags)
             }
         }
-        val menu = mutableClassDefBy("Lcom/sauzask/nicoid/NicoidTopActivity;").methods.single {
+        val cache = mutableClassDefBy("Le/e/a/CacheHls;")
+        val download = cache.methods.single { it.name == "download" }
+        val firstParameter = checkNotNull(download.implementation).registerCount - 4
+        val cookieParameter = firstParameter + 3
+        // Snapshot the delivery token once for this download, rather than reading a
+        // mutable global token for every segment while another video may be playing.
+        download.addInstructions(0, """
+            invoke-static {v$firstParameter, v$cookieParameter}, Le/e/a/CacheSupport;->cookieFor(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+            move-result-object v$cookieParameter
+        """.trimIndent())
+        val connect = cache.methods.single { it.name == "connect" }
+        val connectInstructions = checkNotNull(connect.implementation).instructions.toList()
+        val response = connectInstructions.indexOfFirst {
+            val ref = (it as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.definingClass == "Ljava/net/HttpURLConnection;" && ref.name == "getResponseCode"
+        }
+        check(response >= 0) { "Cache response-code hook was not found" }
+        val connectionRegister = (connectInstructions[response] as FiveRegisterInstruction).registerC
+        val statusRegister = (connectInstructions[response + 1] as OneRegisterInstruction).registerA
+        connect.addInstructions(response + 2, """
+            invoke-static {v$connectionRegister, v$statusRegister}, Le/e/a/CacheSupport;->http(Ljava/net/HttpURLConnection;I)V
+        """.trimIndent())
+        connect.addInstructions(response, """
+            invoke-static {v$connectionRegister}, Le/e/a/CacheSupport;->beforeRequest(Ljava/net/HttpURLConnection;)V
+        """.trimIndent())
+        val cacheInstructions = checkNotNull(download.implementation).instructions.toList()
+        val failure = cacheInstructions.indexOfFirst {
+            val ref = (it as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.name == "printStackTrace"
+        }
+        check(failure >= 0) { "Cache error hook was not found" }
+        val exceptionRegister = (cacheInstructions[failure] as FiveRegisterInstruction).registerC
+        download.addInstructions(failure, """
+            invoke-static {v$exceptionRegister}, Le/e/a/CacheSupport;->failed(Ljava/lang/Throwable;)V
+        """.trimIndent())
+        val top = mutableClassDefBy("Lcom/sauzask/nicoid/NicoidTopActivity;")
+        val create = top.methods.single { it.name == "onCreate" }
+        var migrationChecks = 0
+        for ((index, instruction) in checkNotNull(create.implementation).instructions.toList().withIndex()) {
+            val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            if (ref?.definingClass == "Ljava/io/File;" && ref.name == "exists") {
+                val register = (instruction as FiveRegisterInstruction).registerC
+                create.replaceInstruction(index,
+                    "invoke-static {v$register}, Le/e/a/CacheSupport;->needsMigration(Ljava/io/File;)Z")
+                migrationChecks++
+            }
+        }
+        check(migrationChecks == 4) { "Unexpected legacy storage migration checks: $migrationChecks" }
+        val menu = top.methods.single {
             it.name == "a" && it.parameterTypes == listOf("Landroid/content/Context;", "Landroid/widget/ListView;", "Z")
         }
         val code = checkNotNull(menu.implementation)
@@ -175,5 +225,4 @@ val nicoidModPatch = bytecodePatch(
         }
     }
 }
-
 

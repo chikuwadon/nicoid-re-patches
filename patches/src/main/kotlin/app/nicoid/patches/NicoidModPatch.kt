@@ -6,6 +6,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -198,6 +199,32 @@ val nicoidModPatch = bytecodePatch(
             }
         }
         check(countBindings == 1) { "Unexpected video count bindings: $countBindings" }
+        val info = mutableClassDefBy("Lcom/sauzask/nicoid/NicoidVideoInfoFragment;")
+            .methods.single { it.name == "a" && it.parameterTypes == listOf(
+                "Landroid/view/LayoutInflater;", "Landroid/view/ViewGroup;", "Landroid/os/Bundle;") }
+        val infoInstructions = checkNotNull(info.implementation).instructions.toList()
+        val registrationText = infoInstructions.indices.filter {
+            (infoInstructions[it] as? NarrowLiteralInstruction)?.narrowLiteral == 0x7f0f01ef
+        }.single()
+        val registrationBind = (registrationText + 1 until infoInstructions.size).first { index ->
+            val ref = (infoInstructions[index] as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.definingClass == "Landroid/widget/TextView;" && ref.name == "setText" &&
+                ref.parameterTypes == listOf("Ljava/lang/CharSequence;")
+        }
+        val registrationCall = infoInstructions[registrationBind] as FiveRegisterInstruction
+        info.replaceInstruction(registrationBind,
+            "invoke-static {v${registrationCall.registerC}, v${registrationCall.registerD}}, Le/e/a/VideoInfoUi;->hideRegistration(Landroid/widget/TextView;Ljava/lang/CharSequence;)V")
+        val infoCreate = mutableClassDefBy("Lcom/sauzask/nicoid/NicoidVideoInfoActivity;")
+            .methods.single { it.name == "onCreate" }
+        val infoCreateCode = checkNotNull(infoCreate.implementation)
+        val infoCreateInstructions = infoCreateCode.instructions.toList()
+        val contentView = infoCreateInstructions.indices.single { index ->
+            val ref = (infoCreateInstructions[index] as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.name == "setContentView" && ref.parameterTypes == listOf("I")
+        }
+        val activityRegister = infoCreateCode.registerCount - 2
+        infoCreate.addInstructions(contentView + 1,
+            "invoke-static/range {v$activityRegister .. v$activityRegister}, Le/e/a/VideoInfoUi;->hideDivider(Landroid/app/Activity;)V")
         // Only known UI text is translated. URLs, IDs and preference values are preserved.
         val translatedStrings = Payload.open("ui-strings.txt").bufferedReader().useLines { lines ->
             lines.map { it.replace("\\n", "\n") }.toSet()

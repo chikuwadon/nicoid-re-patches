@@ -1,6 +1,7 @@
 package e.e.a;
 
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.text.SpannableStringBuilder;
@@ -23,6 +24,15 @@ public final class VideoCounts {
         int color = view.getCurrentTextColor();
         if (view.getContext().getTheme().resolveAttribute(0x7f03005e, accent, true)) {
             color = accent.resourceId != 0 ? view.getResources().getColor(accent.resourceId) : accent.data;
+        }
+        // Use the actual View theme: the app's dark-mode choice can differ from the system.
+        TypedValue background = new TypedValue();
+        if (view.getContext().getTheme().resolveAttribute(android.R.attr.colorBackground, background, true)) {
+            int bg = background.resourceId != 0 ? view.getResources().getColor(background.resourceId) : background.data;
+            if (Color.red(bg) * 299 + Color.green(bg) * 587 + Color.blue(bg) * 114 < 128000) {
+                color = Color.argb(Color.alpha(color), Math.round(Color.red(color) * .85f),
+                    Math.round(Color.green(color) * .85f), Math.round(Color.blue(color) * .85f));
+            }
         }
         SpannableStringBuilder text = new SpannableStringBuilder();
         StringBuilder description = new StringBuilder();

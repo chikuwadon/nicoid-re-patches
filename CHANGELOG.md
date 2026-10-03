@@ -1,3 +1,14 @@
+## 1.5.0-dev.1 (2026-10-03)
+
+### ✨ New Features
+
+* **nicoid:** Add sign-out and a keyword content filter for video lists and Shorts.
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix deleted local watch history reappearing after reload.
+* **nicoid:** Remove redundant sign-in, quality, and watch-count descriptions.
+
 ## 1.4.1 (2026-10-03)
 
 ### 🐛 Bug Fixes

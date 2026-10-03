@@ -2,7 +2,7 @@
 
 ### ✨ New Features
 
-* **nicoid:** Add manual session-cookie sign-in for devices that cannot use the WebView sign-in screen, with Japanese, English, and Traditional Chinese UI.
+* **nicoid:** Add manual session-cookie sign-in for devices that cannot use the WebView sign-in screen.
 
 ### 🐛 Bug Fixes
 

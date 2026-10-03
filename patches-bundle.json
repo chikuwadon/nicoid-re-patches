@@ -1,6 +1,6 @@
 {
   "created_at": "2026-10-03T04:48:27",
-  "description": "## 1.4.0 (2026-10-03)\n\n### ✨ New Features\n\n* **nicoid:** Add manual session-cookie sign-in for devices that cannot use the WebView sign-in screen, with Japanese, English, and Traditional Chinese UI.\n\n### 🐛 Bug Fixes\n\n* **nicoid:** Restore video cache downloads with the required delivery cookie and Origin header.\n* **nicoid:** Open external pop-up playback links without bringing the main app to the foreground.",
+  "description": "## 1.4.0 (2026-10-03)\n\n### ✨ New Features\n\n* **nicoid:** Add manual session-cookie sign-in for devices that cannot use the WebView sign-in screen.\n\n### 🐛 Bug Fixes\n\n* **nicoid:** Restore video cache downloads with the required delivery cookie and Origin header.\n* **nicoid:** Open external pop-up playback links without bringing the main app to the foreground.",
   "download_url": "https://github.com/chikuwadon/nicoid-re-patches/releases/download/v1.4.0/patches-1.4.0.mpp",
   "signature_download_url": "",
   "version": "1.4.0"

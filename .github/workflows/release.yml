@@ -32,6 +32,10 @@ jobs:
           node-version: 'lts/*'
           cache: 'npm'
 
+      - name: Check manual login cookie input
+        run: |
+          javac -d /tmp/nicoid-cookie-tests extensions/extension/src/main/java/e/e/a/ManualCookie.java porting/tests/ManualCookieTest.java
+          java -cp /tmp/nicoid-cookie-tests e.e.a.ManualCookieTest
       - name: Validate bundled Android manifest
         run: python3 porting/tests/VerifyManifest.py patches/src/main/resources/nicoid/resources.zip
       - name: Install dependencies

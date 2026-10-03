@@ -2,7 +2,7 @@
 
 ### 🐛 Bug Fixes
 
-* **nicoid:** Show video statistics with play, comment, heart, and folder icons in the official order: views, comments, likes, and mylists. Keep every digit with comma separators.
+* **nicoid:** Show video statistics with play, comment, heart, and folder icons in the official order.
 
 ## 1.4.0 (2026-10-03)
 

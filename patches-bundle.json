@@ -1,6 +1,6 @@
 {
   "created_at": "2026-10-03T11:03:25",
-  "description": "## 1.4.1-dev.1 (2026-10-03)\n\n### 🐛 Bug Fixes\n\n* **nicoid:** Show video statistics with play, comment, heart, and folder icons in the official order: views, comments, likes, and mylists. Keep every digit with comma separators.",
+  "description": "## 1.4.1-dev.1 (2026-10-03)\n\n### 🐛 Bug Fixes\n\n* **nicoid:** Show video statistics with play, comment, heart, and folder icons in the official order.",
   "download_url": "https://github.com/chikuwadon/nicoid-re-patches/releases/download/v1.4.1-dev.1/patches-1.4.1-dev.1.mpp",
   "signature_download_url": "",
   "version": "1.4.1-dev.1"

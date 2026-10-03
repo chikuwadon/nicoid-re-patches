@@ -122,6 +122,71 @@ val nicoidModPatch = bytecodePatch(
                 target.setAccessFlags(source.accessFlags)
             }
         }
+        val settings = mutableClassDefBy("Lcom/sauzask/nicoid/NicoidSetting;")
+        var loginSummaries = 0
+        for (method in settings.methods) {
+            for ((index, instruction) in (method.implementation?.instructions?.toList() ?: continue).withIndex()) {
+                val text = ((instruction as? ReferenceInstruction)?.reference as? StringReference)?.string
+                if (text == "ログイン情報を保存済み（サイト側の認証は未確認）") {
+                    val register = (instruction as OneRegisterInstruction).registerA
+                    method.replaceInstruction(index, "const-string v$register, \"ログイン情報を保存済み\"")
+                    loginSummaries++
+                }
+            }
+        }
+        check(loginSummaries == 1) { "Unexpected login summaries: $loginSummaries" }
+        val webLogin = mutableClassDefBy("Lcom/sauzask/nicoid/ModernLoginActivity;").methods.single { it.name == "onCreate" }
+        var loginLoads = 0
+        for ((index, instruction) in checkNotNull(webLogin.implementation).instructions.toList().withIndex()) {
+            val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            if (ref?.definingClass == "Landroid/webkit/WebView;" && ref.name == "loadUrl") {
+                val call = instruction as FiveRegisterInstruction
+                webLogin.replaceInstruction(index, "invoke-static {v${call.registerC}, v${call.registerD}}, Le/e/a/LoginSupport;->loadLogin(Landroid/webkit/WebView;Ljava/lang/String;)V")
+                loginLoads++
+            }
+        }
+        check(loginLoads == 1) { "Unexpected login page loads: $loginLoads" }
+        // Stored history uses bare IDs; displayed rows use full watch URLs.
+        val deletionTypes = listOf("Lcom/sauzask/nicoid/LocalHistoryBulkDelete;", "Lcom/sauzask/nicoid/NicoidVideoListFragment\$f\$e;")
+        for (type in deletionTypes) {
+            val deletion = mutableClassDefBy(type).methods.single { it.name == "onClick" && it.parameterTypes.size == 2 }
+            var comparisons = 0
+            var writes = 0
+            for ((index, instruction) in checkNotNull(deletion.implementation).instructions.toList().withIndex()) {
+                val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: continue
+                val call = instruction as? FiveRegisterInstruction ?: continue
+                if (ref.definingClass == "Ljava/lang/String;" && ref.name == "equals") {
+                    deletion.replaceInstruction(index, "invoke-static {v${call.registerC}, v${call.registerD}}, Le/e/a/HistoryRules;->same(Ljava/lang/String;Ljava/lang/Object;)Z")
+                    comparisons++
+                } else if (ref.definingClass == "Ljava/util/HashSet;" && ref.name == "contains") {
+                    deletion.replaceInstruction(index, "invoke-static {v${call.registerC}, v${call.registerD}}, Le/e/a/HistoryRules;->contains(Ljava/util/Set;Ljava/lang/Object;)Z")
+                    comparisons++
+                } else if (ref.definingClass == "Le/e/a/v0;" && ref.parameterTypes == listOf("I", "Lorg/json/JSONArray;", "Landroid/content/Context;")) {
+                    deletion.replaceInstruction(index, "invoke-static {v${call.registerC}, v${call.registerD}, v${call.registerE}}, Le/e/a/HistorySupport;->write(ILorg/json/JSONArray;Landroid/content/Context;)I")
+                    writes++
+                }
+            }
+            check(comparisons == 1 && writes == 1) { "Unexpected history deletion hooks: $type ($comparisons, $writes)" }
+        }
+        val historyLoad = mutableClassDefBy("Le/e/a/y1;").methods.single { it.name == "run" }
+        var historyFormats = 0
+        for ((index, instruction) in checkNotNull(historyLoad.implementation).instructions.toList().withIndex()) {
+            val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            if (ref?.definingClass == "Ljava/lang/String;" && ref.name == "format") {
+                val call = instruction as FiveRegisterInstruction
+                historyLoad.replaceInstruction(index, "invoke-static {v${call.registerC}, v${call.registerD}}, Le/e/a/HistorySupport;->format(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;")
+                historyFormats++
+            }
+        }
+        check(historyFormats == 1) { "Unexpected history date formats: $historyFormats" }
+        val adapter = mutableClassDefBy("Le/e/a/b0;")
+        val notify = adapter.methods.single { it.name == "notifyDataSetChanged" }
+        val notifyThis = checkNotNull(notify.implementation).registerCount - 1
+        notify.addInstructions(0, "invoke-static/range {v$notifyThis .. v$notifyThis}, Le/e/a/ContentFilter;->filter(Ljava/lang/Object;)V")
+        val adapterConstructor = adapter.methods.single { it.name == "<init>" }
+        val adapterThis = checkNotNull(adapterConstructor.implementation).registerCount - 5
+        val constructorReturn = checkNotNull(adapterConstructor.implementation).instructions.indexOfLast { it.opcode == Opcode.RETURN_VOID }
+        adapterConstructor.addInstructions(constructorReturn, "invoke-static/range {v$adapterThis .. v$adapterThis}, Le/e/a/ContentFilter;->filter(Ljava/lang/Object;)V")
         val cache = mutableClassDefBy("Le/e/a/CacheHls;")
         val download = cache.methods.single { it.name == "download" }
         val firstParameter = checkNotNull(download.implementation).registerCount - 4
@@ -237,7 +302,8 @@ val nicoidModPatch = bytecodePatch(
         classDefForEach { cls ->
             if ((cls.type.startsWith("Lcom/sauzask/nicoid/") || cls.type.startsWith("Le/e/a/")) &&
                 !cls.type.startsWith("Le/e/a/UiStrings") && !cls.type.startsWith("Le/e/a/UiText") &&
-                !cls.type.startsWith("Le/e/a/VideoCount")) {
+                !cls.type.startsWith("Le/e/a/VideoCount") && !cls.type.startsWith("Le/e/a/ContentFilterRules") &&
+                !cls.type.startsWith("Le/e/a/HistoryRules")) {
                 if (cls.methods.any { method -> method.implementation?.instructions?.any { insn ->
                     val ref = (insn as? ReferenceInstruction)?.reference
                     (ref is StringReference && ref.string in translatedStrings) ||

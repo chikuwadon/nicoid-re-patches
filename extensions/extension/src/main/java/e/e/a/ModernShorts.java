@@ -353,8 +353,8 @@ public final class ModernShorts {
                 h.message.setText("ショート動画を取得できませんでした。通信状態を確認して再試行してください。");
                 h.retry.setVisibility(View.VISIBLE); return;
             }
-            s.feed = new Feed(); append(s.feed, items); remember(s.feed); renderHome(a, s, h);
-            if (startPlayback) launch(a, s, 0);
+            s.feed = new Feed(); append(a, s.feed, items); remember(s.feed); renderHome(a, s, h);
+            if (startPlayback && !s.feed.items.isEmpty()) launch(a, s, 0);
         });
     }
     private static void renderHome(Activity a, State s, Home h) {
@@ -434,7 +434,7 @@ public final class ModernShorts {
                 if (error != null) h.retry.setVisibility(View.VISIBLE);
                 return;
             }
-            s.feed = new Feed(); append(s.feed, items); remember(s.feed); renderHome(a, s, h);
+            s.feed = new Feed(); append(a, s.feed, items); remember(s.feed); renderHome(a, s, h);
         });
     }
     /** Called after the original video fragment transaction has been committed. */
@@ -605,14 +605,15 @@ public final class ModernShorts {
             if (s.dead || a.isFinishing()) return;
             s.busy = false; if (s.progress != null) s.progress.setVisibility(View.GONE);
             if (error != null) { Toast.makeText(a, "一覧を取得できませんでした。もう一度お試しください", 0).show(); return; }
-            int added = append(s.feed, items); update(s);
+            int added = append(a, s.feed, items); update(s);
             if (next && s.index + 1 < s.feed.items.size()) launch(a, s, s.index + 1);
             else if (added == 0) Toast.makeText(a, "新しいショート動画が見つかりませんでした", 0).show();
         });
     }
-    private static int append(Feed feed, ArrayList<Item> items) {
+    private static int append(Context context, Feed feed, ArrayList<Item> items) {
         int before = feed.items.size();
-        for (Item i : items) { boolean found = false; for (Item old : feed.items) if (old.id.equals(i.id)) { found = true; break; }
+        for (Item i : items) { if (ContentFilter.blocked(context, i.title)) continue;
+            boolean found = false; for (Item old : feed.items) if (old.id.equals(i.id)) { found = true; break; }
             if (!found && feed.items.size() < 200) feed.items.add(i); }
         return feed.items.size() - before;
     }
@@ -807,4 +808,3 @@ public final class ModernShorts {
     }
     private static void log(Exception e) { Log.w("nicoid-shorts", e.getClass().getSimpleName()); }
 }
-

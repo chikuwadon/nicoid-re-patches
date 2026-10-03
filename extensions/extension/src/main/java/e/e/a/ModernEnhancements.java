@@ -53,6 +53,8 @@ public final class ModernEnhancements {
     public static void settings(PreferenceActivity activity) {
         UiStrings.selectLanguage(prefs(activity).getString("app_lang", "0"));
         PlaybackSession.settings(activity);
+        LoginSupport.settings(activity);
+        ContentFilter.settings(activity);
         ListPreference cache = (ListPreference) activity.findPreference("cache_dir");
         if (cache != null) cache.setEntries(new CharSequence[]{
             UiStrings.translate("本体ストレージ（アプリ専用フォルダー）"),
@@ -60,15 +62,13 @@ public final class ModernEnhancements {
             UiStrings.translate("内部ストレージ（アプリ非公開領域）")});
         ListPreference quality = (ListPreference) activity.findPreference("quality_mode");
         if (quality != null) {
-            CharSequence[] labels = new CharSequence[]{"最大画質（最大解像度・動画により変動）",
-                "高画質（最大解像度・動画により変動）", "標準画質（2番目の解像度・動画により変動）",
-                "低画質（3番目の解像度・動画により変動）"};
+            CharSequence[] labels = new CharSequence[]{"最大画質", "高画質", "標準画質", "低画質"};
             try {
                 for (int i = 0; i < 3; i++) {
                     String label = (String) Class.forName("e.e.a.ModernControls")
                         .getMethod("qualityOption", int.class).invoke(null, i);
                     if (label.contains("（")) labels[i + 1] = label;
-                    if (i == 0 && label.contains("（")) labels[0] = label.replace("高画質", "最大画質");
+                    if (i == 0 && label.contains("（")) labels[0] = UiStrings.translate("最大画質") + label.substring(label.indexOf("（"));
                 }
             } catch (Exception ignored) { }
             quality.setEntries(labels);

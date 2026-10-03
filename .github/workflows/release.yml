@@ -32,6 +32,8 @@ jobs:
           node-version: 'lts/*'
           cache: 'npm'
 
+      - name: Validate bundled Android manifest
+        run: python3 porting/tests/VerifyManifest.py patches/src/main/resources/nicoid/resources.zip
       - name: Install dependencies
         run: npm install
 

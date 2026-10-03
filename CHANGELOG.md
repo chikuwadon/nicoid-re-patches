@@ -1,3 +1,9 @@
+## 1.3.5-dev.2 (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Keep the originating app in front when opening a video link in pop-up playback mode.
+
 ## 1.3.5-dev.1 (2026-10-03)
 
 ### 🐛 Bug Fixes

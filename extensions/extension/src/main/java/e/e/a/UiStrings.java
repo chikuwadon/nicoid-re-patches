@@ -124,7 +124,16 @@ public final class UiStrings {
         TEXT.put("ログインしました", new String[]{"Signed in", "已登入"});
         TEXT.put("ニコレポはサービスが終了しました。フォロー新着はニコニコ公式サイトで確認できます。", new String[]{"Nico Reports has been discontinued. Visit the official NicoNico website for new videos from followed users.", "Nico Reports 已停止服務。請前往 Niconico 官方網站查看追蹤對象的新影片。"});
         TEXT.put("保存先: ", new String[]{"Save location: ", "儲存位置： "});
-        TEXT.put("ログイン情報を保存済み（サイト側の認証は未確認）", new String[]{"Sign-in details saved (website authentication not confirmed)", "已儲存登入資料（尚未確認網站驗證狀態）"});
+        TEXT.put("ログイン情報を保存済み", new String[]{"Sign-in details saved", "已儲存登入資料"});
+        TEXT.put("ログアウト", new String[]{"Sign out", "登出"});
+        TEXT.put("履歴を削除できませんでした。再試行してください。", new String[]{"Could not delete history. Please try again.", "無法刪除紀錄，請重試。"});
+        TEXT.put("ログイン情報を削除してログアウトしますか？", new String[]{"Remove saved sign-in details and sign out?", "要刪除已儲存的登入資料並登出嗎？"});
+        TEXT.put("ログアウトしました", new String[]{"Signed out", "已登出"});
+        TEXT.put("ログアウトできませんでした。再試行してください。", new String[]{"Could not sign out. Please try again.", "無法登出，請重試。"});
+        TEXT.put("コンテンツフィルター", new String[]{"Content filter", "內容篩選器"});
+        TEXT.put("キーワードでフィルター", new String[]{"Filter by keyword", "依關鍵字篩選"});
+        TEXT.put("動画タイトルに含まれるキーワードをカンマまたは改行で区切って入力してください。次の一覧読み込みから非表示になります。", new String[]{"Enter keywords found in video titles, separated by commas or new lines. Matching videos will be hidden the next time a list is loaded.", "輸入影片標題中的關鍵字，以逗號或換行分隔。下次載入清單時會隱藏符合的影片。"});
+        TEXT.put("<b>%s</b> <font color='red'>%s回視聴</font>", new String[]{"<b>%s</b> <font color='red'>Watched %s times</font>", "<b>%s</b> <font color='red'>觀看 %s 次</font>"});
         TEXT.put("未ログイン・ログイン情報なし", new String[]{"Not signed in; no saved sign-in details", "未登入，沒有已儲存的登入資料"});
         TEXT.put("再生状況と通信結果を送る", new String[]{"Share playback and connection diagnostics", "分享播放與連線診斷資訊"});
         TEXT.put("動画の読み込みが進みません。再生をやり直してください", new String[]{"Video loading has stalled. Start playback again.", "影片載入停滯。請重新開始播放。"});

@@ -21,7 +21,7 @@ SHA-256：`17fc6b46228af184437ade7e6f5573915bc655b86996307ff3270fdf35279cce`
 ## パッチ配布
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.4.1](https://github.com/chikuwadon/nicoid-re-patches/releases/tag/v1.4.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`ブランチ&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件
+> **[v1.5.0-dev.1](https://github.com/chikuwadon/nicoid-re-patches/releases/tag/v1.5.0-dev.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`ブランチ&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件
 <details open>
 <summary>📦 nicoid&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件</summary>
 <br>
@@ -89,6 +89,9 @@ https://github.com/chikuwadon/nicoid-re-patches
 - 安定性とパフォーマンスを改善。
 - 英語・繁體中文の翻訳を追加。
 - Cookieを手動入力してログインできるように。
+
+- 設定からログアウトできるように。
+- 動画タイトルのキーワードで一覧を非表示にするコンテンツフィルターを追加。
 
 ## Cookieを手動入力してログインする
 

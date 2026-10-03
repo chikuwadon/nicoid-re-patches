@@ -1,3 +1,9 @@
+## 1.3.5-dev.3 (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix an installation failure introduced in the previous development build.
+
 ## 1.3.5-dev.2 (2026-10-03)
 
 ### 🐛 Bug Fixes

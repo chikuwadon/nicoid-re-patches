@@ -14,6 +14,12 @@ public final class ContentHistoryRulesTest {
         check(!ContentFilterRules.blocked("動画", ContentFilterRules.keywords(".*")), "keywords are literal, not regex");
         check(!ContentFilterRules.blocked(null, words), "missing title safe");
         check(!ContentFilterRules.blocked("何でも", ContentFilterRules.keywords(" ,\n ")), "empty filter disables hiding");
+        String[] channels = ContentFilterRules.keywords("ＮＨＫ,Example Channel\n公式チャンネル");
+        check(ContentFilterRules.blocked("NHK公式", channels), "channel name width normalization");
+        check(ContentFilterRules.blocked("example channel", channels), "channel name case normalization");
+        check(ContentFilterRules.blocked("アニメ公式チャンネル", channels), "channel name substring matching");
+        check(!ContentFilterRules.blocked("別の投稿者", channels), "other uploader retained");
+        check(!ContentFilterRules.blocked(null, channels), "missing legacy owner retained");
         for (String id : new String[]{"sm123", "nm345", "so678", "ss901", "12345"}) {
             check(HistoryRules.same("https://www.nicovideo.jp/watch/" + id, id), "watch URL deletion: " + id);
             check(HistoryRules.same("http://www.nicovideo.jp/shorts/" + id + "?from=history#test", id), "short URL and query deletion: " + id);

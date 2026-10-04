@@ -179,6 +179,20 @@ val nicoidModPatch = bytecodePatch(
             }
         }
         check(historyFormats == 1) { "Unexpected history date formats: $historyFormats" }
+        val historyStore = mutableClassDefBy("Le/e/a/v0;").methods.single {
+            it.name == "a" && it.parameterTypes == listOf("Lorg/json/JSONObject;", "Landroid/content/Context;")
+        }
+        val historyRecord = checkNotNull(historyStore.implementation).registerCount - 2
+        historyStore.addInstructions(0, "invoke-static/range {v$historyRecord .. v$historyRecord}, Le/e/a/ContentFilter;->rememberHistory(Lorg/json/JSONObject;)V")
+        val historyInstructions = checkNotNull(historyLoad.implementation).instructions.toList()
+        val newHistoryRow = historyInstructions.indices.single { index ->
+            val ref = (historyInstructions[index] as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.definingClass == "Le/e/a/x1;" && ref.name == "<init>"
+        }
+        val rowCall = historyInstructions[newHistoryRow] as FiveRegisterInstruction
+        // The supported local-history loader keeps its source JSON record in v0.
+        historyLoad.addInstructions(newHistoryRow + 1,
+            "invoke-static {v${rowCall.registerC}, v0}, Le/e/a/ContentFilter;->restoreHistory(Ljava/lang/Object;Lorg/json/JSONObject;)V")
         val adapter = mutableClassDefBy("Le/e/a/b0;")
         val notify = adapter.methods.single { it.name == "notifyDataSetChanged" }
         val notifyThis = checkNotNull(notify.implementation).registerCount - 1
@@ -187,6 +201,24 @@ val nicoidModPatch = bytecodePatch(
         val adapterThis = checkNotNull(adapterConstructor.implementation).registerCount - 5
         val constructorReturn = checkNotNull(adapterConstructor.implementation).instructions.indexOfLast { it.opcode == Opcode.RETURN_VOID }
         adapterConstructor.addInstructions(constructorReturn, "invoke-static/range {v$adapterThis .. v$adapterThis}, Le/e/a/ContentFilter;->filter(Ljava/lang/Object;)V")
+        mutableClassDefBy("Lcom/sauzask/nicoid/NicoidChromecastReceiverSelect;").methods.single { it.name == "onCreate" }
+            .addInstructions(0, "invoke-static {}, Le/e/a/CastDiagnostics;->discovery()V")
+        mutableClassDefBy("Lcom/sauzask/nicoid/NicoidChormecastSenderService\$c;").methods.single {
+            it.name == "a" && it.parameterTypes == listOf("Landroid/os/Bundle;")
+        }.addInstructions(0, "invoke-static {}, Le/e/a/CastDiagnostics;->connected()V")
+        val castResult = mutableClassDefBy("Lcom/sauzask/nicoid/NicoidChormecastSenderService\$c\$a;").methods.single { it.name == "a" }
+        val castResultCode = checkNotNull(castResult.implementation).instructions.toList()
+        val castStatus = castResultCode.indices.single { index ->
+            val ref = (castResultCode[index] as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.returnType == "Lcom/google/android/gms/common/api/Status;"
+        }
+        val castStatusRegister = (castResultCode[castStatus + 1] as OneRegisterInstruction).registerA
+        castResult.addInstructions(castStatus + 2, "invoke-static {v$castStatusRegister}, Le/e/a/CastDiagnostics;->receiverResult(Ljava/lang/Object;)V")
+        val castStream = mutableClassDefBy("Le/e/a/p;").methods.single {
+            it.name == "a" && it.parameterTypes == listOf("Ljava/lang/String;", "Lorg/apache/http/client/CookieStore;", "Ljava/lang/String;")
+        }
+        val castUrlRegister = checkNotNull(castStream.implementation).registerCount - 3
+        castStream.addInstructions(0, "invoke-static/range {v$castUrlRegister .. v$castUrlRegister}, Le/e/a/CastDiagnostics;->stream(Ljava/lang/String;)V")
         val cache = mutableClassDefBy("Le/e/a/CacheHls;")
         val download = cache.methods.single { it.name == "download" }
         val firstParameter = checkNotNull(download.implementation).registerCount - 4

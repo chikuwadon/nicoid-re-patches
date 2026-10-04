@@ -77,10 +77,14 @@ public final class ModernShorts {
     private static final WeakHashMap<Activity, Integer> REFRESH_MONITORS = new WeakHashMap<>();
     private static boolean registered;
     private static final class Item {
-        final String id, title, thumbnail;
+        final String id, title, thumbnail, channel;
         Item(String id, String title) { this(id, title, ""); }
         Item(String id, String title, String thumbnail) {
+            this(id, title, thumbnail, "");
+        }
+        Item(String id, String title, String thumbnail, String channel) {
             this.id = id; this.title = title; this.thumbnail = thumbnail == null ? "" : thumbnail;
+            this.channel = channel;
         }
     }
     private static final class Feed {
@@ -612,7 +616,7 @@ public final class ModernShorts {
     }
     private static int append(Context context, Feed feed, ArrayList<Item> items) {
         int before = feed.items.size();
-        for (Item i : items) { if (ContentFilter.blocked(context, i.title)) continue;
+        for (Item i : items) { if (ContentFilter.blocked(context, i.title, i.channel)) continue;
             boolean found = false; for (Item old : feed.items) if (old.id.equals(i.id)) { found = true; break; }
             if (!found && feed.items.size() < 200) feed.items.add(i); }
         return feed.items.size() - before;
@@ -679,7 +683,9 @@ public final class ModernShorts {
                     if (!ShortsRules.videoId(watch)) continue;
                     JSONObject content = row.optJSONObject("content");
                     String title = content == null ? watch : content.optString("title", watch);
-                    items.add(new Item(watch, title, thumbnail(row, content)));
+                    String channel = ContentFilter.owner(content);
+                    if (channel.isEmpty()) channel = ContentFilter.owner(row);
+                    items.add(new Item(watch, title, thumbnail(row, content), channel));
                 }
             } catch (Exception e) { error = e; log(e); } finally { if (c != null) c.disconnect(); }
             final Exception failure = error; MAIN.post(() -> result.done(items, failure));
@@ -712,7 +718,7 @@ public final class ModernShorts {
                 for (int n = 0; n < rows.length(); n++) {
                     JSONObject row = rows.getJSONObject(n); String id = row.optString("id", row.optString("watchId", ""));
                     if (!ShortsRules.videoId(id)) continue;
-                    items.add(new Item(id, row.optString("title", id), thumbnail(row, row)));
+                    items.add(new Item(id, row.optString("title", id), thumbnail(row, row), ContentFilter.owner(row)));
                 }
             } catch (Exception e) { error = e; log(e); } finally { if (c != null) c.disconnect(); }
             final Exception failure = error; MAIN.post(() -> result.done(items, failure));

@@ -131,7 +131,9 @@ public final class UiStrings {
         TEXT.put("ログアウトしました", new String[]{"Signed out", "已登出"});
         TEXT.put("ログアウトできませんでした。再試行してください。", new String[]{"Could not sign out. Please try again.", "無法登出，請重試。"});
         TEXT.put("コンテンツフィルター", new String[]{"Content filter", "內容篩選器"});
-        TEXT.put("キーワードでフィルター", new String[]{"Filter by keyword", "依關鍵字篩選"});
+        TEXT.put("キーワードフィルタ", new String[]{"Keyword filter", "關鍵字篩選器"});
+        TEXT.put("チャンネルフィルタ", new String[]{"Channel filter", "頻道篩選器"});
+        TEXT.put("非表示にする投稿者・チャンネル名をカンマまたは改行で区切って入力してください。名前の部分一致で判定します。次の一覧読み込みから反映されます。", new String[]{"Enter uploader or channel names to hide, separated by commas or new lines. Names are matched by substring. Applies the next time a list is loaded.", "輸入要隱藏的投稿者或頻道名稱，以逗號或換行分隔。以名稱部分相符判定，下次載入清單時套用。"});
         TEXT.put("動画タイトルに含まれるキーワードをカンマまたは改行で区切って入力してください。次の一覧読み込みから非表示になります。", new String[]{"Enter keywords found in video titles, separated by commas or new lines. Matching videos will be hidden the next time a list is loaded.", "輸入影片標題中的關鍵字，以逗號或換行分隔。下次載入清單時會隱藏符合的影片。"});
         TEXT.put("<b>%s</b> <font color='red'>%s回視聴</font>", new String[]{"<b>%s</b> <font color='red'>Watched %s times</font>", "<b>%s</b> <font color='red'>觀看 %s 次</font>"});
         TEXT.put("未ログイン・ログイン情報なし", new String[]{"Not signed in; no saved sign-in details", "未登入，沒有已儲存的登入資料"});

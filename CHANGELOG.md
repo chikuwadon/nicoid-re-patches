@@ -1,3 +1,9 @@
+## 1.5.0-dev.6 (2026-10-04)
+
+### ✨ New Features
+
+* **nicoid:** Label paid videos in video lists.
+
 ## 1.5.0-dev.5 (2026-10-04)
 
 ### 🐛 Bug Fixes

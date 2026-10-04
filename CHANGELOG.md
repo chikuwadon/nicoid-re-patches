@@ -1,3 +1,9 @@
+## 1.5.0-dev.8 (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Refine paid labels with top-left placement, duration-matched text, a rounded bottom-right corner, and a dark gray background in dark mode.
+
 ## 1.5.0-dev.7 (2026-10-04)
 
 ### 🐛 Bug Fixes

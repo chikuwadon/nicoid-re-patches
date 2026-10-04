@@ -42,6 +42,11 @@ jobs:
         run: |
           javac -d /tmp/nicoid-cast-tests extensions/extension/src/main/java/e/e/a/CastHls.java extensions/extension/src/main/java/e/e/a/CastRelay.java extensions/extension/src/main/java/e/e/a/CastDiagnostics.java porting/tests/cast-stubs/e/e/a/*.java porting/tests/CastRelayTest.java
           java -cp /tmp/nicoid-cast-tests e.e.a.CastRelayTest
+      - name: Test performance policies
+        run: |
+          mkdir -p /tmp/nicoid-performance-tests
+          javac -d /tmp/nicoid-performance-tests extensions/extension/src/main/java/e/e/a/PageCache.java extensions/extension/src/main/java/e/e/a/ImageDiskCache.java extensions/extension/src/main/java/e/e/a/NetworkTask.java porting/tests/PerformanceTest.java
+          java -cp /tmp/nicoid-performance-tests e.e.a.PerformanceTest
       - name: Check content filtering and history deletion
         run: |
           javac -d /tmp/nicoid-content-tests extensions/extension/src/main/java/e/e/a/ContentFilterRules.java extensions/extension/src/main/java/e/e/a/HistoryRules.java porting/tests/ContentHistoryRulesTest.java

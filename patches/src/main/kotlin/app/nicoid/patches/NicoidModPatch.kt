@@ -252,6 +252,21 @@ val nicoidModPatch = bytecodePatch(
             .map { it.index }.reversed().forEach { index ->
                 runRelay.addInstructions(index, "invoke-static/range {v$runThis .. v$runThis}, Le/e/a/CastRelay;->detach(Ljava/lang/Object;)V")
             }
+        for (type in listOf("Le/e/a/ModernRanking;", "Le/e/a/ModernSearch;")) {
+            val loadPage = mutableClassDefBy(type).methods.single { it.name == "load" }
+            val code = checkNotNull(loadPage.implementation).instructions.toList()
+            val input = code.indices.single { index ->
+                val ref = (code[index] as? ReferenceInstruction)?.reference as? MethodReference
+                ref?.definingClass == "Ljava/net/HttpURLConnection;" && ref.name == "getInputStream"
+            }
+            val register = (code[input] as FiveRegisterInstruction).registerC
+            loadPage.replaceInstruction(input, "invoke-static {v$register}, Le/e/a/PageCache;->input(Ljava/net/HttpURLConnection;)Ljava/io/InputStream;")
+        }
+        // Y is the original menu refresh; PullRefresh.a is the swipe refresh.
+        mutableClassDefBy("Lcom/sauzask/nicoid/NicoidVideoListFragment;").methods.single { it.name == "Y" && it.parameterTypes.isEmpty() }
+            .addInstructions(0, "invoke-static {}, Le/e/a/PageCache;->refresh()V")
+        mutableClassDefBy("Le/e/a/PullRefresh;").methods.single { it.name == "a" && it.parameterTypes.isEmpty() }
+            .addInstructions(0, "invoke-static {}, Le/e/a/PageCache;->refresh()V")
         val cache = mutableClassDefBy("Le/e/a/CacheHls;")
         val download = cache.methods.single { it.name == "download" }
         val firstParameter = checkNotNull(download.implementation).registerCount - 4
@@ -369,7 +384,7 @@ val nicoidModPatch = bytecodePatch(
                 !cls.type.startsWith("Le/e/a/UiStrings") && !cls.type.startsWith("Le/e/a/UiText") &&
                 !cls.type.startsWith("Le/e/a/VideoCount") && !cls.type.startsWith("Le/e/a/ContentFilterRules") &&
                 !cls.type.startsWith("Le/e/a/HistoryRules") && !cls.type.startsWith("Le/e/a/CastHls") &&
-                !cls.type.startsWith("Le/e/a/CastRelay")) {
+                !cls.type.startsWith("Le/e/a/CastRelay") && !cls.type.startsWith("Le/e/a/PageCache")) {
                 if (cls.methods.any { method -> method.implementation?.instructions?.any { insn ->
                     val ref = (insn as? ReferenceInstruction)?.reference
                     (ref is StringReference && ref.string in translatedStrings) ||

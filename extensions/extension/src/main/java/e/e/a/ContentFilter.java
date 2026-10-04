@@ -47,14 +47,30 @@ public final class ContentFilter {
         words.getEditText().setBackgroundTintList(ColorStateList.valueOf(accent));
         screen.addPreference(words);
     }
-    public static boolean blocked(Context context, String title) {
-        return blocked(context, title, null);
+    public static final class Rules {
+        final String keywords, channels;
+        final String[] words, names;
+        Rules(String keywords, String channels) {
+            this.keywords = keywords; this.channels = channels;
+            words = ContentFilterRules.keywords(keywords); names = ContentFilterRules.keywords(channels);
+        }
+        public boolean blocked(String title, String channel) {
+            return ContentFilterRules.blocked(title, words) || ContentFilterRules.blocked(channel, names);
+        }
+        boolean empty() { return words.length == 0 && names.length == 0; }
     }
-    public static boolean blocked(Context context, String title, String channel) {
+    private static volatile Rules compiled;
+    public static Rules rules(Context context) {
         android.content.SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        return ContentFilterRules.blocked(title, ContentFilterRules.keywords(prefs.getString(KEY, ""))) ||
-            ContentFilterRules.blocked(channel, ContentFilterRules.keywords(prefs.getString(CHANNELS, "")));
+        String words = prefs.getString(KEY, ""), names = prefs.getString(CHANNELS, "");
+        Rules prior = compiled;
+        if (prior != null && prior.keywords.equals(words) && prior.channels.equals(names)) return prior;
+        Rules next = new Rules(words, names); compiled = next; return next;
     }
+    public static boolean blocked(Context context, String title) { return blocked(context, title, null); }
+    public static boolean blocked(Context context, String title, String channel) { return rules(context).blocked(title, channel); }
+    private static volatile Method rowValue;
+    private static volatile java.lang.reflect.Field rowOwner;
     /** Same owner-name sources used by normal video rows, including channel videos. */
     public static String owner(JSONObject row) {
         if (row == null) return "";
@@ -90,19 +106,22 @@ public final class ContentFilter {
         try {
             Class<?> type = adapter.getClass();
             Context context = (Context) type.getField("d").get(adapter);
-            String[] words = ContentFilterRules.keywords(PreferenceManager.getDefaultSharedPreferences(context).getString(KEY, ""));
-            String[] channels = ContentFilterRules.keywords(PreferenceManager.getDefaultSharedPreferences(context).getString(CHANNELS, ""));
-            if (words.length == 0 && channels.length == 0) return;
+            Rules rules = rules(context);
+            if (rules.empty()) return;
             ArrayList<?> rows = (ArrayList<?>) type.getField("b").get(adapter);
-            Method value = Class.forName("e.e.a.x1").getMethod("a", String.class);
+            Method value = rowValue; java.lang.reflect.Field owner = rowOwner;
+            if (value == null || owner == null) {
+                Class<?> rowType = Class.forName("e.e.a.x1");
+                value = rowType.getMethod("a", String.class); owner = rowType.getField("y");
+                rowValue = value; rowOwner = owner;
+            }
             for (int n = rows.size() - 1; n >= 0; n--) {
                 Object row = rows.get(n);
                 Object title = value.invoke(row, "title");
                 Object url = value.invoke(row, "videourl");
-                Object channel = row.getClass().getField("y").get(row);
-                if (url != null && url.toString().matches(".*?/(watch|shorts)/.*") &&
-                    (ContentFilterRules.blocked(title == null ? null : title.toString(), words) ||
-                    ContentFilterRules.blocked(channel == null ? null : channel.toString(), channels))) rows.remove(n);
+                Object channel = owner.get(row);
+                if (url != null && (url.toString().contains("/watch/") || url.toString().contains("/shorts/")) &&
+                    rules.blocked(title == null ? null : title.toString(), channel == null ? null : channel.toString())) rows.remove(n);
             }
         } catch (ReflectiveOperationException error) {
             throw new IllegalStateException("Unsupported video list", error);

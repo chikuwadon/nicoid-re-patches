@@ -7,8 +7,13 @@ import java.util.Locale;
 /** Literal, case-insensitive title matching; no regular expressions. */
 public final class ContentFilterRules {
     private ContentFilterRules() { }
-    private static String normalized(String value) {
-        return Normalizer.normalize(value, Normalizer.Form.NFKC).toLowerCase(Locale.ROOT);
+    private static final java.util.LinkedHashMap<String, String> normalized = new java.util.LinkedHashMap<>(256, .75f, true);
+    private static synchronized String normalized(String value) {
+        String prior = normalized.get(value); if (prior != null) return prior;
+        String result = Normalizer.normalize(value, Normalizer.Form.NFKC).toLowerCase(Locale.ROOT);
+        normalized.put(value, result);
+        if (normalized.size() > 256) normalized.remove(normalized.keySet().iterator().next());
+        return result;
     }
     public static String[] keywords(String input) {
         ArrayList<String> result = new ArrayList<>();

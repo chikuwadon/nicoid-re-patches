@@ -66,10 +66,8 @@ public final class ModernShorts {
     private static final String MODE = "nicoid_re_shorts";
     private static final String SESSION = "nicoid_re_shorts_session";
     private static final Handler MAIN = new Handler(android.os.Looper.getMainLooper());
-    private static final ExecutorService IMAGES = Executors.newFixedThreadPool(3);
-    private static final LruCache<String, Bitmap> THUMBNAILS = new LruCache<String, Bitmap>(12 * 1024 * 1024) {
-        @Override protected int sizeOf(String key, Bitmap value) { return value.getByteCount(); }
-    };
+    private static final java.util.concurrent.ThreadPoolExecutor REQUESTS = new java.util.concurrent.ThreadPoolExecutor(
+        2, 2, 30, java.util.concurrent.TimeUnit.SECONDS, new java.util.concurrent.LinkedBlockingQueue<Runnable>());
     private static final LinkedHashMap<String, Feed> FEEDS = new LinkedHashMap<>();
     private static final WeakHashMap<Activity, State> STATES = new WeakHashMap<>();
     private static final WeakHashMap<Activity, Boolean> MENU_STATE = new WeakHashMap<>();
@@ -93,6 +91,8 @@ public final class ModernShorts {
     }
     private static final class State {
         Feed feed;
+        NetworkTask request;
+        Runnable resumeRequest, redraw;
         int index;
         boolean home;
         boolean busy, dead, dragging, blocked, launching, cancelling, controlsTapped;
@@ -276,7 +276,8 @@ public final class ModernShorts {
         register(a);
         State s = new State(); s.feed = new Feed(); s.home = true; STATES.put(a, s);
         a.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        Home home = buildHome(a); a.setContentView(home.root);
+        Home home = buildHome(a); a.setContentView(home.root); s.progress = home.progress;
+        s.redraw = () -> { if (!s.feed.items.isEmpty()) renderHome(a, s, home); };
         home.retry.setOnClickListener(v -> retryHome(a, s, home));
         home.refresh.setOnClickListener(v -> {
             if (home.query.getText().toString().trim().isEmpty()) loadFeed(a, s, home, false);
@@ -349,7 +350,8 @@ public final class ModernShorts {
         if (s.busy || s.dead) return;
         s.busy = true; h.progress.setVisibility(View.VISIBLE); h.retry.setVisibility(View.GONE);
         h.message.setText("ショート動画を読み込んでいます…");
-        request(null, (items, error) -> {
+        s.resumeRequest = () -> loadFeed(a, s, h, startPlayback);
+        request(s, null, (items, error) -> {
             s.busy = false;
             if (s.dead || a.isFinishing()) return;
             h.progress.setVisibility(View.GONE);
@@ -392,45 +394,16 @@ public final class ModernShorts {
         }
     }
     private static void loadThumbnail(String url, ImageView target, TextView placeholder) {
-        if (url == null || !url.startsWith("https://")) return;
-        target.setTag(url); Bitmap cached = THUMBNAILS.get(url);
-        if (cached != null) { target.setImageBitmap(cached); placeholder.setVisibility(View.GONE); return; }
-        IMAGES.execute(() -> {
-            Bitmap bitmap = null; HttpURLConnection c = null;
-            try {
-                c = (HttpURLConnection)new URL(url).openConnection(); c.setConnectTimeout(6000); c.setReadTimeout(6000);
-                c.setInstanceFollowRedirects(true); c.setRequestProperty("User-Agent", "nicoid Re/1.0");
-                int contentLength = c.getContentLength(); if (contentLength > 8 * 1024 * 1024) return;
-                try (java.io.InputStream in = c.getInputStream(); ByteArrayOutputStream bytes = new ByteArrayOutputStream()) {
-                    byte[] buffer = new byte[8192]; int count, total = 0;
-                    while ((count = in.read(buffer)) != -1) {
-                        total += count; if (total > 8 * 1024 * 1024) return;
-                        bytes.write(buffer, 0, count);
-                    }
-                    byte[] encoded = bytes.toByteArray(); BitmapFactory.Options options = new BitmapFactory.Options();
-                    options.inJustDecodeBounds = true; BitmapFactory.decodeByteArray(encoded, 0, encoded.length, options);
-                    if (options.outWidth <= 0 || options.outHeight <= 0) return;
-                    int sample = 1;
-                    while ((options.outWidth / sample > 900 || options.outHeight / sample > 1600) && sample < 64) sample *= 2;
-                    options.inJustDecodeBounds = false; options.inSampleSize = sample;
-                    bitmap = BitmapFactory.decodeByteArray(encoded, 0, encoded.length, options);
-                }
-                if (bitmap != null && bitmap.getByteCount() <= 8 * 1024 * 1024) THUMBNAILS.put(url, bitmap);
-                else if (bitmap != null) { bitmap.recycle(); bitmap = null; }
-            } catch (Exception ignored) { }
-            finally { if (c != null) c.disconnect(); }
-            final Bitmap result = bitmap;
-            if (result != null) MAIN.post(() -> {
-                if (url.equals(target.getTag())) { target.setImageBitmap(result); placeholder.setVisibility(View.GONE); }
-            });
-        });
+        ShortImages.load(url, target, placeholder);
     }
     private static void search(Activity a, State s, Home h) {
         String query = h.query.getText().toString().trim();
-        if (query.isEmpty() || s.busy) return;
+        if (query.isEmpty() || s.dead) return;
+        cancelRequest(s);
         s.busy = true; h.progress.setVisibility(View.VISIBLE); h.retry.setVisibility(View.GONE);
         h.message.setText("ショート動画を検索しています…"); h.rows.removeAllViews();
-        requestSearch(query, (items, error) -> {
+        s.resumeRequest = () -> search(a, s, h);
+        requestSearch(s, query, (items, error) -> {
             if (s.dead || a.isFinishing()) return;
             s.busy = false; h.progress.setVisibility(View.GONE);
             if (error != null || items.isEmpty()) {
@@ -605,7 +578,8 @@ public final class ModernShorts {
     private static void extend(Activity a, State s, String id, boolean next) {
         if (s.busy || s.dead) return;
         s.busy = true; if (s.progress != null) s.progress.setVisibility(View.VISIBLE);
-        request(id, (items, error) -> {
+        s.resumeRequest = () -> extend(a, s, id, next);
+        request(s, id, (items, error) -> {
             if (s.dead || a.isFinishing()) return;
             s.busy = false; if (s.progress != null) s.progress.setVisibility(View.GONE);
             if (error != null) { Toast.makeText(a, "一覧を取得できませんでした。もう一度お試しください", 0).show(); return; }
@@ -615,10 +589,11 @@ public final class ModernShorts {
         });
     }
     private static int append(Context context, Feed feed, ArrayList<Item> items) {
-        int before = feed.items.size();
-        for (Item i : items) { if (ContentFilter.blocked(context, i.title, i.channel)) continue;
-            boolean found = false; for (Item old : feed.items) if (old.id.equals(i.id)) { found = true; break; }
-            if (!found && feed.items.size() < 200) feed.items.add(i); }
+        int before = feed.items.size(); ContentFilter.Rules rules = ContentFilter.rules(context);
+        java.util.HashSet<String> seen = new java.util.HashSet<>(); for (Item old : feed.items) seen.add(old.id);
+        for (Item i : items) {
+            if (!rules.blocked(i.title, i.channel) && feed.items.size() < 200 && seen.add(i.id)) feed.items.add(i);
+        }
         return feed.items.size() - before;
     }
     private static void remember(Feed f) { FEEDS.put(f.key, f); if (FEEDS.size() > 4) FEEDS.remove(FEEDS.keySet().iterator().next()); }
@@ -660,20 +635,31 @@ public final class ModernShorts {
         return false;
     }
     private interface Result { void done(ArrayList<Item> items, Exception error); }
-    private static void request(String id, Result result) {
+    private static void cancelRequest(State s) {
+        if (s.request != null) { s.request.cancel(); s.request = null; REQUESTS.purge(); }
+        s.busy = false;
+    }
+    private static void complete(State s, NetworkTask task, Result result, ArrayList<Item> items, Exception error) {
+        MAIN.post(() -> {
+            if (task.cancelled() || s.dead || s.request != task) return;
+            s.request = null; s.resumeRequest = null; result.done(items, error);
+        });
+    }
+    private static void request(State s, String id, Result result) {
         final String cookie = cookie();
-        new Thread(() -> {
+        NetworkTask task = new NetworkTask(); s.request = task;
+        task.start(REQUESTS, () -> {
             ArrayList<Item> items = new ArrayList<>(); Exception error = null; HttpURLConnection c = null;
             try {
                 String url = "https://nvapi.nicovideo.jp/v1/playlist/recipe-id?recipeId=video_short_watch_recommendation&recipeVersion=1&site=nicovideo";
                 if (id != null) url += "&videoId=" + Uri.encode(id) + "&currentVideoId=" + Uri.encode(id);
-                c = (HttpURLConnection)new URL(url).openConnection(); c.setConnectTimeout(8000); c.setReadTimeout(8000);
+                c = (HttpURLConnection)new URL(url).openConnection(); if (!task.bind(c)) return; c.setConnectTimeout(8000); c.setReadTimeout(8000);
                 c.setRequestProperty("X-Frontend-Id", "6"); c.setRequestProperty("X-Frontend-Version", "0");
                 c.setRequestProperty("Accept", "application/json"); c.setRequestProperty("Origin", "https://www.nicovideo.jp");
                 if (!cookie.isEmpty()) c.setRequestProperty("Cookie", cookie);
                 StringBuilder text = new StringBuilder();
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(c.getInputStream(), "UTF-8"))) {
-                    String line; while ((line = reader.readLine()) != null) { text.append(line); if (text.length() > 2000000) throw new IllegalStateException("Oversized feed"); }
+                    String line; while ((line = reader.readLine()) != null) { if (task.cancelled()) return; text.append(line); if (text.length() > 2000000) throw new IllegalStateException("Oversized feed"); }
                 }
                 JSONObject json = new JSONObject(text.toString());
                 if (json.getJSONObject("meta").getInt("status") != 200) throw new IllegalStateException("Feed unavailable");
@@ -687,19 +673,20 @@ public final class ModernShorts {
                     if (channel.isEmpty()) channel = ContentFilter.owner(row);
                     items.add(new Item(watch, title, thumbnail(row, content), channel));
                 }
-            } catch (Exception e) { error = e; log(e); } finally { if (c != null) c.disconnect(); }
-            final Exception failure = error; MAIN.post(() -> result.done(items, failure));
-        }, "nicoid-shorts-feed").start();
+            } catch (Exception e) { error = e; if (!task.cancelled()) log(e); } finally { if (c != null) { task.release(c); c.disconnect(); } }
+            complete(s, task, result, items, error);
+        });
     }
-    private static void requestSearch(String query, Result result) {
-        new Thread(() -> {
+    private static void requestSearch(State s, String query, Result result) {
+        NetworkTask task = new NetworkTask(); s.request = task;
+        task.start(REQUESTS, () -> {
             ArrayList<Item> items = new ArrayList<>(); Exception error = null; HttpURLConnection c = null;
             try {
                 Uri uri = Uri.parse("https://nvapi.nicovideo.jp/v2/search/video").buildUpon()
                     .appendQueryParameter("keyword", query).appendQueryParameter("selectContentType", "short")
                     .appendQueryParameter("sortKey", "hot").appendQueryParameter("sortOrder", "none")
                     .appendQueryParameter("pageSize", "50").appendQueryParameter("page", "1").build();
-                c = (HttpURLConnection)new URL(uri.toString()).openConnection();
+                c = (HttpURLConnection)new URL(uri.toString()).openConnection(); if (!task.bind(c)) return;
                 c.setConnectTimeout(8000); c.setReadTimeout(10000);
                 c.setRequestProperty("Accept", "application/json");
                 c.setRequestProperty("User-Agent", "nicoid Re");
@@ -709,7 +696,7 @@ public final class ModernShorts {
                 StringBuilder body = new StringBuilder();
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(c.getInputStream(), "UTF-8"))) {
                     String line; while ((line = reader.readLine()) != null) {
-                        body.append(line); if (body.length() > 2000000) throw new IllegalStateException("Oversized search response");
+                        if (task.cancelled()) return; body.append(line); if (body.length() > 2000000) throw new IllegalStateException("Oversized search response");
                     }
                 }
                 JSONObject json = new JSONObject(body.toString());
@@ -720,9 +707,9 @@ public final class ModernShorts {
                     if (!ShortsRules.videoId(id)) continue;
                     items.add(new Item(id, row.optString("title", id), thumbnail(row, row), ContentFilter.owner(row)));
                 }
-            } catch (Exception e) { error = e; log(e); } finally { if (c != null) c.disconnect(); }
-            final Exception failure = error; MAIN.post(() -> result.done(items, failure));
-        }, "nicoid-shorts-search").start();
+            } catch (Exception e) { error = e; if (!task.cancelled()) log(e); } finally { if (c != null) { task.release(c); c.disconnect(); } }
+            complete(s, task, result, items, error);
+        });
     }
     private static String thumbnail(JSONObject row, JSONObject content) {
         for (JSONObject source : new JSONObject[]{content, row}) {
@@ -752,6 +739,13 @@ public final class ModernShorts {
             public void onActivityResumed(Activity a) {
                 State state = STATES.get(a);
                 if (state != null && state.home) state.launching = false;
+                if (state != null && !state.dead) {
+                    if (state.redraw != null) state.redraw.run();
+                    if (!state.busy && state.resumeRequest != null) {
+                        Runnable resume = state.resumeRequest; state.resumeRequest = null; resume.run();
+                    }
+                }
+                ShortImages.resume(a);
                 int generation = REFRESH_MONITORS.containsKey(a) ? REFRESH_MONITORS.get(a) + 1 : 1;
                 REFRESH_MONITORS.put(a, generation); monitorRefresh(a, generation);
                 Boolean prior = MENU_STATE.get(a); boolean now = prefs(a).getBoolean("show_shorts_menu", true);
@@ -767,11 +761,15 @@ public final class ModernShorts {
                 Integer generation = REFRESH_MONITORS.get(a);
                 REFRESH_MONITORS.put(a, generation == null ? 1 : generation + 1);
             }
-            public void onActivityStopped(Activity a) {}
+            public void onActivityStopped(Activity a) {
+                State state = STATES.get(a);
+                if (state != null) { cancelRequest(state); if (state.progress != null) state.progress.setVisibility(View.GONE); }
+                ShortImages.cancel(a);
+            }
             public void onActivitySaveInstanceState(Activity a, Bundle b) {}
             public void onActivityDestroyed(Activity a) {
                 State s = STATES.remove(a); MENU_STATE.remove(a);
-                if (s != null) { s.dead = true; if (s.listener != null) {
+                if (s != null) { s.dead = true; cancelRequest(s); s.resumeRequest = null; s.redraw = null; ShortImages.cancel(a); if (s.listener != null) {
                     ViewTreeObserver observer = a.findViewById(android.R.id.content).getViewTreeObserver();
                     if (observer.isAlive()) { observer.removeOnGlobalLayoutListener(s.listener);
                         if (s.controlsListener != null) observer.removeOnPreDrawListener(s.controlsListener); }

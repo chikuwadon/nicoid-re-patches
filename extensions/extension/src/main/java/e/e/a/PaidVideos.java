@@ -2,7 +2,7 @@ package e.e.a;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
@@ -74,21 +74,38 @@ public final class PaidVideos {
         if (!paid) { if (badge != null) badge.setVisibility(View.GONE); return; }
         if (badge == null) {
             badge = new TextView(thumbnail.getContext()); badge.setTag(TAG);
-            badge.setTextSize(12); badge.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-            int padding = dp(thumbnail.getContext(), 4); badge.setPadding(padding, dp(thumbnail.getContext(), 1), padding, dp(thumbnail.getContext(), 1));
+            badge.setTextSize(12);
+            int padding = dp(thumbnail.getContext(), 4); badge.setPadding(padding, 0, padding, 0);
             badge.setClickable(false); badge.setFocusable(false);
             if (thumbnail instanceof RelativeLayout) {
                 RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(-2, -2);
-                lp.addRule(RelativeLayout.ALIGN_PARENT_LEFT); lp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM); thumbnail.addView(badge, lp);
+                lp.addRule(RelativeLayout.ALIGN_PARENT_LEFT); lp.addRule(RelativeLayout.ALIGN_PARENT_TOP); thumbnail.addView(badge, lp);
             } else if (thumbnail instanceof FrameLayout) {
-                thumbnail.addView(badge, new FrameLayout.LayoutParams(-2, -2, android.view.Gravity.BOTTOM | android.view.Gravity.LEFT));
+                thumbnail.addView(badge, new FrameLayout.LayoutParams(-2, -2, android.view.Gravity.TOP | android.view.Gravity.LEFT));
             } else return;
         }
         TypedValue accent = new TypedValue(); Context context = badge.getContext();
         int color = Color.DKGRAY;
         if (context.getTheme().resolveAttribute(0x7f03005e, accent, true)) color = accent.resourceId == 0 ? accent.data : context.getResources().getColor(accent.resourceId);
         color = Color.rgb(Color.red(color), Color.green(color), Color.blue(color));
-        badge.setBackgroundColor(color); badge.setTextColor(foreground(color));
+        TypedValue background = new TypedValue();
+        if (context.getTheme().resolveAttribute(android.R.attr.colorBackground, background, true)) {
+            int bg = background.resourceId == 0 ? background.data : context.getResources().getColor(background.resourceId);
+            if (Color.red(bg) * 299 + Color.green(bg) * 587 + Color.blue(bg) * 114 < 128000) color = 0xff444444;
+        }
+        View durationView = thumbnail.findViewById(0x7f0800df);
+        if (durationView instanceof TextView) {
+            TextView duration = (TextView)durationView;
+            badge.setTextSize(TypedValue.COMPLEX_UNIT_PX, duration.getTextSize());
+            badge.setTypeface(duration.getTypeface());
+            badge.setIncludeFontPadding(duration.getIncludeFontPadding());
+            int padding = dp(context, 4);
+            badge.setPadding(padding, duration.getPaddingTop(), padding, duration.getPaddingBottom());
+        }
+        GradientDrawable shape = new GradientDrawable(); shape.setColor(color);
+        float radius = dp(context, 4);
+        shape.setCornerRadii(new float[]{0, 0, 0, 0, radius, radius, 0, 0});
+        badge.setBackground(shape); badge.setTextColor(foreground(color));
         badge.setText(UiStrings.translate("有料")); badge.setContentDescription(UiStrings.translate("有料")); badge.setVisibility(View.VISIBLE);
     }
     private static int dp(Context context, int value) { return Math.round(context.getResources().getDisplayMetrics().density * value); }

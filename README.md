@@ -21,7 +21,7 @@ SHA-256：`17fc6b46228af184437ade7e6f5573915bc655b86996307ff3270fdf35279cce`
 ## パッチ配布
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.5.0](https://github.com/chikuwadon/nicoid-re-patches/releases/tag/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`ブランチ&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件
+> **[v1.6.0](https://github.com/chikuwadon/nicoid-re-patches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`ブランチ&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件
 <details open>
 <summary>📦 nicoid&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件</summary>
 <br>
@@ -68,10 +68,13 @@ https://github.com/chikuwadon/nicoid-re-patches
 - Android 16に対応。
 - 現在のニコニコ動画の再生形式に対応。
 - Material Youテーマを追加。
-- キャッシュ機能を修正。
+- キャッシュの保存先をフォルダー選択で指定できるように。
+- キャッシュを動画IDごとのフォルダーにまとめ、オフライン再生に対応。
 - ポップアップ再生時に速度・画質を選択できるように。
 - 関連動画の選択メニューに再生方法を追加。
-- 再生速度の選択肢を0.5、0.75、1.0、1.15、1.25、1.4、1.5、1.75、2.0倍に拡張。
+- 再生速度を0.1〜3.0倍、0.05倍刻みのスライダーで調整できるように。
+- 上下スワイプによる音量・輝度調整を追加（設定でオン・オフ）。
+- 再生速度を変えても、流れるコメントの速度を等倍に維持。
 - デフォルトの再生速度を設定できるように。
 - アプリ切替時の動作を設定できるように。
 - 再生位置を保存する設定を追加。
@@ -95,7 +98,7 @@ https://github.com/chikuwadon/nicoid-re-patches
 
 - 設定からログアウトできるように。
 - 動画タイトルのキーワードや投稿者・チャンネル名で一覧を非表示にするコンテンツフィルターを追加。
-- Google Castで現在の動画配信に必要な認証情報を保持し、映像・音声などをスマホ経由で転送する処理を修正。
+- Google Castを現在の動画配信方式に対応。
 
 ## Cookieを手動入力してログインする
 

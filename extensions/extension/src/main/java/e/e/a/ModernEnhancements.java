@@ -55,11 +55,7 @@ public final class ModernEnhancements {
         PlaybackSession.settings(activity);
         LoginSupport.settings(activity);
         ContentFilter.settings(activity);
-        ListPreference cache = (ListPreference) activity.findPreference("cache_dir");
-        if (cache != null) cache.setEntries(new CharSequence[]{
-            UiStrings.translate("本体ストレージ（アプリ専用フォルダー）"),
-            UiStrings.translate("SDカード（アプリ専用フォルダー）"),
-            UiStrings.translate("内部ストレージ（アプリ非公開領域）")});
+        CacheFolders.settings(activity);
         ListPreference quality = (ListPreference) activity.findPreference("quality_mode");
         if (quality != null) {
             CharSequence[] labels = new CharSequence[]{"最大画質", "高画質", "標準画質", "低画質"};
@@ -88,6 +84,7 @@ public final class ModernEnhancements {
         UiStrings.selectLanguage(prefs(service).getString("app_lang", "0"));
         try {
             View root = (View) get(object, "a");
+            PlayerIcons.attach(root);
             if (root instanceof PopupPinchLayout) ((PopupPinchLayout) root).bind(object);
             int id = service.getResources().getIdentifier("topmenulay", "id", service.getPackageName());
             View controller = root.findViewById(id);
@@ -115,6 +112,7 @@ public final class ModernEnhancements {
             params.addRule(RelativeLayout.LEFT_OF, service.getResources().getIdentifier("commentbutton", "id", service.getPackageName()));
             ((RelativeLayout) controller).addView(row, params);
             update(object);
+            PopupOverlay.attach(root);
         } catch (Exception ex) { error(service, ex); }
     }
     private static Button button(Context c, LinearLayout row, String title, Runnable action) {
@@ -128,7 +126,7 @@ public final class ModernEnhancements {
         b.setMinimumWidth(0);
         b.setMinimumHeight(0);
         b.setSingleLine(true);
-        b.setShadowLayer(2, 1, 1, 0xff000000);
+        b.setShadowLayer(0, 0, 0, 0);
         b.setPadding(0, 0, 0, 0);
         b.setBackgroundColor(0x00000000);
         b.setOnClickListener(v -> action.run());
@@ -141,6 +139,7 @@ public final class ModernEnhancements {
         PlaybackSession.interaction(object,true);
         Service service = (Service) object;
         try {
+            if(mode==1){SpeedSlider.show(service,"再生速度",speed(),true,s->{try{PlaybackSession.setSpeed(get(object,"e"),s);update(object);}catch(Exception ex){error(service,ex);}});return;}
             String[] labels;
             int selected = 1;
             if (mode == 1) {
@@ -251,10 +250,11 @@ public final class ModernEnhancements {
         java.util.regex.Matcher resolution = java.util.regex.Pattern.compile("[0-9]{3,4}p").matcher(option);
         state.quality.setText(resolution.find() ? resolution.group() : quality == 4 ? "低画質" : quality == 3 ? "標準" : "高画質");
         state.quality.setContentDescription("画質: " + option);
-        state.speed.setText(speed() + "×");
+        state.speed.setText(SpeedSlider.label(speed()));
         state.speed.setContentDescription("再生速度: " + speed() + "倍");
         boolean loop = (Boolean) get(object, "v");
-        state.loop.setText(loop ? "↻ ON" : "↻ OFF");
+        state.loop.setText("");
+        PlayerIcons.symbol(state.loop,loop ? "repeaton" : "repeatoff");
         state.loop.setContentDescription("ループ再生: " + (loop ? "ON" : "OFF"));
     }
     private static void error(Context c, Exception ex) {

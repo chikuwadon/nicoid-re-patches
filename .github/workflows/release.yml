@@ -36,6 +36,10 @@ jobs:
         run: |
           javac -d /tmp/nicoid-count-tests extensions/extension/src/main/java/e/e/a/VideoCountRules.java porting/tests/VideoCountRulesTest.java
           java -cp /tmp/nicoid-count-tests e.e.a.VideoCountRulesTest
+      - name: Check authenticated Cast HLS relay
+        run: |
+          javac -d /tmp/nicoid-cast-tests extensions/extension/src/main/java/e/e/a/CastHls.java extensions/extension/src/main/java/e/e/a/CastRelay.java extensions/extension/src/main/java/e/e/a/CastDiagnostics.java porting/tests/cast-stubs/e/e/a/*.java porting/tests/CastRelayTest.java
+          java -cp /tmp/nicoid-cast-tests e.e.a.CastRelayTest
       - name: Check content filtering and history deletion
         run: |
           javac -d /tmp/nicoid-content-tests extensions/extension/src/main/java/e/e/a/ContentFilterRules.java extensions/extension/src/main/java/e/e/a/HistoryRules.java porting/tests/ContentHistoryRulesTest.java

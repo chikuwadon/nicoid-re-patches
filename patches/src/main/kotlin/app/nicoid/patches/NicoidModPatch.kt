@@ -218,7 +218,39 @@ val nicoidModPatch = bytecodePatch(
             it.name == "a" && it.parameterTypes == listOf("Ljava/lang/String;", "Lorg/apache/http/client/CookieStore;", "Ljava/lang/String;")
         }
         val castUrlRegister = checkNotNull(castStream.implementation).registerCount - 3
-        castStream.addInstructions(0, "invoke-static/range {v$castUrlRegister .. v$castUrlRegister}, Le/e/a/CastDiagnostics;->stream(Ljava/lang/String;)V")
+        val castStreamCode = checkNotNull(castStream.implementation).instructions.toList()
+        val startRelay = castStreamCode.indices.single { index ->
+            val ref = (castStreamCode[index] as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.definingClass == "Le/e/a/o2;" && ref.name == "start"
+        }
+        val castCallback = castUrlRegister - 1
+        castStream.addInstructions(startRelay,
+            "invoke-static/range {v$castCallback .. v$castCallback}, Le/e/a/CastRelay;->attach(Ljava/lang/Object;)V")
+        castStream.addInstructions(0, """
+            invoke-static/range {v$castUrlRegister .. v$castUrlRegister}, Le/e/a/CastDiagnostics;->stream(Ljava/lang/String;)V
+            invoke-static/range {v$castCallback .. v$castUrlRegister}, Le/e/a/CastRelay;->prepare(Ljava/lang/Object;Ljava/lang/String;)V
+        """.trimIndent())
+        val castServer = mutableClassDefBy("Le/e/a/o2;")
+        val socketHandler = castServer.methods.single { it.name == "a" && it.parameterTypes == listOf("Ljava/net/Socket;") }
+        val socketThis = checkNotNull(socketHandler.implementation).registerCount - 2
+        check(socketThis >= 2) { "Cast handler requires scratch registers" }
+        socketHandler.addInstructions(0, """
+            invoke-static/range {v$socketThis .. v${socketThis + 1}}, Le/e/a/CastRelay;->dispatch(Ljava/lang/Object;Ljava/net/Socket;)Z
+            move-result v0
+            if-eqz v0, :legacy_cast_socket
+            return-void
+            :legacy_cast_socket
+            nop
+        """.trimIndent())
+        val stopRelay = castServer.methods.single { it.name == "b" && it.parameterTypes.isEmpty() }
+        val stopThis = checkNotNull(stopRelay.implementation).registerCount - 1
+        stopRelay.addInstructions(0, "invoke-static/range {v$stopThis .. v$stopThis}, Le/e/a/CastRelay;->detach(Ljava/lang/Object;)V")
+        val runRelay = castServer.methods.single { it.name == "run" }
+        val runThis = checkNotNull(runRelay.implementation).registerCount - 1
+        checkNotNull(runRelay.implementation).instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }
+            .map { it.index }.reversed().forEach { index ->
+                runRelay.addInstructions(index, "invoke-static/range {v$runThis .. v$runThis}, Le/e/a/CastRelay;->detach(Ljava/lang/Object;)V")
+            }
         val cache = mutableClassDefBy("Le/e/a/CacheHls;")
         val download = cache.methods.single { it.name == "download" }
         val firstParameter = checkNotNull(download.implementation).registerCount - 4
@@ -335,7 +367,8 @@ val nicoidModPatch = bytecodePatch(
             if ((cls.type.startsWith("Lcom/sauzask/nicoid/") || cls.type.startsWith("Le/e/a/")) &&
                 !cls.type.startsWith("Le/e/a/UiStrings") && !cls.type.startsWith("Le/e/a/UiText") &&
                 !cls.type.startsWith("Le/e/a/VideoCount") && !cls.type.startsWith("Le/e/a/ContentFilterRules") &&
-                !cls.type.startsWith("Le/e/a/HistoryRules")) {
+                !cls.type.startsWith("Le/e/a/HistoryRules") && !cls.type.startsWith("Le/e/a/CastHls") &&
+                !cls.type.startsWith("Le/e/a/CastRelay")) {
                 if (cls.methods.any { method -> method.implementation?.instructions?.any { insn ->
                     val ref = (insn as? ReferenceInstruction)?.reference
                     (ref is StringReference && ref.string in translatedStrings) ||

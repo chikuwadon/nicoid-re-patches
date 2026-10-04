@@ -4,7 +4,7 @@ import android.content.Context;
 import android.preference.EditTextPreference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
-import android.preference.PreferenceScreen;
+import android.preference.PreferenceCategory;
 import android.preference.Preference;
 import android.preference.PreferenceGroup;
 import android.content.res.ColorStateList;
@@ -20,12 +20,10 @@ public final class ContentFilter {
     private static String t(String text) { return UiStrings.translate(text); }
     public static void settings(PreferenceActivity activity) {
         if (activity.findPreference(KEY) != null) return;
-        PreferenceScreen screen = activity.getPreferenceManager().createPreferenceScreen(activity);
-        screen.setKey("nicoid_content_filter"); screen.setTitle(t("コンテンツフィルター"));
-        entry(activity, screen, KEY, "キーワードフィルタ", "動画タイトルに含まれるキーワードをカンマまたは改行で区切って入力してください。次の一覧読み込みから非表示になります。");
-        entry(activity, screen, CHANNELS, "チャンネルフィルタ", "非表示にする投稿者・チャンネル名をカンマまたは改行で区切って入力してください。名前の部分一致で判定します。次の一覧読み込みから反映されます。");
+        PreferenceCategory screen = new PreferenceCategory(activity);
+        screen.setKey("nicoid_content_filter"); screen.setTitle(t("コンテンツフィルタ"));
         PreferenceGroup root = activity.getPreferenceScreen();
-        // Preserve existing sections while placing this screen directly after comments.
+        // Preserve existing sections while placing this category directly after comments.
         int after = root.getPreferenceCount();
         ArrayList<Preference> sections = new ArrayList<>();
         for (int n = 0; n < root.getPreferenceCount(); n++) {
@@ -34,8 +32,10 @@ public final class ContentFilter {
         }
         for (int n = 0; n < sections.size(); n++) sections.get(n).setOrder(n * 2);
         screen.setOrder(after * 2 - 1); root.addPreference(screen);
+        entry(activity, screen, KEY, "キーワードフィルタ", "動画タイトルに含まれるキーワードをカンマまたは改行で区切って入力してください。次の一覧読み込みから非表示になります。");
+        entry(activity, screen, CHANNELS, "チャンネルフィルタ", "非表示にする投稿者・チャンネル名をカンマまたは改行で区切って入力してください。名前の部分一致で判定します。次の一覧読み込みから反映されます。");
     }
-    private static void entry(PreferenceActivity activity, PreferenceScreen screen, String key, String title, String summary) {
+    private static void entry(PreferenceActivity activity, PreferenceGroup screen, String key, String title, String summary) {
         EditTextPreference words = new EditTextPreference(activity);
         words.setKey(key); words.setTitle(t(title)); words.setDialogTitle(t(title));
         words.setSummary(t(summary));

@@ -3,7 +3,7 @@ package e.e.a;
 /** Phase markers only: do not log stream URLs, session cookies, or device addresses. */
 public final class CastDiagnostics {
     private CastDiagnostics() { }
-    private static void record(String message) {
+    static void record(String message) {
         try { Class.forName("e.e.a.ModernDebug").getMethod("record", String.class).invoke(null, message); }
         catch (ReflectiveOperationException ignored) { }
     }
@@ -15,6 +15,6 @@ public final class CastDiagnostics {
         String path;
         try { path = new java.net.URL(url).getPath(); }
         catch (java.net.MalformedURLException ignored) { path = url; }
-        record(path.contains(".m3u8") ? "Cast: HLS stream reached legacy relay (delivery-cookie and playlist rewriting unsupported)" : "Cast: stream reached legacy relay");
+        record(path.contains(".m3u8") ? "Cast: HLS stream acquired; preparing authenticated relay" : "Cast: stream reached legacy relay");
     }
 }

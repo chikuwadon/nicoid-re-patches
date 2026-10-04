@@ -17,9 +17,19 @@ These are concrete incompatibilities in the playback path, not proof that the re
 
 `CastDiagnostics` records discovery start, Google API connection, receiver launch Status, and whether an HLS stream reached the legacy relay. It does not record playback URLs, cookies, or device addresses. After a failed attempt, use Settings > Debug > Share debug log.
 
-## Repair scope
+## Transfer repair in v1.5.0-dev.3
 
-Fixing authenticated HLS playback requires a session-bound relay for every playlist, audio/video segment, initialization segment and key, plus receiver compatibility verification. Changing the receiver ID alone is insufficient: Google's default receiver does not implement the original custom message protocol or comment overlay. Cast playback is not claimed as fixed by this release.
+- The filter UI now uses an inline PreferenceCategory, immediately below comments.
+- CastRelay snapshots domand_bid when the modern HLS callback arrives, attaches to that playback’s existing o2 server before it starts, and replaces only the media URL with opaque, session-specific routes.
+- CastHls resolves and rewrites every playlist URI line and URI attribute (variants, alternate audio, keys and initialization segments). Signed upstream URLs and cookies are not exposed in rewritten playlists. Byte-range declarations are preserved.
+- Every registered resource is fetched through the phone with the Origin/Referer headers. The delivery cookie is supplied only to the exact domand.nicovideo.jp domain or its subdomains, including manual redirect handling. Other hosts do not receive it. No user-session CookieStore is forwarded.
+- The local handler supports GET, HEAD, single byte ranges and CORS preflight. Four bounded workers permit independent audio/video requests. Stop/error exit closes worker sockets and upstream connections and discards routes; the existing comment.json formatter and non-HLS/cache server paths remain in use.
+- Host regression checks cover URI resolution, master/media/key/init transfer, byte ranges, HEAD metadata, credential isolation across redirects, parallel requests, comments and teardown. The released bundle must also be applied to the supported original APK.
+- This repairs the identified sender-side transfer problems. Discovery and availability/codec compatibility of receiver FAB5A9D8 still require a real Cast device; there is no receiver in this workspace.
+
+## Receiver compatibility
+
+Fixing authenticated HLS playback requires a session-bound relay for every playlist, audio/video segment, initialization segment and key, plus receiver compatibility verification. Changing the receiver ID alone is insufficient: Google's default receiver does not implement the original custom message protocol or comment overlay. The sender-side relay repair does not establish that the original receiver is currently available or that end-to-end playback works on the reported device.
 
 Google documentation:
 - https://developers.google.com/cast/docs/overview (sender/receiver app IDs and authentication requirements)

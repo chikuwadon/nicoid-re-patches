@@ -408,6 +408,7 @@ public final class UiStrings {
         TEXT.put("本体", new String[]{"On this device", "此裝置"});
         TEXT.put("Body", new String[]{"On this device", "此裝置"});
         TEXT.put("裝置本體", new String[]{"On this device", "此裝置"});
+        TEXT.put("キャッシュ取得を開始しました", new String[]{"Cache download started", "已開始下載快取"});
         TEXT.put("本体の視聴履歴", new String[]{"Watch history on this device", "此裝置的觀看紀錄"});
         TEXT.put("Viewing history of the body", new String[]{"Watch history on this device", "此裝置的觀看紀錄"});
         TEXT.put("裝置本體的視聽紀錄", new String[]{"Watch history on this device", "此裝置的觀看紀錄"});

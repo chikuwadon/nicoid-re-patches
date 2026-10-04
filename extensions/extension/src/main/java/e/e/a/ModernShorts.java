@@ -61,7 +61,7 @@ import org.json.JSONObject;
 
 /** Short feeds reuse nicoid's existing player, comments and playback policies. */
 public final class ModernShorts {
-    private static final String PATCH_VERSION = "v1.3.0-dev.1 @chikuwadon";
+    private static final String PATCH_VERSION = "v1.6.0 @chikuwadon";
     private static final String PLAYER = "com.sauzask.nicoid.NicoidVideoActivity";
     private static final String MODE = "nicoid_re_shorts";
     private static final String SESSION = "nicoid_re_shorts_session";
@@ -601,6 +601,7 @@ public final class ModernShorts {
     }
     private static void remember(Feed f) { FEEDS.put(f.key, f); if (FEEDS.size() > 4) FEEDS.remove(FEEDS.keySet().iterator().next()); }
     /** Only capture a clear vertical swipe that starts outside interactive controls. */
+    public static boolean active(Activity a) { State s=STATES.get(a);return s!=null&&!s.dead&&s.video!=null; }
     public static boolean touch(Activity a, MotionEvent e) {
         State s = STATES.get(a); if (s == null || s.video == null || s.dead) return false;
         int action = e.getActionMasked();

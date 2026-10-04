@@ -180,8 +180,7 @@ public final class LoginSupport {
     }
     private static void show(AlertDialog dialog, Activity activity) {
         dialog.show();
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(color(activity, android.R.attr.colorBackground)));
-        for (int button : new int[]{AlertDialog.BUTTON_POSITIVE, AlertDialog.BUTTON_NEGATIVE})
-            if (dialog.getButton(button) != null) dialog.getButton(button).setTextColor(color(activity, 0x7f03005e));
+        PlaybackSession.formDialog(dialog);
+
     }
 }

@@ -221,7 +221,8 @@ val nicoidModPatch = bytecodePatch(
         val castStreamCode = checkNotNull(castStream.implementation).instructions.toList()
         val startRelay = castStreamCode.indices.single { index ->
             val ref = (castStreamCode[index] as? ReferenceInstruction)?.reference as? MethodReference
-            ref?.definingClass == "Le/e/a/o2;" && ref.name == "start"
+            ref?.name == "start" && ref.parameterTypes.isEmpty() &&
+                ref.definingClass in setOf("Ljava/lang/Thread;", "Le/e/a/o2;")
         }
         val castCallback = castUrlRegister - 1
         castStream.addInstructions(startRelay,

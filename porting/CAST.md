@@ -17,7 +17,7 @@ These are concrete incompatibilities in the playback path, not proof that the re
 
 `CastDiagnostics` records discovery start, Google API connection, receiver launch Status, and whether an HLS stream reached the legacy relay. It does not record playback URLs, cookies, or device addresses. After a failed attempt, use Settings > Debug > Share debug log.
 
-## Transfer repair in v1.5.0-dev.3
+## Transfer repair in v1.5.0-dev.4
 
 - The filter UI now uses an inline PreferenceCategory, immediately below comments.
 - CastRelay snapshots domand_bid when the modern HLS callback arrives, attaches to that playback’s existing o2 server before it starts, and replaces only the media URL with opaque, session-specific routes.

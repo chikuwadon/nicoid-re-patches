@@ -1,0 +1,1 @@
+package android.content;public class Context {public final android.content.res.Resources.Theme theme=new android.content.res.Resources.Theme();public android.content.res.Resources.Theme getTheme(){return theme;}public android.content.res.Resources getResources(){return new android.content.res.Resources();}}

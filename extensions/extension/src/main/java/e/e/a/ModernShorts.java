@@ -76,13 +76,14 @@ public final class ModernShorts {
     private static boolean registered;
     private static final class Item {
         final String id, title, thumbnail, channel;
+        final boolean paid;
         Item(String id, String title) { this(id, title, ""); }
         Item(String id, String title, String thumbnail) {
             this(id, title, thumbnail, "");
         }
         Item(String id, String title, String thumbnail, String channel) {
             this.id = id; this.title = title; this.thumbnail = thumbnail == null ? "" : thumbnail;
-            this.channel = channel;
+            this.channel = channel; this.paid = PaidVideos.required(id);
         }
     }
     private static final class Feed {
@@ -387,6 +388,7 @@ public final class ModernShorts {
             LinearLayout.LayoutParams metaLp = new LinearLayout.LayoutParams(-1, -2); metaLp.topMargin = dp(a, 5);
             overlay.addView(itemTitle); overlay.addView(metadata, metaLp);
             card.addView(overlay, new FrameLayout.LayoutParams(-1, dp(a, 145), Gravity.BOTTOM));
+            PaidVideos.show(card, item.paid);
             card.setOnClickListener(v -> launch(a, s, index));
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(a, 218), dp(a, 370));
             lp.rightMargin = dp(a, 12); h.rows.addView(card, lp);
@@ -530,6 +532,7 @@ public final class ModernShorts {
             thumb.addView(image, new FrameLayout.LayoutParams(-1, -1)); TextView placeholder = new TextView(a);
             placeholder.setText("▶"); placeholder.setGravity(Gravity.CENTER); placeholder.setTextColor(color(a, 0x7f03005e, 0xff52cca3));
             thumb.addView(placeholder, new FrameLayout.LayoutParams(-1, -1)); row.addView(thumb, new LinearLayout.LayoutParams(dp(a, 70), dp(a, 100)));
+            PaidVideos.show(thumb, item.paid);
             loadThumbnail(item.thumbnail, image, placeholder);
             TextView label = new TextView(a); label.setText((n + 1) + "  " + item.title); label.setTextSize(15); label.setMaxLines(3);
             label.setEllipsize(android.text.TextUtils.TruncateAt.END); label.setPadding(dp(a, 12), 0, 0, 0);
@@ -671,6 +674,7 @@ public final class ModernShorts {
                     String title = content == null ? watch : content.optString("title", watch);
                     String channel = ContentFilter.owner(content);
                     if (channel.isEmpty()) channel = ContentFilter.owner(row);
+                    PaidVideos.remember(content); PaidVideos.remember(row);
                     items.add(new Item(watch, title, thumbnail(row, content), channel));
                 }
             } catch (Exception e) { error = e; if (!task.cancelled()) log(e); } finally { if (c != null) { task.release(c); c.disconnect(); } }

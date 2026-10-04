@@ -74,6 +74,7 @@ public final class ContentFilter {
     /** Same owner-name sources used by normal video rows, including channel videos. */
     public static String owner(JSONObject row) {
         if (row == null) return "";
+        PaidVideos.remember(row);
         for (String key : new String[]{"owner", "user", "channel"}) {
             JSONObject source = row.optJSONObject(key);
             if (source == null) continue;
@@ -92,12 +93,15 @@ public final class ContentFilter {
             JSONObject watch = (JSONObject) Class.forName("e.e.a.ModernPlayback").getField("latestWatch").get(null);
             JSONObject video = watch == null ? null : watch.optJSONObject("video");
             if (video != null && HistoryRules.same(record.optString("videourl"), video.optString("id"))) {
+                record.put("isPaymentRequired", PaidVideos.watchRequired(watch));
+                PaidVideos.remember(record);
                 String name = owner(watch);
                 if (!name.isEmpty()) record.put("ownerName", name);
             }
         } catch (ReflectiveOperationException | org.json.JSONException ignored) { }
     }
     public static void restoreHistory(Object row, JSONObject record) {
+        PaidVideos.remember(record);
         try { row.getClass().getField("y").set(row, owner(record)); }
         catch (ReflectiveOperationException error) { throw new IllegalStateException("Unsupported history row", error); }
     }

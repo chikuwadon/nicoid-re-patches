@@ -47,6 +47,11 @@ jobs:
           mkdir -p /tmp/nicoid-performance-tests
           javac -d /tmp/nicoid-performance-tests extensions/extension/src/main/java/e/e/a/PageCache.java extensions/extension/src/main/java/e/e/a/ImageDiskCache.java extensions/extension/src/main/java/e/e/a/NetworkTask.java porting/tests/PerformanceTest.java
           java -cp /tmp/nicoid-performance-tests e.e.a.PerformanceTest
+      - name: Check paid metadata and badge reuse
+        run: |
+          curl -fLs --retry 2 https://repo.maven.apache.org/maven2/org/json/json/20240303/json-20240303.jar -o /tmp/nicoid-json.jar
+          javac -cp /tmp/nicoid-json.jar -d /tmp/nicoid-paid-tests $(find porting/tests/paid-stubs -name '*.java') extensions/extension/src/main/java/e/e/a/PaidVideos.java extensions/extension/src/main/java/e/e/a/UiStrings.java porting/tests/PaidVideosTest.java
+          java -cp /tmp/nicoid-paid-tests:/tmp/nicoid-json.jar e.e.a.PaidVideosTest porting/tests/paid-list-fixture.json porting/tests/paid-watch-fixture.json
       - name: Check content filtering and history deletion
         run: |
           javac -d /tmp/nicoid-content-tests extensions/extension/src/main/java/e/e/a/ContentFilterRules.java extensions/extension/src/main/java/e/e/a/HistoryRules.java porting/tests/ContentHistoryRulesTest.java

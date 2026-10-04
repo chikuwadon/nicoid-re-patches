@@ -1,0 +1,1 @@
+package android.widget;public class RelativeLayout extends android.view.ViewGroup {public static final int ALIGN_PARENT_LEFT=9,ALIGN_PARENT_BOTTOM=12;public RelativeLayout(android.content.Context c){super(c);}public static class LayoutParams {public LayoutParams(int a,int b){}public void addRule(int r){}}}

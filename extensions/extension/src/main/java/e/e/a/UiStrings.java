@@ -10,6 +10,7 @@ public final class UiStrings {
     // 0 = Japanese, 1 = English, 2 = Traditional Chinese; -1 follows the device locale.
     private static volatile int selectedLanguage = -1;
     static {
+        TEXT.put("有料", new String[]{"Paid", "付費"});
         TEXT.put("本体ストレージ（アプリ専用フォルダー）", new String[]{"Device storage (app-specific folder)", "裝置儲存空間（應用程式專用資料夾）"});
         TEXT.put("SDカード（アプリ専用フォルダー）", new String[]{"SD card (app-specific folder)", "SD 卡（應用程式專用資料夾）"});
         TEXT.put("内部ストレージ（アプリ非公開領域）", new String[]{"Internal storage (private app data)", "內部儲存空間（應用程式私人資料）"});

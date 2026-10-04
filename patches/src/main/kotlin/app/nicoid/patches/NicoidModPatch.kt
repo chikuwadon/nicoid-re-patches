@@ -9,6 +9,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutable
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
@@ -329,6 +330,30 @@ val nicoidModPatch = bytecodePatch(
             invoke-static {v0, v7}, Le/e/a/ModernShorts;->finishMenu(Landroid/content/Context;Ljava/util/ArrayList;)V
             invoke-virtual {v8}, Landroid/widget/BaseAdapter;->notifyDataSetChanged()V
         """.trimIndent())
+        // Capture payment flags from the same responses already used to build lists.
+        for (type in listOf("Le/e/a/ModernRanking;", "Le/e/a/ModernSearch;", "Le/e/a/ModernRelated;")) {
+            for (method in mutableClassDefBy(type).methods) {
+                val instructions = method.implementation?.instructions?.toList() ?: continue
+                for ((index, instruction) in instructions.withIndex()) {
+                    val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: continue
+                    val call = instruction as? FiveRegisterInstruction ?: continue
+                    if (ref.definingClass == "Lorg/json/JSONArray;" && ref.name == "getJSONObject")
+                        method.replaceInstruction(index, "invoke-static {v${call.registerC}, v${call.registerD}}, Le/e/a/PaidVideos;->item(Lorg/json/JSONArray;I)Lorg/json/JSONObject;")
+                }
+            }
+        }
+        // Older mylist/list loaders cast each JSON item before creating the row.
+        for (method in mutableClassDefBy("Le/e/a/e0;").methods) {
+            val instructions = method.implementation?.instructions?.toList() ?: continue
+            for (index in instructions.indices.reversed()) {
+                val instruction = instructions[index]
+                val ref = (instruction as? ReferenceInstruction)?.reference as? TypeReference
+                if (instruction.opcode == Opcode.CHECK_CAST && ref?.type == "Lorg/json/JSONObject;") {
+                    val register = (instruction as OneRegisterInstruction).registerA
+                    method.addInstructions(index + 1, "invoke-static/range {v$register .. v$register}, Le/e/a/PaidVideos;->remember(Lorg/json/JSONObject;)V")
+                }
+            }
+        }
         // Bind after the legacy Spanned-to-String conversion, so icon spans survive.
         // The supported adapter keeps the count TextView in v12 (post time is v1).
         val rows = mutableClassDefBy("Le/e/a/b0;").methods.single { it.name == "getView" }
@@ -344,6 +369,22 @@ val nicoidModPatch = bytecodePatch(
             }
         }
         check(countBindings == 1) { "Unexpected video count bindings: $countBindings" }
+        val rowInstructions = checkNotNull(rows.implementation).instructions.toList()
+        val rowThis = checkNotNull(rows.implementation).registerCount - 4
+        for (index in rowInstructions.indices.reversed()) {
+            val instruction = rowInstructions[index]
+            if (instruction.opcode == Opcode.RETURN_OBJECT) {
+                val register = (instruction as OneRegisterInstruction).registerA
+                // v0-v2 are scratch at return; original row and returned view are retained.
+                rows.addInstructions(index, """
+                    move-object/from16 v0, v$register
+                    move-object/from16 v1, v$rowThis
+                    move/from16 v2, v${rowThis + 1}
+                    invoke-static {v0, v1, v2}, Le/e/a/PaidVideos;->bindAdapter(Landroid/view/View;Ljava/lang/Object;I)V
+                """.trimIndent())
+            }
+        }
+
         val info = mutableClassDefBy("Lcom/sauzask/nicoid/NicoidVideoInfoFragment;")
             .methods.single { it.name == "a" && it.parameterTypes == listOf(
                 "Landroid/view/LayoutInflater;", "Landroid/view/ViewGroup;", "Landroid/os/Bundle;") }

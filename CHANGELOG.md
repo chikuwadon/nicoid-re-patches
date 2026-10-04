@@ -118,6 +118,8 @@
 
 ### 🐛 Bug Fixes
 
+* **nicoid:** Keep the originating app in front when opening a video link in pop-up playback mode.
+
 * **nicoid:** Fix an installation failure introduced in the previous development build.
 
 ## 1.3.5-dev.2 (2026-10-03)
@@ -138,13 +140,13 @@
 
 ### 🐛 Bug Fixes
 
-* **nicoid:** apply selected language to added UI ([0c1f182](https://github.com/chikuwadon/nicoid-re-patches/commit/0c1f1820679bfeafc4eb8230a844889da19e5ce6))
+* **nicoid:** Apply selected language to added UI ([0c1f182](https://github.com/chikuwadon/nicoid-re-patches/commit/0c1f1820679bfeafc4eb8230a844889da19e5ce6))
 
 ## 1.3.4-dev.1 (2026-10-02)
 
 ### 🐛 Bug Fixes
 
-* **nicoid:** apply selected language to added UI ([0c1f182](https://github.com/chikuwadon/nicoid-re-patches/commit/0c1f1820679bfeafc4eb8230a844889da19e5ce6))
+* **nicoid:** Apply selected language to added UI ([0c1f182](https://github.com/chikuwadon/nicoid-re-patches/commit/0c1f1820679bfeafc4eb8230a844889da19e5ce6))
 
 ## 1.3.3 (2026-10-02)
 
@@ -223,6 +225,12 @@
 * refresh ranking and search lists with pull gesture ([d440fae](https://github.com/chikuwadon/nicoid-re-patches/commit/d440fae35d0f87aee9b0ecd4b88d2df395c373d9))
 * rename patch entry to nicoid Re ([92a8b53](https://github.com/chikuwadon/nicoid-re-patches/commit/92a8b53acd552940b3af128fa4648399a4bb1476))
 
+## [1.2.0](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.1.0...v1.2.0) (2026-10-01)
+
+### ✨ New Features
+
+* **nicoid:** rename patch entry to nicoid Re ([3852687](https://github.com/chikuwadon/nicoid-re-patches/commit/3852687e134c206f02e70a98159be229aaf5b4fa))
+
 ## [1.2.0-dev.8](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.2.0-dev.7...v1.2.0-dev.8) (2026-10-02)
 
 ### ✨ New Features
@@ -279,38 +287,38 @@
 
 * rename patch entry to nicoid Re ([92a8b53](https://github.com/chikuwadon/nicoid-re-patches/commit/92a8b53acd552940b3af128fa4648399a4bb1476))
 
-## [1.1.0](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.0.0...v1.1.0) (2026-10-01)
+## [1.1.0](https://github.com/chikuwadon/nicoid-mod-patches/compare/v1.0.0...v1.1.0) (2026-10-01)
 
 ### 🐛 Bug Fixes
 
-* expose popup and background playback in related-video menus ([cd0fa3d](https://github.com/chikuwadon/nicoid-re-patches/commit/cd0fa3dffd2f250495bfcedf787fa3f10a2ffb21))
+* **nicoid:** expose popup and background playback in related-video menus ([cd0fa3d](https://github.com/chikuwadon/nicoid-mod-patches/commit/cd0fa3dffd2f250495bfcedf787fa3f10a2ffb21))
 
 ### ✨ New Features
 
-* add playback policies and improve popup and video information ([3ea7f8a](https://github.com/chikuwadon/nicoid-re-patches/commit/3ea7f8a56b7c11f3659d5bb78a8958313f50b116))
-* release nicoid Re v1.1.0 ([5946e79](https://github.com/chikuwadon/nicoid-re-patches/commit/5946e79a9135c620021c37e743c2ba1b84aaa6a2))
+* **nicoid:** add playback policies and improve popup and video information ([3ea7f8a](https://github.com/chikuwadon/nicoid-mod-patches/commit/3ea7f8a56b7c11f3659d5bb78a8958313f50b116))
+* **nicoid:** release nicoid Re v1.1.0 ([5946e79](https://github.com/chikuwadon/nicoid-mod-patches/commit/5946e79a9135c620021c37e743c2ba1b84aaa6a2))
 
-## [1.1.0-dev.2](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.1.0-dev.1...v1.1.0-dev.2) (2026-10-01)
+## [1.1.0-dev.2](https://github.com/chikuwadon/nicoid-mod-patches/compare/v1.1.0-dev.1...v1.1.0-dev.2) (2026-10-01)
 
 ### 🐛 Bug Fixes
 
-* expose popup and background playback in related-video menus ([cd0fa3d](https://github.com/chikuwadon/nicoid-re-patches/commit/cd0fa3dffd2f250495bfcedf787fa3f10a2ffb21))
+* expose popup and background playback in related-video menus ([cd0fa3d](https://github.com/chikuwadon/nicoid-mod-patches/commit/cd0fa3dffd2f250495bfcedf787fa3f10a2ffb21))
 
-## [1.1.0-dev.1](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.0.0...v1.1.0-dev.1) (2026-10-01)
+## [1.1.0-dev.1](https://github.com/chikuwadon/nicoid-mod-patches/compare/v1.0.0...v1.1.0-dev.1) (2026-10-01)
 
 ### ✨ New Features
 
-* add playback policies and improve popup and video information ([3ea7f8a](https://github.com/chikuwadon/nicoid-re-patches/commit/3ea7f8a56b7c11f3659d5bb78a8958313f50b116))
+* add playback policies and improve popup and video information ([3ea7f8a](https://github.com/chikuwadon/nicoid-mod-patches/commit/3ea7f8a56b7c11f3659d5bb78a8958313f50b116))
 
 ## 1.0.0 (2026-10-01)
 
 ### ✨ New Features
 
-* prepare stable nicoid mod v1.00 release ([491641d](https://github.com/chikuwadon/nicoid-re-patches/commit/491641d5f521bacf0e7b72e51ff1124a22398cdd))
-* release nicoid Re v1.00 ([bcc5118](https://github.com/chikuwadon/nicoid-re-patches/commit/bcc5118bd10929ebe801c9f48a610185755e69df))
+* **nicoid:** prepare stable nicoid mod v1.00 release ([491641d](https://github.com/chikuwadon/nicoid-mod-patches/commit/491641d5f521bacf0e7b72e51ff1124a22398cdd))
+* **nicoid:** release nicoid Re v1.00 ([bcc5118](https://github.com/chikuwadon/nicoid-mod-patches/commit/bcc5118bd10929ebe801c9f48a610185755e69df))
 
 ## 1.0.0-dev.1 (2026-09-30)
 
 ### ✨ New Features
 
-* prepare stable nicoid mod v1.00 release ([491641d](https://github.com/chikuwadon/nicoid-re-patches/commit/491641d5f521bacf0e7b72e51ff1124a22398cdd))
+* prepare stable nicoid mod v1.00 release ([491641d](https://github.com/chikuwadon/nicoid-mod-patches/commit/491641d5f521bacf0e7b72e51ff1124a22398cdd))

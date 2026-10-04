@@ -74,8 +74,9 @@ public final class PaidVideos {
         if (!paid) { if (badge != null) badge.setVisibility(View.GONE); return; }
         if (badge == null) {
             badge = new TextView(thumbnail.getContext()); badge.setTag(TAG);
-            badge.setTextSize(12);
-            int padding = dp(thumbnail.getContext(), 4); badge.setPadding(padding, 0, padding, 0);
+            badge.setTextSize(11.4f);
+            int padding = dp(thumbnail.getContext(), 4); badge.setPadding(padding, dp(thumbnail.getContext(), 1), padding, dp(thumbnail.getContext(), 1));
+            badge.setGravity(android.view.Gravity.CENTER); badge.setIncludeFontPadding(false);
             badge.setClickable(false); badge.setFocusable(false);
             if (thumbnail instanceof RelativeLayout) {
                 RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(-2, -2);
@@ -96,11 +97,11 @@ public final class PaidVideos {
         View durationView = thumbnail.findViewById(0x7f0800df);
         if (durationView instanceof TextView) {
             TextView duration = (TextView)durationView;
-            badge.setTextSize(TypedValue.COMPLEX_UNIT_PX, duration.getTextSize());
+            badge.setTextSize(TypedValue.COMPLEX_UNIT_PX, duration.getTextSize() * .95f);
             badge.setTypeface(duration.getTypeface());
-            badge.setIncludeFontPadding(duration.getIncludeFontPadding());
+            badge.setIncludeFontPadding(false);
             int padding = dp(context, 4);
-            badge.setPadding(padding, duration.getPaddingTop(), padding, duration.getPaddingBottom());
+            badge.setPadding(padding, dp(context, 1), padding, dp(context, 1));
         }
         GradientDrawable shape = new GradientDrawable(); shape.setColor(color);
         float radius = dp(context, 4);

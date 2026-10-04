@@ -375,12 +375,15 @@ val nicoidModPatch = bytecodePatch(
             val instruction = rowInstructions[index]
             if (instruction.opcode == Opcode.RETURN_OBJECT) {
                 val register = (instruction as OneRegisterInstruction).registerA
-                // v0-v2 are scratch at return; original row and returned view are retained.
-                rows.addInstructions(index, """
-                    move-object/from16 v0, v$register
+                // Keep original branch labels on the first hook instruction. Inserting
+                // before RETURN alone lets goto/if paths jump over the badge binding.
+                check(register != 0 && register != 1 && register != 2) { "Unexpected list return register: $register" }
+                rows.replaceInstruction(index, "move-object/from16 v0, v$register")
+                rows.addInstructions(index + 1, """
                     move-object/from16 v1, v$rowThis
                     move/from16 v2, v${rowThis + 1}
                     invoke-static {v0, v1, v2}, Le/e/a/PaidVideos;->bindAdapter(Landroid/view/View;Ljava/lang/Object;I)V
+                    return-object v$register
                 """.trimIndent())
             }
         }

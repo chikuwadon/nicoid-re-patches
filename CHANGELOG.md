@@ -1,3 +1,9 @@
+## 1.5.0-dev.7 (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix paid labels not appearing when video list rows are first displayed.
+
 ## 1.5.0-dev.6 (2026-10-04)
 
 ### ✨ New Features

@@ -1,3 +1,13 @@
+## 1.5.0-dev.2 (2026-10-04)
+
+### ✨ New Features
+
+* **nicoid:** Add a channel-name filter and place content filters directly below comment settings.
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Add Google Cast diagnostics to distinguish discovery, receiver launch, and stream transfer failures.
+
 ## 1.5.0-dev.1 (2026-10-03)
 
 ### ✨ New Features

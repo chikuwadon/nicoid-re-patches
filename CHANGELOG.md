@@ -1,3 +1,63 @@
+## 1.5.0-dev.8 (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Refine paid labels with top-left placement, duration-matched text, a rounded bottom-right corner, and a dark gray background in dark mode.
+
+## 1.5.0-dev.7 (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix paid labels not appearing when video list rows are first displayed.
+
+## 1.5.0-dev.6 (2026-10-04)
+
+### ✨ New Features
+
+* **nicoid:** Label paid videos in video lists.
+
+## 1.5.0-dev.5 (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Reduce repeated ranking/search requests and thumbnail downloads, and optimize content filtering.
+* **nicoid:** Cancel obsolete Shorts requests when leaving a screen.
+
+## 1.5.0-dev.4 (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Show keyword and channel filters directly below comment settings.
+* **nicoid:** Preserve delivery authentication and relay HLS playlists and resources for Google Cast.
+
+## 1.5.0-dev.3 (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Show keyword and channel filters directly below comment settings.
+* **nicoid:** Preserve delivery authentication and relay HLS playlists and resources for Google Cast.
+
+## 1.5.0-dev.2 (2026-10-04)
+
+### ✨ New Features
+
+* **nicoid:** Add a channel-name filter and place content filters directly below comment settings.
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Add Google Cast diagnostics to distinguish discovery, receiver launch, and stream transfer failures.
+
+## 1.5.0-dev.1 (2026-10-03)
+
+### ✨ New Features
+
+* **nicoid:** Add sign-out and a keyword content filter for video lists and Shorts.
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix deleted local watch history reappearing after reload.
+* **nicoid:** Remove redundant sign-in, quality, and watch-count descriptions.
+
 ## 1.4.1 (2026-10-03)
 
 ### 🐛 Bug Fixes

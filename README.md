@@ -21,7 +21,7 @@ SHA-256：`17fc6b46228af184437ade7e6f5573915bc655b86996307ff3270fdf35279cce`
 ## パッチ配布
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.4.1](https://github.com/chikuwadon/nicoid-re-patches/releases/tag/v1.4.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`ブランチ&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件
+> **[v1.5.0-dev.8](https://github.com/chikuwadon/nicoid-re-patches/releases/tag/v1.5.0-dev.8)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`ブランチ&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件
 <details open>
 <summary>📦 nicoid&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件</summary>
 <br>
@@ -86,9 +86,16 @@ https://github.com/chikuwadon/nicoid-re-patches
 - Google Cast関連機能を設定に移動。
 - 広告バナーと広告リクエストを削除。
 - UI/UXを改善。
+- 一覧の有料動画にラベルを表示するように。
 - 安定性とパフォーマンスを改善。
+- ランキング・検索一覧を短時間キャッシュし、手動更新時には取得し直すように。
+- ショートのサムネイルを保存し、重複取得と画面を離れた後の不要な通信を抑制。
 - 英語・繁體中文の翻訳を追加。
 - Cookieを手動入力してログインできるように。
+
+- 設定からログアウトできるように。
+- 動画タイトルのキーワードや投稿者・チャンネル名で一覧を非表示にするコンテンツフィルターを追加。
+- Google Castで現在の動画配信に必要な認証情報を保持し、映像・音声などをスマホ経由で転送する処理を修正。
 
 ## Cookieを手動入力してログインする
 

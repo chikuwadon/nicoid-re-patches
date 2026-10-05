@@ -1,3 +1,9 @@
+## 1.6.2 (2026-10-05)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Use icons for video statistics in local and account watch history, and remove unavailable account watch counts.
+
 ## 1.6.1 (2026-10-05)
 
 ### 🐛 Bug Fixes

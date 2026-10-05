@@ -1,6 +1,6 @@
 {
   "created_at": "2026-10-05T00:00:11",
-  "description": "## 1.6.1 (2026-10-05)\n\n### 🐛 Bug Fixes\n\n* **nicoid:** Translate the playback-speed menu and volume/brightness swipe settings into English and Traditional Chinese.\n* **nicoid:** Complete missing translations for cache folder selection and copying, permissions, Cast status, sorting, playlists, following, and video statistics.\n\n### 🔧 Improvements\n\n* **nicoid:** Use the Japanese calendar date in release notes.",
+  "description": "## 1.6.1 (2026-10-05)\n\n### 🐛 Bug Fixes\n\n* **nicoid:** Complete missing English and Traditional Chinese translations for playback-speed controls, volume/brightness swipe settings, cache operations, permissions, Cast status, sorting, playlists, following, and video statistics.",
   "download_url": "https://github.com/chikuwadon/nicoid-re-patches/releases/download/v1.6.1/patches-1.6.1.mpp",
   "signature_download_url": "",
   "version": "1.6.1"

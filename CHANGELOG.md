@@ -2,12 +2,7 @@
 
 ### 🐛 Bug Fixes
 
-* **nicoid:** Translate the playback-speed menu and volume/brightness swipe settings into English and Traditional Chinese.
-* **nicoid:** Complete missing translations for cache folder selection and copying, permissions, Cast status, sorting, playlists, following, and video statistics.
-
-### 🔧 Improvements
-
-* **nicoid:** Use the Japanese calendar date in release notes.
+* **nicoid:** Complete missing English and Traditional Chinese translations for playback-speed controls, volume/brightness swipe settings, cache operations, permissions, Cast status, sorting, playlists, following, and video statistics.
 
 ## 1.6.0 (2026-10-05)
 

@@ -1,4 +1,15 @@
-## 1.6.0 (2026-10-04)
+## 1.6.1 (2026-10-05)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Translate the playback-speed menu and volume/brightness swipe settings into English and Traditional Chinese.
+* **nicoid:** Complete missing translations for cache folder selection and copying, permissions, Cast status, sorting, playlists, following, and video statistics.
+
+### 🔧 Improvements
+
+* **nicoid:** Use the Japanese calendar date in release notes.
+
+## 1.6.0 (2026-10-05)
 
 ### ✨ New Features
 * **nicoid:** Choose a cache folder using the Android folder picker.
@@ -332,10 +343,34 @@
 
 ## 1.0.0 (2026-10-01)
 
+Changes from the original nicoid 6.49 to nicoid Re v1.0.0.
+
 ### ✨ New Features
 
-* **nicoid:** prepare stable nicoid mod v1.00 release ([491641d](https://github.com/chikuwadon/nicoid-mod-patches/commit/491641d5f521bacf0e7b72e51ff1124a22398cdd))
-* **nicoid:** release nicoid Re v1.00 ([bcc5118](https://github.com/chikuwadon/nicoid-mod-patches/commit/bcc5118bd10929ebe801c9f48a610185755e69df))
+* **nicoid:** Add an in-app web login using the current NicoNico account page and save the authenticated session.
+* **nicoid:** Add optional Material You wallpaper colors on Android 12 and later.
+* **nicoid:** Resize popup playback with a two-finger pinch, preserving the video aspect ratio and saving the window bounds.
+* **nicoid:** Add popup quality, playback-speed (0.75×, 1×, 1.25×, 1.5×, and 2×), and loop controls.
+* **nicoid:** Add five comment sizes (60%, 80%, 100%, 120%, and 140%) for normal and popup playback, applied from the next playback.
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Restore video loading and playback through current watch metadata and authenticated HLS delivery APIs.
+* **nicoid:** Restore comment loading through the current comment-thread API.
+* **nicoid:** Update ranking, keyword/tag search, and account watch-history retrieval for current service endpoints and response formats.
+* **nicoid:** Adapt video caching and cached-comment loading to HLS playback.
+* **nicoid:** Fix the comment-renderer transfer crash when returning from popup to normal playback.
+* **nicoid:** Preserve the playback position and playing/paused state when changing quality, and map high quality to the highest available stream.
+* **nicoid:** Fix light-theme uploader/action backgrounds and comment-list text, including when the system uses dark mode.
+
+### 🔧 Improvements
+
+* **nicoid:** Show available video resolutions in quality settings after metadata loads, with video-dependent descriptions before loading.
+* **nicoid:** Place compact, right-aligned popup controls at the top so the seek bar stays unobstructed, and improve text-control readability and touch areas.
+* **nicoid:** Clamp popup resizing and movement to screen bounds and suppress button/seek actions during pinch gestures while retaining single-finger movement and corner resizing.
+* **nicoid:** Move Google Cast connect/disconnect controls below the comment settings and remove their duplicate menu/sidebar entries.
+* **nicoid:** Disable advertising requests and banner creation, and remove advertising startup registrations and the ad-removal billing screen.
+* **nicoid:** Identify the modified app as nicoid Re with the separate package `com.sauzask.nicoid.hls` and show the patch version in Settings while retaining app version 6.49.
 
 ## 1.0.0-dev.1 (2026-09-30)
 

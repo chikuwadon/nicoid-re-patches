@@ -1,3 +1,13 @@
+## 1.6.2 (2026-10-05)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Use icons consistently for video statistics in local and account watch history, and hide unavailable account watch counts.
+
+### 🔧 Improvements
+
+* **nicoid:** Display views, comments, likes, and mylists as icons in video information, with additional spacing around the statistics row.
+
 ## 1.6.1 (2026-10-05)
 
 ### 🐛 Bug Fixes

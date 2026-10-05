@@ -51,7 +51,11 @@ public final class PaidVideos {
         if (root == null) return;
         try {
             java.util.List<?> rows = (java.util.List<?>)adapter.getClass().getField("b").get(adapter);
-            if (position >= 0 && position < rows.size()) bind(root, rows.get(position));
+            if (position >= 0 && position < rows.size()) {
+                Object row = rows.get(position);
+                HistorySupport.bindAccount(root, adapter, row);
+                bind(root, row);
+            }
         } catch (ReflectiveOperationException error) { throw new IllegalStateException("Unsupported video adapter", error); }
     }
     public static void bind(View root, Object row) {

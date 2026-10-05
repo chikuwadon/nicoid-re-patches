@@ -6,7 +6,7 @@
 
 ### 🐛 Bug Fixes
 
-* **nicoid:** Restore playback controls in landscape tablet mode.
+* **nicoid:** Restore playback controls in landscape tablet mode. (#26)
 
 ### 🔧 Improvements
 

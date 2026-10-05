@@ -11,7 +11,7 @@ nicoid 6.49の元APKにMorphe Managerでパッチを適用すると、「nicoid 
 - 対象アプリ：`com.sauzask.nicoid`（バージョン`6.49`）
 - 適用後のアプリ名：**nicoid Re**
 - 適用後のパッケージ名：`com.sauzask.nicoid.hls`
-- 正式版：`v1.6.0`
+- 正式版：`v1.6.1`
 - 開発版：`dev`ブランチで管理
 
 パッチ適用には次の元APKを使用してください。

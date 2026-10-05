@@ -8,9 +8,6 @@ body:
       value: |
         # nicoid Re — バグ報告 / Bug report
 
-        日本語・英語のどちらでも記入できます。
-        You may submit your report in Japanese or English.
-
         投稿前に[既存のバグ報告](https://github.com/chikuwadon/nicoid-re-patches/issues?q=is%3Aissue%20label%3A%22Bug%20report%22)を確認してください。
         Please check [existing bug reports](https://github.com/chikuwadon/nicoid-re-patches/issues?q=is%3Aissue%20label%3A%22Bug%20report%22) before submitting.
   - type: input
@@ -18,7 +15,7 @@ body:
     attributes:
       label: 機種名 / Device model
       description: メーカーと機種名・型番を記入してください。 / Enter the manufacturer and model name or number.
-      placeholder: "例 / e.g. Samsung Galaxy S23 (SC-51D), Google Pixel Tablet"
+      placeholder: "例 / e.g. Samsung Galaxy S23, Google Pixel Tablet"
     validations:
       required: true
   - type: input
@@ -36,7 +33,7 @@ body:
       description: |
         「設定」の「パッチバージョン」に表示される値を記入してください。アプリのバージョン（6.49）とは異なります。
         Enter the Patch version shown in Settings. This is different from the app version (6.49).
-      placeholder: "例 / e.g. v1.6.2 @chikuwadon"
+      placeholder: "例 / e.g. v1.6.2"
     validations:
       required: true
   - type: textarea

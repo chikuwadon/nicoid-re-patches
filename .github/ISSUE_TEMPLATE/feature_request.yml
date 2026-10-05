@@ -8,9 +8,6 @@ body:
       value: |
         # nicoid Re — 機能要望 / Feature request
 
-        日本語・英語のどちらでも記入できます。
-        You may submit your request in Japanese or English.
-
         投稿前に[既存の機能要望](https://github.com/chikuwadon/nicoid-re-patches/issues?q=is%3Aissue%20label%3A%22Feature%20request%22)を確認してください。
         Please check [existing feature requests](https://github.com/chikuwadon/nicoid-re-patches/issues?q=is%3Aissue%20label%3A%22Feature%20request%22) before submitting.
   - type: textarea
@@ -27,10 +24,10 @@ body:
     attributes:
       label: 要望の理由・利用場面 / Motivation and use case
       description: |
-        どのような場面で必要か、現在困っていること、実装によりどのように便利になるかを記入してください。
-        Explain when you would use this feature, what problem you currently face, and how it would help.
+        どのような場面で必要か、現在困っていること、実装によりどのように便利になるかを記入してください（任意）。
+        Explain when you would use this feature, what problem you currently face, and how it would help (optional).
     validations:
-      required: true
+      required: false
   - type: checkboxes
     id: acknowledgements
     attributes:

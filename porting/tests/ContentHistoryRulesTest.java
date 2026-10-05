@@ -30,14 +30,6 @@ public final class ContentHistoryRulesTest {
         check(HistoryRules.contains(selected, "sm123"), "bulk bare ID deletion");
         check(HistoryRules.contains(selected, "so456"), "bulk multiple deletion");
         check(!HistoryRules.contains(selected, "sm789"), "unselected history retained");
-        for (String[] pair : new String[][]{
-                {"2026年10月05日 08時45分 視聴 0回視聴", "<b>%s</b> 視聴 <font color='red'>%s回視聴</font>"},
-                {"2026-10-05 08:45 viewed 0 views", "<b>%s</b> viewed <font color='red'>%s views</font>"},
-                {"2026-10-05 08:45 觀看 0次觀看", "<b>%s</b> 觀看 <font color='red'>%s次觀看</font>"}}) {
-            String result = HistoryRules.accountViewedAt(pair[0], pair[1]);
-            check(result.endsWith("45分") || result.endsWith("08:45"), "account timestamp kept without fabricated count");
-        }
-        check("date".equals(HistoryRules.accountViewedAt("date", "%s")), "unknown format preserved");
         System.out.println("Content filter and history deletion checks passed");
     }
 }

@@ -11,7 +11,7 @@ nicoid 6.49の元APKにMorphe Managerでパッチを適用すると、「nicoid 
 - 対象アプリ：`com.sauzask.nicoid`（バージョン`6.49`）
 - 適用後のアプリ名：**nicoid Re**
 - 適用後のパッケージ名：`com.sauzask.nicoid.hls`
-- 正式版：`v1.6.2`
+- 正式版：`v1.7.0`
 - 開発版：`dev`ブランチで管理
 
 パッチ適用には次の元APKを使用してください。
@@ -67,8 +67,11 @@ https://github.com/chikuwadon/nicoid-re-patches
 
 - Android 16に対応。
 - 現在のニコニコ動画の再生形式に対応。
-- ライトモード・ダークモード・Material Youからテーマを選択できるように。
+- ライトモード・ダークモード・Material You・AMOLEDダークモードからテーマを選択できるように。 ([#30](https://github.com/chikuwadon/nicoid-re-patches/issues/30))
 - 通常再生・ポップアップ再生時に、再生速度と画質を変更できるように。
+- 通常・バックグラウンド・ポップアップ再生をAndroidのメディアコントロールから操作できるように。 ([#28](https://github.com/chikuwadon/nicoid-re-patches/issues/28))
+- 動画情報からいいねを登録・解除できるように。
+- 起動時に表示する画面と、モバイル通信時の画質を設定できるように。
 - 再生速度を0.1〜3.0倍、0.05倍刻みのスライダーで調整できるように。
 - デフォルトの再生速度も同じ範囲・刻みのスライダーで設定できるように。
 - 上下スワイプによる音量・輝度調整を追加。
@@ -79,9 +82,17 @@ https://github.com/chikuwadon/nicoid-re-patches
 - 関連動画の選択メニューに、ポップアップ再生・バックグラウンド再生・キャッシュ取得を追加。
 - ポップアップ画面でピンチイン・アウトできるように。
 - 再生速度を変えても、流れるコメントの速度を等倍に維持。
-- コメントサイズ（60%、80%、100%、120%、140%）を設定できるように。
+- コメントサイズを10〜300%のスライダーで設定できるように。
+- コメントの不透明度・影の大きさ・最大行数を設定できるように。
+- コメントの表示時間を変更し、スクロール速度を調整できるように。 ([#33](https://github.com/chikuwadon/nicoid-re-patches/issues/33))
+- コメント一覧をダブルタップすると、そのコメントの再生時間へ移動できるように。 ([#31](https://github.com/chikuwadon/nicoid-re-patches/issues/31))
+- 再生位置に合わせてコメント一覧を自動スクロールできるように。 ([#34](https://github.com/chikuwadon/nicoid-re-patches/issues/34))
+- コメント一覧にニコる数と操作ボタンを追加し、ニコる数順に並べ替えられるように。 ([#35](https://github.com/chikuwadon/nicoid-re-patches/issues/35))
+- ダークモードでNG登録の入力欄が見づらくなる不具合を修正。 ([#27](https://github.com/chikuwadon/nicoid-re-patches/issues/27))
+- 登録済みのNG設定を一覧で確認・削除できるように。
 - キャッシュの保存先をフォルダー選択で指定できるように。
 - ショート動画機能を追加。
+- ショート動画のコメントサイズと表示範囲を調整。 ([#29](https://github.com/chikuwadon/nicoid-re-patches/issues/29))
 - 検索結果の先頭でスワイプして更新できるように。
 - 一覧の有料動画にラベルを表示するように。
 - 動画タイトルのキーワードや投稿者・チャンネル名で一覧を非表示にするコンテンツフィルターを追加。

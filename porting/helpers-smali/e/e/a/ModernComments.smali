@@ -120,7 +120,7 @@
 
     const/4 v3, 0x0
 
-    invoke-static {p0, v1, v2, v3}, Le/e/a/ModernPlayback;->request(Le/e/a/d0;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+    invoke-static {p0, v1, v2, v3}, Le/e/a/CommentHistory;->initial(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 
     move-result-object v0
 
@@ -449,6 +449,8 @@
     :cond_19e
     :goto_19e
     invoke-static {}, Le/e/a/CommentListExtras;->end()V
+
+    invoke-static {p0}, Le/e/a/CommentHistory;->extend(Ljava/lang/Object;)V
 
     return-void
     :try_end_1a2

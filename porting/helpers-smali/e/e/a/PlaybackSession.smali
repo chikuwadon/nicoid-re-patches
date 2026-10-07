@@ -870,6 +870,17 @@
 .method public static leave(Ljava/lang/Object;Z)Z
     .registers 12
 
+    invoke-static {p0, p1}, Le/e/a/AppSwitchGuard;->intercept(Ljava/lang/Object;Z)Z
+
+    move-result v8
+
+    if-eqz v8, :continue_leave
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :continue_leave
     move v9, p1
 
     .line 186

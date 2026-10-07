@@ -69,18 +69,6 @@
     :goto_8
     iput-boolean p4, p1, Le/e/a/CommentListExtras$Follow;->byNicoru:Z
 
-    iget-object p1, p0, Le/e/a/CommentListExtras$2;->val$follow:Le/e/a/CommentListExtras$Follow;
-
-    iget-boolean p1, p1, Le/e/a/CommentListExtras$Follow;->byNicoru:Z
-
-    if-eqz p1, :cond_17
-
-    iget-object p1, p0, Le/e/a/CommentListExtras$2;->val$follow:Le/e/a/CommentListExtras$Follow;
-
-    iget-object p1, p1, Le/e/a/CommentListExtras$Follow;->toggle:Landroid/widget/CheckBox;
-
-    invoke-virtual {p1, p2}, Landroid/widget/CheckBox;->setChecked(Z)V
-
     :cond_17
     iget-object p1, p0, Le/e/a/CommentListExtras$2;->val$follow:Le/e/a/CommentListExtras$Follow;
 

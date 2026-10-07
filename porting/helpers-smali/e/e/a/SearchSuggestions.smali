@@ -81,6 +81,16 @@
     move-object v0, p0
 
     check-cast v0, Landroid/widget/AutoCompleteTextView;
+    invoke-virtual {v0}, Landroid/view/View;->getContext()Landroid/content/Context;
+    move-result-object v1
+    invoke-static {v1}, Le/e/a/Followup173;->suggestionsEnabled(Landroid/content/Context;)Z
+    move-result v1
+    if-nez v1, :suggestions_enabled
+    const/4 v1, 0x0
+    invoke-virtual {v0, v1}, Landroid/widget/AutoCompleteTextView;->setAdapter(Landroid/widget/ListAdapter;)V
+    invoke-virtual {v0}, Landroid/widget/AutoCompleteTextView;->dismissDropDown()V
+    goto :cond_1e
+    :suggestions_enabled
 
     sget-object v1, Le/e/a/SearchSuggestions;->attached:Ljava/util/WeakHashMap;
 

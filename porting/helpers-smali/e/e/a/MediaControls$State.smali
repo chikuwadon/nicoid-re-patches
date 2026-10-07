@@ -15,6 +15,7 @@
 
 
 # instance fields
+.field lastInfo:Landroid/os/Bundle;
 .field context:Landroid/content/Context;
 
 .field lastDuration:J

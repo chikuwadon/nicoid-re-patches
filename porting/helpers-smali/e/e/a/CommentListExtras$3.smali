@@ -57,14 +57,6 @@
 
     iget-object p1, p0, Le/e/a/CommentListExtras$3;->val$follow:Le/e/a/CommentListExtras$Follow;
 
-    iget-object p1, p1, Le/e/a/CommentListExtras$Follow;->toggle:Landroid/widget/CheckBox;
-
-    const/4 p2, 0x0
-
-    invoke-virtual {p1, p2}, Landroid/widget/CheckBox;->setChecked(Z)V
-
-    iget-object p1, p0, Le/e/a/CommentListExtras$3;->val$follow:Le/e/a/CommentListExtras$Follow;
-
     invoke-virtual {p1}, Le/e/a/CommentListExtras$Follow;->cancelTap()V
 
     :cond_10

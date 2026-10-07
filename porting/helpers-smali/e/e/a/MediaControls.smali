@@ -108,11 +108,24 @@
     sget-object v1, Le/e/a/MediaControls;->active:Le/e/a/MediaControls$State;
 
     iget-object v1, v1, Le/e/a/MediaControls$State;->owner:Ljava/lang/Object;
+
+    if-ne v1, p0, :cond_f
+
+    sget-object v1, Le/e/a/MediaControls;->active:Le/e/a/MediaControls$State;
+
+    iget-object v2, v1, Le/e/a/MediaControls$State;->player:Ljava/lang/Object;
+
+    iget-object v3, v1, Le/e/a/MediaControls$State;->video:Ljava/lang/String;
+
+    invoke-static {p0, p1, v2, v3}, Le/e/a/PlaybackRouting;->sameMediaBinding(Ljava/lang/Object;ZLjava/lang/Object;Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_f
+
     :try_end_b
     .catch Ljava/lang/Exception; {:try_start_3 .. :try_end_b} :catch_ed
     .catchall {:try_start_3 .. :try_end_b} :catchall_eb
-
-    if-ne v1, p0, :cond_f
 
     monitor-exit v0
 
@@ -884,149 +897,33 @@
 .end method
 
 .method static title(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String;
-    .registers 8
-
-    .line 42
-    const-string v0, "title"
-
-    :try_start_2
-    const-string v1, "h1"
-
-    invoke-static {p0, v1}, Le/e/a/PlaybackSession;->get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
-
-    move-result-object v1
-
-    const-string v2, "l"
-
-    invoke-static {v1, v2}, Le/e/a/PlaybackSession;->get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
-
-    move-result-object v1
-
-    instance-of v2, v1, Landroid/os/Bundle;
-
-    if-eqz v2, :cond_22
-
-    check-cast v1, Landroid/os/Bundle;
-
-    invoke-static {v1}, Le/e/a/FeedbackFixes;->bundleTitle(Landroid/os/Bundle;)Ljava/lang/String;
-
-    move-result-object v1
-
-    if-eqz v1, :cond_22
-
-    invoke-virtual {v1}, Ljava/lang/String;->isEmpty()Z
-
-    move-result v2
-    :try_end_1e
-    .catch Ljava/lang/Exception; {:try_start_2 .. :try_end_1e} :catch_21
-
-    if-nez v2, :cond_22
-
-    return-object v1
-
-    :catch_21
-    move-exception v1
-
-    .line 43
-    :cond_22
-    :try_start_22
-    invoke-virtual {p0}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
-
-    move-result-object v1
-
-    const-string v2, "s0"
-
-    invoke-virtual {v1, v2}, Ljava/lang/Class;->getField(Ljava/lang/String;)Ljava/lang/reflect/Field;
-
-    move-result-object v1
-
-    const/4 v2, 0x0
-
-    invoke-virtual {v1, v2}, Ljava/lang/reflect/Field;->get(Ljava/lang/Object;)Ljava/lang/Object;
-
-    move-result-object v1
-
-    instance-of v2, v1, Landroid/os/Bundle;
-
-    if-eqz v2, :cond_45
-
-    check-cast v1, Landroid/os/Bundle;
-
-    invoke-static {v1}, Le/e/a/FeedbackFixes;->bundleTitle(Landroid/os/Bundle;)Ljava/lang/String;
-
-    move-result-object v1
-
-    if-eqz v1, :cond_45
-
-    invoke-virtual {v1}, Ljava/lang/String;->isEmpty()Z
-
-    move-result v2
-    :try_end_41
-    .catch Ljava/lang/Exception; {:try_start_22 .. :try_end_41} :catch_44
-
-    if-nez v2, :cond_45
-
-    return-object v1
-
-    :catch_44
-    move-exception v1
-
-    .line 45
-    :cond_45
-    invoke-virtual {p0}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
-
-    move-result-object v1
-
-    invoke-virtual {v1}, Ljava/lang/Class;->getFields()[Ljava/lang/reflect/Field;
-
-    move-result-object v1
-
-    array-length v2, v1
-
-    const/4 v3, 0x0
-
-    :goto_4f
-    if-ge v3, v2, :cond_6e
-
-    aget-object v4, v1, v3
-
-    :try_start_53
-    invoke-virtual {v4, p0}, Ljava/lang/reflect/Field;->get(Ljava/lang/Object;)Ljava/lang/Object;
-
-    move-result-object v4
-
-    instance-of v5, v4, Landroid/os/Bundle;
-
-    if-eqz v5, :cond_6b
-
-    check-cast v4, Landroid/os/Bundle;
-
-    invoke-static {v4}, Le/e/a/FeedbackFixes;->bundleTitle(Landroid/os/Bundle;)Ljava/lang/String;
-
-    move-result-object v4
-
-    if-eqz v4, :cond_6b
-
-    invoke-virtual {v4}, Ljava/lang/String;->isEmpty()Z
-
-    move-result v5
-    :try_end_67
-    .catch Ljava/lang/Exception; {:try_start_53 .. :try_end_67} :catch_6a
-
-    if-nez v5, :cond_6b
-
-    return-object v4
-
-    :catch_6a
-    move-exception v4
-
-    :cond_6b
-    add-int/lit8 v3, v3, 0x1
-
-    goto :goto_4f
-
-    .line 46
-    :cond_6e
+    .locals 2
+    invoke-static {p0}, Le/e/a/FeedbackMedia;->bundle(Ljava/lang/Object;)Landroid/os/Bundle;
+    move-result-object v0
+    invoke-static {v0}, Le/e/a/FeedbackFixes;->bundleTitle(Landroid/os/Bundle;)Ljava/lang/String;
+    move-result-object v0
+    if-eqz v0, :fragment_title
+    invoke-virtual {v0}, Ljava/lang/String;->isEmpty()Z
+    move-result v1
+    if-nez v1, :fragment_title
+    return-object v0
+    :fragment_title
+    :try_start_title
+    const-string v0, "c0"
+    invoke-static {p0, v0}, Le/e/a/FeedbackFixes;->get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
+    move-result-object v0
+    instance-of v1, v0, Ljava/lang/String;
+    if-eqz v1, :fallback
+    check-cast v0, Ljava/lang/String;
+    invoke-virtual {v0}, Ljava/lang/String;->isEmpty()Z
+    move-result v1
+    if-nez v1, :fallback
+    return-object v0
+    :try_end_title
+    .catch Ljava/lang/Exception; {:try_start_title .. :try_end_title} :title_error
+    :title_error
+    move-exception v0
+    :fallback
     return-object p1
 .end method
 
@@ -1077,6 +974,16 @@
 
     move-result-wide v5
 
+    # Refresh even if metadata arrives after attach without a duration/play-state change.
+    iget-object v3, v0, Le/e/a/MediaControls$State;->owner:Ljava/lang/Object;
+    invoke-static {v3}, Le/e/a/FeedbackMedia;->bundle(Ljava/lang/Object;)Landroid/os/Bundle;
+    move-result-object v3
+    iget-object v7, v0, Le/e/a/MediaControls$State;->lastInfo:Landroid/os/Bundle;
+    if-eq v3, v7, :info_unchanged
+    iput-object v3, v0, Le/e/a/MediaControls$State;->lastInfo:Landroid/os/Bundle;
+    const-wide/16 v7, -0x1
+    iput-wide v7, v0, Le/e/a/MediaControls$State;->lastDuration:J
+    :info_unchanged
     .line 55
     iget-object v3, v0, Le/e/a/MediaControls$State;->owner:Ljava/lang/Object;
 

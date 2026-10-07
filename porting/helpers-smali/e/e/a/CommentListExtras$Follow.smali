@@ -41,6 +41,10 @@
 .field toggle:Landroid/widget/CheckBox;
 
 .field touchY:F
+.field touchX:F
+.field touchDown:J
+.field touchMoved:Z
+.field tapTime:J
 
 
 # direct methods
@@ -148,84 +152,31 @@
 .end method
 
 .method synthetic lambda$clicks$0$e-e-a-CommentListExtras$Follow(Ljava/lang/Object;Landroid/view/View;)V
-    .registers 10
-
-    .line 37
+    .locals 3
     const/4 v0, 0x0
-
     iput-object v0, p0, Le/e/a/CommentListExtras$Follow;->pendingTap:Ljava/lang/Runnable;
-
     const/4 v0, -0x1
-
     iput v0, p0, Le/e/a/CommentListExtras$Follow;->tapPosition:I
-
     iget-boolean v0, p0, Le/e/a/CommentListExtras$Follow;->active:Z
-
-    if-eqz v0, :cond_3f
-
+    if-eqz v0, :single_done
     iget-object v0, p0, Le/e/a/CommentListExtras$Follow;->list:Landroid/widget/ListView;
-
     invoke-virtual {v0}, Landroid/widget/ListView;->isAttachedToWindow()Z
-
     move-result v0
-
-    if-nez v0, :cond_13
-
-    goto :goto_3f
-
-    :cond_13
-    :try_start_13
+    if-eqz v0, :single_done
+    :single_try
     invoke-virtual {p0}, Le/e/a/CommentListExtras$Follow;->items()Ljava/util/ArrayList;
-
     move-result-object v0
-
     invoke-virtual {v0, p1}, Ljava/util/ArrayList;->indexOf(Ljava/lang/Object;)I
-
-    move-result p1
-
-    if-ltz p1, :cond_3f
-
-    iget-object v0, p0, Le/e/a/CommentListExtras$Follow;->list:Landroid/widget/ListView;
-
-    invoke-virtual {v0}, Landroid/widget/ListView;->getOnItemLongClickListener()Landroid/widget/AdapterView$OnItemLongClickListener;
-
-    move-result-object v0
-
-    if-eqz v0, :cond_3f
-
-    iget-object v0, p0, Le/e/a/CommentListExtras$Follow;->list:Landroid/widget/ListView;
-
-    invoke-virtual {v0}, Landroid/widget/ListView;->getOnItemLongClickListener()Landroid/widget/AdapterView$OnItemLongClickListener;
-
-    move-result-object v1
-
-    iget-object v2, p0, Le/e/a/CommentListExtras$Follow;->list:Landroid/widget/ListView;
-
-    iget-object v0, p0, Le/e/a/CommentListExtras$Follow;->list:Landroid/widget/ListView;
-
-    invoke-virtual {v0}, Landroid/widget/ListView;->getHeaderViewsCount()I
-
     move-result v0
-
-    add-int v4, p1, v0
-
-    int-to-long v5, p1
-
-    move-object v3, p2
-
-    invoke-interface/range {v1 .. v6}, Landroid/widget/AdapterView$OnItemLongClickListener;->onItemLongClick(Landroid/widget/AdapterView;Landroid/view/View;IJ)Z
-    :try_end_3a
-    .catch Ljava/lang/Exception; {:try_start_13 .. :try_end_3a} :catch_3b
-
-    goto :goto_3f
-
-    :catch_3b
-    move-exception p1
-
-    invoke-static {p1}, Le/e/a/FeedbackFixes;->log(Ljava/lang/Exception;)V
-
-    :cond_3f
-    :goto_3f
+    if-ltz v0, :single_done
+    invoke-static {p2}, Le/e/a/CommentListExtras;->expandComment(Landroid/view/View;)V
+    :single_end
+    .catch Ljava/lang/Exception; {:single_try .. :single_end} :single_error
+    goto :single_done
+    :single_error
+    move-exception v0
+    invoke-static {v0}, Le/e/a/FeedbackFixes;->log(Ljava/lang/Exception;)V
+    :single_done
     return-void
 .end method
 
@@ -265,6 +216,13 @@
 
     if-ne p4, p3, :cond_69
 
+    invoke-static {}, Landroid/os/SystemClock;->uptimeMillis()J
+    move-result-wide v0
+    iget-wide v2, p0, Le/e/a/CommentListExtras$Follow;->tapTime:J
+    sub-long/2addr v0, v2
+    const-wide/16 v2, 0x190
+    cmp-long v4, v0, v2
+    if-gtz v4, :cond_69
     invoke-virtual {p0}, Le/e/a/CommentListExtras$Follow;->cancelTap()V
 
     iget-object p2, p0, Le/e/a/CommentListExtras$Follow;->fragment:Ljava/lang/Object;
@@ -348,6 +306,9 @@
     invoke-virtual {p0}, Le/e/a/CommentListExtras$Follow;->cancelTap()V
 
     iput p3, p0, Le/e/a/CommentListExtras$Follow;->tapPosition:I
+    invoke-static {}, Landroid/os/SystemClock;->uptimeMillis()J
+    move-result-wide v0
+    iput-wide v0, p0, Le/e/a/CommentListExtras$Follow;->tapTime:J
 
     invoke-virtual {p1, p3}, Ljava/util/ArrayList;->get(I)Ljava/lang/Object;
 
@@ -441,10 +402,6 @@
 
     if-eqz v0, :cond_9f
 
-    iget-boolean v0, p0, Le/e/a/CommentListExtras$Follow;->byNicoru:Z
-
-    if-nez v0, :cond_9f
-
     iget-object v0, p0, Le/e/a/CommentListExtras$Follow;->list:Landroid/widget/ListView;
 
     invoke-virtual {v0}, Landroid/widget/ListView;->isShown()Z
@@ -484,12 +441,6 @@
     invoke-virtual {v0}, Ljava/lang/Number;->longValue()J
 
     move-result-wide v0
-
-    iget-wide v3, p0, Le/e/a/CommentListExtras$Follow;->last:J
-
-    cmp-long v5, v0, v3
-
-    if-eqz v5, :cond_9f
 
     invoke-virtual {p0}, Le/e/a/CommentListExtras$Follow;->items()Ljava/util/ArrayList;
 
@@ -550,10 +501,6 @@
 
     if-ltz v2, :cond_9b
 
-    iget v3, p0, Le/e/a/CommentListExtras$Follow;->lastIndex:I
-
-    if-eq v2, v3, :cond_9b
-
     iget-object v3, p0, Le/e/a/CommentListExtras$Follow;->list:Landroid/widget/ListView;
 
     iget-object v4, p0, Le/e/a/CommentListExtras$Follow;->list:Landroid/widget/ListView;
@@ -564,19 +511,7 @@
 
     add-int/2addr v4, v2
 
-    iget-object v5, p0, Le/e/a/CommentListExtras$Follow;->list:Landroid/widget/ListView;
-
-    invoke-virtual {v5}, Landroid/widget/ListView;->getContext()Landroid/content/Context;
-
-    move-result-object v5
-
-    const/16 v6, 0xc
-
-    invoke-static {v5, v6}, Le/e/a/FeedbackFixes;->dp(Landroid/content/Context;I)I
-
-    move-result v5
-
-    invoke-virtual {v3, v4, v5}, Landroid/widget/ListView;->setSelectionFromTop(II)V
+    invoke-static {v3, v4}, Le/e/a/Followup173;->followBottom(Landroid/widget/ListView;I)V
 
     iput v2, p0, Le/e/a/CommentListExtras$Follow;->lastIndex:I
 

@@ -74,13 +74,30 @@ public final class BikeRun {
                 c.drawArc(x+62,y,x+106,y+30,180,180,false,paint);
                 line(c,x,y+15,x+106,y+15);
             }
-            float town=(game.distance*.22f)%260;
-            for(int n=0;n<5;n++){
-                float x=n*260-town,top=horizon-72;
-                c.drawRect(x,top,x+64,horizon,paint);line(c,x-8,top,x+32,top-34);line(c,x+32,top-34,x+72,top);
-                c.drawRect(x+24,horizon-30,x+40,horizon,paint);
-                c.drawRect(x+92,horizon-145,x+164,horizon,paint);
-                for(int row=0;row<4;row++)for(int col=0;col<3;col++)c.drawRect(x+102+col*18,horizon-132+row*27,x+112+col*18,horizon-120+row*27,paint);
+            float offset=game.distance*.22f;
+            int first=(int)(offset/180)-1;
+            for(int n=first;n<first+7;n++) {
+                int hash=n*1103515245+12345; hash^=hash>>>16;
+                int kind=(hash&0x7fffffff)%5;
+                float x=n*180-offset+(hash>>>8&31), size=55+(hash>>>13&63);
+                if(kind==0){
+                    line(c,x,horizon,x+size/2,horizon-size);line(c,x+size/2,horizon-size,x+size,horizon);
+                    line(c,x+size*.32f,horizon-size*.64f,x+size*.48f,horizon-size*.53f);
+                } else if(kind==1){
+                    line(c,x+26,horizon,x+26,horizon-60);c.drawCircle(x+26,horizon-83,29,paint);
+                    c.drawCircle(x+6,horizon-65,20,paint);c.drawCircle(x+46,horizon-65,20,paint);
+                } else if(kind==2){
+                    line(c,x,horizon,x+30,horizon-size-65);line(c,x+30,horizon-size-65,x+60,horizon);
+                    line(c,x+10,horizon-35,x+50,horizon-35);line(c,x+18,horizon-75,x+42,horizon-75);
+                    line(c,x+30,horizon-size-65,x+30,horizon-size-90);
+                } else if(kind==3){
+                    float top=horizon-size;c.drawRect(x,top,x+64,horizon,paint);
+                    line(c,x-8,top,x+32,top-34);line(c,x+32,top-34,x+72,top);
+                    c.drawRect(x+24,horizon-30,x+40,horizon,paint);
+                } else {
+                    c.drawRect(x,horizon-size-40,x+72,horizon,paint);
+                    for(int row=0;row<3;row++)for(int col=0;col<3;col++)c.drawRect(x+10+col*18,horizon-size-27+row*27,x+20+col*18,horizon-size-15+row*27,paint);
+                }
             }
             paint.setAlpha(255);
         }
@@ -127,7 +144,7 @@ public final class BikeRun {
             paint.setColor(accent); paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(4);
             canvas.save();
             canvas.translate(BikeRunModel.RIDER_X,ground+game.groundAt(BikeRunModel.RIDER_X)+game.y);
-            canvas.rotate((float)Math.toDegrees(Math.atan(game.slopeAt(BikeRunModel.RIDER_X))));
+            canvas.rotate(game.y==0?(float)Math.toDegrees(Math.atan(game.slopeAt(BikeRunModel.RIDER_X))):0);
             canvas.scale(.65f,.65f);
             float x=0,y=-17;
             canvas.drawCircle(x-24,y,16,paint); canvas.drawCircle(x+24,y,16,paint);
@@ -138,7 +155,7 @@ public final class BikeRun {
             line(canvas,x+5,y-16,x-4,y); line(canvas,x-4,y-50,x+16,y-35);
             canvas.restore();
             paint.setStyle(Paint.Style.FILL); paint.setColor(foreground); paint.setTextAlign(Paint.Align.CENTER); paint.setTextSize(22);
-            canvas.drawText("タップで2段ジャンプ",360,height-72,paint);
+
             if(!game.started||game.over) {
                 paint.setTextSize(32); canvas.drawText(game.over?"ゲームオーバー":"障害物と穴をジャンプで避けよう",360,height/2,paint);
                 paint.setTextSize(22); canvas.drawText(game.over?"タップで再挑戦":"タップしてスタート",360,height/2+42,paint);

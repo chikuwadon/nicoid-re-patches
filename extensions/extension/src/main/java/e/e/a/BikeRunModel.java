@@ -19,10 +19,11 @@ public final class BikeRunModel {
     private final Random random;
     public float y, velocity, distance, spawn;
     private float gapTime;
+    private boolean falling;
     private int jumpsUsed;
     public boolean started, over;
     public BikeRunModel(long seed) { random = new Random(seed); reset(); }
-    public void reset() { hazards.clear(); y=velocity=distance=gapTime=0; spawn=700; jumpsUsed=0; started=over=false; }
+    public void reset() { hazards.clear(); y=velocity=distance=gapTime=0; spawn=700; jumpsUsed=0; falling=false; started=over=false; }
     // Hills, platforms and steps use one profile for both drawing and collisions.
     public static float terrain(float worldX) {
         if (worldX<=600) return 0;
@@ -37,8 +38,8 @@ public final class BikeRunModel {
         return 0;
     }
     public float groundAt(float screenX) { return terrain(distance+screenX); }
-    public float slopeAt(float screenX) { return (groundAt(screenX+4)-groundAt(screenX-4))/8; }
-    public float speed() { return START_SPEED+Math.min(distance/100,150); }
+    public float slopeAt(float screenX) { float delta=groundAt(screenX+4)-groundAt(screenX-4); return Math.abs(delta)>8?0:delta/8; }
+    public float speed() { return START_SPEED+Math.min(distance/65,280); }
     public void tap() {
         if (over) reset();
         started=true;
@@ -54,10 +55,10 @@ public final class BikeRunModel {
         // A vertical step must be jumped; descending ledges produce a fall.
         if(rise>20 && y>-rise+10){over=true;return;}
         // A grounded bicycle follows slopes. An airborne bicycle keeps its world height.
-        if (y<0 || velocity<0 || rise < -20) {
+        if (falling || y<0 || velocity<0 || rise < -20) {
             y+=rise;
             velocity+=GRAVITY*dt; y+=velocity*dt;
-            if (y>=0) { y=0; velocity=0; }
+            if (!falling && y>=0) { y=0; velocity=0; }
         }
         if (spawn<=0) {
             boolean gap=random.nextBoolean();
@@ -66,7 +67,7 @@ public final class BikeRunModel {
             float width = gap ? (tall ? speed() * .95f : 115 + random.nextInt(40)) : 36 + random.nextInt(22);
             float height = gap ? 0 : tall ? 165 + random.nextInt(16) : 28 + random.nextInt(27);
             boolean spikes=!gap && !tall && random.nextBoolean();
-            if(spikes){width=60+random.nextInt(40);height=30;}
+            if(spikes){width=distance>2500?100+random.nextInt(70):60+random.nextInt(40);height=30;}
             // Give the rider a flat landing area and avoid placing a hazard at a step.
             float x=760;
             for(int i=0;i<40;i++){
@@ -83,7 +84,7 @@ public final class BikeRunModel {
             Hazard h=hazards.get(n); h.x-=movement;
             if (h.gap) {
                 // Inset cliff edges and allow a brief last-moment jump.
-                if (RIDER_X>h.x+14 && RIDER_X<h.x+h.width-14 && y>=-6 && velocity>=0) unsupported=true;
+                if (RIDER_X>h.x+14 && RIDER_X<h.x+h.width-14) unsupported=true;
             } else {
                 float base=groundAt(h.x+h.width/2)-groundAt(RIDER_X);
                 // Collision box is smaller than the visible bicycle and obstacle.
@@ -91,9 +92,11 @@ public final class BikeRunModel {
             }
             if (h.x+h.width<0) hazards.remove(n);
         }
+        if(unsupported && y>=0 && velocity>=0)falling=true;
         gapTime=unsupported?gapTime+dt:0;
-        if (!unsupported && y==0 && velocity==0) jumpsUsed=0;
-        if (gapTime>EDGE_GRACE) over=true;
+        if (!unsupported && !falling && y==0 && velocity==0) jumpsUsed=0;
+        if (falling && y>220) over=true;
+        if (falling && y<0)falling=false;
     }
     public int score() { return (int)(distance/10); }
 }

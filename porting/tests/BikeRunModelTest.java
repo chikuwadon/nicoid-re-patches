@@ -20,7 +20,10 @@ public final class BikeRunModelTest {
         m.tap(); m.step(.02f); check(m.y<0&&!m.over,"jump during edge grace saves rider");
         m.reset(); m.started=true; m.hazards.add(new BikeRunModel.Hazard(100,140,0,true));
         for(int n=0;n<4;n++)m.step(.03f);
-        check(m.over,"remaining inside gap beyond grace ends round");
+        check(!m.over && m.y>0,"gap starts visible fall without immediate death");
+        m.hazards.clear();m.hazards.add(new BikeRunModel.Hazard(-500,2000,0,true));
+        for(int n=0;n<30&&!m.over;n++)m.step(.03f);
+        check(m.over && m.y>220,"deep fall ends round");
         m.reset(); m.started=true; m.y=-100; m.hazards.add(new BikeRunModel.Hazard(100,140,0,true)); m.step(.01f);
         check(!m.over,"airborne rider crosses gap");
         float distance=m.distance; m.step(0); check(m.distance==distance,"paused step does not progress");
@@ -74,6 +77,9 @@ public final class BikeRunModelTest {
         boolean spikes=false;
         for(int seed=0;seed<100;seed++){m=new BikeRunModel(seed*9973L);m.started=true;m.spawn=0;m.step(.01f);spikes|=m.hazards.get(0).spikes;}
         check(spikes,"generator includes spikes");
-        System.out.println("Bicycle runner physics checks passed");
+        check(m.slopeAt(120)==0,"flat slope stable");
+        m.distance=1559;check(Math.abs(m.slopeAt(120))<1,"vertical edge does not rotate rider upright");
+        m.reset();float initial=m.speed();m.distance=4000;check(m.speed()>initial,"distance increases speed");
+        System.out.println("Model regression checks passed");
     }
 }

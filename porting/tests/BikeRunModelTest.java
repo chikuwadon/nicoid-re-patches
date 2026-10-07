@@ -28,7 +28,7 @@ public final class BikeRunModelTest {
         m.reset(); m.distance=630; check(m.slopeAt(120)<0,"uphill exists");
         m.distance=1130; check(m.slopeAt(120)>0,"downhill exists");
         m.reset(); m.started=true; m.spawn=100000;
-        for(int n=0;n<260;n++) { m.step(.02f); check(m.y==0&&!m.over,"grounded rider follows hills without falling"); }
+        for(int n=0;n<140;n++) { m.step(.02f); check(m.y==0&&!m.over,"grounded rider follows continuous hills without falling"); }
         m.distance=630; float old=m.groundAt(120); m.tap(); m.step(.02f);
         float worldY=m.y+m.groundAt(120);
         check(Math.abs(worldY-(old+(-650+1600*.02f)*.02f))<.01f,"hill jump keeps continuous world height");
@@ -53,7 +53,7 @@ public final class BikeRunModelTest {
             check(m.over==(attempt==0),"tall obstacle requires and permits double jump");
         }
         for(int attempt=0;attempt<2;attempt++) {
-            m.reset(); m.spawn=100000; m.hazards.add(new BikeRunModel.Hazard(145,335,0,true)); m.tap();
+            m.reset(); m.spawn=100000; m.hazards.add(new BikeRunModel.Hazard(145,BikeRunModel.START_SPEED*.95f,0,true)); m.tap();
             for(int n=0;n<65&&!m.over;n++) { if(attempt==1&&n==20)m.tap(); m.step(.02f); }
             check(m.over==(attempt==0),"wide gap requires and permits double jump");
         }
@@ -65,7 +65,15 @@ public final class BikeRunModelTest {
             check(m.spawn>=h.width+m.speed()*1.2f,"spawn spacing allows landing before next hazard");
         }
         check(tall&&wide,"generator includes both double-jump challenges");
+        m.reset();m.started=true;m.spawn=100000;m.distance=1555;
+        m.step(.02f);check(m.over,"vertical step cannot be ridden through without jumping");
+        m.reset();m.started=true;m.spawn=100000;m.distance=1555;m.y=-75;
+        m.step(.02f);check(!m.over,"airborne rider clears the rising step");
+        m.reset();m.started=true;m.spawn=100000;m.distance=2075;
+        m.step(.02f);check(m.y<0&&!m.over,"descending ledge starts a fall");
+        boolean spikes=false;
+        for(int seed=0;seed<100;seed++){m=new BikeRunModel(seed*9973L);m.started=true;m.spawn=0;m.step(.01f);spikes|=m.hazards.get(0).spikes;}
+        check(spikes,"generator includes spikes");
         System.out.println("Bicycle runner physics checks passed");
     }
 }
-

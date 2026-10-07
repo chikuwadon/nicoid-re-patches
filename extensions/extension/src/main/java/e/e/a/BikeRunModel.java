@@ -6,12 +6,14 @@ import java.util.Random;
 /** Original, offline bicycle runner physics in logical screen units. */
 public final class BikeRunModel {
     public static final float RIDER_X = 120, GRAVITY = 1600, JUMP = -650;
-    public static final float START_SPEED = 350, EDGE_GRACE = .10f;
+    public static final float START_SPEED = 440, EDGE_GRACE = .10f;
     public static final class Hazard {
         public float x;
         public final float width, height;
         public final boolean gap;
-        Hazard(float x, float width, float height, boolean gap) { this.x=x; this.width=width; this.height=height; this.gap=gap; }
+        public final boolean spikes;
+        Hazard(float x, float width, float height, boolean gap) { this(x,width,height,gap,false); }
+        Hazard(float x, float width, float height, boolean gap, boolean spikes) { this.x=x; this.width=width; this.height=height; this.gap=gap; this.spikes=spikes; }
     }
     public final ArrayList<Hazard> hazards = new ArrayList<>();
     private final Random random;
@@ -21,12 +23,18 @@ public final class BikeRunModel {
     public boolean started, over;
     public BikeRunModel(long seed) { random = new Random(seed); reset(); }
     public void reset() { hazards.clear(); y=velocity=distance=gapTime=0; spawn=700; jumpsUsed=0; started=over=false; }
-    // Smooth hill, then a level section. Screen and physics share this profile.
+    // Hills, platforms and steps use one profile for both drawing and collisions.
     public static float terrain(float worldX) {
         if (worldX<=600) return 0;
-        float phase=(worldX-600)%1400;
-        if (phase>=1000) return 0;
-        return -35*(1-(float)Math.cos(phase*Math.PI*2/1000));
+        float phase=(worldX-600)%2000;
+        if (phase<300) return -110*phase/300;
+        if (phase<520) return -110;
+        if (phase<820) return -110+110*(phase-520)/300;
+        if (phase<1080) return 0;
+        if (phase<1240) return -42;
+        if (phase<1420) return -84;
+        if (phase<1600) return -42;
+        return 0;
     }
     public float groundAt(float screenX) { return terrain(distance+screenX); }
     public float slopeAt(float screenX) { return (groundAt(screenX+4)-groundAt(screenX-4))/8; }
@@ -42,9 +50,12 @@ public final class BikeRunModel {
         float oldGround=groundAt(RIDER_X);
         float movement=speed()*dt;
         distance+=movement; spawn-=movement;
+        float rise=oldGround-groundAt(RIDER_X);
+        // A vertical step must be jumped; descending ledges produce a fall.
+        if(rise>20 && y>-rise+10){over=true;return;}
         // A grounded bicycle follows slopes. An airborne bicycle keeps its world height.
-        if (y<0 || velocity<0) {
-            y+=oldGround-groundAt(RIDER_X);
+        if (y<0 || velocity<0 || rise < -20) {
+            y+=rise;
             velocity+=GRAVITY*dt; y+=velocity*dt;
             if (y>=0) { y=0; velocity=0; }
         }
@@ -54,9 +65,18 @@ public final class BikeRunModel {
             boolean tall = distance > 1000 && random.nextInt(4) == 0;
             float width = gap ? (tall ? speed() * .95f : 115 + random.nextInt(40)) : 36 + random.nextInt(22);
             float height = gap ? 0 : tall ? 165 + random.nextInt(16) : 28 + random.nextInt(27);
-            hazards.add(new Hazard(760, width, height, gap));
+            boolean spikes=!gap && !tall && random.nextBoolean();
+            if(spikes){width=60+random.nextInt(40);height=30;}
+            // Give the rider a flat landing area and avoid placing a hazard at a step.
+            float x=760;
+            for(int i=0;i<40;i++){
+                float g=groundAt(x),end=groundAt(x+width+120);
+                if(Math.abs(g-end)<4 && Math.abs(groundAt(x+width/2)-g)<4)break;
+                x+=20;
+            }
+            hazards.add(new Hazard(x, width, height, gap,spikes));
             // Leave room to land and recharge both jumps before the next obstacle.
-            spawn=Math.max(440 + random.nextInt(220), width + speed() * 1.25f);
+            spawn=(x-760)+Math.max(440 + random.nextInt(220), width + speed() * 1.25f);
         }
         boolean unsupported=false;
         for (int n=hazards.size()-1; n>=0; n--) {
@@ -77,4 +97,3 @@ public final class BikeRunModel {
     }
     public int score() { return (int)(distance/10); }
 }
-

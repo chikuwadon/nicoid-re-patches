@@ -6,7 +6,6 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.Typeface;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.util.TypedValue;
@@ -48,8 +47,7 @@ public final class BikeRun {
     private static final class Track extends View {
         final BikeRunModel game=new BikeRunModel(System.nanoTime());
         final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);
-        final Path road=new Path();
-        final Path obstacle=new Path();
+        final Path road=new Path(), obstacle=new Path();
         final int accent,background,foreground;
         int best;
         long last;
@@ -63,6 +61,29 @@ public final class BikeRun {
             setFocusable(true);
         }
         void line(Canvas c,float x,float y,float xx,float yy) { c.drawLine(x,y,xx,yy,paint); }
+        void scenery(Canvas c,float height) {
+            paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(1.5f);paint.setColor(foreground);paint.setAlpha(80);
+            float horizon=height*.52f;
+            c.drawCircle(585,145,29,paint);
+            for(int n=0;n<8;n++){double a=n*Math.PI/4;line(c,585+(float)Math.cos(a)*37,145+(float)Math.sin(a)*37,585+(float)Math.cos(a)*47,145+(float)Math.sin(a)*47);}
+            float clouds=(game.distance*.10f)%900;
+            for(int n=0;n<4;n++){
+                float x=n*270-clouds,y=155+(n%2)*75;
+                c.drawArc(x,y,x+42,y+30,180,180,false,paint);
+                c.drawArc(x+24,y-16,x+80,y+30,180,180,false,paint);
+                c.drawArc(x+62,y,x+106,y+30,180,180,false,paint);
+                line(c,x,y+15,x+106,y+15);
+            }
+            float town=(game.distance*.22f)%260;
+            for(int n=0;n<5;n++){
+                float x=n*260-town,top=horizon-72;
+                c.drawRect(x,top,x+64,horizon,paint);line(c,x-8,top,x+32,top-34);line(c,x+32,top-34,x+72,top);
+                c.drawRect(x+24,horizon-30,x+40,horizon,paint);
+                c.drawRect(x+92,horizon-145,x+164,horizon,paint);
+                for(int row=0;row<4;row++)for(int col=0;col<3;col++)c.drawRect(x+102+col*18,horizon-132+row*27,x+112+col*18,horizon-120+row*27,paint);
+            }
+            paint.setAlpha(255);
+        }
         protected void onDraw(Canvas canvas) {
             super.onDraw(canvas); if(!active)return;
             long now=SystemClock.uptimeMillis();
@@ -75,57 +96,49 @@ public final class BikeRun {
             canvas.drawColor(background);
             float scale=getWidth()/720f; if(scale<=0)return;
             canvas.save(); canvas.scale(scale,scale);
-            float height=getHeight()/scale,ground=Math.max(230,height*.70f)-game.groundAt(BikeRunModel.RIDER_X)*.35f;
+            float height=getHeight()/scale,ground=Math.max(230,height*2/3+43);
             paint.setStyle(Paint.Style.FILL); paint.setColor(foreground); paint.setTextSize(25);
-            paint.setTypeface(Typeface.DEFAULT_BOLD); paint.setTextSize(46);
-            canvas.drawText(game.score()+" m",24,66,paint);
-            paint.setTypeface(Typeface.DEFAULT); paint.setTextSize(18);
-            canvas.drawText("ベスト "+best+" m",24,98,paint);
-            // Move the camera so the rider is one third of the screen from the left.
-            // Physics and collision coordinates remain unchanged.
-            canvas.save(); canvas.translate(120,0);
-            paint.setColor(foreground); paint.setStrokeWidth(3);
-            road.reset(); boolean connected=false; float segmentStart=0;
-            for(int sx=-120;sx<=600;sx+=4) {
+            canvas.drawText("自転車ラン",24,44,paint); paint.setTextSize(18);
+            canvas.drawText("距離 "+game.score()+" m   ベスト "+best+" m",24,78,paint);
+            scenery(canvas,height);
+            paint.setColor(accent); paint.setStrokeWidth(3);
+            road.reset(); boolean connected=false;
+            for(int sx=0;sx<=720;sx+=4) {
                 boolean gap=false;
                 for(BikeRunModel.Hazard h:game.hazards) if(h.gap && sx>h.x && sx<h.x+h.width) { gap=true; break; }
                 float sy=ground+game.groundAt(sx);
-                if(gap) {
-                    if(connected){road.lineTo(sx-4,height);road.lineTo(segmentStart,height);road.close();}
-                    connected=false; continue;
-                }
-                if(connected) road.lineTo(sx,sy); else {road.moveTo(sx,sy);segmentStart=sx;}
+                if(gap) { connected=false; continue; }
+                if(connected) road.lineTo(sx,sy); else road.moveTo(sx,sy);
                 connected=true;
             }
-            if(connected){road.lineTo(600,height);road.lineTo(segmentStart,height);road.close();}
-            paint.setStyle(Paint.Style.FILL); canvas.drawPath(road,paint);
+            paint.setStyle(Paint.Style.STROKE); canvas.drawPath(road,paint); paint.setStyle(Paint.Style.FILL);
             for(BikeRunModel.Hazard h:game.hazards) {
                 float left=ground+game.groundAt(h.x),right=ground+game.groundAt(h.x+h.width);
                 if(h.gap) {
                     line(canvas,h.x,left,h.x,left+24); line(canvas,h.x+h.width,right,h.x+h.width,right+24);
                 } else {
-                    obstacle.reset(); obstacle.moveTo(h.x,left); obstacle.lineTo(h.x,left-h.height);
-                    obstacle.lineTo(h.x+h.width,right-h.height); obstacle.lineTo(h.x+h.width,right); obstacle.close();
+                    obstacle.reset(); obstacle.moveTo(h.x,left);
+                    if(h.spikes){int teeth=Math.max(2,(int)(h.width/20));for(int n=0;n<teeth;n++){float x=h.x+h.width*n/teeth;obstacle.lineTo(x+h.width/teeth/2,ground+game.groundAt(x+h.width/teeth/2)-h.height);obstacle.lineTo(x+h.width/teeth,ground+game.groundAt(x+h.width/teeth));}}
+                    else {obstacle.lineTo(h.x,left-h.height);obstacle.lineTo(h.x+h.width,right-h.height);obstacle.lineTo(h.x+h.width,right);}
+                    obstacle.close();paint.setStyle(Paint.Style.STROKE);
                     canvas.drawPath(obstacle,paint);
                 }
             }
-            paint.setColor(foreground); paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(4);
+            paint.setColor(accent); paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(4);
             canvas.save();
             canvas.translate(BikeRunModel.RIDER_X,ground+game.groundAt(BikeRunModel.RIDER_X)+game.y);
             canvas.rotate((float)Math.toDegrees(Math.atan(game.slopeAt(BikeRunModel.RIDER_X))));
-            canvas.scale(.48f,.48f);
+            canvas.scale(.65f,.65f);
             float x=0,y=-17;
             canvas.drawCircle(x-24,y,16,paint); canvas.drawCircle(x+24,y,16,paint);
             line(canvas,x-24,y,x-7,y-26); line(canvas,x-7,y-26,x+5,y); line(canvas,x+5,y,x-24,y);
             line(canvas,x+5,y,x+19,y-28); line(canvas,x+19,y-28,x+24,y); line(canvas,x-7,y-26,x+19,y-28);
             line(canvas,x+19,y-28,x+15,y-36); line(canvas,x+15,y-36,x+27,y-36);
             canvas.drawCircle(x-1,y-60,9,paint); line(canvas,x-4,y-50,x-13,y-29); line(canvas,x-13,y-29,x+5,y-16);
-            float pedal=(float)Math.sin(game.distance*.08f)*8;
-            line(canvas,x+5,y-16,x-4+pedal,y-3); line(canvas,x-4,y-50,x+16,y-35);
-            canvas.restore();
+            line(canvas,x+5,y-16,x-4,y); line(canvas,x-4,y-50,x+16,y-35);
             canvas.restore();
             paint.setStyle(Paint.Style.FILL); paint.setColor(foreground); paint.setTextAlign(Paint.Align.CENTER); paint.setTextSize(22);
-            if(!game.started)canvas.drawText("タップで2段ジャンプ",360,height/2+84,paint);
+            canvas.drawText("タップで2段ジャンプ",360,height-72,paint);
             if(!game.started||game.over) {
                 paint.setTextSize(32); canvas.drawText(game.over?"ゲームオーバー":"障害物と穴をジャンプで避けよう",360,height/2,paint);
                 paint.setTextSize(22); canvas.drawText(game.over?"タップで再挑戦":"タップしてスタート",360,height/2+42,paint);

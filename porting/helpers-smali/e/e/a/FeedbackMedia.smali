@@ -281,11 +281,21 @@
 
     move-result-object v0
 
-    const-string v1, "l"
-
+    # The loader stores resolved watch metadata in m; l is the launch/cache input.
+    const-string v1, "m"
     invoke-static {v0, v1}, Le/e/a/FeedbackFixes;->get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
-
+    move-result-object v1
+    instance-of v1, v1, Landroid/os/Bundle;
+    if-eqz v1, :launch_info
+    const-string v1, "m"
+    invoke-static {v0, v1}, Le/e/a/FeedbackFixes;->get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
     move-result-object v0
+    goto :resolved_info
+    :launch_info
+    const-string v1, "l"
+    invoke-static {v0, v1}, Le/e/a/FeedbackFixes;->get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
+    move-result-object v0
+    :resolved_info
 
     instance-of v1, v0, Landroid/os/Bundle;
 

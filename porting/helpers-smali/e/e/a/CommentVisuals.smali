@@ -780,6 +780,20 @@
     :try_end_2d
     .catchall {:try_start_16 .. :try_end_2d} :catchall_366
 
+    iget-object v0, v6, Le/e/a/CommentVisuals$State;->paint:Landroid/graphics/Paint;
+
+    invoke-static {v0, v3}, Le/e/a/CommentStyle;->apply(Landroid/graphics/Paint;Landroid/content/Context;)Z
+
+    move-result v0
+
+    if-eqz v0, :bold_ready
+
+    const/4 v0, -0x1
+
+    iput v0, v6, Le/e/a/CommentVisuals$State;->size:I
+
+    :bold_ready
+
     .line 23
     const/16 v4, 0xff
 

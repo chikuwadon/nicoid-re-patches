@@ -368,6 +368,8 @@
 
     .line 54
     :cond_45
+    invoke-static {p0}, Le/e/a/DialogInputs;->pad(Landroid/view/View;)V
+
     invoke-static {p0}, Le/e/a/SearchSuggestions;->attach(Landroid/view/View;)V
 
     return-void
@@ -1268,6 +1270,8 @@
     .line 42
     :cond_14d
     invoke-static {v11}, Le/e/a/NoMini;->settings(Landroid/preference/PreferenceActivity;)V
+
+    invoke-static {v11}, Le/e/a/Followup173;->settings(Landroid/preference/PreferenceActivity;)V
 
     return-void
 .end method

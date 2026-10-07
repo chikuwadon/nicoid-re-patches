@@ -89,7 +89,6 @@ public final class BikeRun {
                 } else if(kind==2){
                     line(c,x,horizon,x+30,horizon-size-65);line(c,x+30,horizon-size-65,x+60,horizon);
                     line(c,x+10,horizon-35,x+50,horizon-35);line(c,x+18,horizon-75,x+42,horizon-75);
-                    line(c,x+30,horizon-size-65,x+30,horizon-size-90);
                 } else if(kind==3){
                     float top=horizon-size;c.drawRect(x,top,x+64,horizon,paint);
                     line(c,x-8,top,x+32,top-34);line(c,x+32,top-34,x+72,top);
@@ -132,12 +131,12 @@ public final class BikeRun {
             for(BikeRunModel.Hazard h:game.hazards) {
                 float left=ground+game.groundAt(h.x),right=ground+game.groundAt(h.x+h.width);
                 if(h.gap) {
-                    line(canvas,h.x,left,h.x,left+24); line(canvas,h.x+h.width,right,h.x+h.width,right+24);
+                    line(canvas,h.x,left,h.x,left+230); line(canvas,h.x+h.width,right,h.x+h.width,right+230);
                 } else {
                     obstacle.reset(); obstacle.moveTo(h.x,left);
                     if(h.spikes){int teeth=Math.max(2,(int)(h.width/20));for(int n=0;n<teeth;n++){float x=h.x+h.width*n/teeth;obstacle.lineTo(x+h.width/teeth/2,ground+game.groundAt(x+h.width/teeth/2)-h.height);obstacle.lineTo(x+h.width/teeth,ground+game.groundAt(x+h.width/teeth));}}
                     else {obstacle.lineTo(h.x,left-h.height);obstacle.lineTo(h.x+h.width,right-h.height);obstacle.lineTo(h.x+h.width,right);}
-                    obstacle.close();paint.setStyle(Paint.Style.STROKE);
+                    if(!h.spikes)obstacle.close();paint.setStyle(Paint.Style.STROKE);
                     canvas.drawPath(obstacle,paint);
                 }
             }

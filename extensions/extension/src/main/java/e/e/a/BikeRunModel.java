@@ -27,15 +27,27 @@ public final class BikeRunModel {
     // Hills, platforms and steps use one profile for both drawing and collisions.
     public static float terrain(float worldX) {
         if (worldX<=600) return 0;
-        float phase=(worldX-600)%2000;
-        if (phase<300) return -110*phase/300;
-        if (phase<520) return -110;
-        if (phase<820) return -110+110*(phase-520)/300;
-        if (phase<1080) return 0;
-        if (phase<1240) return -42;
-        if (phase<1420) return -84;
-        if (phase<1600) return -42;
+        float phase=(worldX-600)%4400;
+        if (phase<450) return -180*phase/450;
+        if (phase<1850) return -180;
+        if (phase<2300) return -180+180*(phase-1850)/450;
+        if (phase<2850) return 0;
+        if (phase<3110) return -100;
+        if (phase<3370) return -200;
+        if (phase<3630) return -100;
         return 0;
+    }
+    /** Check the entire approach, obstacle and landing, including every terrain boundary. */
+    public static boolean flatSpan(float start,float end) {
+        float base=terrain(start);
+        for(float x=start+4;x<end;x+=4)if(Math.abs(terrain(x)-base)>.01f)return false;
+        return Math.abs(terrain(end)-base)<=.01f;
+    }
+    public float placement(float width) {
+        float approach=240+speed()*.1f, landing=160+speed()*.1f;
+        for(float x=760;x<760+8800;x+=20)
+            if(flatSpan(distance+x-approach,distance+x+width+landing))return x;
+        return Float.NaN;
     }
     public float groundAt(float screenX) { return terrain(distance+screenX); }
     public float slopeAt(float screenX) { float delta=groundAt(screenX+4)-groundAt(screenX-4); return Math.abs(delta)>8?0:delta/8; }
@@ -68,14 +80,10 @@ public final class BikeRunModel {
             float height = gap ? 0 : tall ? 165 + random.nextInt(16) : 28 + random.nextInt(27);
             boolean spikes=!gap && !tall && random.nextBoolean();
             if(spikes){width=distance>2500?100+random.nextInt(70):60+random.nextInt(40);height=30;}
-            // Give the rider a flat landing area and avoid placing a hazard at a step.
-            float x=760;
-            for(int i=0;i<40;i++){
-                float g=groundAt(x),end=groundAt(x+width+120);
-                if(Math.abs(g-end)<4 && Math.abs(groundAt(x+width/2)-g)<4)break;
-                x+=20;
-            }
-            hazards.add(new Hazard(x, width, height, gap,spikes));
+            // Never fall back to an invalid slope/step after a fixed number of attempts.
+            float x=placement(width);
+            if(Float.isNaN(x)){spawn=100;return;}
+            hazards.add(new Hazard(x+movement, width, height, gap,spikes));
             // Leave room to land and recharge both jumps before the next obstacle.
             spawn=(x-760)+Math.max(440 + random.nextInt(220), width + speed() * 1.25f);
         }

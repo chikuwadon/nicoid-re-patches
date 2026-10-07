@@ -22,7 +22,7 @@
 
 * **nicoid:** Use subdued NG buttons, reduce delete-button size, and confirm before deleting a saved NG rule.
 * **nicoid:** Center comment text vertically and reduce comment-list text size to display more rows.
-* **nicoid:** Reorganize tap-behavior settings and remove the empty Video list category.
+* **nicoid:** Move tap behavior below link behavior in General and remove the empty Video list category.
 * **nicoid:** Save debug logs to Downloads after confirmation using `nicoid-re_log_yyyyMMddHHmmss.txt` filenames.
 * **nicoid:** Shorten the cast comment-reduction description and clarify the comment retrieval summary.
 * **nicoid:** Reduce settings-translation work and comment-history parsing allocations to improve responsiveness.

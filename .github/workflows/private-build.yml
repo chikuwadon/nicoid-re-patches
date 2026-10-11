@@ -34,6 +34,10 @@ jobs:
         run: |
           javac -d /tmp/nicoid-cache-tests extensions/extension/src/main/java/e/e/a/CacheSupport.java porting/tests/CacheSupportTest.java
           java -cp /tmp/nicoid-cache-tests e.e.a.CacheSupportTest
+      - name: Check comment posting video identifiers
+        run: |
+          javac -d /tmp/nicoid-posting-tests extensions/extension/src/main/java/e/e/a/PostingRules.java porting/tests/PostingRulesTest.java
+          java -cp /tmp/nicoid-posting-tests e.e.a.PostingRulesTest
       - name: Check video count order and precision
         run: |
           javac -d /tmp/nicoid-count-tests extensions/extension/src/main/java/e/e/a/VideoCountRules.java porting/tests/VideoCountRulesTest.java
@@ -42,6 +46,10 @@ jobs:
         run: |
           javac -d /tmp/nicoid-cast-tests extensions/extension/src/main/java/e/e/a/CastHls.java extensions/extension/src/main/java/e/e/a/CastRelay.java extensions/extension/src/main/java/e/e/a/CastDiagnostics.java porting/tests/cast-stubs/e/e/a/*.java porting/tests/CastRelayTest.java
           java -cp /tmp/nicoid-cast-tests e.e.a.CastRelayTest
+      - name: Test HLS transfer size planning
+        run: |
+          javac -d /tmp/nicoid-transfer-tests extensions/extension/src/main/java/e/e/a/CacheTransferPlan.java porting/tests/CacheTransferPlanTest.java
+          java -cp /tmp/nicoid-transfer-tests e.e.a.CacheTransferPlanTest
       - name: Test performance policies
         run: |
           mkdir -p /tmp/nicoid-performance-tests

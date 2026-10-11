@@ -40,6 +40,10 @@ jobs:
         run: |
           javac -d /tmp/nicoid-cast-tests extensions/extension/src/main/java/e/e/a/CastHls.java extensions/extension/src/main/java/e/e/a/CastRelay.java extensions/extension/src/main/java/e/e/a/CastDiagnostics.java porting/tests/cast-stubs/e/e/a/*.java porting/tests/CastRelayTest.java
           java -cp /tmp/nicoid-cast-tests e.e.a.CastRelayTest
+      - name: Test HLS transfer size planning
+        run: |
+          javac -d /tmp/nicoid-transfer-tests extensions/extension/src/main/java/e/e/a/CacheTransferPlan.java porting/tests/CacheTransferPlanTest.java
+          java -cp /tmp/nicoid-transfer-tests e.e.a.CacheTransferPlanTest
       - name: Test performance policies
         run: |
           mkdir -p /tmp/nicoid-performance-tests
@@ -58,9 +62,10 @@ jobs:
         run: |
           android_jar=$(find "$ANDROID_HOME/platforms" -name android.jar | sort -V | tail -n 1)
           javac --release 8 -cp "$android_jar" -d /tmp/nicoid-development-tests $(find extensions/extension/src/main/java -name '*.java')
-          javac --release 8 -cp /tmp/nicoid-development-tests:/tmp/nicoid-json.jar -d /tmp/nicoid-development-tests porting/tests/DevelopmentDataTest.java porting/tests/WatchRequestHeadersTest.java
+          javac --release 8 -cp /tmp/nicoid-development-tests:/tmp/nicoid-json.jar -d /tmp/nicoid-development-tests porting/tests/DevelopmentDataTest.java porting/tests/WatchRequestHeadersTest.java porting/tests/PostingRulesTest.java
           java -cp /tmp/nicoid-development-tests e.e.a.WatchRequestHeadersTest
           java -Duser.timezone=Asia/Tokyo -cp /tmp/nicoid-development-tests:/tmp/nicoid-json.jar e.e.a.DevelopmentDataTest
+          java -cp /tmp/nicoid-development-tests e.e.a.PostingRulesTest
           javac -d /tmp/nicoid-model-tests extensions/extension/src/main/java/e/e/a/BikeRunModel.java porting/tests/BikeRunModelTest.java
           java -cp /tmp/nicoid-model-tests e.e.a.BikeRunModelTest
       - name: Check Nico Reports activity filters

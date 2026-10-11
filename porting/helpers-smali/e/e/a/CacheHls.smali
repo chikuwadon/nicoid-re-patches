@@ -83,6 +83,10 @@
 
     move-result-object p3
 
+    invoke-virtual {p3}, Ljava/net/HttpURLConnection;->getContentLength()I
+    move-result v5
+    invoke-static {v5}, Le/e/a/CacheProgress;->asset(I)V
+
     .line 118
     new-instance v0, Le/e/a/CacheFile;
 
@@ -155,6 +159,7 @@
     const/4 v5, 0x0
 
     invoke-virtual {v2, v3, v5, v4}, Ljava/io/OutputStream;->write([BII)V
+    invoke-static {v4}, Le/e/a/CacheProgress;->bytes(I)V
     :try_end_45
     .catchall {:try_start_38 .. :try_end_45} :catchall_8a
 
@@ -215,6 +220,7 @@
     iput-wide v0, p0, Le/e/a/CacheHls;->mediaBytes:J
 
     .line 130
+    invoke-static {}, Le/e/a/CacheProgress;->assetDone()V
     return-void
 
     .line 127
@@ -510,6 +516,30 @@
 
     invoke-direct {p3, v1, p2}, Le/e/a/CacheFile;-><init>(Ljava/io/File;Ljava/lang/String;)V
 
+    .line 27
+    # Do not enqueue a second network download when a complete cache is present.
+    const-string v1, ".mp4"
+    const-string v2, ".ncache"
+    invoke-virtual {p2, v1, v2}, Ljava/lang/String;->replace(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Ljava/lang/String;
+    move-result-object v1
+    new-instance v4, Le/e/a/CacheFile;
+    iget-object v2, v0, Le/e/a/CacheHls;->directory:Ljava/io/File;
+    invoke-direct {v4, v2, v1}, Le/e/a/CacheFile;-><init>(Ljava/io/File;Ljava/lang/String;)V
+    invoke-virtual {v4}, Ljava/io/File;->exists()Z
+    move-result v1
+    if-eqz v1, :check_existing_mp4
+    invoke-virtual {v4}, Ljava/io/File;->length()J
+    move-result-wide v1
+    return-wide v1
+    :check_existing_mp4
+    invoke-virtual {p3}, Ljava/io/File;->exists()Z
+    move-result v1
+    if-eqz v1, :cache_not_present
+    invoke-virtual {p3}, Ljava/io/File;->length()J
+    move-result-wide v1
+    return-wide v1
+    :cache_not_present
+    invoke-static {p0, v0}, Le/e/a/CacheProgress;->prepare(Ljava/lang/String;Ljava/lang/Object;)V
     .line 28
     :try_start_3e
     iget-object p2, v0, Le/e/a/CacheHls;->directory:Ljava/io/File;

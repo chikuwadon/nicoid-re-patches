@@ -61,7 +61,7 @@ import org.json.JSONObject;
 
 /** Short feeds reuse nicoid's existing player, comments and playback policies. */
 public final class ModernShorts {
-    private static final String PATCH_VERSION = "v1.8.1 @chikuwadon";
+    private static final String PATCH_VERSION = "v1.8.2 @chikuwadon";
     private static final String PLAYER = "com.sauzask.nicoid.NicoidVideoActivity";
     private static final String MODE = "nicoid_re_shorts";
     private static final String SESSION = "nicoid_re_shorts_session";
@@ -89,6 +89,7 @@ public final class ModernShorts {
     private static final class Feed {
         final String key = UUID.randomUUID().toString();
         final ArrayList<Item> items = new ArrayList<>();
+        boolean fixed;
     }
     private static final class State {
         Feed feed;
@@ -163,6 +164,36 @@ public final class ModernShorts {
     private static Intent player(Context c, String id) {
         return new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.nicovideo.jp/watch/" + id))
             .setClassName(c.getPackageName(), PLAYER).putExtra("intentselect", true);
+    }
+    /** Opens an already ordered Shorts list in the full-screen player. */
+    public static boolean openVideos(Activity a, String[] ids, String[] titles, String[] thumbnails, int selected) {
+        if (ids == null || ids.length == 0 || selected < 0 || selected >= ids.length) return false;
+        Feed feed = new Feed();
+        feed.fixed = true;
+        for (int n = 0; n < ids.length; n++) {
+            String id = ids[n];
+            if (id == null || !id.matches("ss[0-9]+")) continue;
+            String title = titles != null && n < titles.length && titles[n] != null ? titles[n] : id;
+            String thumbnail = thumbnails != null && n < thumbnails.length ? thumbnails[n] : "";
+            feed.items.add(new Item(id, title, thumbnail));
+        }
+        int index = -1;
+        String selectedId = ids[selected];
+        for (int n = 0, valid = 0; n < ids.length && valid < feed.items.size(); n++) {
+            if (ids[n] != null && ids[n].matches("ss[0-9]+")) {
+                if (n == selected) { index = valid; break; }
+                valid++;
+            }
+        }
+        if (feed.items.isEmpty() || index < 0 || selectedId == null) return false;
+        remember(feed);
+        launchFrom(a, feed, index);
+        return true;
+    }
+    private static void launchFrom(Activity a, Feed feed, int index) {
+        Intent i = player(a, feed.items.get(index).id).putExtra(MODE, true).putExtra(SESSION, feed.key)
+            .putExtra("nicoid_re_shorts_index", index).putExtra("title", feed.items.get(index).title);
+        a.startActivity(i); a.overridePendingTransition(0, 0);
     }
     public static void addMenu(Context c, ArrayList<?> rows) {
         UiStrings.selectLanguage(prefs(c).getString("app_lang", "0"));
@@ -420,6 +451,8 @@ public final class ModernShorts {
         Uri uri = a.getIntent().getData(); String id = uri == null ? null : uri.getLastPathSegment();
         if (!a.getIntent().getBooleanExtra(MODE, false) && (uri == null || !uri.getPath().startsWith("/shorts/"))) return;
         if (!ShortsRules.videoId(id)) return;
+        a.getIntent().putExtra(MODE,true);
+        if(STATES.containsKey(a))return;
         register(a); a.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         State s = new State(); s.index = a.getIntent().getIntExtra("nicoid_re_shorts_index", 0);
         s.feed = FEEDS.get(a.getIntent().getStringExtra(SESSION));
@@ -453,11 +486,19 @@ public final class ModernShorts {
         } catch (Exception e) { log(e); }
         if (videoView != null) try {
             Class<?> scaleType = Class.forName("com.devbrackets.android.exomedia.core.video.scale.ScaleType");
-            @SuppressWarnings("unchecked") Object centerCrop = Enum.valueOf((Class<? extends Enum>)scaleType, "CENTER_CROP");
-            videoView.getClass().getMethod("setScaleType", scaleType).invoke(videoView, centerCrop);
+            @SuppressWarnings("unchecked") Object fitCenter = Enum.valueOf((Class<? extends Enum>)scaleType, "FIT_CENTER");
+            videoView.getClass().getMethod("setScaleType", scaleType).invoke(videoView, fitCenter);
         } catch (Exception e) { log(e); }
         View info = find(a, "info"); if (info != null) info.setVisibility(View.GONE);
-        for (String id : new String[]{"prevbutton", "nextbutton", "fullscbutton"}) { View v = find(a, id); if (v != null) v.setVisibility(View.GONE); }
+        for (String id : new String[]{"prevbutton", "nextbutton"}) { View v = find(a, id); if (v != null) v.setVisibility(View.GONE); }
+        View fullscreen = find(a, "fullscbutton");
+        if (fullscreen != null) {
+            fullscreen.setVisibility(View.VISIBLE);
+            fullscreen.setOnClickListener(v -> {
+                try { normalPlayer(a); }
+                catch (Exception e) { log(e); }
+            });
+        }
         FrameLayout content = (FrameLayout)a.findViewById(android.R.id.content);
         LinearLayout bar = new LinearLayout(a); bar.setGravity(Gravity.CENTER_VERTICAL);
         bar.setPadding(dp(a, 10), dp(a, 6), dp(a, 10), dp(a, 6));
@@ -474,10 +515,8 @@ public final class ModernShorts {
         numberCell.addView(p, new FrameLayout.LayoutParams(dp(a, 18), dp(a, 18), Gravity.TOP | Gravity.END));
         ImageButton home = icon(a, "home", "ショートのホーム"); home.setOnClickListener(v -> a.finish());
         bar.addView(home, new LinearLayout.LayoutParams(0, -1, 1));
-        ImageButton details = icon(a, "info", "動画情報"); details.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.nicovideo.jp/watch/" + s.feed.items.get(s.index).id));
-            intent.setClassName(a.getPackageName(), "com.sauzask.nicoid.NicoidVideoInfoActivity"); a.startActivity(intent);
-        }); bar.addView(details, new LinearLayout.LayoutParams(0, -1, 1));
+        ImageButton details = icon(a, "info", "動画情報"); details.setOnClickListener(v -> VideoDetails.shortDetails(a));
+        bar.addView(details, new LinearLayout.LayoutParams(0, -1, 1));
         ImageButton next = icon(a, "next", "次のショート"); next.setOnClickListener(v -> step(a, s, 1));
         bar.addView(next, new LinearLayout.LayoutParams(0, -1, 1));
         number.setOnClickListener(v -> showList(a, s)); number.setClickable(true);
@@ -485,8 +524,9 @@ public final class ModernShorts {
         // Existing video taps and auto-hide control the seekbar; mirror that exact visibility.
         View status = find(a, "statuslay"); if (status != null) status.setVisibility(View.INVISIBLE);
         s.controlsListener = () -> {
+            View fullscreenControl=find(a,"fullscbutton");if(fullscreenControl!=null)fullscreenControl.setOnClickListener(v->normalPlayer(a));
             View controller = find(a, "controller");
-            int visibility = s.controlsTapped && controller != null && controller.isShown() ? View.VISIBLE : View.GONE;
+            int visibility = (PlayerControlsDock.enabled(a) || s.controlsTapped) && controller != null && controller.isShown() ? View.VISIBLE : View.GONE;
             if (bar.getVisibility() != visibility) bar.setVisibility(visibility);
             float alpha = controller == null ? 1f : controller.getAlpha();
             if (bar.getAlpha() != alpha) bar.setAlpha(alpha);
@@ -495,6 +535,7 @@ public final class ModernShorts {
         };
         content.getViewTreeObserver().addOnPreDrawListener(s.controlsListener);
         FrameLayout.LayoutParams barLp = new FrameLayout.LayoutParams(-1, dp(a, 64), Gravity.BOTTOM);
+        Review181.shortOverlay(a);
         barLp.setMargins(dp(a, 12), 0, dp(a, 12), dp(a, 8)); content.addView(bar, barLp); update(s);
         s.listener = () -> {
             if (s.dead) return;
@@ -510,6 +551,14 @@ public final class ModernShorts {
         };
         content.getViewTreeObserver().addOnGlobalLayoutListener(s.listener); s.listener.onGlobalLayout();
         Toast.makeText(a, "上にスワイプで次、下にスワイプで前の動画", Toast.LENGTH_SHORT).show();
+    }
+    public static void normalPlayer(Activity a) {
+        try {Object fragment=Review181.field(a,"v"),player=Review181.field(fragment,"a0");
+            long position=0;try{position=((Number)player.getClass().getMethod("getCurrentPosition").invoke(player)).longValue();}catch(Exception ignored){}
+            Intent intent=new Intent(a.getIntent());intent.setFlags(0);intent.removeExtra(MODE);intent.putExtra("nicoid_disable_shorts",true).putExtra("nicoid_resume_position",position);
+            intent.setData(Uri.parse("https://www.nicovideo.jp/watch/"+HistoryRules.id(String.valueOf(Review181.field(fragment,"b0")))));
+            a.startActivity(intent);a.finish();
+        }catch(Exception e){log(e);}
     }
     private static View find(Activity a, String name) { return a.findViewById(a.getResources().getIdentifier(name, "id", a.getPackageName())); }
     private static void update(State s) { if (s.number != null) s.number.setText( (s.index + 1) + "/" + s.feed.items.size()); }
@@ -551,6 +600,7 @@ public final class ModernShorts {
     private static void fillVideo(Activity a) {
         for (String name : new String[]{"videoLayout", "video", "video_view"}) {
             View v = find(a, name); if (v == null) continue;
+            if("videoLayout".equals(name))try{Class.forName("e.e.a.CommentVisuals").getMethod("fullViewport",View.class).invoke(null,v);}catch(Exception error){log(error);}
             ViewGroup.LayoutParams lp = v.getLayoutParams();
             if (lp != null && (lp.width != -1 || lp.height != -1)) { lp.width = -1; lp.height = -1; v.setLayoutParams(lp); }
         }
@@ -568,7 +618,10 @@ public final class ModernShorts {
         if (s.busy || s.dead || a.isFinishing()) return;
         int n = s.index + direction;
         if (n < 0) { Toast.makeText(a, "最初の動画です", 0).show(); return; }
-        if (n >= s.feed.items.size()) { extend(a, s, s.feed.items.get(s.index).id, true); return; }
+        if (n >= s.feed.items.size()) {
+            if (s.feed.fixed) { Toast.makeText(a, "最後の動画です", 0).show(); return; }
+            extend(a, s, s.feed.items.get(s.index).id, true); return;
+        }
         launch(a, s, n);
     }
     private static void launch(Activity a, State s, int index) {

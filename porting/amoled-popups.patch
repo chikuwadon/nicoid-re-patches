@@ -1,0 +1,25 @@
+--- a/res/values/styles.xml
++++ b/res/values/styles.xml
+@@ -1475,7 +1475,7 @@
+         <item name="android:colorAccent">#ff9aa8ba</item>
+         <item name="android:statusBarColor">#ff000000</item>
+         <item name="android:navigationBarColor">#ff000000</item>
+-        <item name="actionBarPopupTheme">@style/ThemeOverlay.AppCompat.Dark</item>
++        <item name="actionBarPopupTheme">@style/ThemeOverlay.NicoidAMOLED</item>
+         <item name="actionBarTheme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
+         <item name="colorAccent">#ff9aa8ba</item>
+         <item name="colorControlActivated">#ff9aa8ba</item>
+@@ -1484,4 +1484,13 @@
+         <item name="colorPrimaryDark">#ff000000</item>
+         <item name="nicoidSurface">#ff101010</item>
+     </style>
++    <style name="ThemeOverlay.NicoidAMOLED" parent="@style/ThemeOverlay.AppCompat.Dark">
++        <item name="android:colorBackground">#ff000000</item>
++        <item name="android:colorBackgroundFloating">#ff000000</item>
++        <item name="android:windowBackground">#ff000000</item>
++        <item name="popupWindowStyle">@style/NicoidAMOLEDPopupWindow</item>
++    </style>
++    <style name="NicoidAMOLEDPopupWindow" parent="@style/Widget.AppCompat.PopupWindow">
++        <item name="android:popupBackground">#ff000000</item>
++    </style>
+ </resources>

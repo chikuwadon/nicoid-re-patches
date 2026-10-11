@@ -7,10 +7,13 @@ public final class ThemeRulesTest {
   for(boolean night:new boolean[]{false,true}) {
    check(!ThemeRules.night("light",night));
    check(ThemeRules.night("dark",night));
+   check(ThemeRules.mode("amoled",true).equals("amoled"));
+   check(ThemeRules.night("amoled",night));
    check(ThemeRules.night("material",night)==night);
    for(int sdk:new int[]{23,30,31,36}) {
     check(ThemeRules.style("light",night,sdk).equals("MyThemeLight"));
     check(ThemeRules.style("dark",night,sdk).equals("MyThemeDark"));
+    check(ThemeRules.style("amoled",night,sdk).equals("MyThemeAMOLED"));
     check(ThemeRules.style("material",night,sdk).equals(sdk>=31?"MyThemeMaterialYou":night?"MyThemeDark":"MyThemeLight"));
    }
   }

@@ -63,11 +63,11 @@ public final class BulkSelection {
   all.removeAllViews();actions.removeAllViews();
   button(all,PanelUi.tr(a,"全選択","Select all","全選"),()->selectAll(o,true));
   button(all,PanelUi.tr(a,"全解除","Clear all","取消全選"),()->selectAll(o,false));
-  button(actions,PanelUi.tr(a,"削除","Delete","刪除"),()->confirmDelete(o));
+  button(actions,PanelUi.tr(a,"完了","Done","完成"),()->done(o));
   // Only account mylists have an account folder to move out of.
   if(!cache(o)&&o.getClass().getField("g0").getInt(o)==5&&o.getClass().getField("h0").getInt(o)!=4)
    button(actions,PanelUi.tr(a,"移動","Move","移動"),()->nativeClick(o,"com.sauzask.nicoid.NicoidVideoListFragment$j"));
-  button(actions,PanelUi.tr(a,"完了","Done","完成"),()->done(o));
+  button(actions,PanelUi.tr(a,"削除","Delete","刪除"),()->confirmDelete(o));
  }
  static void button(LinearLayout row,String text,Runnable action){Context c=row.getContext();Button b=PanelUi.button(c,text);b.setTextSize(12);b.setMinWidth(0);b.setMinimumWidth(0);b.setOnClickListener(v->action.run());row.addView(b,new LinearLayout.LayoutParams(0,PanelUi.dp(c,48),1));}
  static void selectAll(Object o,boolean value){try{for(Object row:rows(o))set(row,value);refresh(o);}catch(Exception e){log(e);}}
@@ -75,7 +75,7 @@ public final class BulkSelection {
  static void nativeClick(Object o,String type){try{((View.OnClickListener)Class.forName(type).getConstructor(o.getClass()).newInstance(o)).onClick(null);}catch(Exception e){log(e);}}
  static void confirmDelete(Object o){
   try{Activity a=activity(o);ArrayList<Object> selected=new ArrayList<>();for(Object row:rows(o))if(checked(row))selected.add(row);if(selected.isEmpty())return;
-   UiDialogs.show(new AlertDialog.Builder(PlaybackSession.dialogContext(a)).setTitle(PanelUi.tr(a,"選択した動画を削除しますか？","Remove selected videos?","刪除所選影片？")).setMessage(Integer.toString(selected.size()))
+   UiDialogs.show(new AlertDialog.Builder(PlaybackSession.dialogContext(a)).setTitle(PanelUi.tr(a,"選択した動画を削除しますか？","Remove selected videos?","刪除所選影片？")).setMessage(PanelUi.tr(a,selected.size()+"件選択しています",selected.size()+" videos selected","已選取 "+selected.size()+" 部影片"))
     .setPositiveButton(PanelUi.tr(a,"削除","Delete","刪除"),(d,w)->delete(o,selected)).setNegativeButton(PanelUi.tr(a,"キャンセル","Cancel","取消"),null).create());
   }catch(Exception e){log(e);}
  }

@@ -10,12 +10,14 @@ public class CacheDefaultTest{
   ComponentName worker=new ComponentName("com.sauzask.nicoid.NicoidDownloadCache");Intent download=new Intent(worker);
   check(CacheFolders.startService(c,download)==worker&&c.starts==1,"unset folder starts cache service without picker");
   File folder=new File(CacheFolders.root(c),"nicoid/nicoid_cache");check(folder.isDirectory(),"cache directory prepared before worker starts");
+  File[] empty=new CacheFile(new File(external,"nicoid/missing-cache").getAbsolutePath()).listFiles();check(empty!=null&&empty.length==0,"missing private cache directory is treated as an empty list");
   File video=new CacheFile(folder,"sm1.json");try(OutputStream out=new CacheOutputStream(video)){out.write("metadata".getBytes("UTF-8"));}
+  File[] cached=new CacheFile(folder.getAbsolutePath()).listFiles();check(cached!=null&&cached.length==1&&cached[0].getName().equals("sm1.json"),"cache manager can enumerate app-private downloads");
   try(InputStream in=new FileInputStream(video)){check(in.read()=='m',"private cache is writable and readable");}
   File nested=new CacheFile(folder,"new/sm2.bin");try(OutputStream out=new CacheOutputStream(nested)){out.write(42);}check(nested.exists(),"missing parents created safely");
   File history=new CacheFile("/@nicoid-cache/abc/nicoid/history.json");check(history.getParentFile().equals(new File(external,"nicoid")),"history remains private");
   values.put("cache_tree_uri","content://test/tree/chosen");String saf=CacheFolders.root(c);check(saf.startsWith("/@nicoid-cache/"),"explicit folder stays selected");check(values.containsKey("cache_tree_"+saf.substring("/@nicoid-cache/".length())),"old SAF mapping persisted");
-  values.remove("cache_tree_uri");check(CacheFolders.root(c).equals(external.getAbsolutePath())&&video.exists(),"return to default retains private cache");check(values.size()==1,"return to default retains previous SAF mapping");
+  values.remove("cache_tree_uri");check(CacheFolders.root(c).equals(external.getAbsolutePath())&&video.exists(),"return to default retains private cache");File[] afterSwitch=new CacheFile(folder.getAbsolutePath()).listFiles();check(afterSwitch!=null&&afterSwitch.length>=1,"cache list stays readable after switching back from SAF");check(values.size()==1,"return to default retains previous SAF mapping");
   Context fallback=new Context(null,internal);check(CacheFolders.root(fallback).equals(internal.getAbsolutePath()),"unavailable external private storage falls back internally");check(CacheFolders.startForegroundService(fallback,download)==worker&&fallback.starts==1,"default supports foreground cache service");
   try(OutputStream out=new CacheOutputStream(new CacheFile(CacheFolders.root(fallback)+"/nicoid/nicoid_cache/sm3.json"))){out.write(7);}
   check(new File(internal,"nicoid/nicoid_cache/sm3.json").exists(),"internal fallback is writable");

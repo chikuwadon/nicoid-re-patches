@@ -528,6 +528,12 @@
 .method public static stream(Le/e/a/d0;Ljava/lang/String;)Ljava/lang/String;
     .registers 16
 
+    invoke-static {p0, p1}, Le/e/a/CachedPlayback;->stream(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String;
+    move-result-object v0
+    if-eqz v0, :network_playback
+    return-object v0
+    :network_playback
+
     const/4 v0, 0x0
 
     sput-object v0, Le/e/a/ModernControls;->selectedVideo:Ljava/lang/String;

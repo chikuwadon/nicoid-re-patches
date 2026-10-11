@@ -151,7 +151,7 @@
 
     if-eqz v4, :cond_bb
 
-    const-string v4, "(?:sm|so|nm)?[0-9]+"
+    const-string v4, "(?:sm|so|nm|ss)?[0-9]+"
 
     invoke-virtual {v3, v4}, Ljava/lang/String;->matches(Ljava/lang/String;)Z
 

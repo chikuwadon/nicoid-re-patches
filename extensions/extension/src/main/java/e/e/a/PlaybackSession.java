@@ -23,7 +23,7 @@ public final class PlaybackSession {
     }
     static Object get(Object o,String n) throws Exception { return o.getClass().getField(n).get(o); }
     static Object call(Object o,String n,Class<?>[] t,Object... a) throws Exception { return o.getClass().getMethod(n,t).invoke(o,a); }
-    static SharedPreferences prefs(Context c) { return PreferenceManager.getDefaultSharedPreferences(c); }
+    static SharedPreferences prefs(Context c) { try{Class.forName("e.e.a.NoMini").getMethod("migrate",Context.class).invoke(null,c);}catch(Exception e){log(e);}return PreferenceManager.getDefaultSharedPreferences(c); }
     static void log(Exception e) { android.util.Log.w("nicoid-session","Playback policy failed",e); }
     public static int metadataVersion(Bundle b) {
         return PlaybackRules.version(b.get("nicovideo_version"));
@@ -38,23 +38,15 @@ public final class PlaybackSession {
         android.util.TypedValue v=new android.util.TypedValue();if(c.getTheme().resolveAttribute(android.R.attr.colorBackground,v,true)){int color=v.resourceId==0?v.data:c.getResources().getColor(v.resourceId);return android.graphics.Color.red(color)*299+android.graphics.Color.green(color)*587+android.graphics.Color.blue(color)*114<128000;}return false;
     }
     public static void styleDialog(AlertDialog d) {
-        try {
-            DialogInputs.pad(d.getWindow().getDecorView());Context c=d.getContext();boolean dark=night(c);android.util.TypedValue value=new android.util.TypedValue();c.getTheme().resolveAttribute(0x7f03005e,value,true);int color=value.resourceId==0?value.data:c.getResources().getColor(value.resourceId);
-            int surface=dark?0xff191b20:0xfffafafa;
-            if(Build.VERSION.SDK_INT>=31 && prefs(c).getBoolean("material_you_mode",false)){
-                int id=c.getResources().getIdentifier(dark?"system_accent1_200":"system_accent1_600","color","android");if(id!=0)color=c.getResources().getColor(id,c.getTheme());
-                id=c.getResources().getIdentifier(dark?"system_neutral1_900":"system_neutral1_50","color","android");if(id!=0)surface=c.getResources().getColor(id,c.getTheme());
-            }
-            android.graphics.drawable.GradientDrawable background=new android.graphics.drawable.GradientDrawable();background.setColor(surface);background.setCornerRadius(24*c.getResources().getDisplayMetrics().density);d.getWindow().setBackgroundDrawable(background);
-            for(int button:new int[]{-1,-2,-3})if(d.getButton(button)!=null)d.getButton(button).setTextColor(color);
-            android.content.res.ColorStateList tint=android.content.res.ColorStateList.valueOf(color);android.widget.ListView list=d.getListView();
-            if(list!=null){android.widget.AbsListView.OnScrollListener listener=new android.widget.AbsListView.OnScrollListener(){public void onScrollStateChanged(android.widget.AbsListView v,int state){}public void onScroll(android.widget.AbsListView v,int first,int count,int total){for(int i=0;i<v.getChildCount();i++){android.view.View child=v.getChildAt(i);if(child instanceof android.widget.CheckedTextView)((android.widget.CheckedTextView)child).setCheckMarkTintList(tint);}}};list.setOnScrollListener(listener);list.post(()->listener.onScroll(list,0,list.getChildCount(),list.getCount()));}
-        }catch(Exception e){log(e);}
+        try {DialogInputs.pad(d.getWindow().getDecorView());UiDialogs.style(d);}
+        catch(Exception e){log(e);}
     }
-    public static void showDialog(AlertDialog d){d.show();styleDialog(d);}
+    public static void legacyStyleDialog(AlertDialog d){styleDialog(d);}
+    public static void showDialog(AlertDialog d){d.show();formDialog(d);}
     public static void showForm(AlertDialog d){d.show();formDialog(d);}
-    public static void formDialog(AlertDialog d){styleDialog(d);form(d.getWindow().getDecorView(),night(d.getContext()));}
+    public static void formDialog(AlertDialog d){styleDialog(d);form(d.getWindow().getDecorView(),night(d.getContext()));try{Class.forName("e.e.a.FeedbackFixes").getMethod("form",AlertDialog.class).invoke(null,d);}catch(Exception e){log(e);}UiDialogs.style(d);}
     private static void form(android.view.View v,boolean dark){
+        if(v instanceof android.widget.Spinner)try{Class.forName("e.e.a.ThemeChoice").getMethod("spinner",android.widget.Spinner.class).invoke(null,v);}catch(Exception e){log(e);}
         if(v instanceof android.widget.LinearLayout||v instanceof android.widget.ScrollView)v.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         if(v instanceof android.widget.EditText){android.widget.EditText e=(android.widget.EditText)v;e.setTextColor(dark?0xffffffff:0xff202124);e.setHintTextColor(dark?0xffb7bac3:0xff666a73);android.util.TypedValue value=new android.util.TypedValue();v.getContext().getTheme().resolveAttribute(0x7f03005e,value,true);int color=value.resourceId==0?value.data:v.getResources().getColor(value.resourceId);e.setBackgroundTintList(android.content.res.ColorStateList.valueOf(color));}
         if(v instanceof android.view.ViewGroup){android.view.ViewGroup g=(android.view.ViewGroup)v;for(int i=0;i<g.getChildCount();i++)form(g.getChildAt(i),dark);}
@@ -156,6 +148,7 @@ public final class PlaybackSession {
             }
             if(s.unplugged)call(player,"pause",new Class<?>[0]);
             if(popup)Class.forName("com.sauzask.nicoid.NicoidPopupViewService").getField("t0").setInt(null,0);
+            Class.forName("e.e.a.MediaControls").getMethod("attach",Object.class,boolean.class).invoke(null,owner,popup);
         }catch(Exception e){log(e);}
     }
     public static boolean allowRetry(Object owner) {
@@ -175,6 +168,7 @@ public final class PlaybackSession {
         }catch(Exception e){log(e);}
     }
     public static void destroy(Object owner,boolean popup) {
+        try{Class.forName("e.e.a.MediaControls").getMethod("detach",Object.class).invoke(null,owner);}catch(Exception e){log(e);}
         save(owner,popup);Session s=SESSIONS.remove(owner);if(s==null)return;
         s.handler.removeCallbacksAndMessages(null);try{s.context.unregisterReceiver(s.receiver);}catch(RuntimeException ignored){}
     }
@@ -188,7 +182,7 @@ public final class PlaybackSession {
             Session s=SESSIONS.get(f);if(s==null || s.switching)return false;
             String policy=prefs(a).getString(back?"back_playback":"app_switch_playback","none");
             if("none".equals(policy) || !(Boolean)call(get(f,"a0"),"isPlaying",new Class<?>[0]))return false;
-            if("popup".equals(policy) && Build.VERSION.SDK_INT>=23 && !Settings.canDrawOverlays(a)) {
+            if("popup".equals(policy) && Build.VERSION.SDK_INT>=23 && !(Boolean)Class.forName("e.e.a.NoMini").getMethod("canDrawOverlays",Context.class).invoke(null,a)) {
                 android.widget.Toast.makeText(a,"ポップアップ再生には他のアプリの上に表示する権限が必要です",0).show();return false;
             }
             if(get(f,"g1")==null || get(get(f,"g1"),"d")==null)return false;

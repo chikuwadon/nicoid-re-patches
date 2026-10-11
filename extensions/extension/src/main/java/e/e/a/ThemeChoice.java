@@ -14,8 +14,8 @@ import android.view.View;
 /** Explicit light/dark selection while retaining the existing Material You path. */
 public final class ThemeChoice {
     private static final String KEY = "app_theme";
-    private static final String[] VALUES = {"light", "dark", "material"};
-    private static final String[] LABELS = {"ライトモード", "ダークモード", "Material You"};
+    private static final String[] VALUES = {"light", "dark", "material", "amoled"};
+    private static final String[] LABELS = {"ライトモード", "ダークモード", "Material You", "AMOLEDダークモード"};
     private static final java.util.WeakHashMap<Activity, String> APPLIED = new java.util.WeakHashMap<>();
     private static boolean watching;
     private static SharedPreferences prefs(Context c) { return PreferenceManager.getDefaultSharedPreferences(c); }
@@ -27,6 +27,7 @@ public final class ThemeChoice {
         return (c.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
     }
     public static boolean isNight(Context c) { return ThemeRules.night(mode(c), systemNight(c)); }
+    public static boolean isAmoled(Context c) { return "amoled".equals(prefs(c).getString("app_theme", "")); }
     public static void apply(Activity a) {
         String selected = mode(a);
         SharedPreferences p = prefs(a);
@@ -36,6 +37,11 @@ public final class ThemeChoice {
         String style = ThemeRules.style(selected, systemNight(a), android.os.Build.VERSION.SDK_INT);
         int id = a.getResources().getIdentifier(style, "style", a.getPackageName());
         if (id != 0) a.setTheme(id);
+        legacy("e.e.a.StartupScreen","register",Activity.class,a);
+        if(isAmoled(a)){
+            a.getWindow().setStatusBarColor(0xff000000);
+            a.getWindow().setNavigationBarColor(0xff000000);
+        }
         APPLIED.put(a, stamp(a));
         if (!watching) {
             watching = true;
@@ -56,6 +62,7 @@ public final class ThemeChoice {
             });
         }
     }
+    private static void legacy(String cls,String method,Class<?> arg,Object value){try{Class.forName(cls).getMethod(method,arg).invoke(null,value);}catch(Exception error){android.util.Log.w("nicoid-theme","Theme compatibility hook failed",error);}}
     private static String stamp(Context c) { return mode(c) + ":" + isNight(c); }
     public static void settings(PreferenceActivity a) {
         Preference old = a.findPreference("material_you_mode");
@@ -104,7 +111,24 @@ public final class ThemeChoice {
     }
     public static int accent(Context c) { return color(c, 0x7f03005e, isNight(c) ? 0xffb6c4f4 : 0xff006b5b); }
     public static int textColor(View v) { return color(v.getContext(), android.R.attr.textColorPrimary, isNight(v.getContext()) ? 0xffeeeeee : 0xff202124); }
-    public static void background(View v) { v.setBackgroundColor(color(v.getContext(), android.R.attr.colorBackground, isNight(v.getContext()) ? 0xff191b20 : 0xffffffff)); }
+    public static boolean amoled(Context c){return isAmoled(c);}
+    public static void tree(View view){
+        if(view instanceof android.widget.TextView){android.widget.TextView text=(android.widget.TextView)view;text.setTextColor(textColor(view));text.setHintTextColor(isNight(view.getContext())?0xffb7bac3:0xff666a73);}
+        if(view instanceof android.view.ViewGroup){android.view.ViewGroup group=(android.view.ViewGroup)view;for(int n=0;n<group.getChildCount();n++)tree(group.getChildAt(n));}
+    }
+    public static void spinner(android.widget.Spinner spinner){
+        android.widget.SpinnerAdapter original=spinner.getAdapter();
+        if(original==null||original instanceof ThemedSpinner)return;
+        int selected=spinner.getSelectedItemPosition();spinner.setAdapter(new ThemedSpinner(original,spinner.getContext()));spinner.setSelection(Math.max(0,selected));
+    }
+    private static final class ThemedSpinner extends android.widget.BaseAdapter {
+        final android.widget.SpinnerAdapter original;final Context context;
+        ThemedSpinner(android.widget.SpinnerAdapter original,Context context){this.original=original;this.context=context;original.registerDataSetObserver(new android.database.DataSetObserver(){public void onChanged(){notifyDataSetChanged();}public void onInvalidated(){notifyDataSetInvalidated();}});}
+        public int getCount(){return original.getCount();}public Object getItem(int position){return original.getItem(position);}public long getItemId(int position){return original.getItemId(position);}public boolean hasStableIds(){return original.hasStableIds();}
+        public View getView(int position,View convert,android.view.ViewGroup parent){View view=original.getView(position,convert,parent);tree(view);return view;}
+        public View getDropDownView(int position,View convert,android.view.ViewGroup parent){View view=original.getDropDownView(position,convert,parent);background(view);tree(view);return view;}
+    }
+    public static void background(View v) { v.setBackgroundColor(isAmoled(v.getContext())?0xff000000:color(v.getContext(), android.R.attr.colorBackground, isNight(v.getContext()) ? 0xff191b20 : 0xffffffff)); }
     public static void button(android.widget.Button b) {
         Context c = b.getContext(); boolean dark = isNight(c);
         int surfaceAttr = c.getResources().getIdentifier("nicoidSurface", "attr", c.getPackageName());
@@ -117,5 +141,6 @@ public final class ThemeChoice {
             if (id != 0) ink = c.getResources().getColor(id);
         }
         b.setBackgroundTintList(android.content.res.ColorStateList.valueOf(surface)); b.setTextColor(ink);
+        legacy("e.e.a.Followup3","button",android.widget.Button.class,b);
     }
 }

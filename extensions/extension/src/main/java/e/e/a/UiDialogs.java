@@ -20,7 +20,7 @@ public final class UiDialogs {
     }
     public static int accent(Context context) { return ThemeChoice.accent(owner(context)); }
     public static int surface(Context context) {
-        Context c=owner(context); boolean dark=ThemeChoice.isNight(c);
+        Context c=owner(context); if(ThemeChoice.isAmoled(c))return 0xff000000;boolean dark=ThemeChoice.isNight(c);
         if(Build.VERSION.SDK_INT>=31 && android.preference.PreferenceManager.getDefaultSharedPreferences(c).getBoolean("material_you_mode",false)) {
             int id=c.getResources().getIdentifier(dark?"system_neutral1_900":"system_neutral1_50","color","android");
             if(id!=0) return c.getResources().getColor(id,c.getTheme());
@@ -34,9 +34,12 @@ public final class UiDialogs {
         dialog.getWindow().setBackgroundDrawable(background);
         for(int which:new int[]{-1,-2,-3}) if(dialog.getButton(which)!=null) dialog.getButton(which).setTextColor(accent);
         boolean dark=ThemeChoice.isNight(owner(c));
+        if(ThemeChoice.isAmoled(c))blackPanels(dialog.getWindow().getDecorView());
         inputs(dialog.getWindow().getDecorView(),accent,dark);
+        if(ThemeChoice.isAmoled(c)){View decor=dialog.getWindow().getDecorView();decor.post(()->blackPanels(decor));}
 
     }
+    private static void blackPanels(View view){if(view instanceof ViewGroup){view.setBackgroundColor(0xff000000);ViewGroup group=(ViewGroup)view;for(int n=0;n<group.getChildCount();n++)blackPanels(group.getChildAt(n));}}
     private static void inputs(View v,int accent,boolean dark) {
         ColorStateList tint=ColorStateList.valueOf(accent);
         if(v instanceof AbsListView) {

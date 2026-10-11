@@ -25,7 +25,7 @@ public final class ListActions {
  public static void bind(View view,Object adapter,int position){
   try{
    ArrayList<?> rows=(ArrayList<?>)get(adapter,"b");if(position<0||position>=rows.size())return;
-   Object row=rows.get(position);if(BulkSelection.bind(view,adapter,row))return;view.getOverlay().clear();String url=value(row,"videourl");
+   Object row=rows.get(position);CacheProgress.bind(view,adapter,row);if(BulkSelection.bind(view,adapter,row))return;view.getOverlay().clear();String url=value(row,"videourl");
    if(!url.matches("https?://[^/]*nicovideo.jp/(?:watch|shorts)/.*"))return;
    view.setOnClickListener(v->{AdapterView<?> list=findList(v);if(list==null)return;int index=list.getPositionForView(v);if(index>=0)list.performItemClick(v,index,list.getItemIdAtPosition(index));});
    Hold hold=new Hold(adapter,row,url,value(row,"title"));
@@ -57,7 +57,7 @@ public final class ListActions {
   if(LocalPlaylists.superLong(adapter,row))return true;
   AdapterView.OnItemLongClickListener listener=list.getOnItemLongClickListener();if(listener==null)return false;
   int position=list.getPositionForView(view);if(position<0)return false;
-  Object owner=BulkSelection.owner(list);if(owner!=null)return BulkSelection.enter(owner,position);
+  Object owner=BulkSelection.owner(list);if(owner!=null){try{return BulkSelection.enter(owner,BulkSelection.rows(owner).indexOf(row));}catch(Exception e){return false;}}
   try{return listener.onItemLongClick(list,view,position,list.getItemIdAtPosition(position));}
   catch(Exception e){android.util.Log.w("nicoid-menu","Unable to enter selection mode",e);return false;}
  }

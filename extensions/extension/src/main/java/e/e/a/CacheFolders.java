@@ -19,11 +19,11 @@ public final class CacheFolders {
     static SharedPreferences prefs(){return PreferenceManager.getDefaultSharedPreferences(context);}
     static void init(Context c){context=c.getApplicationContext();}
     static String privatePath(String path){if(path!=null&&context!=null&&path.startsWith(PREFIX)){int start=path.indexOf('/',PREFIX.length());if(start>=0){String relative=path.substring(start);if(relative.startsWith("/nicoid/")&&!relative.startsWith(SUFFIX))return privateRoot(context)+relative;}}return path;}
-    public static void started(Context c){init(c);UiStrings.selectLanguage(prefs().getString("app_lang","0"));MAIN.post(()->Toast.makeText(c,UiStrings.translate("キャッシュ取得を開始しました"),Toast.LENGTH_SHORT).show());}
+    public static void started(Context c){init(c);UiStrings.selectLanguage(prefs().getString("app_lang","0"));CacheProgress.start(c);MAIN.post(()->Toast.makeText(c,UiStrings.translate("キャッシュ取得を開始しました"),Toast.LENGTH_SHORT).show());}
     public static String privateRoot(Context c){init(c);File base=c.getExternalFilesDir(null);return (base==null?c.getFilesDir():base).getAbsolutePath();}
     public static String root(Context c) {
         init(c);String tree=prefs().getString(KEY,"");
-        if(tree.isEmpty())return privateRoot(c);
+        if(tree.isEmpty()){File folder=new File(privateRoot(c),"nicoid/nicoid_cache");if(!folder.isDirectory())folder.mkdirs();return privateRoot(c);}
         String key=key(tree);prefs().edit().putString("cache_tree_"+key,tree).apply();return PREFIX+key;
     }
     private static String key(String tree) {

@@ -34,14 +34,14 @@ final class ShortImages {
     static void resume(Activity activity) {
         for (Map.Entry<ImageView, Binding> entry : new ArrayList<>(bindings.entrySet())) {
             ImageView view = entry.getKey(); Binding binding = entry.getValue(); TextView placeholder = binding.placeholder.get();
-            if (view != null && placeholder != null && owner(view.getContext()) == activity && view.isAttachedToWindow() && binding.url.equals(view.getTag())) load(binding.url, view, placeholder);
+            if (view != null && owner(view.getContext()) == activity && view.isAttachedToWindow() && binding.url.equals(view.getTag())) load(binding.url, view, placeholder);
         }
     }
     static void load(String url, ImageView target, TextView placeholder) {
         if (url == null || !url.startsWith("https://")) return;
         target.setTag(url); bindings.put(target, new Binding(url, placeholder));
         Bitmap cached = memory.get(url);
-        if (cached != null) { target.setImageBitmap(cached); placeholder.setVisibility(View.GONE); return; }
+        if (cached != null) { target.setImageBitmap(cached); if (placeholder != null) placeholder.setVisibility(View.GONE); return; }
         if (disk == null) disk = new ImageDiskCache(target.getContext().getApplicationContext().getCacheDir());
         Job job = jobs.get(url); boolean start = job == null;
         if (start) { job = new Job(url, disk); jobs.put(url, job); }

@@ -20,10 +20,13 @@ public class StoragePlayerDexTest {
   int commandForms=0,loginForms=0;
   for(ClassDef c:cs.values())for(Method m:c.getMethods())if(m.getImplementation()!=null)for(Instruction i:m.getImplementation().getInstructions())if(i instanceof ReferenceInstruction){Reference ref=((ReferenceInstruction)i).getReference();if(ref instanceof MethodReference){MethodReference call=(MethodReference)ref;if(call.getDefiningClass().equals("Le/e/a/PlaybackSession;")){if(c.getType().equals("Le/e/a/v0$a;")&&call.getName().equals("showForm"))commandForms++;if(c.getType().equals("Le/e/a/LoginSupport;")&&call.getName().equals("formDialog"))loginForms++;}}}
   check(commandForms==1&&loginForms==1,"command picker and login share rounded themed forms");
+  int fpsListBindings=0,fps90=0,fps120=0;ClassDef settingsHelpers=cs.get("Le/e/a/Review181;");
+  for(Method m:settingsHelpers.getMethods())if(m.getName().equals("settings")&&m.getImplementation()!=null)for(Instruction i:m.getImplementation().getInstructions())if(i instanceof ReferenceInstruction){Reference ref=((ReferenceInstruction)i).getReference();if(ref instanceof MethodReference){MethodReference call=(MethodReference)ref;if(call.getDefiningClass().equals("Landroid/preference/ListPreference;")&&(call.getName().equals("setEntries")||call.getName().equals("setEntryValues")))fpsListBindings++;}if(ref instanceof StringReference){String value=((StringReference)ref).getString();if(value.equals("90fps"))fps90++;if(value.equals("120fps"))fps120++;}}
+  check(fpsListBindings==2&&fps90==1&&fps120==1,"90 and 120 fps are selectable in comment settings");
   int popupLayouts=0,cacheStarts=0,loopSymbols=0;
   for(ClassDef c:cs.values())for(Method m:c.getMethods())if(m.getImplementation()!=null)for(Instruction instruction:m.getImplementation().getInstructions())if(instruction instanceof ReferenceInstruction){Reference ref=((ReferenceInstruction)instruction).getReference();if(ref instanceof MethodReference){MethodReference call=(MethodReference)ref;if(c.getType().equals("Le/e/a/ModernEnhancements;")&&call.getDefiningClass().equals("Le/e/a/PopupOverlay;")&&call.getName().equals("attach"))popupLayouts++;if(c.getType().equals("Le/e/a/ModernEnhancements;")&&call.getDefiningClass().equals("Le/e/a/PlayerIcons;")&&call.getName().equals("symbol"))loopSymbols++;if(call.getDefiningClass().equals("Le/e/a/CacheFolders;")&&call.getName().equals("started")){check(c.getType().equals("Lcom/sauzask/nicoid/NicoidDownloadCache;")&&m.getName().equals("b")&&m.getParameterTypes().toString().contains("Intent"),"notification only on guarded cache-worker start");cacheStarts++;}}}
   check(popupLayouts==1&&loopSymbols==1&&cacheStarts==1,"responsive popup, common loop symbol and cache-start notification");
-  int cacheConstructors=0,clock=0,gesture=0,folder=0,relay=0,hls=0,motion=0,fps=0,full=0,pack=0;
+  int cacheConstructors=0,clock=0,gesture=0,folder=0,relay=0,hls=0,motion=0,fps=0,frameClock=0,frameSleep=0,full=0,pack=0;
   for(ClassDef c:cs.values())for(Method m:c.getMethods()){if(m.getImplementation()==null)continue;for(Instruction i:m.getImplementation().getInstructions()){
    if(!(i instanceof ReferenceInstruction)||!(((ReferenceInstruction)i).getReference() instanceof MethodReference))continue;MethodReference r=(MethodReference)((ReferenceInstruction)i).getReference();String o=r.getDefiningClass();
    boolean app=c.getType().startsWith("Lcom/sauzask/")||c.getType().matches("Le/e/a/[a-z0-9]+(?:\\$.*)?;")||c.getType().equals("Le/e/a/CacheHls;");
@@ -31,7 +34,9 @@ public class StoragePlayerDexTest {
    if(o.equals("Le/e/a/CacheFile;")&&r.getName().equals("<init>")){cacheConstructors++;if(c.getType().equals("Le/e/a/CacheHls;"))hls++;}
    if(o.equals("Le/e/a/CommentClock;")&&r.getName().equals("position")&&(c.getType().equals("Le/e/a/t;")||c.getType().equals("Le/e/a/u;")))clock++;
    if(o.equals("Le/e/a/CommentMotion;")&&r.getName().equals("frame"))motion++;
-   if(o.equals("Le/e/a/CommentMotion;")&&r.getName().equals("period"))fps++;
+   if(o.equals("Le/e/a/CommentMotion;")&&r.getName().equals("fps")&&(c.getType().equals("Le/e/a/t;")||c.getType().equals("Le/e/a/u;"))&&m.getName().equals("run"))fps++;
+   if(o.equals("Le/e/a/CommentMotion;")&&r.getName().equals("nowQ16")&&(c.getType().equals("Le/e/a/t;")||c.getType().equals("Le/e/a/u;"))&&m.getName().equals("run"))frameClock++;
+   if(o.equals("Le/e/a/CommentMotion;")&&r.getName().equals("sleepQ16")&&(c.getType().equals("Le/e/a/t;")||c.getType().equals("Le/e/a/u;"))&&m.getName().equals("run"))frameSleep++;
    if(o.equals("Le/e/a/FullscreenControls;")&&r.getName().equals("update"))full++;
    if(o.equals("Le/e/a/CachePack;")&&r.getName().equals("completed"))pack++;
    if(o.equals("Le/e/a/PlayerGestures;")&&r.getName().equals("touch"))gesture++;
@@ -39,7 +44,7 @@ public class StoragePlayerDexTest {
    if(o.equals("Le/e/a/CachePlayback;"))relay++;
   }}
   check(cacheConstructors>30&&hls>0,"app and HLS cache routed");check(clock==4,"both comment renderers and clocks");check(gesture==1,"gesture dispatch");check(folder>0&&relay>0,"folder and playback routing");
-  check(motion==2&&fps==2&&full>=2&&pack==1,"comment motion/FPS, fullscreen and consolidation hooks");
+  check(motion==2&&fps==2&&frameClock==6&&frameSleep==2&&full>=2&&pack==1,"comment motion/FPS pacing, fullscreen and consolidation hooks");
   for(String type:new String[]{"SpeedSlider","CachePack","CommentMotion","FullscreenControls","CacheInputStream","CacheOutputStream","CachePlayback","PlayerGestures","CommentClock"})check(cs.containsKey("Le/e/a/"+type+";"),type);
   System.out.println("Storage/player DEX hooks verified: "+cacheConstructors+" cache constructors, "+relay+" playback URI hooks");
  }

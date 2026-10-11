@@ -69,6 +69,8 @@ public final class FollowFeed {
     }
     public static void load(Activity a){
         try{
+            if(a.getIntent().getBooleanExtra("nicoid_my_page",false)){AccountPage.load(a);return;}
+            if(CreatorPage.open(a))return;
             a.getClass().getField("H").setBoolean(a,false);
             a.getClass().getField("I").setBoolean(a,true);
             State s=STATES.get(a);
@@ -110,7 +112,7 @@ public final class FollowFeed {
                 s.list.setDivider(null);s.list.setCacheColorHint(Color.TRANSPARENT);ThemeChoice.background(s.list);
                 // Card controls own their clicks; category and empty rows are not selectable.
                 s.list.setOnItemClickListener((parent,view,position,id)->{
-                    if(position<state.visible.size()&&state.visible.get(position) instanceof Item)open(a,(Item)state.visible.get(position),false);
+                    if(position<state.visible.size()&&state.visible.get(position) instanceof Item)open(a,state,(Item)state.visible.get(position),false);
                 });
                 s.list.setOnScrollListener(new AbsListView.OnScrollListener(){
                     public void onScrollStateChanged(AbsListView l,int mode){}
@@ -271,7 +273,17 @@ public final class FollowFeed {
         return item.upload?(item.shortVideo?text(a,"ショート動画を投稿しました","Uploaded a short video","投稿了短影片"):
             text(a,"動画を投稿しました","Uploaded a video","投稿了影片")):text(a,"動画のアクティビティ","Video activity","影片動態");
     }
-    private static void open(Activity a,Item item,boolean info){
+    private static void open(Activity a,State s,Item item,boolean info){
+        if(!info&&item.shortVideo){
+            ArrayList<String> ids=new ArrayList<>(),titles=new ArrayList<>(),thumbnails=new ArrayList<>();int selected=-1;
+            // s.items is maintained in newest-first chronological order. Keep that same
+            // order in the player session so vertical swipes follow the displayed feed.
+            for(Item candidate:s.items)if(candidate.matches(3,s.actorKey)&&candidate.shortVideo){
+                if(candidate.id.equals(item.id))selected=ids.size();
+                ids.add(candidate.id);titles.add(candidate.title);thumbnails.add(candidate.thumbnail);
+            }
+            if(selected>=0&&ModernShorts.openVideos(a,ids.toArray(new String[0]),titles.toArray(new String[0]),thumbnails.toArray(new String[0]),selected))return;
+        }
         a.startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://www.nicovideo.jp/watch/"+item.id))
             .setClassName(a,info?"com.sauzask.nicoid.NicoidVideoInfoActivity":"com.sauzask.nicoid.NicoidVideoActivity"));
     }
@@ -324,11 +336,11 @@ public final class FollowFeed {
             h.name.setText(item.actor.isEmpty()?text(a,"投稿者","Creator","投稿者"):item.actor);h.date.setText(FollowFeedData.date(item));h.event.setText(event(a,item));
             h.title.setText(item.title);h.badge.setText(badge(a,item));h.duration.setText(FollowFeedData.duration(item.duration));h.duration.setVisibility(item.duration>0?View.VISIBLE:View.GONE);
             bindImage(h.avatar,item.author.icon);bindImage(h.thumbnail,item.thumbnail);
-            h.card.setContentDescription(item.title);h.card.setOnClickListener(v->open(a,item,false));h.thumbnail.setOnClickListener(v->open(a,item,false));h.title.setOnClickListener(v->open(a,item,false));
+            h.card.setContentDescription(item.title);h.card.setOnClickListener(v->open(a,s,item,false));h.thumbnail.setOnClickListener(v->open(a,s,item,false));h.title.setOnClickListener(v->open(a,s,item,false));
             h.menu.setOnClickListener(v->{
                 PopupMenu menu=new PopupMenu(a,v);
-                menu.getMenu().add(text(a,"再生","Play","播放")).setOnMenuItemClickListener(m->{open(a,item,false);return true;});
-                menu.getMenu().add(text(a,"動画情報","Video details","影片資訊")).setOnMenuItemClickListener(m->{open(a,item,true);return true;});
+                menu.getMenu().add(text(a,"再生","Play","播放")).setOnMenuItemClickListener(m->{open(a,s,item,false);return true;});
+                menu.getMenu().add(text(a,"動画情報","Video details","影片資訊")).setOnMenuItemClickListener(m->{open(a,s,item,true);return true;});
                 menu.getMenu().add(text(a,"共有","Share","分享")).setOnMenuItemClickListener(m->{
                     a.startActivity(Intent.createChooser(new Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT,"https://www.nicovideo.jp/watch/"+item.id),text(a,"共有","Share","分享")));return true;
                 });menu.show();

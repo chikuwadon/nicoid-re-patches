@@ -1,3 +1,49 @@
+## 1.8.2 (2026-10-11)
+
+### ✨ New Features
+
+* **nicoid:** Support comment commands for named and hexadecimal colors, fixed top and bottom placement, and text sizes.
+* **nicoid:** Add creator-page Shorts and series lists, portrait Shorts playback with swiping through the creator’s uploads, and continuous series playback. ([#56](https://github.com/chikuwadon/nicoid-re-patches/issues/56))
+* **nicoid:** Show followed channels alongside followed users, with separate category headers, and add access to followed mylists. ([#54](https://github.com/chikuwadon/nicoid-re-patches/issues/54))
+* **nicoid:** Open Shorts from Nico Reports in portrait playback and swipe through uploads in the current creator filter and chronological order. ([#58](https://github.com/chikuwadon/nicoid-re-patches/issues/58))
+* **nicoid:** Add 90 fps and 120 fps comment-rendering options, with display refresh-rate requests on supported devices.
+* **nicoid:** Add an optional mode that keeps player controls and the seek bar visible outside the video, disabled by default.
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix crashes when scrolling the comment list immediately after opening a video with a large comment-fetch limit. ([#50](https://github.com/chikuwadon/nicoid-re-patches/issues/50))
+* **nicoid:** Fix comment posting for official-channel videos by using the correct watch identity. ([#44](https://github.com/chikuwadon/nicoid-re-patches/issues/44))
+* **nicoid:** Fix cache-list access after switching from shared storage to app-private storage. ([#49](https://github.com/chikuwadon/nicoid-re-patches/issues/49))
+* **nicoid:** Reuse completed cached videos without downloading them again, and restore normal pause and resume controls during cache playback. ([#53](https://github.com/chikuwadon/nicoid-re-patches/issues/53))
+* **nicoid:** Fix incorrect comment-download failure messages and update download progress while caching is in progress. ([#55](https://github.com/chikuwadon/nicoid-re-patches/issues/55))
+* **nicoid:** Fix cache-list progress updates on the first visit and prevent successful downloads from being reported as interrupted.
+* **nicoid:** Fix incorrect row selection when entering multiple-selection mode in the cache list.
+* **nicoid:** Restore the AMOLED theme option and apply its colors consistently to search dialogs, video-ID entry and overflow menus. ([#51](https://github.com/chikuwadon/nicoid-re-patches/issues/51))
+* **nicoid:** Apply dark and AMOLED theme colors to tablet player information panels and navigation tabs. ([#59](https://github.com/chikuwadon/nicoid-re-patches/issues/59))
+* **nicoid:** Fit the entire Shorts video into the playback area without cropping its top or bottom. ([#59](https://github.com/chikuwadon/nicoid-re-patches/issues/59))
+* **nicoid:** Restore switching from portrait Shorts playback to the normal player, and keep Shorts playback active when dismissing video information. ([#57](https://github.com/chikuwadon/nicoid-re-patches/issues/57))
+* **nicoid:** Synchronize play and pause icons with the actual playback state after Android media-control actions in both normal and Shorts playback. ([#57](https://github.com/chikuwadon/nicoid-re-patches/issues/57))
+* **nicoid:** Restore Shorts overlays, like controls and comments across the full portrait playback area.
+* **nicoid:** Fix creator Shorts detection and display the creator’s name in Shorts and series pages. ([#56](https://github.com/chikuwadon/nicoid-re-patches/issues/56))
+* **nicoid:** Update quality-setting summaries immediately after selection.
+* **nicoid:** Fix stalled seek-bar updates, clipped controls and playback-completion freezes when controls are always visible outside the video.
+
+### 🔧 Improvements
+
+* **nicoid:** Improve comment frame pacing with precise timing for 60 fps, 90 fps and 120 fps rendering.
+* **nicoid:** Remove the total retrieval limits for followed channels, creator Shorts and creator series, and remove the 200-video playback limit for creator Shorts. ([#54](https://github.com/chikuwadon/nicoid-re-patches/issues/54), [#56](https://github.com/chikuwadon/nicoid-re-patches/issues/56))
+* **nicoid:** Show live download percentages and downloaded sizes in the cache list.
+* **nicoid:** Use the configured default video quality when downloading cached videos.
+* **nicoid:** Restore cached-comment identity metadata required for Nicoru actions.
+* **nicoid:** Expand Shorts video information with upload dates, statistic icons, tags, uploader comments and working creator navigation.
+* **nicoid:** Use wrapping hashtag chips, a circular creator avatar and a compact like icon in Shorts video information.
+* **nicoid:** Show upload dates and statistic icons in creator Shorts and series video lists, using smaller text than video titles.
+* **nicoid:** Match followed-channel row and icon sizes to followed-user rows, and remove duplicate following shortcuts.
+* **nicoid:** Remove the extra creator Shorts and series button from video information.
+* **nicoid:** Refine always-visible player controls with compact sizing, reordered actions, a dedicated play/pause button and a comment area that stays clear of the controls.
+* **nicoid:** Show descriptive selected-item counts in deletion confirmations and place Done before Delete in multiple-selection controls.
+* **nicoid:** Improve image loading, reuse completed caches and cancel obsolete requests when switching creator-page tabs.
+
 ## 1.8.1 (2026-10-09)
 
 ### ✨ New Features

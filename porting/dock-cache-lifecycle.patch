@@ -1,0 +1,27 @@
+--- a/e/e/a/m1.smali
++++ b/e/e/a/m1.smali
+@@ -42,7 +42,12 @@
+     :cond_7
+     iget-boolean v1, v0, Lcom/sauzask/nicoid/NicoidVideoFragment;->Q1:Z
+ 
++    if-nez v1, :progress_visible
++    iget-object v1, v0, Lcom/sauzask/nicoid/NicoidVideoFragment;->A1:Lcom/sauzask/nicoid/NicoidVideoActivity;
++    invoke-static {v1}, Le/e/a/PlayerControlsDock;->enabled(Landroid/content/Context;)Z
++    move-result v1
+     if-eqz v1, :cond_15
++    :progress_visible
+ 
+     .line 3
+     iget-object v0, v0, Lcom/sauzask/nicoid/NicoidVideoFragment;->a0:Lcom/devbrackets/android/exomedia/ui/widget/VideoView;
+--- a/com/sauzask/nicoid/NicoidDownloadCache$f.smali
++++ b/com/sauzask/nicoid/NicoidDownloadCache$f.smali
+@@ -132,6 +132,9 @@
+     iget-object v0, v0, Lcom/sauzask/nicoid/NicoidDownloadCache;->f:Landroid/content/Context;
+ 
+     const v1, 0x7f0f0027
++    invoke-static {v1}, Le/e/a/CacheProgress;->finishResource(I)I
++    move-result v1
++    if-eqz v1, :goto_5a
+ 
+     .line 11
+     invoke-virtual {v0, v1}, Landroid/content/Context;->getString(I)Ljava/lang/String;

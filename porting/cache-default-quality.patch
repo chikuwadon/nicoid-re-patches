@@ -1,0 +1,5 @@
+--- a/com/sauzask/nicoid/NicoidDownloadCache.smali
++++ b/com/sauzask/nicoid/NicoidDownloadCache.smali
+@@
+-    iput v2, v0, Le/e/a/d0;->e:I
++    # Preserve configured quality_mode when the legacy cache flag is set.

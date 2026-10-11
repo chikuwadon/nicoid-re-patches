@@ -159,7 +159,7 @@
 
     invoke-direct {v1, v0}, Lorg/json/JSONObject;-><init>(Ljava/lang/String;)V
 
-    invoke-static {v1, p0}, Le/e/a/CommentListExtras;->begin(Lorg/json/JSONObject;Ljava/lang/Object;)V
+    invoke-static {v1, p0}, Le/e/a/CachedCommentMetadata;->begin(Lorg/json/JSONObject;Ljava/lang/Object;)V
 
     const-string v0, "data"
 
@@ -251,26 +251,6 @@
 
     aput-object v8, v9, v10
 
-    const/4 v10, 0x2
-
-    const/4 v8, -0x1
-
-    invoke-static {v8}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
-
-    move-result-object v8
-
-    aput-object v8, v9, v10
-
-    const/4 v10, 0x3
-
-    const/4 v8, 0x1
-
-    invoke-static {v8}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
-
-    move-result-object v8
-
-    aput-object v8, v9, v10
-
     const-string v8, "commands"
 
     invoke-virtual {v6, v8}, Lorg/json/JSONObject;->optJSONArray(Ljava/lang/String;)Lorg/json/JSONArray;
@@ -310,13 +290,30 @@
     goto :goto_fb
 
     :cond_112
-    new-instance v8, Le/e/a/q;
-
     invoke-virtual {v10}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
-
     move-result-object v10
 
+    # Use the native parser for colors, fixed placement and text size.
+    const/4 v12, 0x3
+    new-array v8, v12, [Ljava/lang/Integer;
+    new-array v11, v12, [Ljava/lang/String;
+    invoke-virtual {p0, v10, v8, v11}, Le/e/a/d0;->a(Ljava/lang/String;[Ljava/lang/Integer;[Ljava/lang/String;)V
+    const/4 v12, 0x0
+    aget-object v13, v8, v12
+    const/4 v12, 0x3
+    aput-object v13, v9, v12
+    const/4 v12, 0x1
+    aget-object v13, v8, v12
+    const/4 v12, 0x4
+    aput-object v13, v9, v12
+    const/4 v12, 0x2
+    aget-object v13, v8, v12
+    aput-object v13, v9, v12
+
+    new-instance v8, Le/e/a/q;
     invoke-direct {v8, v7, v10, v9}, Le/e/a/q;-><init>(Ljava/lang/String;Ljava/lang/String;[Ljava/lang/Integer;)V
+    aget-object v13, v11, v12
+    iput-object v13, v8, Le/e/a/q;->h:Ljava/lang/String;
 
     const-string v7, "userId"
 
@@ -340,102 +337,8 @@
     goto/16 :goto_9a
 
     :cond_130
-    new-instance v10, Ljava/lang/StringBuilder;
-
-    const-string v11, "Comments received: "
-
-    invoke-direct {v10, v11}, Ljava/lang/StringBuilder;-><init>(Ljava/lang/String;)V
-
-    invoke-virtual {v2}, Ljava/util/ArrayList;->size()I
-
-    move-result v11
-
-    invoke-virtual {v10, v11}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
-
-    invoke-virtual {v10}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
-
-    move-result-object v10
-
-    invoke-static {v10}, Le/e/a/ModernDebug;->record(Ljava/lang/String;)V
-
-    const-string v11, "nicoid-comments"
-
-    invoke-static {v11, v10}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
-
-    iget-object v0, p0, Le/e/a/d0;->k:Le/e/a/l3/j;
-
-    instance-of v1, v0, Lcom/sauzask/nicoid/NicoidVideoFragment;
-
-    if-eqz v1, :cond_16d
-
-    check-cast v0, Lcom/sauzask/nicoid/NicoidVideoFragment;
-
-    iget-object v1, p0, Le/e/a/d0;->b:Le/e/a/v;
-
-    if-eqz v1, :cond_15a
-
-    invoke-virtual {v1, v2}, Le/e/a/v;->a(Ljava/util/ArrayList;)V
-
-    goto :goto_165
-
-    :cond_15a
-    iget-object v1, v0, Lcom/sauzask/nicoid/NicoidVideoFragment;->g1:Le/e/a/v;
-
-    if-eqz v1, :cond_162
-
-    invoke-virtual {v1, v2}, Le/e/a/v;->a(Ljava/util/ArrayList;)V
-
-    goto :goto_165
-
-    :cond_162
-    invoke-virtual {v0, v2}, Lcom/sauzask/nicoid/NicoidVideoFragment;->b(Ljava/util/ArrayList;)V
-
-    :goto_165
-    iget-object v0, p0, Le/e/a/d0;->c:Le/e/a/g0;
-
-    if-eqz v0, :cond_19e
-
-    invoke-virtual {v0, v2}, Le/e/a/g0;->a(Ljava/util/ArrayList;)V
-
-    goto :goto_19e
-
-    :cond_16d
-    iget-object v0, p0, Le/e/a/d0;->K:Landroid/content/Context;
-
-    instance-of v1, v0, Lcom/sauzask/nicoid/NicoidPopupViewService;
-
-    if-eqz v1, :cond_19e
-
-    iget-object v1, p0, Le/e/a/d0;->b:Le/e/a/v;
-
-    if-eqz v1, :cond_19e
-
-    invoke-virtual {v1, v2}, Le/e/a/v;->a(Ljava/util/ArrayList;)V
-
-    const-string v0, "nicoid-comments"
-
-    const-string v4, "Popup comments applied to overlay"
-
-    invoke-static {v0, v4}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
-
-    iget-object v3, v1, Le/e/a/v;->a:Landroid/view/View;
-
-    instance-of v4, v3, Le/e/a/u;
-
-    if-eqz v4, :cond_18c
-
-    check-cast v3, Le/e/a/u;
-
-    invoke-virtual {v3}, Le/e/a/u;->e()V
-
-    :cond_18c
-    iget-object v0, p0, Le/e/a/d0;->c:Le/e/a/g0;
-
-    if-eqz v0, :cond_19e
-
-    invoke-virtual {v0, v2}, Le/e/a/g0;->a(Ljava/util/ArrayList;)V
-
-    goto :goto_19e
+    invoke-static {p0, v2}, Le/e/a/CommentUi;->apply(Ljava/lang/Object;Ljava/util/ArrayList;)V
+    goto :cond_19e
 
     :cond_194
     const-string v0, "Comment configuration missing"

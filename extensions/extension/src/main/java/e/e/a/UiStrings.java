@@ -104,6 +104,10 @@ public final class UiStrings {
         TEXT.put("上下スワイプで再生画面の輝度を調整します。音量調整もONの場合は動画の左側で操作します", new String[]{"Swipe vertically to adjust video brightness. When volume gestures are also enabled, use the left side of the video.", "上下滑動調整播放畫面的亮度。若同時啟用音量調整，請在影片左側操作。"});
         TEXT.put("キャッシュのコピーが完了しました", new String[]{"Cache copy completed", "快取複製完成"});
         TEXT.put("キャッシュをコピー中", new String[]{"Copying cached videos…", "正在複製快取影片…"});
+        TEXT.put("キャッシュ取得", new String[]{"Cache download", "快取下載"});
+        TEXT.put("キャッシュ取得中", new String[]{"Downloading cache", "正在下載快取"});
+        TEXT.put("キャッシュ取得完了", new String[]{"Cache download complete", "快取下載完成"});
+        TEXT.put("取得済み: ", new String[]{"Downloaded: ", "已下載："});
         TEXT.put("コピー", new String[]{"Copy", "複製"});
         TEXT.put("コピーに失敗しました。元のファイルは保持されています", new String[]{"Could not copy the cache. The original files have been kept.", "無法複製快取。原始檔案已保留。"});
         TEXT.put("フォルダー選択画面を開けませんでした", new String[]{"Could not open the folder picker", "無法開啟資料夾選擇畫面"});
@@ -405,6 +409,7 @@ public final class UiStrings {
         TEXT.put("コメントの表示を透過することができます", new String[]{"Adjust how transparent comments appear", "調整留言顯示的透明程度"});
         TEXT.put("キャスト再生時コメントを減らす", new String[]{"Reduce comments while casting", "投放時減少留言"});
         TEXT.put("動作を安定させるため表示するコメント量を少なくしフレームレートを低く制限します。再生側のスペックに余裕がある場合、無効にすると通常のコメント量・フレームレートで表示することができます", new String[]{"Reduce comments and frame rate for smoother casting. Turn this off if the receiving device can handle normal comment rendering.", "減少留言與幀率以改善投放穩定性。接收裝置效能足夠時可關閉，以正常數量與幀率顯示留言。"});
+        TEXT.put("AMOLEDダークモード", new String[]{"AMOLED dark mode", "AMOLED 深色模式"});
         TEXT.put("描画フレームレート", new String[]{"Comment frame rate", "留言繪製幀率"});
         TEXT.put("Drawing frame rate", new String[]{"Comment frame rate", "留言繪製幀率"});
         TEXT.put("繪製幀率", new String[]{"Comment frame rate", "留言繪製幀率"});

@@ -4494,7 +4494,7 @@
 +.end method
 --- /dev/null
 +++ b/smali/e/e/a/ModernComments.smali
-@@ -0,0 +1,249 @@
+@@ -0,0 +1,258 @@
 +.class public final Le/e/a/ModernComments;
 +.super Ljava/lang/Object;
 +.source "ModernComments.java"
@@ -4610,17 +4610,6 @@
 +    move-result-object v8
 +    const/4 v10, 0x1
 +    aput-object v8, v9, v10
-+    const/4 v10, 0x2
-+    # Field 2 is the paint color, not the comment number.
-+    const/4 v8, -0x1
-+    invoke-static {v8}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
-+    move-result-object v8
-+    aput-object v8, v9, v10
-+    const/4 v10, 0x3
-+    const/4 v8, 0x1
-+    invoke-static {v8}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
-+    move-result-object v8
-+    aput-object v8, v9, v10
 +    const-string v8, "commands"
 +    invoke-virtual {v6, v8}, Lorg/json/JSONObject;->optJSONArray(Ljava/lang/String;)Lorg/json/JSONArray;
 +    move-result-object v8
@@ -4642,10 +4631,30 @@
 +    add-int/lit8 v11, v11, 0x1
 +    goto :commands
 +    :commands_done
-+    new-instance v8, Le/e/a/q;
 +    invoke-virtual {v10}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
 +    move-result-object v10
++
++    # Use the native parser for colors, fixed placement and text size.
++    const/4 v12, 0x3
++    new-array v8, v12, [Ljava/lang/Integer;
++    new-array v11, v12, [Ljava/lang/String;
++    invoke-virtual {p0, v10, v8, v11}, Le/e/a/d0;->a(Ljava/lang/String;[Ljava/lang/Integer;[Ljava/lang/String;)V
++    const/4 v12, 0x0
++    aget-object v13, v8, v12
++    const/4 v12, 0x3
++    aput-object v13, v9, v12
++    const/4 v12, 0x1
++    aget-object v13, v8, v12
++    const/4 v12, 0x4
++    aput-object v13, v9, v12
++    const/4 v12, 0x2
++    aget-object v13, v8, v12
++    aput-object v13, v9, v12
++
++    new-instance v8, Le/e/a/q;
 +    invoke-direct {v8, v7, v10, v9}, Le/e/a/q;-><init>(Ljava/lang/String;Ljava/lang/String;[Ljava/lang/Integer;)V
++    aget-object v13, v11, v12
++    iput-object v13, v8, Le/e/a/q;->h:Ljava/lang/String;
 +    const-string v7, "userId"
 +    invoke-virtual {v6, v7}, Lorg/json/JSONObject;->optString(Ljava/lang/String;)Ljava/lang/String;
 +    move-result-object v7

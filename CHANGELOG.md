@@ -209,7 +209,7 @@
 
 ### 🐛 Bug Fixes
 
-* **nicoid:** Restore playback controls in landscape tablet mode. (#26)
+* **nicoid:** Restore playback controls in landscape tablet mode. ([#26](https://github.com/chikuwadon/nicoid-re-patches/issues/26))
 
 ### 🔧 Improvements
 

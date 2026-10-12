@@ -41,6 +41,7 @@ final class ShortImages {
         if (url == null || !url.startsWith("https://")) return;
         target.setTag(url); bindings.put(target, new Binding(url, placeholder));
         Bitmap cached = memory.get(url);
+        if (cached != null && cached.isRecycled()) { memory.remove(url); cached=null; }
         if (cached != null) { target.setImageBitmap(cached); if (placeholder != null) placeholder.setVisibility(View.GONE); return; }
         if (disk == null) disk = new ImageDiskCache(target.getContext().getApplicationContext().getCacheDir());
         Job job = jobs.get(url); boolean start = job == null;
@@ -100,7 +101,7 @@ final class ShortImages {
                     ImageView target = subscriber.target.get(); TextView placeholder = subscriber.placeholder.get();
                     if (target != null) {
                         target.removeOnAttachStateChangeListener(subscriber);
-                        if (!task.cancelled() && result != null && url.equals(target.getTag())) {
+                        if (!task.cancelled() && result != null && !result.isRecycled() && url.equals(target.getTag())) {
                             target.setImageBitmap(result); if (placeholder != null) placeholder.setVisibility(View.GONE);
                         }
                     }

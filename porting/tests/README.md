@@ -69,3 +69,24 @@ java -cp /tmp/nicoid-routing-tests e.e.a.PlaybackRoutingTest
 ```
 
 Checks distinguish background sessions from popup routing and reject stale media bindings after a player or video changes, including recreation of the same video. On a device, switch background video A to background video B and verify B's title, duration, play/pause and seeking. Open B normally while A plays in the background and confirm B stays in the normal player; also verify popup-to-popup switching.
+
+## Injected native-call arguments
+
+`VerifyInjectedArguments` analyzes DEX control flow and checks reference argument types at the native history, search, cache and popup entry points. The HLS download helper is included to detect wide-register writes that overlap the media URL parameter. It also requires exactly one account-history capture in the shared list parser. Run it against the merged application and helper DEX files, packaged as a multidex APK or ZIP.
+
+```sh
+javac -cp "$DEX_ANALYSIS_CP" -d /tmp/nicoid-dex-tests porting/tests/VerifyInjectedArguments.java
+java -cp "/tmp/nicoid-dex-tests:$DEX_ANALYSIS_CP:$ANDROID_JAR" VerifyInjectedArguments patched.apk
+```
+
+`DEX_ANALYSIS_CP` must include dexlib2 and its dependencies, including Guava's failureaccess JAR. `ANDROID_JAR` provides framework class definitions for reference-type analysis. This static check supplements device launch and interaction checks.
+
+## HLS player routing
+
+`PlaybackUrlsTest` checks direct and wrapped HLS URLs, query handling, the actual cache-player URL bridge, and preservation of MP4/cache-reader routes. `VerifyHlsPlayerRouting patched.apk` executes the native media-URL selection branches with both playback preferences and no cached file, covering the shared normal/shorts player, the MediaPlayer fallback, and the popup/background player. Compile the latter with dexlib2 and the extension classes on the classpath; run it against a multidex APK or merged review ZIP.
+
+## Folder-first cache entry
+
+`CacheDefaultTest` checks that an unselected cache root never creates an implicit private video directory, blocks both service-start routes, and retains private auxiliary data. `CacheListingTest` checks that an unselected page does not read previous private video metadata. `VerifyFolderFirstLifecycle patched.apk` exercises selected/unselected native page, worker, menu, pause and shared post-create paths, and checks the drawer launch route while picker-time fields are still null. `DialogColorsTest` checks neutral dark, AMOLED, Material You and light control contrast. `CachePickerCancelTest` exercises cancellation from menu navigation, direct page entry, and download requests. Previous native cache containers remain readable for explicit copy via `PrivatePackTest`.
+
+`SearchDatePresetTest` checks current-date day/week/month/year presets, including month-end and leap-day boundaries. `CacheRowInfoTest` checks persisted owner/channel restoration, Japanese posted timestamps, icon-compatible statistics, and incomplete-cache labels.

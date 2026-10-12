@@ -27,6 +27,16 @@ public final class UiDialogs {
         }
         return dark?0xff191b20:0xfffafafa;
     }
+    public static void secondaryButton(Button button) {
+        Context c=button.getContext();boolean dark=ThemeChoice.isNight(owner(c));
+        int color=DialogColors.secondary(surface(c),dark);
+        GradientDrawable background=new GradientDrawable();background.setColor(color);background.setCornerRadius(2*c.getResources().getDisplayMetrics().density);
+        button.setTag("nicoid-range-control");
+        button.setBackgroundTintList(null);button.setBackground(new android.graphics.drawable.RippleDrawable(ColorStateList.valueOf((accent(c)&0x00ffffff)|0x33000000),new android.graphics.drawable.InsetDrawable(background,Math.round(3*c.getResources().getDisplayMetrics().density),Math.round(4*c.getResources().getDisplayMetrics().density),Math.round(3*c.getResources().getDisplayMetrics().density),Math.round(4*c.getResources().getDisplayMetrics().density)),null));
+        button.setElevation(0);button.setAllCaps(false);button.setTextColor(dark?0xffeeeeee:0xff202124);button.setTextSize(14);
+        int pad=Math.round(12*c.getResources().getDisplayMetrics().density),vertical=Math.round(8*c.getResources().getDisplayMetrics().density);
+        button.setPadding(pad,vertical,pad,vertical);button.setMinWidth(0);button.setMinimumWidth(0);button.setMinHeight(Math.round(48*c.getResources().getDisplayMetrics().density));button.setMinimumHeight(Math.round(48*c.getResources().getDisplayMetrics().density));button.setGravity(Gravity.CENTER);button.setIncludeFontPadding(true);button.setSingleLine(false);
+    }
     public static void style(AlertDialog dialog) {
         if(dialog.getWindow()==null) return;
         Context c=owner(dialog.getContext()); int accent=accent(c);
@@ -47,7 +57,7 @@ public final class UiDialogs {
             AbsListView.OnScrollListener listener=new AbsListView.OnScrollListener(){public void onScrollStateChanged(AbsListView view,int state){}public void onScroll(AbsListView view,int first,int count,int total){for(int n=0;n<view.getChildCount();n++)inputs(view.getChildAt(n),accent,dark);}};
             list.setOnScrollListener(listener);list.post(()->listener.onScroll(list,0,list.getChildCount(),list.getCount()));
         }
-        if(v instanceof TextView) ((TextView)v).setTextColor(v instanceof Button?accent:dark?0xffeeeeee:0xff202124);
+        if(v instanceof TextView) ((TextView)v).setTextColor(v instanceof Button&&!"nicoid-range-control".equals(v.getTag())?accent:dark?0xffeeeeee:0xff202124);
         String name="";try{if(v.getId()!=View.NO_ID)name=v.getResources().getResourceEntryName(v.getId());}catch(Exception ignored){}
         if(name.equals("parentPanel")||name.equals("topPanel")||name.equals("contentPanel")||name.equals("buttonPanel")||name.equals("customPanel"))v.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         if(v instanceof EditText) {

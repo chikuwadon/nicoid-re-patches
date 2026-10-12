@@ -1,38 +1,15 @@
 package e.e.a;
-
-import android.content.Context;
-import android.os.Bundle;
-import java.io.File;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-
-/** Reuse a completed local cache before creating a network playback session. */
+import android.content.*;import android.os.*;import java.io.*;import java.lang.reflect.*;import java.util.*;import org.json.*;
+/** Local metadata and media are restored together without a watch-page request. */
 public final class CachedPlayback {
-    private CachedPlayback() {}
-    static String path(Context context,String value) {
-        String id=HistoryRules.id(value);if(!id.matches("(?:sm|nm|so|ss)[0-9]+"))return null;
-        String root=CacheFolders.root(context)+"/nicoid/nicoid_cache/";
-        File marker=new CacheFile(root,id+".mp4"),playlist=new CacheFile(root,id+".m3u8");
-        if(!marker.isFile()||!new CacheFile(root,id+".json").isFile())return null;
-        if(playlist.isFile())return CachePlayback.url(playlist.getAbsolutePath());
-        return marker.length()>0?CachePlayback.url(marker.getAbsolutePath()):null;
-    }
-    public static String stream(Object model,String id) {
-        try {
-            Context context=(Context)field(model,"K").get(model);String path=path(context,id);if(path==null)return null;
-            Bundle data=(Bundle)model.getClass().getMethod("h",String.class).invoke(model,id);if(data==null)return null;
-            data.putString("flvUrl",path);field(model,"m").set(model,data);field(model,"G").set(model,path);
-            // Reading saved comment JSON must not reuse watch metadata for another video.
-            field(model,"modernWatch").set(model,null);
-            Object renderer=field(model,"b").get(model);if(renderer!=null)field(renderer,"d").set(renderer,path);
-            Object listener=field(model,"k").get(model);
-            if(listener!=null){Method callback=Class.forName("e.e.a.l3.j").getMethod("a",Bundle.class);callback.invoke(listener,data);}
-            if(!field(model,"modernCommentsRequested").getBoolean(model)){
-                field(model,"modernCommentsRequested").setBoolean(model,true);
-                new Thread(()->{try{Class.forName("e.e.a.ModernComments").getMethod("load",model.getClass()).invoke(null,model);}catch(Exception e){android.util.Log.w("nicoid-cache","Unable to read cached comments",e);}},"nicoid-cached-comments").start();
-            }
-            return path;
-        }catch(Exception e){android.util.Log.w("nicoid-cache","Unable to reuse cached video",e);return null;}
-    }
-    private static Field field(Object o,String name)throws Exception {Field f=o.getClass().getField(name);f.setAccessible(true);return f;}
+ private static final Handler MAIN=new Handler(Looper.getMainLooper());private static final Set<Object> WAITING=Collections.newSetFromMap(new WeakHashMap<Object,Boolean>());
+ private CachedPlayback(){}
+ public static String path(Context context,String value){String id=HistoryRules.id(value);if(!id.matches("(?:sm|nm|so|ss)[0-9]+"))return null;String root=CacheFolders.root(context)+"/nicoid/nicoid_cache/";if(completedBytes(root,id)<=0||!new CacheFile(root,id+".json").isFile())return null;File playlist=new CacheFile(root,id+".m3u8");return CachePlayback.url(new CacheFile(root,id+(playlist.isFile()?".m3u8":".mp4")).getAbsolutePath());}
+ public static long completedBytes(String folder,String id){try{File marker=new CacheFile(folder,id+".mp4"),playlist=new CacheFile(folder,id+".m3u8"),packed=new CacheFile(folder,id+".ncache");if(!marker.isFile())return -1;if(playlist.isFile()){if(packed.isFile())return Math.max(1,packed.length());long bytes=0;File[] files=new CacheFile(folder).listFiles();if(files!=null)for(File f:files)if(f.getName().startsWith(id+"_asset_"))bytes+=f.length();return bytes>0?bytes:-1;}return marker.length()>0?marker.length():-1;}catch(Exception e){return -1;}}
+ static Bundle metadata(Context c,String id)throws Exception{File f=new CacheFile(CacheFolders.root(c)+"/nicoid/nicoid_cache/",id+".json");ByteArrayOutputStream bytes=new ByteArrayOutputStream();try(InputStream in=new CacheInputStream(f)){byte[] b=new byte[4096];int n;while((n=in.read(b))!=-1){if(bytes.size()+n>2*1024*1024)throw new IOException();bytes.write(b,0,n);}}JSONObject data=new JSONObject(bytes.toString("UTF-8"));Bundle result=new Bundle();Iterator<String> keys=data.keys();while(keys.hasNext()){String k=keys.next();if(!data.isNull(k))result.putString(k,data.optString(k));}result.putString("videoId",id);return result;}
+ public static String stream(Object model,String value){try{if(Boolean.TRUE.equals(field(model,"r").get(model)))return null;Context c=(Context)field(model,"K").get(model);String id=HistoryRules.id(value),path=path(c,id);if(path==null)return null;Bundle data=metadata(c,id);data.putString("flvUrl",path);field(model,"m").set(model,data);field(model,"l").set(model,data);field(model,"G").set(model,path);field(model,"modernWatch").set(model,null);Object renderer=field(model,"b").get(model);if(renderer!=null)field(renderer,"d").set(renderer,path);Object listener=field(model,"k").get(model);MAIN.post(()->{try{if(listener==null||field(model,"a").getBoolean(model))return;try{field(listener,"z0").setBoolean(listener,true);field(listener,"L0").setBoolean(listener,false);}catch(Exception ignored){}Class.forName("e.e.a.l3.j").getMethod("a",Bundle.class).invoke(listener,data);try{field(listener,"z0").setBoolean(listener,true);field(listener,"L0").setBoolean(listener,false);}catch(Exception ignored){}}catch(Exception e){android.util.Log.w("nicoid-cache","Unable to bind cached metadata",e);}});if(!field(model,"modernCommentsRequested").getBoolean(model)){field(model,"modernCommentsRequested").setBoolean(model,true);new Thread(()->{try{Class.forName("e.e.a.ModernComments").getMethod("load",model.getClass()).invoke(null,model);}catch(Exception e){android.util.Log.w("nicoid-cache","Unable to read cached comments",e);}},"nicoid-cached-comments").start();}return path;}catch(Exception e){android.util.Log.w("nicoid-cache","Unable to restore cached video",e);return null;}}
+ static void play(Object model,String path)throws Exception{Object cookie=field(model,"I").get(model);model.getClass().getMethod("a",String.class,Class.forName("org.apache.http.client.CookieStore")).invoke(model,path,cookie);}
+ public static boolean offline(Object model){try{if(Boolean.TRUE.equals(field(model,"r").get(model)))return false;String id=HistoryRules.id((String)field(model,"d").get(model));String path=stream(model,id);if(path!=null){play(model,path);return true;}Context c=(Context)field(model,"K").get(model);if(!"0".equals(android.preference.PreferenceManager.getDefaultSharedPreferences(c).getString("play_mode","0")))return false;synchronized(WAITING){if(!WAITING.add(model))return true;}Intent i=new Intent().setClassName(c,"com.sauzask.nicoid.NicoidDownloadCache").putExtra("id",id).putExtra("title",id);MAIN.post(()->{try{CacheFolders.startForegroundService(c,i);}catch(Exception e){status(model,"キャッシュ取得を開始できませんでした");synchronized(WAITING){WAITING.remove(model);}}});new Thread(()->{try{long began=SystemClock.elapsedRealtime();while(SystemClock.elapsedRealtime()-began<30*60*1000){if(field(model,"a").getBoolean(model))return;Object listener=field(model,"k").get(model);if(listener instanceof android.app.Activity&&((android.app.Activity)listener).isFinishing())return;String ready=path(c,id);if(ready!=null){String restored=stream(model,id);if(restored!=null)play(model,restored);return;}String current=(String)Class.forName("com.sauzask.nicoid.NicoidDownloadCache").getField("t").get(null);if(id.equals(current)){long received=Class.forName("com.sauzask.nicoid.NicoidDownloadCache").getField("s").getLong(null);status(model,UiStrings.translate("キャッシュ取得中")+" · "+String.format(Locale.ROOT,"%.1f MB",received/1048576f));}if(SystemClock.elapsedRealtime()-began>10000&&!Class.forName("com.sauzask.nicoid.NicoidDownloadCache").getField("v").getBoolean(null)){status(model,UiStrings.translate("キャッシュ取得を完了できませんでした"));return;}Thread.sleep(750);}}catch(Exception e){android.util.Log.w("nicoid-cache","Unable to start cached playback",e);}finally{synchronized(WAITING){WAITING.remove(model);}}},"nicoid-cache-playback").start();return true;}catch(Exception e){android.util.Log.w("nicoid-cache","Unable to prepare cached playback",e);return false;}}
+ static void status(Object model,String message){MAIN.post(()->{try{if(!field(model,"a").getBoolean(model)){Object listener=field(model,"k").get(model);Class.forName("e.e.a.l3.j").getMethod("a",String.class).invoke(listener,message);}}catch(Exception ignored){}});}
+ private static Field field(Object o,String name)throws Exception{Field f=o.getClass().getField(name);f.setAccessible(true);return f;}
 }

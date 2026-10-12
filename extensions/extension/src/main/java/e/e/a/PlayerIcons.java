@@ -13,7 +13,7 @@ public final class PlayerIcons {
  private static final java.util.Map<View,Runnable> WATCHERS=new java.util.WeakHashMap<>();
  private static final java.util.Map<View,Boolean> PLAYING=new java.util.WeakHashMap<>();
  public static void tablet(View root,boolean enabled){TABLET.put(root,enabled);normalCenter(root);}
- private static boolean supported(String n){return java.util.Arrays.asList("play","pause","prev","next","popup","repeaton","repeatoff","commenton","commentoff","commentpost","info","fullscreen","fullscreenoff","fullscreenon","exitfullscreen").contains(n);}
+ private static boolean supported(String n){return java.util.Arrays.asList("play","pause","prev","next","popup","repeaton","repeatoff","commenton","commentoff","commentpost","info","fullscreen","fullscreenoff","fullscreenon","exitfullscreen","close").contains(n);}
  public static void background(View v,int resource){String name="";try{name=v.getResources().getResourceEntryName(resource);}catch(Exception ignored){}if(!supported(name)){v.setBackgroundResource(resource);return;}apply(v,name);}
  public static Drawable gestureIcon(int target){return new Icon(target==1?"volume":"brightness",false);}
  public static Drawable miniIcon(Context context,String name){Icon icon=new Icon(name,false);icon.ink=ThemeChoice.accent(context);return icon;}
@@ -34,13 +34,14 @@ public final class PlayerIcons {
    switch(name){
     case "volume":line(c,3,9,7,9,12,5,12,19,7,15,3,15,3,9);c.drawArc(9,6,21,18,-55,110,false,paint);c.drawArc(12,9,18,15,-55,110,false,paint);break;
     case "brightness":c.drawCircle(12,12,4,paint);for(int i=0;i<8;i++){double angle=i*Math.PI/4;line(c,12+(float)Math.cos(angle)*7,12+(float)Math.sin(angle)*7,12+(float)Math.cos(angle)*10,12+(float)Math.sin(angle)*10);}break;
-    case "play":Path p=new Path();p.moveTo(6,3);p.lineTo(20,12);p.lineTo(6,21);p.close();paint.setColor(0xaa000000);paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(1.0f);c.drawPath(p,paint);paint.setColor(ink);paint.setAlpha(alpha);paint.setStyle(Paint.Style.FILL);c.drawPath(p,paint);break;
-    case "pause":paint.setColor(0xaa000000);paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(1.0f);c.drawRoundRect(6,3,10,21,1,1,paint);c.drawRoundRect(14,3,18,21,1,1,paint);paint.setColor(ink);paint.setAlpha(alpha);paint.setStyle(Paint.Style.FILL);c.drawRoundRect(6,3,10,21,1,1,paint);c.drawRoundRect(14,3,18,21,1,1,paint);break;
+    case "play":Path p=new Path();p.moveTo(6,3);p.lineTo(20,12);p.lineTo(6,21);p.close();paint.setColor(0xaa000000);paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(.75f);c.drawPath(p,paint);paint.setColor(ink);paint.setAlpha(alpha);paint.setStyle(Paint.Style.FILL);c.drawPath(p,paint);break;
+    case "pause":paint.setColor(0xaa000000);paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(.75f);c.drawRoundRect(6,3,10,21,1,1,paint);c.drawRoundRect(14,3,18,21,1,1,paint);paint.setColor(ink);paint.setAlpha(alpha);paint.setStyle(Paint.Style.FILL);c.drawRoundRect(6,3,10,21,1,1,paint);c.drawRoundRect(14,3,18,21,1,1,paint);break;
     case "prev":case "next":boolean next=name.equals("next");paint.setStyle(Paint.Style.FILL);Path skip=new Path();skip.moveTo(next?5:19,5);skip.lineTo(next?16:8,12);skip.lineTo(next?5:19,19);skip.close();c.drawPath(skip,paint);c.drawRoundRect(next?17:4,5,next?20:7,19,1,1,paint);break;
     case "popup":c.drawRoundRect(3,4,21,20,2,2,paint);paint.setStyle(Paint.Style.FILL);c.drawRoundRect(12,12,19,18,1,1,paint);break;
     case "repeaton":case "repeatoff":line(c,4,9,4,6,20,6,17,3);line(c,20,15,20,18,4,18,7,21);if(name.endsWith("off"))line(c,3,3,21,21);break;
     case "commenton":case "commentoff":line(c,4,4,20,4,20,17,11,17,6,21,6,17,4,17,4,4);if(name.endsWith("off"))line(c,3,2,22,21);else{line(c,8,9,16,9);line(c,8,13,14,13);}break;
     case "commentpost":line(c,4,5,20,5,20,16,11,16,6,21,6,16,4,16,4,5);line(c,8,10,16,10);line(c,12,7,12,13);break;
+    case "close":line(c,4.5f,4.5f,19.5f,19.5f);line(c,19.5f,4.5f,4.5f,19.5f);break;
     case "info":c.drawCircle(12,12,9,paint);line(c,12,11,12,17);paint.setStyle(Paint.Style.FILL);c.drawCircle(12,7,1.1f,paint);break;
     default:line(c,9,3,3,3,3,9);line(c,15,3,21,3,21,9);line(c,3,15,3,21,9,21);line(c,21,15,21,21,15,21);break;
    }c.restoreToCount(saved);

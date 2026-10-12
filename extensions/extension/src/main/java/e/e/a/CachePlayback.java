@@ -17,9 +17,9 @@ public final class CachePlayback {
     public static Uri fromFile(File f){return CacheFolders.virtual(f)?parse(f.getAbsolutePath()):Uri.fromFile(f);}
     public static void dataSource(android.media.MediaPlayer p,String value)throws IOException{p.setDataSource(url(value));}
     public static String url(String value) {
-        if(value==null)return null;String path=value.startsWith("file://")?Uri.parse(value).getPath():value;
-        if(path==null||!path.startsWith("/@nicoid-cache/"))return value;
-        File f=new CacheFile(path);String parent=f.getParent();String id=parent.substring("/@nicoid-cache/".length()).split("/",2)[0];roots.put(id,parent);
+        if(value==null)return null;value=PlaybackUrls.directHls(value);String path=value.startsWith("file://")?Uri.parse(value).getPath():value;
+        if(path==null||!(path.startsWith("/@nicoid-cache/")||path.startsWith("/")&&path.contains("/nicoid/nicoid_cache/")))return value;
+        File f=new CacheFile(path);String parent=f.getParent();String id=UUID.nameUUIDFromBytes(parent.getBytes(StandardCharsets.UTF_8)).toString();roots.put(id,parent);
         try {start();return "http://127.0.0.1:"+server.getLocalPort()+"/"+TOKEN+"/"+id+"/"+Uri.encode(f.getName());}
         catch(IOException e){throw new IllegalStateException("Cannot open cache player",e);}
     }

@@ -1,6 +1,7 @@
 package e.e.a;
 import android.content.*;import android.net.Uri;import android.os.*;import android.preference.PreferenceManager;import android.view.*;import android.widget.*;import android.graphics.*;import org.json.*;import java.io.*;import java.net.*;import java.util.concurrent.*;
 public final class VideoDetails {
+ private static final java.util.Map<String,String> DETAILS=new java.util.LinkedHashMap<String,String>(8,.75f,true){protected boolean removeEldestEntry(java.util.Map.Entry<String,String> e){return size()>8;}};
  private static final java.util.WeakHashMap<View,String> OWNER_IDS=new java.util.WeakHashMap<>();
  private static final Handler MAIN=new Handler(Looper.getMainLooper());private static final ExecutorService WORK=Executors.newFixedThreadPool(2);
  private static String tr(String j,String e,String z){String l=UiStrings.translate("ニコレポ");return l.equals("Nico Reports")?e:l.equals("Nico 動態")?z:j;}
@@ -15,15 +16,17 @@ public final class VideoDetails {
   Context c=PlaybackSession.dialogContext(activity);LinearLayout box=PanelUi.column(c);ScrollView scroll=new ScrollView(c);scroll.addView(box);
   android.app.AlertDialog dialog=new android.app.AlertDialog.Builder(c).setTitle(tr("動画情報","Video details","影片資訊")).setView(scroll).setPositiveButton(tr("通常再生で開く","Open normal player","開啟一般播放器"),(d,w)->{try{long position=((Number)Review181.field(fragment,"a0").getClass().getMethod("getCurrentPosition").invoke(Review181.field(fragment,"a0"))).longValue();Intent intent=new Intent(Intent.ACTION_VIEW,Uri.parse("https://www.nicovideo.jp/watch/"+id)).setClassName(activity,"com.sauzask.nicoid.NicoidVideoActivity").putExtra("nicoid_resume_position",position).putExtra("nicoid_disable_shorts",true);activity.startActivity(intent);}catch(Exception ignored){}}).setNegativeButton(tr("閉じる","Close","關閉"),null).create();
   TextView loading=text(c,tr("読み込み中…","Loading…","載入中…"),14);box.addView(loading);PlaybackSession.showDialog(dialog);
+  synchronized(DETAILS){String saved=DETAILS.get(id);if(saved!=null){renderDetails(box,id,new JSONObject(saved));return;}}
   JSONObject cached=Review181.latest(),video=cached==null?null:cached.optJSONObject("video");
-  if(video!=null&&DetailData.matchesWatch(cached,id)){renderDetails(box,id,cached);return;}
-  NetworkTask task=new NetworkTask();dialog.setOnDismissListener(d->task.cancel());task.start(WORK,()->{try{JSONObject watch=watchData(request("https://www.nicovideo.jp/watch/"+id+"?responseType=json","GET",true,task));MAIN.post(()->{if(!task.cancelled()&&dialog.isShowing())renderDetails(box,id,watch);});}catch(Exception e){MAIN.post(()->{if(!task.cancelled())loading.setText(tr("動画情報を取得できませんでした","Unable to load video details","無法載入影片資訊"));});}});
+  if(video!=null&&DetailData.matchesWatch(cached,id)){rememberDetails(id,cached);renderDetails(box,id,new JSONObject(cached.toString()));return;}
+  NetworkTask task=new NetworkTask();dialog.setOnDismissListener(d->task.cancel());task.start(WORK,()->{try{JSONObject watch=watchData(request("https://www.nicovideo.jp/watch/"+id+"?responseType=json","GET",true,task));MAIN.post(()->{if(!task.cancelled()&&dialog.isShowing()){rememberDetails(id,watch);renderDetails(box,id,watch);}});}catch(Exception e){MAIN.post(()->{if(!task.cancelled())loading.setText(tr("動画情報を取得できませんでした","Unable to load video details","無法載入影片資訊"));});}});
  }catch(Exception e){android.util.Log.w("nicoid-details","Unable to open short video details",e);}}
- private static void renderDetails(LinearLayout box,String id,JSONObject watch){
-  box.removeAllViews();Context c=box.getContext();JSONObject video=watch.optJSONObject("video");
+ private static void rememberDetails(String id,JSONObject watch){if(DetailData.matchesWatch(watch,id))synchronized(DETAILS){DETAILS.put(id,watch.toString());}}
+ private static void renderDetails(LinearLayout target,String id,JSONObject watch){
+  LinearLayout box=PanelUi.column(target.getContext());Context c=box.getContext();JSONObject video=watch.optJSONObject("video");
   LinearLayout titleRow=new LinearLayout(c);titleRow.setGravity(Gravity.CENTER_VERTICAL);if(video!=null)titleRow.addView(text(c,video.optString("title"),18),new LinearLayout.LayoutParams(0,-2,1));addLike(titleRow,watch);box.addView(titleRow);
   LinearLayout owner=new LinearLayout(c);JSONObject creator=watch.optJSONObject("channel");if(creator==null)creator=watch.optJSONObject("owner");owner.setGravity(Gravity.CENTER_VERTICAL);
-  if(creator!=null){ImageView avatar=new ImageView(c);avatar.setScaleType(ImageView.ScaleType.CENTER_CROP);android.graphics.drawable.GradientDrawable circle=PanelUi.round(c,ThemeChoice.isNight(c)?0xff22252b:0xffe5e8eb,100);avatar.setBackground(circle);avatar.setClipToOutline(true);LinearLayout.LayoutParams ap=new LinearLayout.LayoutParams(dp(c,36),dp(c,36));ap.setMargins(dp(c,8),0,0,0);owner.addView(avatar,ap);ShortImages.load(creator.optString("iconUrl",creator.optString("thumbnail", "")),avatar,null);}
+  if(creator!=null){ImageView avatar=new ImageView(c);avatar.setScaleType(ImageView.ScaleType.CENTER_CROP);android.graphics.drawable.GradientDrawable circle=PanelUi.round(c,ThemeChoice.isNight(c)?0xff22252b:0xffe5e8eb,100);avatar.setBackground(circle);avatar.setClipToOutline(true);LinearLayout.LayoutParams ap=new LinearLayout.LayoutParams(dp(c,36),dp(c,36));ap.setMargins(dp(c,8),0,0,0);owner.addView(avatar,ap);try{ShortImages.load(creator.optString("iconUrl",creator.optString("thumbnail", "")),avatar,null);}catch(Exception error){android.util.Log.w("nicoid-details","Unable to load owner image",error);}}
   TextView ownerName=text(c,creator==null?"":creator.optString("nickname",creator.optString("name")),16);owner.addView(ownerName,new LinearLayout.LayoutParams(0,-2,1));bindOwner(owner,watch);box.addView(owner);
   if(creator!=null){final JSONObject targetOwner=creator;ownerName.setOnClickListener(v->{if(watch.optJSONObject("channel")!=null)ChannelPage.launch(c,targetOwner);else open(c,"https://www.nicovideo.jp/user/"+targetOwner.optString("id"));});if(owner.getChildAt(0) instanceof ImageView)owner.getChildAt(0).setOnClickListener(v->ownerName.performClick());}
   if(video!=null)addMetadata(box,video,12);
@@ -31,6 +34,7 @@ public final class VideoDetails {
   if(video!=null&&!video.optString("description").isEmpty()){TextView description=text(box.getContext(),android.text.Html.fromHtml(video.optString("description")).toString(),14);description.setText(android.text.Html.fromHtml(video.optString("description")));description.setMovementMethod(android.text.method.LinkMovementMethod.getInstance());box.addView(description);}
   box.addView(text(box.getContext(),tr("シリーズ","Series","系列"),18));LinearLayout series=PanelUi.column(box.getContext());box.addView(series);JSONObject cached=watch.optJSONObject("series");if(cached!=null&&cached.optString("id").matches("[0-9]+"))renderSeries(series,cached);else series.addView(text(box.getContext(),tr("シリーズに登録されていません","Not part of a series","未加入系列"),14));
   box.addView(text(box.getContext(),tr("親作品・子作品","Parent and child works","父作品與子作品"),18));for(String key:new String[]{"parents","children"}){LinearLayout group=PanelUi.column(box.getContext());box.addView(group);new TreePage(group,video==null?id:video.optString("id",id),key).load();}
+  target.removeAllViews();target.addView(box);
  }
 
 

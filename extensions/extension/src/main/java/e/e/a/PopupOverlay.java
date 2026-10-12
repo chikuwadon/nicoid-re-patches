@@ -8,10 +8,11 @@ public final class PopupOverlay {
   root.post(()->update(root));
  }
  private static void size(View v,int w,int h){if(v==null)return;ViewGroup.LayoutParams p=v.getLayoutParams();if(p.width!=w||p.height!=h){p.width=w;p.height=h;v.setLayoutParams(p);}v.setPadding(0,0,0,0);v.setMinimumHeight(0);v.setMinimumWidth(0);if(v instanceof TextView){TextView text=(TextView)v;text.setGravity(Gravity.CENTER);text.setIncludeFontPadding(false);text.setMinHeight(0);text.setMinWidth(0);text.setShadowLayer(0,0,0,0);text.setTextSize(TypedValue.COMPLEX_UNIT_PX,h*.34f);}}
- private static void update(View root){View video=find(root,"videoLayout"),menu=find(root,"topmenulay");if(video==null||menu==null||video.getWidth()==0||video.getHeight()==0)return;float density=root.getResources().getDisplayMetrics().density;int h=OverlayRules.toolbar(video.getWidth(),video.getHeight(),density);int slot=OverlayRules.slot(h);menu.setPadding(0,0,0,0);
+ private static void update(View root){View video=find(root,"videoLayout"),menu=find(root,"topmenulay");if(video==null||menu==null||video.getWidth()==0||video.getHeight()==0)return;float density=root.getResources().getDisplayMetrics().density;int h=OverlayRules.toolbar(video.getWidth(),video.getHeight(),density);View close=root.findViewWithTag("popup-close");if(close!=null)h=Math.min(h,Math.max(1,Math.round(video.getWidth()/10f)));int slot=OverlayRules.slot(h);menu.setPadding(0,0,0,0);
   View strip=root.findViewWithTag(STRIP);if(strip!=null){ViewGroup.LayoutParams p=strip.getLayoutParams();if(p.height!=h){p.height=h;strip.setLayoutParams(p);}}
   for(String name:new String[]{"infobutton","commentbutton","fullscbutton"})size(find(root,name),slot,h);
   View row=root.findViewWithTag("popup-modern-controls");if(row instanceof LinearLayout){ViewGroup.LayoutParams p=row.getLayoutParams();if(p.height!=h){p.height=h;row.setLayoutParams(p);}LinearLayout group=(LinearLayout)row;for(int i=0;i<group.getChildCount();i++)size(group.getChildAt(i),slot,h);}
+  if(close!=null)size(close,slot,h);
   View play=find(root,"viewbutton");int central=OverlayRules.central(video.getHeight(),density);size(play,central,central);PlayerIcons.center(root);
  }
 }

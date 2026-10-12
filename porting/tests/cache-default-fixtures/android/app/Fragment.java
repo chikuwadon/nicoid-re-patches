@@ -1,0 +1,1 @@
+package android.app;import android.content.Intent;public class Fragment{public Activity activity;public Fragment(){}public Activity getActivity(){return activity;}public void onActivityResult(int request,int result,Intent data){}}

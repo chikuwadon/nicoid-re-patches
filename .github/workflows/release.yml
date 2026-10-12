@@ -62,10 +62,11 @@ jobs:
         run: |
           android_jar=$(find "$ANDROID_HOME/platforms" -name android.jar | sort -V | tail -n 1)
           javac --release 8 -cp "$android_jar" -d /tmp/nicoid-development-tests $(find extensions/extension/src/main/java -name '*.java')
-          javac --release 8 -cp /tmp/nicoid-development-tests:/tmp/nicoid-json.jar -d /tmp/nicoid-development-tests porting/tests/DevelopmentDataTest.java porting/tests/WatchRequestHeadersTest.java porting/tests/PostingRulesTest.java
+          javac --release 8 -cp /tmp/nicoid-development-tests:/tmp/nicoid-json.jar -d /tmp/nicoid-development-tests porting/tests/DevelopmentDataTest.java porting/tests/WatchRequestHeadersTest.java porting/tests/PostingRulesTest.java porting/tests/SearchBoundsTest.java
           java -cp /tmp/nicoid-development-tests e.e.a.WatchRequestHeadersTest
           java -Duser.timezone=Asia/Tokyo -cp /tmp/nicoid-development-tests:/tmp/nicoid-json.jar e.e.a.DevelopmentDataTest
           java -cp /tmp/nicoid-development-tests:/tmp/nicoid-json.jar e.e.a.PostingRulesTest
+          java -cp /tmp/nicoid-development-tests:/tmp/nicoid-json.jar e.e.a.SearchBoundsTest
           javac -d /tmp/nicoid-model-tests extensions/extension/src/main/java/e/e/a/BikeRunModel.java porting/tests/BikeRunModelTest.java
           java -cp /tmp/nicoid-model-tests e.e.a.BikeRunModelTest
       - name: Check Nico Reports activity filters
@@ -88,6 +89,10 @@ jobs:
           java -cp /tmp/nicoid-theme-tests e.e.a.ThemeRulesTest
       - name: Validate bundled Android manifest
         run: python3 porting/tests/VerifyManifest.py patches/src/main/resources/nicoid/resources.zip
+      - name: Validate bundled settings
+        run: python3 porting/tests/VerifySettingsPayload.py patches/src/main/resources/nicoid/resources.zip
+      - name: Validate helper source precedence
+        run: python3 porting/tests/VerifyCanonicalHelpers.py
       - name: Install dependencies
         run: npm install
 

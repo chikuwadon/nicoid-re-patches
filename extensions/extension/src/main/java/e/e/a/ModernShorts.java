@@ -61,7 +61,7 @@ import org.json.JSONObject;
 
 /** Short feeds reuse nicoid's existing player, comments and playback policies. */
 public final class ModernShorts {
-    private static final String PATCH_VERSION = "v1.8.3 @chikuwadon";
+    private static final String PATCH_VERSION = "v1.8.4 @chikuwadon";
     private static final String PLAYER = "com.sauzask.nicoid.NicoidVideoActivity";
     private static final String MODE = "nicoid_re_shorts";
     private static final String SESSION = "nicoid_re_shorts_session";
@@ -244,7 +244,7 @@ public final class ModernShorts {
             p.setTitle("サイドバーにショートを表示"); p.setSummary("ランキングの下にショート動画の入口を表示します");
             p.setDefaultValue(true); group.addPreference(p);
         }
-        Preference version = a.findPreference("nicoid_patch_version");
+        Preference version = PatchInfo.ensure(a, PATCH_VERSION);
         if (version != null) {
             version.setSummary(PATCH_VERSION);
             // The bundled XML marks this informational row non-selectable.

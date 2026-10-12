@@ -1,0 +1,1 @@
+package android.preference;import android.content.Context;public class PreferenceActivity extends Context{final PreferenceScreen screen=new PreferenceScreen(this);public PreferenceScreen getPreferenceScreen(){return screen;}public Preference findPreference(CharSequence key){return screen.find(key.toString());}}

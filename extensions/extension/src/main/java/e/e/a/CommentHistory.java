@@ -45,13 +45,14 @@ public final class CommentHistory {
     }
     private static String threadId(JSONObject thread){return thread.optString("id")+":"+thread.optString("fork");}
     static final class Job implements Runnable {
-        final Object owner,watch; final String video,url,body,response;final int limit;
+        final java.lang.ref.WeakReference<Object> owner;final Object watch; final String video,url,body,response;final int limit;
         Job(Object owner,String url,String body,String response,int limit)throws Exception{
-            this.owner=owner;this.url=url;this.body=body;this.response=response;this.limit=limit;
+            this.owner=new java.lang.ref.WeakReference<>(owner);this.url=url;this.body=body;this.response=response;this.limit=limit;
             watch=field(owner,"modernWatch");video=String.valueOf(field(owner,"d"));
         }
-        boolean current(){try{return watch==field(owner,"modernWatch")&&video.equals(String.valueOf(field(owner,"d")))&&!Thread.currentThread().isInterrupted();}catch(Exception ignored){return false;}}
+        boolean current(){Object target=owner.get();if(target==null)return false;try{try{if(Boolean.TRUE.equals(field(target,"a")))return false;}catch(NoSuchFieldException ignored){}return watch==field(target,"modernWatch")&&video.equals(String.valueOf(field(target,"d")))&&!Thread.currentThread().isInterrupted();}catch(Exception ignored){return false;}}
         public void run(){
+            Object owner=this.owner.get();if(owner==null)return;
             try {
                 JSONObject root=new JSONObject(response), request=new JSONObject(body);
                 JSONArray threads=root.getJSONObject("data").getJSONArray("threads");
@@ -74,6 +75,7 @@ public final class CommentHistory {
                     if(cursor==null)continue;
                     while(count<limit&&calls++<80&&current()){
                         Thread.sleep(500);
+                        if(!current())break;
                         JSONObject targetCopy=new JSONObject(target.toString());targetCopy.put("res_from",-1000);
                         JSONObject pageParams=new JSONObject(params.toString());pageParams.put("targets",new JSONArray().put(targetCopy));
                         JSONObject pageBody=new JSONObject(body);pageBody.put("params",pageParams);pageBody.put("additionals",new JSONObject().put("when",cursor));

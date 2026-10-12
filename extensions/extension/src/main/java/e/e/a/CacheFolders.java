@@ -24,7 +24,8 @@ public final class CacheFolders {
     public static String root(Context c) {
         init(c);String tree=prefs().getString(KEY,"");
         if(tree.isEmpty())return PREFIX+"unselected";
-        String key=key(tree);prefs().edit().putString("cache_tree_"+key,tree).apply();return PREFIX+key;
+        String key=key(tree),bookmark="cache_tree_"+key;
+        if(!tree.equals(prefs().getString(bookmark,"")))prefs().edit().putString(bookmark,tree).apply();return PREFIX+key;
     }
     private static String key(String tree) {
         try{byte[] bytes=java.security.MessageDigest.getInstance("SHA-256").digest(tree.getBytes("UTF-8"));StringBuilder s=new StringBuilder();for(byte b:bytes)s.append(String.format(java.util.Locale.ROOT,"%02x",b&255));return s.toString();}catch(Exception e){throw new IllegalStateException(e);}
@@ -70,7 +71,8 @@ public final class CacheFolders {
             return;
         }
     }
-    static String videoId(String name){java.util.regex.Matcher m=java.util.regex.Pattern.compile("^((?:sm|so|nm|ss)[0-9]+)(?:[._].*)?$").matcher(name);return m.matches()?m.group(1):null;}
+    private static final java.util.regex.Pattern VIDEO_ID=java.util.regex.Pattern.compile("^((?:sm|so|nm|ss)[0-9]+)(?:[._].*)?$");
+    static String videoId(String name){java.util.regex.Matcher m=VIDEO_ID.matcher(name);return m.matches()?m.group(1):null;}
     static String physicalName(String name){return videoId(name)!=null&&name.endsWith(".mp4")?name.substring(0,name.length()-4)+".complete":name;}
     static List<Entry> cacheChildren(Uri parent,Uri tree)throws IOException{LinkedHashMap<String,Entry> result=new LinkedHashMap<>();List<Entry> all=children(parent,tree);
         for(Entry e:all)if(!DocumentsContract.Document.MIME_TYPE_DIR.equals(e.mime)&&videoId(e.name)!=null)result.put(e.name,e);

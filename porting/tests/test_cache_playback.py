@@ -23,5 +23,5 @@ with tempfile.TemporaryDirectory() as d:
  }
  for name,text in sources.items():f=p/name;f.parent.mkdir(parents=True,exist_ok=True);f.write_text(text)
  actual=ROOT/'extensions/extension/src/main/java/e/e/a/CachePlayback.java'
- subprocess.run([str(JAVAC),'-d',str(p),*map(str,p.rglob('*.java')),str(actual)],check=True)
+ subprocess.run([str(JAVAC),'-d',str(p),*map(str,p.rglob('*.java')),str(actual),str(actual.with_name('PlaybackUrls.java'))],check=True)
  disk=p/'files';disk.mkdir();subprocess.run([str(JAVA),'-cp',str(p),'e.e.a.RelayTest',str(disk)],check=True)

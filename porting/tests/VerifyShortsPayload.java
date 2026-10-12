@@ -28,7 +28,17 @@ public final class VerifyShortsPayload {
         Method create = method(player, "onCreate", "V", "Landroid/os/Bundle;");
         calls(create, helper, "bootstrap"); calls(create, helper, "attach");
         Method touch = method(player, "dispatchTouchEvent", "Z", "Landroid/view/MotionEvent;");
-        calls(touch, helper, "touch"); calls(touch, "Landroid/app/Activity;", "dispatchTouchEvent");
+        calls(touch, "Le/e/a/PlayerGestures;", "touch"); calls(touch, "Landroid/app/Activity;", "dispatchTouchEvent");
+        Method route = method("Le/e/a/PlayerGestures;", "shorts", "Z", "Landroid/app/Activity;", "Landroid/view/MotionEvent;");
+        Set<String> routeStrings = new HashSet<>();
+        for (Instruction instruction : route.getImplementation().getInstructions()) if (instruction instanceof ReferenceInstruction) {
+            Reference reference = ((ReferenceInstruction)instruction).getReference();
+            if (reference instanceof StringReference) routeStrings.add(((StringReference)reference).getString());
+        }
+        if (!routeStrings.contains("e.e.a.ModernShorts") || !routeStrings.contains("touch")) throw new AssertionError("Shorts gesture route missing");
+        calls(route, "Ljava/lang/Class;", "getMethod");
+        calls(route, "Ljava/lang/reflect/Method;", "invoke");
+        method(helper, "touch", "Z", "Landroid/app/Activity;", "Landroid/view/MotionEvent;");
         calls(method(top, "a", "Landroid/widget/ListView;", "Landroid/content/Context;", "Landroid/widget/ListView;", "Z"), helper, "addMenu");
         calls(method("Lcom/sauzask/nicoid/NicoidSetting;", "onCreate", "V", "Landroid/os/Bundle;"), helper, "settings");
         Method menu = method(top, "a", "V", "Ljava/util/ArrayList;", "Z", "Ljava/lang/String;", "Ljava/lang/String;", "Landroid/content/Intent;", "I");

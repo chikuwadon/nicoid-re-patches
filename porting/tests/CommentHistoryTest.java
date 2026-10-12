@@ -1,7 +1,7 @@
 package e.e.a;
 import org.json.*;
 public class CommentHistoryTest {
- static class Owner {public Object modernWatch=new Object();public String d="sm1";}
+ static class Owner {public boolean a;public Object modernWatch=new Object();public String d="sm1";}
  static String response(int from,int to,int seconds)throws Exception{JSONArray comments=new JSONArray();for(int n=from;n<=to;n++)comments.put(new JSONObject().put("no",n).put("body","comment "+n).put("postedAt",String.format("2026-10-01T00:00:%02dZ",seconds+n)));return new JSONObject().put("data",new JSONObject().put("threads",new JSONArray().put(new JSONObject().put("id","1").put("fork","main").put("comments",comments)))).toString();}
  static String body()throws Exception{return new JSONObject().put("params",new JSONObject().put("language","ja-jp").put("targets",new JSONArray().put(new JSONObject().put("id","1").put("fork","main")))).put("threadKey","key").put("additionals",new JSONObject()).toString();}
  static void check(boolean b,String label){if(!b)throw new AssertionError(label);}
@@ -12,6 +12,8 @@ public class CommentHistoryTest {
   ModernPlayback.index=0;ModernPlayback.pages=new String[]{response(1,3,10)};ModernComments.applied=null;new CommentHistory.Job(owner,"https://example.invalid",body(),response(3,5,20),4).run();check(new JSONObject(ModernComments.applied).getJSONObject("data").getJSONArray("threads").getJSONObject(0).getJSONArray("comments").length()==4,"stop at target");
   ModernPlayback.index=0;ModernPlayback.pages=new String[]{response(1,3,10),null};ModernComments.applied=null;new CommentHistory.Job(owner,"https://example.invalid",body(),response(3,5,20),9).run();check(ModernComments.applied!=null,"keep successful pages on error");
   ModernPlayback.index=0;CommentHistory.Job job=new CommentHistory.Job(owner,"https://example.invalid",body(),response(3,5,20),9);owner.modernWatch=new Object();job.run();check(ModernPlayback.index==0,"cancel obsolete video");
+  CommentHistory.Job released=new CommentHistory.Job(owner,"https://example.invalid",body(),response(3,5,20),9);released.owner.clear();check(!released.current(),"released player not retained by pending job");int requests=ModernPlayback.index;released.run();check(ModernPlayback.index==requests,"released job performs no requests");
+  CommentHistory.Job closed=new CommentHistory.Job(owner,"https://example.invalid",body(),response(3,5,20),9);owner.a=true;check(!closed.current(),"closed player cancels history loading");closed.run();check(ModernPlayback.index==requests,"closed player performs no extra requests");
   System.out.println("History merge, target, repeat, error and cancellation checks passed");
  }
 }

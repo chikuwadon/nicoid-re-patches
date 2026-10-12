@@ -104,6 +104,7 @@ public final class CacheProgress {
     private static final java.util.WeakHashMap<android.view.View,RowProgress> ROWS=new java.util.WeakHashMap<>();
     public static void bind(android.view.View view,Object adapter,Object row){
         try{Object host=adapter.getClass().getField("d").get(adapter);if(!host.getClass().getName().equals("com.sauzask.nicoid.NicoidCacheManagerActivity"))return;
+            CacheListing.bind(view,row);
             RowProgress old=ROWS.remove(view);if(old!=null){old.cancel();view.removeOnAttachStateChangeListener(old);}
             android.view.View label=view.findViewById(0x7f0801d3);if(!(label instanceof android.widget.TextView))return;
             String id=HistoryRules.id(ListActions.value(row,"videourl"));RowProgress progress=new RowProgress(view,(android.widget.TextView)label,id);
@@ -111,14 +112,14 @@ public final class CacheProgress {
         }catch(Exception ignored){}
     }
     private static final class RowProgress implements Runnable,android.view.View.OnAttachStateChangeListener{
-        final java.lang.ref.WeakReference<android.view.View> view;final java.lang.ref.WeakReference<android.widget.TextView> label;final String id;String base;boolean wasActive;long lastReceived,lastTotal;int attachmentWait;
+        final java.lang.ref.WeakReference<android.view.View> view;final java.lang.ref.WeakReference<android.widget.TextView> label;final String id;CharSequence base;boolean wasActive;long lastReceived,lastTotal;int attachmentWait;
         RowProgress(android.view.View v,android.widget.TextView text,String video){view=new java.lang.ref.WeakReference<>(v);label=new java.lang.ref.WeakReference<>(text);id=video;}
         public void cancel(){MAIN.removeCallbacks(this);}
         public void onViewAttachedToWindow(android.view.View v){cancel();run();}
         public void onViewDetachedFromWindow(android.view.View v){cancel();}
         public void run(){android.view.View root=view.get();android.widget.TextView text=label.get();if(root==null||text==null||ROWS.get(root)!=this)return;
-            if(base==null)base=text.getText().toString().replaceFirst("(?s)\\n[^\\n]*[KM]B(?:[^\\n]*)$", "");
-            try{Class<?> service=Class.forName("com.sauzask.nicoid.NicoidDownloadCache");String current=HistoryRules.id(String.valueOf(service.getField("t").get(null)));boolean active=service.getField("v").getBoolean(null)&&id.equals(current);if(active){long received=BYTES.get(),total=totalBytes;lastReceived=received;lastTotal=total;String amount=format(received);String status=amount+(total>0?" / "+format(total):"")+" ("+percent()+"%)";String value=base+"\n"+status;if(!value.contentEquals(text.getText()))text.setText(value);wasActive=true;}else if(wasActive){text.setText(base+"\n"+format(lastReceived)+(completed||lastTotal>0&&lastReceived>=lastTotal?" (100%)":""));wasActive=false;}}
+            if(base==null){CharSequence initial=text.getText();int last=initial.toString().lastIndexOf('\n');base=last>=0&&initial.subSequence(last+1,initial.length()).toString().matches(".*[KM]B.*")?initial.subSequence(0,last):initial;}
+            try{Class<?> service=Class.forName("com.sauzask.nicoid.NicoidDownloadCache");String current=HistoryRules.id(String.valueOf(service.getField("t").get(null)));boolean active=service.getField("v").getBoolean(null)&&id.equals(current);if(active){long received=BYTES.get(),total=totalBytes;lastReceived=received;lastTotal=total;String amount=format(received);String status=amount+(total>0?" / "+format(total):"")+" ("+percent()+"%)";CharSequence value=new android.text.SpannableStringBuilder(base).append("\n").append(status);if(!value.toString().contentEquals(text.getText()))text.setText(value);wasActive=true;}else if(wasActive){text.setText(new android.text.SpannableStringBuilder(base).append("\n").append(format(lastReceived)).append(completed||lastTotal>0&&lastReceived>=lastTotal?" (100%)":""));wasActive=false;}}
             catch(Exception ignored){}if(root.isAttachedToWindow()){attachmentWait=0;MAIN.postDelayed(this,500);}else if(attachmentWait++<10)MAIN.postDelayed(this,500);
         }
     }

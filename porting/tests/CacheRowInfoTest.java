@@ -1,0 +1,6 @@
+package e.e.a;
+import org.json.*;
+public class CacheRowInfoTest {
+ static void check(boolean b,String m){if(!b)throw new AssertionError(m);}
+ public static void main(String[] args)throws Exception{JSONObject d=new JSONObject().put("viewCount",15490).put("commentCount",140).put("mylistCount",21).put("likeCount",55).put("postedAt","2026-10-11T10:52:52+09:00").put("details_owner","{\"nickname\":\"投稿者\"}");CacheRowInfo row=CacheRowInfo.from(d,2*1048576,true);check(row.posted.equals("2026年10月11日 10時52分 投稿"),"Japanese posted timestamp");check(row.owner.equals("投稿者"),"Serialized owner restored");long[] counts=VideoCountRules.parse(row.counts);check(counts!=null&&counts[0]==15490&&counts[1]==140&&counts[2]==55&&counts[3]==21,"All four statistics remain icon-compatible");check(row.transfer.equals("2.0 MB (100%)"),"Completed video size");d.remove("details_owner");d.put("details_channel","{\"name\":\"公式チャンネル\"}");d.remove("likeCount");row=CacheRowInfo.from(d,1024,false);check(row.owner.equals("公式チャンネル"),"Channel owner restored");check(VideoCountRules.parse(row.counts)[2]==-1,"Legacy missing likes are not fabricated");check(row.transfer.contains("未完了")&&!row.transfer.contains("100%"),"Metadata-only entry is incomplete");System.out.println("Cached list metadata: 7 owner/date/statistics/completion checks passed");}
+}

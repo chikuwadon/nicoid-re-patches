@@ -1,0 +1,5 @@
+package e.e.a;
+import java.io.*;import java.util.*;import android.content.*;import android.preference.PreferenceManager;
+public class CacheListingTest {
+ public static void main(String[] args)throws Exception{CacheDefaultTest.values.clear();PreferenceManager.prefs=(SharedPreferences)CacheDefaultTest.preferences(SharedPreferences.class);File base=new File(args[0]);base.mkdirs();Context c=new Context(base,base);File old=new File(base,"nicoid/nicoid_cache");old.mkdirs();File metadata=new File(old,"sm1.json");try(OutputStream out=new FileOutputStream(metadata)){out.write("{\"videoTitle\":\"old private cache\"}".getBytes("UTF-8"));}ArrayList<x1> rows=new ArrayList<>();long bytes=CacheListing.load(rows,c);if(!rows.isEmpty()||bytes!=0)throw new AssertionError("unselected page must not enumerate private cache");if(!metadata.isFile())throw new AssertionError("old private metadata retained for explicit copy");System.out.println("Unselected cache list: no implicit private reads; previous files retained");}
+}

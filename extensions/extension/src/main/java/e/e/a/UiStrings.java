@@ -13,6 +13,18 @@ public final class UiStrings {
     private static volatile int selectedLanguage = -1;
     static {
         TEXT.put("起動時の画面", new String[]{"Startup screen", "啟動畫面"});
+        TEXT.put("半年以内",new String[]{"Within 6 months","半年內"});
+        TEXT.put("1年以内",new String[]{"Within 1 year","1 年內"});
+        TEXT.put("3年以内",new String[]{"Within 3 years","3 年內"});
+        TEXT.put("5年以内",new String[]{"Within 5 years","5 年內"});
+        TEXT.put("1分以内",new String[]{"Up to 1 minute","1 分鐘內"});
+        TEXT.put("3分以内",new String[]{"Up to 3 minutes","3 分鐘內"});
+        TEXT.put("5分以内",new String[]{"Up to 5 minutes","5 分鐘內"});
+        TEXT.put("10分以内",new String[]{"Up to 10 minutes","10 分鐘內"});
+        TEXT.put("20分以内",new String[]{"Up to 20 minutes","20 分鐘內"});
+        TEXT.put("20分以上",new String[]{"20 minutes or longer","20 分鐘以上"});
+        TEXT.put("60分以上",new String[]{"60 minutes or longer","60 分鐘以上"});
+
         TEXT.put("ニコレポ", new String[]{"Nico Reports", "Nico 動態"});
         TEXT.put("投稿者のフォローボタンを表示", new String[]{"Show creator follow button", "顯示投稿者追蹤按鈕"});
         TEXT.put("動画情報にフォローボタンを表示します", new String[]{"Show a follow button in video details", "在影片資訊顯示追蹤按鈕"});

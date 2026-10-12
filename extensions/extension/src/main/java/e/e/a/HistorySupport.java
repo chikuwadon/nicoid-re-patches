@@ -4,7 +4,12 @@ import android.content.Context;
 import org.json.JSONArray;
 
 public final class HistorySupport {
+    private static final java.util.Map<Object,String> OWNERS=java.util.Collections.synchronizedMap(new java.util.WeakHashMap<Object,String>());
     private HistorySupport() { }
+    public static void capture(Object row,org.json.JSONObject video){String name="";for(String key:new String[]{"owner","user","channel"}){org.json.JSONObject o=video.optJSONObject(key);if(o!=null){name=o.optString("nickname",o.optString("name", ""));if(name.isEmpty()&&o.optJSONObject("user")!=null)name=o.optJSONObject("user").optString("nickname");if(!name.isEmpty())break;}}if(name.isEmpty())name=video.optString("ownerName",video.optString("uploaderName", ""));OWNERS.put(row,name);}
+
+    public static void capture(Object row,org.json.JSONObject video,org.json.JSONObject record){capture(row,video);String name=OWNERS.get(row);if((name==null||name.isEmpty())&&record!=null)capture(row,record);}
+
     public static String format(String ignored, Object[] values) {
         return String.format(UiStrings.translate("<b>%s</b> <font color='red'>%s回視聴</font>"), values);
     }
@@ -27,6 +32,8 @@ public final class HistorySupport {
         String counts = newline < 0 ? source : source.substring(0, newline);
         if (VideoCountRules.parse(counts) == null) return;
         VideoCounts.setText(statistics, counts);
+        String owner=OWNERS.get(row);
+        if(owner!=null&&!owner.isEmpty()){statistics.append("\n"+owner);statistics.setContentDescription(String.valueOf(statistics.getContentDescription())+"\n"+owner);}
         if (newline >= 0) {
             CharSequence description = statistics.getContentDescription();
             statistics.append(source.substring(newline));

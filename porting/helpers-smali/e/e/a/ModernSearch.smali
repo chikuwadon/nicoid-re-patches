@@ -89,6 +89,8 @@
     :cond_4d
     invoke-virtual {v3, v1, v2}, Landroid/net/Uri$Builder;->appendQueryParameter(Ljava/lang/String;Ljava/lang/String;)Landroid/net/Uri$Builder;
 
+    invoke-static {v0, v3}, Le/e/a/SearchFilters;->apply(Landroid/net/Uri;Landroid/net/Uri$Builder;)V
+
     invoke-virtual {v3}, Landroid/net/Uri$Builder;->build()Landroid/net/Uri;
 
     move-result-object v0
@@ -237,6 +239,11 @@
     invoke-virtual {v5, v7}, Lorg/json/JSONArray;->getJSONObject(I)Lorg/json/JSONObject;
 
     move-result-object v8
+
+    iget-object v9, p0, Le/e/a/e0;->a:Ljava/lang/String;
+    invoke-static {v8, v9}, Le/e/a/SearchFilters;->matches(Lorg/json/JSONObject;Ljava/lang/String;)Z
+    move-result v9
+    if-eqz v9, :cond_1a6
 
     const-string v9, "type"
 
@@ -434,7 +441,6 @@
 
     invoke-static {v7}, Le/e/a/Followup3;->parsed(I)V
 
-    if-lez v7, :cond_1db
 
     iget v8, p0, Le/e/a/e0;->f:I
 

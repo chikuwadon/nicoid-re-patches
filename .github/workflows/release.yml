@@ -65,7 +65,7 @@ jobs:
           javac --release 8 -cp /tmp/nicoid-development-tests:/tmp/nicoid-json.jar -d /tmp/nicoid-development-tests porting/tests/DevelopmentDataTest.java porting/tests/WatchRequestHeadersTest.java porting/tests/PostingRulesTest.java
           java -cp /tmp/nicoid-development-tests e.e.a.WatchRequestHeadersTest
           java -Duser.timezone=Asia/Tokyo -cp /tmp/nicoid-development-tests:/tmp/nicoid-json.jar e.e.a.DevelopmentDataTest
-          java -cp /tmp/nicoid-development-tests e.e.a.PostingRulesTest
+          java -cp /tmp/nicoid-development-tests:/tmp/nicoid-json.jar e.e.a.PostingRulesTest
           javac -d /tmp/nicoid-model-tests extensions/extension/src/main/java/e/e/a/BikeRunModel.java porting/tests/BikeRunModelTest.java
           java -cp /tmp/nicoid-model-tests e.e.a.BikeRunModelTest
       - name: Check Nico Reports activity filters

@@ -56,6 +56,7 @@ public final class ModernEnhancements {
         LoginSupport.settings(activity);
         ContentFilter.settings(activity);
         CacheFolders.settings(activity);
+        SettingsBackup.install(activity);
         ListPreference quality = (ListPreference) activity.findPreference("quality_mode");
         if (quality != null) {
             CharSequence[] labels = new CharSequence[]{"最大画質", "高画質", "標準画質", "低画質"};
@@ -112,6 +113,7 @@ public final class ModernEnhancements {
             params.addRule(RelativeLayout.LEFT_OF, service.getResources().getIdentifier("commentbutton", "id", service.getPackageName()));
             ((RelativeLayout) controller).addView(row, params);
             update(object);
+            PopupGestures.attach(object,root);
             PopupOverlay.attach(root);
         } catch (Exception ex) { error(service, ex); }
     }

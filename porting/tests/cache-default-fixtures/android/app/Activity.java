@@ -1,0 +1,1 @@
+package android.app;import android.content.Context;import java.io.File;public class Activity extends Context{public static final int RESULT_OK=-1,RESULT_CANCELED=0;public int finishes;public Activity(){super(new File("external"),new File("internal"));}public void finish(){finishes++;}}

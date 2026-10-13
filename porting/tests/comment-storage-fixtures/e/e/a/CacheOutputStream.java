@@ -1,0 +1,1 @@
+package e.e.a;import java.io.*;class CacheOutputStream extends FileOutputStream {CacheOutputStream(File f)throws IOException{super(f);if(CacheFile.failOpen){close();throw new IOException("Injected write failure");}}}

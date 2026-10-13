@@ -48,6 +48,8 @@ public final class PerformanceTest {
             for(File file:dir.listFiles()) { check(!file.getName().contains("example"),"opaque disk names");file.setLastModified(System.currentTimeMillis()-8L*24*60*60*1000); }
             check(disk.get(url)==null,"image expiry");
             byte[] big = new byte[8*1024*1024]; for(int n=0;n<5;n++) disk.put("https://example.com/"+n,big);
+            check(disk.reconciliations==1,"repeated writes avoid repeated directory scans");
+            ImageDiskCache restarted=new ImageDiskCache(parent);restarted.put("https://example.com/restarted",data);check(restarted.reconciliations==1,"restart reconciles existing disk cache");
             long bytes=0;for(File file:dir.listFiles()){check(file.getName().endsWith(".img"),"atomic write leaves no temporary files");bytes+=file.length();}
             check(bytes<=32L*1024*1024,"disk limit"); disk.remove("https://example.com/4"); check(disk.get("https://example.com/4")==null,"invalid image removal");
         } finally { for(File dir:parent.listFiles()){for(File file:dir.listFiles())file.delete();dir.delete();}parent.delete(); }

@@ -54,6 +54,10 @@ jobs:
           curl -fLs --retry 2 https://repo.maven.apache.org/maven2/org/json/json/20240303/json-20240303.jar -o /tmp/nicoid-json.jar
           javac -cp /tmp/nicoid-json.jar -d /tmp/nicoid-paid-tests $(find porting/tests/paid-stubs -name '*.java') extensions/extension/src/main/java/e/e/a/PaidVideos.java extensions/extension/src/main/java/e/e/a/UiStrings.java porting/tests/PaidVideosTest.java
           java -cp /tmp/nicoid-paid-tests:/tmp/nicoid-json.jar e.e.a.PaidVideosTest porting/tests/paid-list-fixture.json porting/tests/paid-watch-fixture.json
+      - name: Check comment storage failure recovery
+        run: |
+          javac --release 8 -d /tmp/nicoid-comment-storage $(find porting/tests/comment-storage-fixtures -name '*.java') extensions/extension/src/main/java/e/e/a/CacheComments.java
+          java -cp /tmp/nicoid-comment-storage e.e.a.CommentStorageTest
       - name: Check content filtering and history deletion
         run: |
           javac -d /tmp/nicoid-content-tests extensions/extension/src/main/java/e/e/a/ContentFilterRules.java extensions/extension/src/main/java/e/e/a/HistoryRules.java porting/tests/ContentHistoryRulesTest.java
@@ -62,11 +66,12 @@ jobs:
         run: |
           android_jar=$(find "$ANDROID_HOME/platforms" -name android.jar | sort -V | tail -n 1)
           javac --release 8 -cp "$android_jar" -d /tmp/nicoid-development-tests $(find extensions/extension/src/main/java -name '*.java')
-          javac --release 8 -cp /tmp/nicoid-development-tests:/tmp/nicoid-json.jar -d /tmp/nicoid-development-tests porting/tests/DevelopmentDataTest.java porting/tests/WatchRequestHeadersTest.java porting/tests/PostingRulesTest.java porting/tests/SearchBoundsTest.java
+          javac --release 8 -cp /tmp/nicoid-development-tests:/tmp/nicoid-json.jar -d /tmp/nicoid-development-tests porting/tests/DevelopmentDataTest.java porting/tests/WatchRequestHeadersTest.java porting/tests/PostingRulesTest.java porting/tests/SearchBoundsTest.java porting/tests/StorageImprovementsTest.java
           java -cp /tmp/nicoid-development-tests e.e.a.WatchRequestHeadersTest
           java -Duser.timezone=Asia/Tokyo -cp /tmp/nicoid-development-tests:/tmp/nicoid-json.jar e.e.a.DevelopmentDataTest
           java -cp /tmp/nicoid-development-tests:/tmp/nicoid-json.jar e.e.a.PostingRulesTest
           java -cp /tmp/nicoid-development-tests:/tmp/nicoid-json.jar e.e.a.SearchBoundsTest
+          java -cp /tmp/nicoid-development-tests:/tmp/nicoid-json.jar e.e.a.StorageImprovementsTest
           javac -d /tmp/nicoid-model-tests extensions/extension/src/main/java/e/e/a/BikeRunModel.java porting/tests/BikeRunModelTest.java
           java -cp /tmp/nicoid-model-tests e.e.a.BikeRunModelTest
       - name: Check Nico Reports activity filters

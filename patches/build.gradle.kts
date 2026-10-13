@@ -48,6 +48,14 @@ val androidJar = providers.provider {
     platforms.firstOrNull()?.resolve("android.jar")?.takeIf { it.isFile }
         ?: error("Android SDK platform android.jar was not found")
 }
+val verifyHelperOwnership = tasks.register<Exec>("verifyHelperOwnership") {
+    inputs.dir(rootProject.file("extensions/extension/src/main/java/e/e/a"))
+    inputs.dir(rootProject.file("porting/helpers-smali/e/e/a"))
+    inputs.file(rootProject.file("porting/helper-ownership.json"))
+    inputs.file(rootProject.file("porting/tests/VerifyCanonicalHelpers.py"))
+    workingDir(rootProject.projectDir)
+    commandLine("python3", rootProject.file("porting/tests/VerifyCanonicalHelpers.py").absolutePath)
+}
 val modernShortsSource = rootProject.file("extensions/extension/src/main/java/e/e/a/ModernShorts.java")
 val generateNicoidVersion = tasks.register("generateNicoidVersion") {
     inputs.property("patchVersion", providers.gradleProperty("version").orElse(project.version.toString()))
@@ -61,7 +69,7 @@ val generateNicoidVersion = tasks.register("generateNicoidVersion") {
     }
 }
 val compileNicoidHelpers = tasks.register<JavaCompile>("compileNicoidHelpers") {
-    dependsOn(generateNicoidVersion)
+    dependsOn(generateNicoidVersion, verifyHelperOwnership)
     source(fileTree(rootProject.file("extensions/extension/src/main/java")) { include("**/*.java") })
     classpath = files(androidJar)
     destinationDirectory.set(layout.buildDirectory.dir("nicoid/helper-classes"))
@@ -155,8 +163,20 @@ val verifyListClickRouting = tasks.register<JavaExec>("verifyListClickRouting") 
     mainClass.set("VerifyListClickRouting")
     args(layout.buildDirectory.file("nicoid/merged-helper-dex/classes.dex").get().asFile.absolutePath)
 }
+val compileMaintenanceVerification = tasks.register<JavaCompile>("compileMaintenanceVerification") {
+    source(rootProject.file("porting/tests/VerifyMaintenancePayload.java"))
+    classpath = sourceSets["main"].compileClasspath
+    destinationDirectory.set(layout.buildDirectory.dir("nicoid/maintenance-verification-classes"))
+    options.release.set(8)
+}
+val verifyMaintenancePayload = tasks.register<JavaExec>("verifyMaintenancePayload") {
+    dependsOn(mergeNicoidHelpersDex, compileMaintenanceVerification)
+    classpath = files(compileMaintenanceVerification.flatMap { it.destinationDirectory }) + sourceSets["main"].compileClasspath
+    mainClass.set("VerifyMaintenancePayload")
+    args(layout.buildDirectory.file("nicoid/merged-helper-dex/classes.dex").get().asFile.absolutePath)
+}
 val prepareNicoidHelpers = tasks.register("prepareNicoidHelpers") {
-    dependsOn(verifyDialogArguments, verifyListClickRouting)
+    dependsOn(verifyDialogArguments, verifyListClickRouting, verifyMaintenancePayload)
     doLast {
         val dex = layout.buildDirectory.file("nicoid/merged-helper-dex/classes.dex").get().asFile
         check(dex.isFile && dex.readBytes().take(4).toByteArray().contentEquals(byteArrayOf(0x64, 0x65, 0x78, 0x0a))) {

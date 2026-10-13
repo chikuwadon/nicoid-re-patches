@@ -16,7 +16,7 @@ public class CacheFile extends File {
     @Override public File getAbsoluteFile(){return new CacheFile(getAbsolutePath());}
     @Override public boolean exists(){if(!saf()){if(super.exists())return true;try{return CachePack.entry(this)!=null;}catch(IOException|RuntimeException e){return false;}}try{return CacheFolders.stat(this)!=null;}catch(IOException|RuntimeException e){return false;}}
     @Override public boolean isDirectory(){if(!saf())return super.isDirectory();try{CacheFolders.Entry e=CacheFolders.stat(this);return e!=null&&DocumentsContract.Document.MIME_TYPE_DIR.equals(e.mime);}catch(IOException|RuntimeException e){return false;}}
-    @Override public boolean isFile(){return exists()&&!isDirectory();}
+    @Override public boolean isFile(){if(!saf())return exists()&&!super.isDirectory();try{CacheFolders.Entry e=CacheFolders.stat(this);return e!=null&&!DocumentsContract.Document.MIME_TYPE_DIR.equals(e.mime);}catch(IOException|RuntimeException e){return false;}}
     @Override public long length(){if(!saf()){if(super.exists())return super.length();try{CachePackIndex.Entry e=CachePack.entry(this);return e==null?0:e.size;}catch(IOException|RuntimeException e){return 0;}}try{CacheFolders.Entry e=CacheFolders.stat(this);return e==null?0:e.size;}catch(IOException|RuntimeException e){return 0;}}
     @Override public long lastModified(){if(!saf()){if(super.exists())return super.lastModified();try{CachePackIndex.Entry e=CachePack.entry(this);return e==null?0:e.time;}catch(IOException|RuntimeException e){return 0;}}try{CacheFolders.Entry e=CacheFolders.stat(this);return e==null?0:e.time;}catch(IOException|RuntimeException e){return 0;}}
     @Override public boolean mkdir(){return saf()?isDirectory():super.mkdir();}

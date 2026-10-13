@@ -40,45 +40,28 @@ public final class CacheFolders {
         String name=path.substring(start+SUFFIX.length());if(name.startsWith("/"))name=name.substring(1);
         if(name.contains("/")||name.equals("..")||name.equals("."))throw new FileNotFoundException("Invalid cache path");return name;
     }
-    private static final class Index {long refreshed;final Map<String,Uri> files=new HashMap<>();}
-    private static final Map<String,Index> indexes=new LinkedHashMap<String,Index>(8,.75f,true){protected boolean removeEldestEntry(Map.Entry<String,Index> e){return size()>8;}};
-    static synchronized void forget(File f){try{Index i=indexes.get(tree(f).toString());if(i!=null)i.files.remove(relative(f));}catch(IOException ignored){}}
-    static synchronized void remember(File f,Uri uri){try{Index i=indexes.get(tree(f).toString());if(i!=null)i.files.put(relative(f),uri);}catch(IOException ignored){}}
-    static synchronized Uri document(File f,boolean create) throws IOException {
-        Uri tree=tree(f),parent=DocumentsContract.buildDocumentUriUsingTree(tree,DocumentsContract.getTreeDocumentId(tree));String name=relative(f);
-        if(name.isEmpty())return parent;
-        Index index=indexes.get(tree.toString());long now=SystemClock.elapsedRealtime();
-        if(index==null||now-index.refreshed>2000){index=new Index();for(Entry e:cacheChildren(parent,tree))index.files.put(e.name,e.uri);index.refreshed=now;indexes.put(tree.toString(),index);}
-        Uri found=index.files.get(name);if(found!=null)return found;
-        if(!create)return null;
-        String id=videoId(name);String physical=physicalName(name);
-        if(id!=null){Uri directory=null;for(Entry e:children(parent,tree))if(e.name.equals(id)&&DocumentsContract.Document.MIME_TYPE_DIR.equals(e.mime))directory=e.uri;
-            if(directory==null)directory=DocumentsContract.createDocument(context.getContentResolver(),parent,DocumentsContract.Document.MIME_TYPE_DIR,id);
-            if(directory==null)throw new IOException("Cannot create video cache folder");parent=directory;
-            boolean hidden=false;for(Entry e:children(parent,tree))if(e.name.equals(".nomedia"))hidden=true;
-            if(!hidden)DocumentsContract.createDocument(context.getContentResolver(),parent,"application/octet-stream",".nomedia");
-        }
-        Uri made=DocumentsContract.createDocument(context.getContentResolver(),parent,mime(physical),physical);
-        if(made==null)throw new IOException("Cannot create cache file");index.files.put(name,made);return made;
-    }
-    static void cleanupVideoFolder(File f) throws IOException {
-        String id=videoId(relative(f));if(id==null)return;
-        Uri tree=tree(f),root=DocumentsContract.buildDocumentUriUsingTree(tree,DocumentsContract.getTreeDocumentId(tree));
-        for(Entry e:children(root,tree))if(id.equals(e.name)&&DocumentsContract.Document.MIME_TYPE_DIR.equals(e.mime)){
-            List<Entry> remaining=children(e.uri,tree);
-            for(Entry child:remaining)if(!".nomedia".equals(child.name))return;
-            if(DocumentsContract.deleteDocument(context.getContentResolver(),e.uri))synchronized(CacheFolders.class){indexes.remove(tree.toString());}
-            return;
-        }
+    private static final Map<String,DirectoryIndex<Uri>> indexes=new LinkedHashMap<String,DirectoryIndex<Uri>>(8,.75f,true){protected boolean removeEldestEntry(Map.Entry<String,DirectoryIndex<Uri>> e){return size()>8;}};
+    private static DirectoryIndex<Uri> index(Uri tree){synchronized(indexes){DirectoryIndex<Uri> index=indexes.get(tree.toString());if(index==null){Uri root=DocumentsContract.buildDocumentUriUsingTree(tree,DocumentsContract.getTreeDocumentId(tree));index=new DirectoryIndex<>(root,new DirectoryIndex.Provider<Uri>(){
+        public List<DirectoryIndex.Item<Uri>> children(Uri parent)throws IOException{List<DirectoryIndex.Item<Uri>> out=new ArrayList<>();for(Entry e:CacheFolders.children(parent,tree))out.add(item(e));return out;}
+        public Uri create(Uri parent,String name,boolean directory)throws IOException{try{return DocumentsContract.createDocument(context.getContentResolver(),parent,directory?DocumentsContract.Document.MIME_TYPE_DIR:mime(name),name);}catch(RuntimeException e){throw new IOException("Cannot create cache document",e);}}
+        public DirectoryIndex.Item<Uri> stat(Uri uri,String name)throws IOException{return rawStat(uri,name);}
+        public long now(){return SystemClock.elapsedRealtime();}
+    });indexes.put(tree.toString(),index);}return index;}}
+    private static DirectoryIndex.Item<Uri> item(Entry e){return new DirectoryIndex.Item<>(e.name,e.uri,DocumentsContract.Document.MIME_TYPE_DIR.equals(e.mime),e.size,e.time);}
+    static void forget(File f){try{index(tree(f)).forget(relative(f));}catch(IOException ignored){}}
+    static void remember(File f,Uri uri){try{index(tree(f)).remember(relative(f),uri);}catch(IOException ignored){}}
+    static void changed(File f){if(!virtual(f))return;try{index(tree(f)).changed(relative(f));}catch(IOException ignored){}}
+    static Uri document(File f,boolean create)throws IOException{return index(tree(f)).document(relative(f),create);}
+    static void cleanupVideoFolder(File f)throws IOException{
+        String id=videoId(relative(f));if(id==null)return;Uri tree=tree(f);DirectoryIndex<Uri> index=index(tree);Uri directory=index.directory(id);if(directory==null)return;
+        for(Entry child:children(directory,tree))if(!".nomedia".equals(child.name))return;
+        if(DocumentsContract.deleteDocument(context.getContentResolver(),directory))index.removeDirectory(id);
     }
     private static final java.util.regex.Pattern VIDEO_ID=java.util.regex.Pattern.compile("^((?:sm|so|nm|ss)[0-9]+)(?:[._].*)?$");
     static String videoId(String name){java.util.regex.Matcher m=VIDEO_ID.matcher(name);return m.matches()?m.group(1):null;}
     static String physicalName(String name){return videoId(name)!=null&&name.endsWith(".mp4")?name.substring(0,name.length()-4)+".complete":name;}
-    static List<Entry> cacheChildren(Uri parent,Uri tree)throws IOException{LinkedHashMap<String,Entry> result=new LinkedHashMap<>();List<Entry> all=children(parent,tree);
-        for(Entry e:all)if(!DocumentsContract.Document.MIME_TYPE_DIR.equals(e.mime)&&videoId(e.name)!=null)result.put(e.name,e);
-        for(Entry e:all)if(DocumentsContract.Document.MIME_TYPE_DIR.equals(e.mime)&&e.name.matches("(?:sm|so|nm|ss)[0-9]+"))for(Entry child:children(e.uri,tree)){if(child.name.equals(".nomedia"))continue;if(child.name.endsWith(".complete"))child.name=child.name.substring(0,child.name.length()-9)+".mp4";result.put(child.name,child);}
-        return new ArrayList<>(result.values());
-    }
+    static List<Entry> cacheChildren(Uri parent,Uri tree)throws IOException{List<Entry> out=new ArrayList<>();for(DirectoryIndex.Item<Uri> item:index(tree).all())out.add(entry(item));return out;}
+    private static Entry entry(DirectoryIndex.Item<Uri> item){Entry e=new Entry();e.uri=item.ref;e.name=DirectoryIndex.logical(item.name);e.mime=item.directory?DocumentsContract.Document.MIME_TYPE_DIR:mime(e.name);e.size=item.size;e.time=item.time;return e;}
     private static final Map<String,String> comments=new LinkedHashMap<String,String>(4,.75f,true){protected boolean removeEldestEntry(Map.Entry<String,String> e){return size()>4;}};
     public static boolean comments(String folder,String id,String json){if(json!=null&&json.length()<2000000)synchronized(comments){comments.put(id,json);}return saveComments(folder,id);}
     static void exportComments(String folder,String id){String json;synchronized(comments){json=comments.get(id);}if(json==null)return;CacheComments.save(folder,id,json);}
@@ -93,19 +76,19 @@ public final class CacheFolders {
             while(cursor.moveToNext()){Entry e=new Entry();e.uri=DocumentsContract.buildDocumentUriUsingTree(tree,cursor.getString(0));e.name=cursor.getString(1);e.mime=cursor.getString(2);e.size=cursor.getLong(3);e.time=cursor.getLong(4);result.add(e);}
         }catch(RuntimeException e){throw new IOException("Cache folder unavailable",e);}return result;
     }
-    static Entry stat(File f) throws IOException {
-        Uri u=document(f,false);if(u==null){CachePackIndex.Entry packed=CachePack.entry(f);if(packed==null)return null;Entry e=new Entry();e.name=f.getName();e.mime=mime(e.name);e.size=packed.size;e.time=packed.time;return e;}Entry e=new Entry();e.uri=u;e.name=f.getName();
+    private static DirectoryIndex.Item<Uri> rawStat(Uri u,String name)throws IOException{
         try(Cursor c=context.getContentResolver().query(u,new String[]{"mime_type","_size","last_modified"},null,null,null)){
-            if(c==null||!c.moveToFirst()){forget(f);return null;}e.mime=c.getString(0);e.size=c.getLong(1);e.time=c.getLong(2);return e;
+            if(c==null||!c.moveToFirst())return null;return new DirectoryIndex.Item<>(name,u,DocumentsContract.Document.MIME_TYPE_DIR.equals(c.getString(0)),c.getLong(1),c.getLong(2));
         }catch(RuntimeException x){throw new IOException(x);}
     }
+    static Entry stat(File f)throws IOException{DirectoryIndex.Item<Uri> item=index(tree(f)).stat(relative(f));if(item!=null)return entry(item);CachePackIndex.Entry packed=CachePack.entry(f);if(packed==null)return null;Entry e=new Entry();e.name=f.getName();e.mime=mime(e.name);e.size=packed.size;e.time=packed.time;return e;}
     static ParcelFileDescriptor open(File f,boolean write,boolean append) throws FileNotFoundException {
         try {
             if(!virtual(f)){
                 if(write){File parent=f.getParentFile();if(parent!=null&&!parent.isDirectory()&&!parent.mkdirs())throw new IOException("Cannot create cache directory");}
                 return ParcelFileDescriptor.open(f,write?ParcelFileDescriptor.MODE_WRITE_ONLY|ParcelFileDescriptor.MODE_CREATE|(append?ParcelFileDescriptor.MODE_APPEND:ParcelFileDescriptor.MODE_TRUNCATE):ParcelFileDescriptor.MODE_READ_ONLY);
             }
-            Uri uri=document(f,write);if(uri==null)throw new IOException("Missing cached file");ParcelFileDescriptor fd=context.getContentResolver().openFileDescriptor(uri,write?(append?"wa":"wt"):"r");if(fd==null)throw new IOException("Cannot open cached file");return fd;
+            Uri uri=document(f,write);if(write)changed(f);if(uri==null)throw new IOException("Missing cached file");ParcelFileDescriptor fd=context.getContentResolver().openFileDescriptor(uri,write?(append?"wa":"wt"):"r");if(fd==null)throw new IOException("Cannot open cached file");return fd;
         }catch(IOException|RuntimeException e){FileNotFoundException failure=new FileNotFoundException(e.getMessage());failure.initCause(e);throw failure;}
     }
     public static void settings(PreferenceActivity a) {

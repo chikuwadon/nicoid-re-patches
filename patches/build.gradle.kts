@@ -49,6 +49,7 @@ val androidJar = providers.provider {
         ?: error("Android SDK platform android.jar was not found")
 }
 val verifyHelperOwnership = tasks.register<Exec>("verifyHelperOwnership") {
+    dependsOn("generateNicoidVersion")
     inputs.dir(rootProject.file("extensions/extension/src/main/java/e/e/a"))
     inputs.dir(rootProject.file("porting/helpers-smali/e/e/a"))
     inputs.file(rootProject.file("porting/helper-ownership.json"))

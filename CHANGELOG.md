@@ -1,3 +1,30 @@
+## 1.8.6 (2026-10-14)
+
+### ✨ New Features
+
+* **nicoid:** Add cache re-acquisition from the cache list.
+* **nicoid:** Add continuous and shuffle playback controls to creator Shorts lists, and shuffle playback to series lists and mylists.
+* **nicoid:** Add sorting to device and account watch histories.
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix cache-mode playback controls, automatic acquisition, acquisition failures and repeated downloads of completed cached videos. Allow playback while acquisition runs and report acquisition progress. ([#53](https://github.com/chikuwadon/nicoid-re-patches/issues/53))
+* **nicoid:** Make the series continuous-playback checkbox correctly enable and disable playback in the current player. ([#62](https://github.com/chikuwadon/nicoid-re-patches/issues/62))
+* **nicoid:** Restore the theme setting and correct theme application to video-information panels, including tablet layouts. ([#63](https://github.com/chikuwadon/nicoid-re-patches/issues/63))
+* **nicoid:** Restore Shorts playback when returning from normal playback, preserving the selected video and playback position. ([#64](https://github.com/chikuwadon/nicoid-re-patches/issues/64))
+* **nicoid:** Correct completed-cache detection and displayed cache sizes.
+* **nicoid:** Keep cache acquisition-date sorting unchanged when video information or comments are refreshed.
+* **nicoid:** Apply dark-mode colors to public mylist descriptions.
+* **nicoid:** Display video durations on series and creator Shorts thumbnails.
+* **nicoid:** Preserve available uploader names and posting dates in watch histories during cached playback.
+
+### 🔧 Improvements
+
+* **nicoid:** Refresh video information, statistics and comments during cached playback when permitted by the cache-only setting, while continuing to play the saved video.
+* **nicoid:** Organize comment settings and restore missing comment-count and Google Cast controls.
+* **nicoid:** Show the current playback mode and comment-fetch count with explanatory summaries.
+* **nicoid:** Standardize watch-history row layout and playback-menu ordering.
+
 ## 1.8.5 (2026-10-13)
 
 ### 🐛 Bug Fixes

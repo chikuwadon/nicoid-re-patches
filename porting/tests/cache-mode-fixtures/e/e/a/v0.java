@@ -1,0 +1,1 @@
+package e.e.a;import android.os.*;import org.json.*;public class v0{public static boolean wifi;public static boolean g(android.content.Context c){return wifi;}public static String a(Bundle b)throws Exception{JSONObject j=new JSONObject();for(String k:b.data.keySet())j.put(k,b.data.get(k));return j.toString();}}

@@ -1,0 +1,1 @@
+package e.e.a;public class ModernComments{static int loads;public static void load(CacheModeTest.Model model){loads++;}}

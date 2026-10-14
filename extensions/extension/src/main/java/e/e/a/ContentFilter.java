@@ -37,6 +37,7 @@ public final class ContentFilter {
         return value.isEmpty() ? row.optString("uploaderName", "") : value;
     }
     public static void rememberHistory(JSONObject record) {
+        HistorySupport.enrichCached(record);
         try {
             JSONObject watch = (JSONObject) Class.forName("e.e.a.ModernPlayback").getField("latestWatch").get(null);
             JSONObject video = watch == null ? null : watch.optJSONObject("video");
@@ -45,11 +46,13 @@ public final class ContentFilter {
                 PaidVideos.remember(record);
                 String name = owner(watch);
                 if (!name.isEmpty()) record.put("ownerName", name);
+                if(video.has("registeredAt"))record.put("postedAt",video.optString("registeredAt"));
             }
         } catch (ReflectiveOperationException | org.json.JSONException ignored) { }
     }
     public static void restoreHistory(Object row, JSONObject record) {
         PaidVideos.remember(record);
+        HistorySupport.captureLocal(row,record);
         try { row.getClass().getField("y").set(row, owner(record)); }
         catch (ReflectiveOperationException error) { throw new IllegalStateException("Unsupported history row", error); }
     }

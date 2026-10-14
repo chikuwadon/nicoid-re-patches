@@ -1,0 +1,1 @@
+package android.content;public class Intent{public static final String ACTION_VIEW="android.intent.action.VIEW";public String target;public Intent(){}public Intent(String s){}public Intent setClassName(Context c,String name){target=name;return this;}}

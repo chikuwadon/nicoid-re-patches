@@ -1,0 +1,1 @@
+package android.content;public class Intent{public String id,title;public Intent setClassName(Context c,String n){return this;}public Intent putExtra(String k,String v){if(k.equals("id"))id=v;if(k.equals("title"))title=v;return this;}}

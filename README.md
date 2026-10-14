@@ -11,7 +11,7 @@ nicoid 6.49の元APKにMorphe Managerでパッチを適用すると、「nicoid 
 - 対象アプリ：`com.sauzask.nicoid`（バージョン`6.49`）
 - 適用後のアプリ名：**nicoid Re**
 - 適用後のパッケージ名：`com.sauzask.nicoid.hls`
-- 正式版：`v1.8.5`
+- 正式版：`v1.8.6`
 - 開発版：`dev`ブランチで管理
 
 パッチ適用には次の元APKを使用してください。
@@ -21,7 +21,7 @@ SHA-256：`17fc6b46228af184437ade7e6f5573915bc655b86996307ff3270fdf35279cce`
 ## パッチ配布
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.8.5](https://github.com/chikuwadon/nicoid-re-patches/releases/tag/v1.8.5)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`ブランチ&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件
+> **[v1.8.6](https://github.com/chikuwadon/nicoid-re-patches/releases/tag/v1.8.6)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`ブランチ&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件
 <details open>
 <summary>📦 nicoid&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件</summary>
 <br>
@@ -102,6 +102,9 @@ https://github.com/chikuwadon/nicoid-re-patches
 - コメント一覧にニコる数と操作ボタンを追加し、ニコる数順に並べ替えられるように。
 - NGコメントを一覧で追加・削除・複数削除できるように。
 - キャッシュの保存先を変更できるように。
+- キャッシュリストから動画を再取得でき、キャッシュ再生中の動画情報・統計・コメント更新は「キャッシュのみを使用し再生」の設定に従う。
+- 本体・アカウントの視聴履歴に並び替えを追加。
+- シリーズ・マイリストにシャッフル再生、投稿者のショート一覧に連続再生・シャッフル再生を追加。
 - ショート動画機能を追加。
 - 検索結果の先頭でスワイプして更新できるように。
 - 検索で投稿日の開始日・終了日と、動画時間の下限・上限を指定可能。

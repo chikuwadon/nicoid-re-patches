@@ -61,7 +61,7 @@ import org.json.JSONObject;
 
 /** Short feeds reuse nicoid's existing player, comments and playback policies. */
 public final class ModernShorts {
-    private static final String PATCH_VERSION = "v1.8.5 @chikuwadon";
+    private static final String PATCH_VERSION = "v1.8.6 @chikuwadon";
     private static final String PLAYER = "com.sauzask.nicoid.NicoidVideoActivity";
     private static final String MODE = "nicoid_re_shorts";
     private static final String SESSION = "nicoid_re_shorts_session";
@@ -87,6 +87,7 @@ public final class ModernShorts {
         }
     }
     private static final class Feed {
+        boolean continuous;
         final String key = UUID.randomUUID().toString();
         final ArrayList<Item> items = new ArrayList<>();
         boolean fixed;
@@ -105,6 +106,8 @@ public final class ModernShorts {
         View video, bar;
         ViewTreeObserver.OnPreDrawListener controlsListener;
         ViewTreeObserver.OnGlobalLayoutListener listener;
+        boolean returnFromNormal;
+        long returnPosition;
     }
     private ModernShorts() {}
     private static SharedPreferences prefs(Context c) { return PreferenceManager.getDefaultSharedPreferences(c); }
@@ -166,7 +169,8 @@ public final class ModernShorts {
             .setClassName(c.getPackageName(), PLAYER).putExtra("intentselect", true);
     }
     /** Opens an already ordered Shorts list in the full-screen player. */
-    public static boolean openVideos(Activity a, String[] ids, String[] titles, String[] thumbnails, int selected) {
+    public static boolean openVideos(Activity a, String[] ids, String[] titles, String[] thumbnails, int selected) {return openVideos(a,ids,titles,thumbnails,selected,false,false);}
+    public static boolean openVideos(Activity a,String[] ids,String[] titles,String[] thumbnails,int selected,boolean continuous,boolean shuffle){
         if (ids == null || ids.length == 0 || selected < 0 || selected >= ids.length) return false;
         Feed feed = new Feed();
         feed.fixed = true;
@@ -186,6 +190,7 @@ public final class ModernShorts {
             }
         }
         if (feed.items.isEmpty() || index < 0 || selectedId == null) return false;
+        feed.continuous=continuous;if(shuffle){java.util.Collections.shuffle(feed.items);for(int n=0;n<feed.items.size();n++)if(feed.items.get(n).id.equals(selectedId)){index=n;break;}}
         remember(feed);
         launchFrom(a, feed, index);
         return true;
@@ -530,6 +535,7 @@ public final class ModernShorts {
             if (bar.getVisibility() != visibility) bar.setVisibility(visibility);
             float alpha = controller == null ? 1f : controller.getAlpha();
             if (bar.getAlpha() != alpha) bar.setAlpha(alpha);
+            restoreLayout(a);
             Review181.shortControls(a, visibility, alpha);
             return true;
         };
@@ -546,19 +552,28 @@ public final class ModernShorts {
                 lp.width = ViewGroup.LayoutParams.MATCH_PARENT; lp.height = ViewGroup.LayoutParams.MATCH_PARENT;
                 video.setLayoutParams(lp);
             }
-            if (info != null && info.getVisibility() != View.GONE) info.setVisibility(View.GONE);
+            View currentInfo=find(a,"info");if(currentInfo!=null&&currentInfo.getVisibility()!=View.GONE)currentInfo.setVisibility(View.GONE);
             View loading = find(a, "videopro"); if (loading instanceof ProgressBar) tint(a, (ProgressBar)loading);
         };
         content.getViewTreeObserver().addOnGlobalLayoutListener(s.listener); s.listener.onGlobalLayout();
         Toast.makeText(a, "上にスワイプで次、下にスワイプで前の動画", Toast.LENGTH_SHORT).show();
     }
+    public static boolean completed(Object fragment){try{Activity a=(Activity)Review181.field(fragment,"A1");State s=STATES.get(a);if(s==null||s.dead||s.busy||s.feed==null||!s.feed.continuous||s.index+1>=s.feed.items.size())return false;step(a,s,1);return true;}catch(Exception e){return false;}}
+    public static void restoreLayout(Activity a){
+        State s=STATES.get(a);if(s==null||s.home||s.dead||!active(a))return;
+        boolean changed=false;for(String name:new String[]{"info","tabinfo"}){View info=find(a,name);if(info!=null&&info.getVisibility()!=View.GONE){info.setVisibility(View.GONE);changed=true;}}
+        View video=find(a,"videoLayout");if(video!=null&&video.getLayoutParams()!=null&&(video.getLayoutParams().width!=-1||video.getLayoutParams().height!=-1)){video.getLayoutParams().width=-1;video.getLayoutParams().height=-1;video.requestLayout();changed=true;}
+        if(changed){fillVideo(a);liftController(a);View picture=find(a,"video_view");if(picture!=null)try{picture.getClass().getMethod("setMeasureBasedOnAspectRatioEnabled",boolean.class).invoke(picture,false);Class<?> type=Class.forName("com.devbrackets.android.exomedia.core.video.scale.ScaleType");@SuppressWarnings("unchecked") Object fit=Enum.valueOf((Class<? extends Enum>)type,"FIT_CENTER");picture.getClass().getMethod("setScaleType",type).invoke(picture,fit);}catch(Exception error){log(error);}}
+    }
     public static void normalPlayer(Activity a) {
+        State state=STATES.get(a);if(state!=null)state.returnFromNormal=true;
         try {Object fragment=Review181.field(a,"v"),player=Review181.field(fragment,"a0");
             long position=0;try{position=((Number)player.getClass().getMethod("getCurrentPosition").invoke(player)).longValue();}catch(Exception ignored){}
-            Intent intent=new Intent(a.getIntent());intent.setFlags(0);intent.removeExtra(MODE);intent.putExtra("nicoid_disable_shorts",true).putExtra("nicoid_resume_position",position);
+            Intent intent=new Intent(a.getIntent());intent.setFlags(0);intent.removeExtra(MODE);intent.removeExtra(SESSION);intent.removeExtra("nicoid_re_shorts_index");intent.putExtra("nicoid_disable_shorts",true).putExtra("nicoid_resume_position",position);
             intent.setData(Uri.parse("https://www.nicovideo.jp/watch/"+HistoryRules.id(String.valueOf(Review181.field(fragment,"b0")))));
-            a.startActivity(intent);a.finish();
-        }catch(Exception e){log(e);}
+            if(state!=null)state.returnPosition=position;
+            a.startActivity(intent);
+        }catch(Exception e){if(state!=null)state.returnFromNormal=false;log(e);}
     }
     private static View find(Activity a, String name) { return a.findViewById(a.getResources().getIdentifier(name, "id", a.getPackageName())); }
     private static void update(State s) { if (s.number != null) s.number.setText( (s.index + 1) + "/" + s.feed.items.size()); }
@@ -800,6 +815,7 @@ public final class ModernShorts {
                 State state = STATES.get(a);
                 if (state != null && state.home) state.launching = false;
                 if (state != null && !state.dead) {
+                    if(state.returnFromNormal&&!state.home){state.returnFromNormal=false;remember(state.feed);Intent fresh=player(a,state.feed.items.get(state.index).id).putExtra(MODE,true).putExtra(SESSION,state.feed.key).putExtra("nicoid_re_shorts_index",state.index).putExtra("title",state.feed.items.get(state.index).title).putExtra("nicoid_resume_position",state.returnPosition);a.startActivity(fresh);a.finish();a.overridePendingTransition(0,0);return;}
                     if (state.redraw != null) state.redraw.run();
                     if (!state.busy && state.resumeRequest != null) {
                         Runnable resume = state.resumeRequest; state.resumeRequest = null; resume.run();

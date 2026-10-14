@@ -183,6 +183,9 @@
     :try_end_a
     .catchall {:try_start_3 .. :try_end_a} :catchall_e
 
+    invoke-static {p0, v1}, Le/e/a/CrashDiagnostics;->append(Landroid/content/Context;Ljava/lang/String;)Ljava/lang/String;
+    move-result-object v1
+
     invoke-static {p0, v1}, Le/e/a/Followup173;->saveLog(Landroid/content/Context;Ljava/lang/String;)V
 
     return-void

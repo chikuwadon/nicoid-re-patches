@@ -1,0 +1,1 @@
+package android.preference;public class PreferenceActivity extends android.app.Activity{final PreferenceScreen screen=new PreferenceScreen(this);public PreferenceScreen getPreferenceScreen(){return screen;}public Preference findPreference(CharSequence key){return screen.find(key.toString());}}

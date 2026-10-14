@@ -1,0 +1,1 @@
+package e.e.a;import java.io.*;class CachePack{static CachePackIndex.Entry entry(File f)throws Exception{String id=f.getName().split("\\.")[0];try(FileInputStream in=new FileInputStream(new File(f.getParentFile(),id+".ncache"))){return CachePackIndex.read(in.getChannel()).get(f.getName());}}}

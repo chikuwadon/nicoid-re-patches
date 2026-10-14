@@ -17,7 +17,7 @@ public final class CacheFolders {
     private static final String KEY="cache_tree_uri", PREFIX="/@nicoid-cache/", SUFFIX="/nicoid/nicoid_cache";
     private static final Handler MAIN=new Handler(Looper.getMainLooper());
     static SharedPreferences prefs(){return PreferenceManager.getDefaultSharedPreferences(context);}
-    static void init(Context c){context=c.getApplicationContext();}
+    static void init(Context c){context=c.getApplicationContext();CrashDiagnostics.install(context);}
     static String privatePath(String path){if(path!=null&&context!=null&&path.startsWith(PREFIX)){int start=path.indexOf('/',PREFIX.length());if(start>=0){String relative=path.substring(start);if(relative.startsWith("/nicoid/")&&!relative.startsWith(SUFFIX))return privateRoot(context)+relative;}}return path;}
     public static void started(Context c){init(c);UiStrings.selectLanguage(prefs().getString("app_lang","0"));CacheProgress.start(c);MAIN.post(()->Toast.makeText(c,UiStrings.translate("キャッシュ取得を開始しました"),Toast.LENGTH_SHORT).show());}
     public static String privateRoot(Context c){init(c);File base=c.getExternalFilesDir(null);return (base==null?c.getFilesDir():base).getAbsolutePath();}

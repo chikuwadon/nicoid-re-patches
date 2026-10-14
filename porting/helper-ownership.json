@@ -50,7 +50,13 @@
   "CachePlayback": {
     "owner": "java"
   },
+  "CachePlaybackPolicy": {
+    "owner": "java"
+  },
   "CacheProgress": {
+    "owner": "java"
+  },
+  "CacheRetry": {
     "owner": "java"
   },
   "CacheRowInfo": {
@@ -197,6 +203,9 @@
     "owner": "smali",
     "java_sha256": "3a709ac66e141aebcbcedfc8737b11eebee48cda12534775af2ec884045b3940",
     "smali_sha256": "d3b4b8564f7836365a71bee80b7e934694363d9cca8732ffacaf403660fafb6c"
+  },
+  "HistorySortRules": {
+    "owner": "java"
   },
   "HistorySupport": {
     "owner": "java"
@@ -370,6 +379,9 @@
   "SettingsBackupData": {
     "owner": "java"
   },
+  "SettingsIntegrity": {
+    "owner": "java"
+  },
   "SettingsTools": {
     "owner": "java"
   },
@@ -432,6 +444,9 @@
     "smali_sha256": "acb9f957f041723a328b2ef03ae565619cb588eb040c6e74ee5210ecba478b71"
   },
   "WatchRequestHeaders": {
+    "owner": "java"
+  },
+  "CrashDiagnostics": {
     "owner": "java"
   }
 }

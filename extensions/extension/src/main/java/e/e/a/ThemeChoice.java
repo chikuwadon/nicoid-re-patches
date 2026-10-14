@@ -66,11 +66,12 @@ public final class ThemeChoice {
     private static String stamp(Context c) { return mode(c) + ":" + isNight(c); }
     public static void settings(PreferenceActivity a) {
         Preference old = a.findPreference("material_you_mode");
-        if (old == null) return;
-        PreferenceGroup parent = parent(a.getPreferenceScreen(), old);
-        if (parent == null) return;
-        Preference choice = new Preference(a);
-        choice.setKey(KEY); choice.setOrder(old.getOrder());
+        Preference choice=a.findPreference(KEY);
+        PreferenceGroup parent=old==null?null:parent(a.getPreferenceScreen(),old);
+        if(parent==null){Preference general=a.findPreference("setting_whole");parent=general instanceof PreferenceGroup?(PreferenceGroup)general:a.getPreferenceScreen();}
+        if(choice==null){choice=new Preference(a);choice.setKey(KEY);choice.setOrder(old==null?0:old.getOrder());parent.addPreference(choice);}
+        PreferenceGroup currentParent=parent(a.getPreferenceScreen(),choice);if(currentParent!=parent){if(currentParent!=null)currentParent.removePreference(choice);parent.addPreference(choice);}
+        choice.setOrder(-1000);
         choice.setTitle(UiStrings.translate("テーマ"));
         int current = index(mode(a));
         choice.setSummary(UiStrings.translate(LABELS[current]));
@@ -87,7 +88,7 @@ public final class ThemeChoice {
             PlaybackSession.showDialog(dialog);
             return true;
         });
-        parent.removePreference(old); parent.addPreference(choice);
+        if(old!=null){PreferenceGroup previous=parent(a.getPreferenceScreen(),old);if(previous!=null)previous.removePreference(old);}
     }
     private static int index(String value) {
         for (int i = 0; i < VALUES.length; i++) if (VALUES[i].equals(value)) return i;
@@ -113,7 +114,7 @@ public final class ThemeChoice {
     public static int textColor(View v) { return color(v.getContext(), android.R.attr.textColorPrimary, isNight(v.getContext()) ? 0xffeeeeee : 0xff202124); }
     public static boolean amoled(Context c){return isAmoled(c);}
     public static void tree(View view){
-        if(view instanceof android.widget.TextView){android.widget.TextView text=(android.widget.TextView)view;text.setTextColor(textColor(view));text.setHintTextColor(isNight(view.getContext())?0xffb7bac3:0xff666a73);}
+        if(view instanceof android.widget.TextView){android.widget.TextView text=(android.widget.TextView)view;if(!"nicoid_duration".equals(view.getTag()))text.setTextColor(textColor(view));text.setHintTextColor(isNight(view.getContext())?0xffb7bac3:0xff666a73);}
         if(view instanceof android.view.ViewGroup){android.view.ViewGroup group=(android.view.ViewGroup)view;for(int n=0;n<group.getChildCount();n++)tree(group.getChildAt(n));}
     }
     public static void spinner(android.widget.Spinner spinner){

@@ -1,0 +1,1 @@
+package e.e.a;import java.io.*;public class CacheOutputStream extends FileOutputStream{public CacheOutputStream(File f,boolean append)throws Exception{super(f,append);}}

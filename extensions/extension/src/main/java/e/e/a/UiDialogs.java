@@ -57,7 +57,7 @@ public final class UiDialogs {
             AbsListView.OnScrollListener listener=new AbsListView.OnScrollListener(){public void onScrollStateChanged(AbsListView view,int state){}public void onScroll(AbsListView view,int first,int count,int total){for(int n=0;n<view.getChildCount();n++)inputs(view.getChildAt(n),accent,dark);}};
             list.setOnScrollListener(listener);list.post(()->listener.onScroll(list,0,list.getChildCount(),list.getCount()));
         }
-        if(v instanceof TextView) ((TextView)v).setTextColor(v instanceof Button&&!"nicoid-range-control".equals(v.getTag())?accent:dark?0xffeeeeee:0xff202124);
+        if(v instanceof TextView&&!"nicoid_duration".equals(v.getTag())) ((TextView)v).setTextColor(v instanceof Button&&!"nicoid-range-control".equals(v.getTag())?accent:dark?0xffeeeeee:0xff202124);
         String name="";try{if(v.getId()!=View.NO_ID)name=v.getResources().getResourceEntryName(v.getId());}catch(Exception ignored){}
         if(name.equals("parentPanel")||name.equals("topPanel")||name.equals("contentPanel")||name.equals("buttonPanel")||name.equals("customPanel"))v.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         if(v instanceof EditText) {

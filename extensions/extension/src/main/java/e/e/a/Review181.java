@@ -20,6 +20,7 @@ public final class Review181 {
     static Object field(Object o,String name)throws Exception{return o.getClass().getField(name).get(o);}
     static View named(Activity a,String name){int id=a.getResources().getIdentifier(name,"id",a.getPackageName());return id==0?null:a.findViewById(id);}
     public static void settings(PreferenceActivity a){
+        SettingsIntegrity.ensure(a);
         PreferenceGroup group=a.getPreferenceScreen();
         Preference fpsPreference=a.findPreference("comment_fps");
         if(fpsPreference instanceof ListPreference){

@@ -186,7 +186,12 @@
 
     iput-object v0, p0, Le/e/a/d0;->modernWatch:Lorg/json/JSONObject;
 
+    iget-object v4, p0, Le/e/a/d0;->r:Ljava/lang/Boolean;
+    invoke-virtual {v4}, Ljava/lang/Boolean;->booleanValue()Z
+    move-result v4
+    if-nez v4, :cache_info_ui_kept
     sput-object v0, Le/e/a/ModernPlayback;->latestWatch:Lorg/json/JSONObject;
+    :cache_info_ui_kept
 
     const-string v2, "nicovideo_version"
 
@@ -194,7 +199,7 @@
 
     invoke-virtual {v1, v2, v3}, Landroid/os/Bundle;->putInt(Ljava/lang/String;I)V
 
-    invoke-virtual {p0, v1}, Le/e/a/d0;->a(Landroid/os/Bundle;)V
+    invoke-static {p0, v1}, Le/e/a/CachedPlayback;->initializeMetadata(Ljava/lang/Object;Landroid/os/Bundle;)V
 
     invoke-static {p0}, Le/e/a/ModernComments;->load(Le/e/a/d0;)V
 
@@ -534,9 +539,15 @@
     return-object v0
     :network_playback
 
+
     const/4 v0, 0x0
 
+    iget-object v12, p0, Le/e/a/d0;->r:Ljava/lang/Boolean;
+    invoke-virtual {v12}, Ljava/lang/Boolean;->booleanValue()Z
+    move-result v12
+    if-nez v12, :cache_ui_kept_0
     sput-object v0, Le/e/a/ModernControls;->selectedVideo:Ljava/lang/String;
+    :cache_ui_kept_0
 
     :try_start_3
     const-string v0, "HLS session start"
@@ -551,7 +562,12 @@
 
     iput-object v0, p0, Le/e/a/d0;->modernWatch:Lorg/json/JSONObject;
 
+    iget-object v12, p0, Le/e/a/d0;->r:Ljava/lang/Boolean;
+    invoke-virtual {v12}, Ljava/lang/Boolean;->booleanValue()Z
+    move-result v12
+    if-nez v12, :cache_ui_kept_1
     sput-object v0, Le/e/a/ModernPlayback;->latestWatch:Lorg/json/JSONObject;
+    :cache_ui_kept_1
 
     const-string v1, "media"
 
@@ -598,7 +614,12 @@
 
     move-result-object v3
 
+    iget-object v12, p0, Le/e/a/d0;->r:Ljava/lang/Boolean;
+    invoke-virtual {v12}, Ljava/lang/Boolean;->booleanValue()Z
+    move-result v12
+    if-nez v12, :cache_ui_kept_2
     sput-object v3, Le/e/a/ModernControls;->selectedVideo:Ljava/lang/String;
+    :cache_ui_kept_2
 
     const-string v4, "audios"
 
@@ -772,7 +793,7 @@
 
     invoke-static {v10}, Le/e/a/ModernDebug;->record(Ljava/lang/String;)V
 
-    invoke-virtual {p0, v0}, Le/e/a/d0;->a(Landroid/os/Bundle;)V
+    invoke-static {p0, v0}, Le/e/a/CachedPlayback;->initializeMetadata(Ljava/lang/Object;Landroid/os/Bundle;)V
 
     iget-object v10, p0, Le/e/a/d0;->k:Le/e/a/l3/j;
 
@@ -797,6 +818,8 @@
     invoke-virtual {v10}, Ljava/lang/Thread;->start()V
 
     :cond_10f
+    invoke-static {p0, p1}, Le/e/a/CachedPlayback;->cacheWhilePlaying(Ljava/lang/Object;Ljava/lang/String;)V
+
     return-object v9
 
     :cond_110

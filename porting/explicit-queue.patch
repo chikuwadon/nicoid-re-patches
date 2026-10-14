@@ -1,0 +1,26 @@
+--- a/com/sauzask/nicoid/NicoidVideoFragment.smali
++++ b/com/sauzask/nicoid/NicoidVideoFragment.smali
+@@ -710,10 +710,6 @@
+     long-to-int v5, v10
+ 
+     iput v5, v0, Lcom/sauzask/nicoid/NicoidVideoFragment;->j0:I
+-
+-    sget-boolean v5, Lcom/sauzask/nicoid/NicoidVideoListActivity;->I:Z
+-
+-    if-eqz v5, :cond_f6
+ 
+     const-string v5, "isContinuousPlay"
+ 
+--- a/com/sauzask/nicoid/NicoidPopupViewService.smali
++++ b/com/sauzask/nicoid/NicoidPopupViewService.smali
+@@ -2247,10 +2247,6 @@
+     invoke-virtual {p1}, Landroid/content/Intent;->getExtras()Landroid/os/Bundle;
+ 
+     move-result-object v1
+-
+-    sget-boolean v3, Lcom/sauzask/nicoid/NicoidVideoListActivity;->I:Z
+-
+-    if-eqz v3, :cond_1b9
+ 
+     const-string v3, "isContinuousPlay"
+ 

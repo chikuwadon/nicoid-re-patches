@@ -32,8 +32,10 @@ patches {
 val patchListGeneratorClasspath = configurations.create("patchListGeneratorClasspath")
 val nicoidD8 = configurations.create("nicoidD8")
 val nicoidSmali = configurations.create("nicoidSmali")
+val nicoidTestJson = configurations.create("nicoidTestJson")
 
 dependencies {
+    add(nicoidTestJson.name, "org.json:json:20240303")
     compileOnly(libs.gson)
     patchListGeneratorClasspath(libs.gson)
     add(nicoidD8.name, "com.android.tools:r8:9.4.28")
@@ -165,7 +167,7 @@ val verifyListClickRouting = tasks.register<JavaExec>("verifyListClickRouting") 
     args(layout.buildDirectory.file("nicoid/merged-helper-dex/classes.dex").get().asFile.absolutePath)
 }
 val compileMaintenanceVerification = tasks.register<JavaCompile>("compileMaintenanceVerification") {
-    source(rootProject.file("porting/tests/VerifyMaintenancePayload.java"))
+    source(rootProject.file("porting/tests/VerifyMaintenancePayload.java"), rootProject.file("porting/tests/VerifyIssueSettingsPayload.java"))
     classpath = sourceSets["main"].compileClasspath
     destinationDirectory.set(layout.buildDirectory.dir("nicoid/maintenance-verification-classes"))
     options.release.set(8)
@@ -176,8 +178,78 @@ val verifyMaintenancePayload = tasks.register<JavaExec>("verifyMaintenancePayloa
     mainClass.set("VerifyMaintenancePayload")
     args(layout.buildDirectory.file("nicoid/merged-helper-dex/classes.dex").get().asFile.absolutePath)
 }
+val verifyExplicitQueues = tasks.register<JavaExec>("verifyExplicitQueues") {
+    dependsOn(compileMaintenanceVerification)
+    classpath = files(compileMaintenanceVerification.flatMap { it.destinationDirectory }) + sourceSets["main"].compileClasspath
+    mainClass.set("VerifyIssueSettingsPayload")
+    args(rootProject.file("patches/src/main/resources/nicoid/method-delta.dex").absolutePath)
+}
+val compileSettingsIntegrityTests = tasks.register<JavaCompile>("compileSettingsIntegrityTests") {
+    dependsOn(compileNicoidHelpers)
+    source(fileTree(rootProject.file("porting/tests/settings-integrity-fixtures")) { include("**/*.java") }, rootProject.file("porting/tests/HistorySortRulesTest.java"))
+    classpath = files(compileNicoidHelpers.flatMap { it.destinationDirectory }, androidJar) + nicoidTestJson
+    destinationDirectory.set(layout.buildDirectory.dir("nicoid/settings-integrity-tests"))
+    options.encoding = "UTF-8"
+    options.release.set(8)
+}
+val verifySettingsIntegrity = tasks.register<JavaExec>("verifySettingsIntegrity") {
+    dependsOn(compileSettingsIntegrityTests)
+    classpath = files(compileSettingsIntegrityTests.flatMap { it.destinationDirectory }, compileNicoidHelpers.flatMap { it.destinationDirectory }, androidJar)
+    mainClass.set("e.e.a.SettingsIntegrityTest")
+}
+val verifySeriesQueue = tasks.register<JavaExec>("verifySeriesQueue") {
+    dependsOn(compileSettingsIntegrityTests)
+    classpath = files(compileSettingsIntegrityTests.flatMap { it.destinationDirectory }, compileNicoidHelpers.flatMap { it.destinationDirectory }, androidJar)
+    mainClass.set("e.e.a.SeriesQueueTest")
+}
+val compileCacheModeTests = tasks.register<JavaCompile>("compileCacheModeTests") {
+    dependsOn(compileNicoidHelpers)
+    source(fileTree(rootProject.file("porting/tests/cache-mode-fixtures")) { include("**/*.java") })
+    classpath = files(compileNicoidHelpers.flatMap { it.destinationDirectory }, androidJar)
+    destinationDirectory.set(layout.buildDirectory.dir("nicoid/cache-mode-tests"))
+    options.encoding = "UTF-8"
+    options.release.set(8)
+}
+val verifyCacheMode = tasks.register<JavaExec>("verifyCacheMode") {
+    dependsOn(compileCacheModeTests)
+    classpath = files(compileCacheModeTests.flatMap { it.destinationDirectory }, compileNicoidHelpers.flatMap { it.destinationDirectory }) + nicoidTestJson + files(androidJar)
+    mainClass.set("e.e.a.CacheModeTest")
+    val directory=layout.buildDirectory.dir("nicoid/cache-mode-test-files")
+    doFirst { project.delete(directory);directory.get().asFile.mkdirs() }
+    args(directory.get().asFile.absolutePath)
+}
+val verifyPlaybackMenu = tasks.register<JavaExec>("verifyPlaybackMenu") {
+    dependsOn(compileSettingsIntegrityTests)
+    classpath = files(compileSettingsIntegrityTests.flatMap { it.destinationDirectory }, compileNicoidHelpers.flatMap { it.destinationDirectory }) + nicoidTestJson + files(androidJar)
+    mainClass.set("e.e.a.MenuPlacementTest")
+}
+val verifyHistorySortOptions = tasks.register<JavaExec>("verifyHistorySortOptions") {
+    dependsOn(compileSettingsIntegrityTests)
+    classpath = files(compileSettingsIntegrityTests.flatMap { it.destinationDirectory }, compileNicoidHelpers.flatMap { it.destinationDirectory }) + nicoidTestJson + files(androidJar)
+    mainClass.set("e.e.a.HistorySortOptionsTest")
+}
+val verifyOtherSettingsOrder = tasks.register<JavaExec>("verifyOtherSettingsOrder") {
+    dependsOn(compileSettingsIntegrityTests)
+    classpath = files(compileSettingsIntegrityTests.flatMap { it.destinationDirectory }, compileNicoidHelpers.flatMap { it.destinationDirectory }, androidJar)
+    mainClass.set("e.e.a.OtherSettingsOrderTest")
+}
+val verifyCrashDiagnostics = tasks.register<JavaExec>("verifyCrashDiagnostics") {
+    dependsOn(compileSettingsIntegrityTests)
+    classpath = files(compileSettingsIntegrityTests.flatMap { it.destinationDirectory }, compileNicoidHelpers.flatMap { it.destinationDirectory }, androidJar)
+    mainClass.set("e.e.a.CrashDiagnosticsTest")
+}
+val verifyHistoryMetadata = tasks.register<JavaExec>("verifyHistoryMetadata") {
+    dependsOn(compileSettingsIntegrityTests)
+    classpath = files(compileSettingsIntegrityTests.flatMap { it.destinationDirectory }, compileNicoidHelpers.flatMap { it.destinationDirectory }) + nicoidTestJson + files(androidJar)
+    mainClass.set("e.e.a.HistoryMetadataTest")
+}
+val verifyHistorySort = tasks.register<JavaExec>("verifyHistorySort") {
+    dependsOn(compileSettingsIntegrityTests)
+    classpath = files(compileSettingsIntegrityTests.flatMap { it.destinationDirectory }, compileNicoidHelpers.flatMap { it.destinationDirectory })
+    mainClass.set("e.e.a.HistorySortRulesTest")
+}
 val prepareNicoidHelpers = tasks.register("prepareNicoidHelpers") {
-    dependsOn(verifyDialogArguments, verifyListClickRouting, verifyMaintenancePayload)
+    dependsOn(verifyDialogArguments, verifyListClickRouting, verifyMaintenancePayload, verifyExplicitQueues, verifySettingsIntegrity, verifySeriesQueue, verifyCacheMode, verifyPlaybackMenu, verifyHistorySort, verifyHistoryMetadata, verifyHistorySortOptions, verifyOtherSettingsOrder, verifyCrashDiagnostics)
     doLast {
         val dex = layout.buildDirectory.file("nicoid/merged-helper-dex/classes.dex").get().asFile
         check(dex.isFile && dex.readBytes().take(4).toByteArray().contentEquals(byteArrayOf(0x64, 0x65, 0x78, 0x0a))) {

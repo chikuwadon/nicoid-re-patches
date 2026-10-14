@@ -9,6 +9,7 @@ import android.os.Looper;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -198,8 +199,9 @@ public final class CreatorPage {
                     if (task.cancelled() || rows.getTag() != task || a.isFinishing()) return;
                     rows.removeAllViews();
                     if (idArray.length == 0) { rows.addView(PanelUi.text(a, tr(a, "ショート動画はありません", "No Shorts found", "沒有短影片"), 14)); return; }
+                    LinearLayout playback=new LinearLayout(a);CheckBox continuous=new CheckBox(a),random=new CheckBox(a);continuous.setText(tr(a,"連続再生","Continuous playback","連續播放"));random.setText(tr(a,"シャッフル再生","Shuffle playback","隨機播放"));PanelUi.tint(continuous);PanelUi.tint(random);playback.addView(continuous,new LinearLayout.LayoutParams(0,-2,1));playback.addView(random,new LinearLayout.LayoutParams(0,-2,1));rows.addView(playback);android.content.SharedPreferences prefs=android.preference.PreferenceManager.getDefaultSharedPreferences(a);int savedMode=prefs.getInt("creator_shorts_play_"+user,0);continuous.setChecked(savedMode==1);random.setChecked(savedMode==2);continuous.setOnCheckedChangeListener((button,on)->{if(on)random.setChecked(false);prefs.edit().putInt("creator_shorts_play_"+user,random.isChecked()?2:continuous.isChecked()?1:0).apply();});random.setOnCheckedChangeListener((button,on)->{if(on)continuous.setChecked(false);prefs.edit().putInt("creator_shorts_play_"+user,random.isChecked()?2:continuous.isChecked()?1:0).apply();});
                     for (int n = 0; n < idArray.length; n++) {
-                        final int index=n;VideoDetails.videoRow(rows,videos.get(n),"",()->ModernShorts.openVideos(a,idArray,titleArray,thumbArray,index));
+                        final int index=n;VideoDetails.videoRow(rows,videos.get(n),"",()->ModernShorts.openVideos(a,idArray,titleArray,thumbArray,index,continuous.isChecked()||random.isChecked(),random.isChecked()));
                     }
                 });
             } catch (Exception e) {

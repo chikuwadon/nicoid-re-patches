@@ -1,3 +1,27 @@
+## 1.9.0 (2026-10-14)
+
+### ✨ New Features
+
+* **nicoid:** Customize ranking genre order and visibility.
+* **nicoid:** Create custom rankings by combining genres and tag conditions, with support for startup-screen selection.
+* **nicoid:** Load additional ranking entries up to 1,000th place.
+* **nicoid:** Open Niconi Ads in the in-app browser from video details.
+* **nicoid:** Follow and unfollow public mylists.
+* **nicoid:** Organize followed users, channels and mylists into tabs with animated swipe navigation.
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Prevent comments from being clipped when playback controls remain visible.
+* **nicoid:** Remove unintended purple and pink colors from dark-mode controls and dialogs.
+
+### 🔧 Improvements
+
+* **nicoid:** Redesign custom-ranking management with a fixed create button, drag reordering and batch deletion.
+* **nicoid:** Refine search-dialog alignment and date/duration controls.
+* **nicoid:** Standardize following-list row heights and circular user/channel icons.
+* **nicoid:** Improve spacing in dialogs and video-detail controls.
+* **nicoid:** Use a flat, single-color triangle for video-list actions.
+
 ## 1.8.6 (2026-10-14)
 
 ### ✨ New Features

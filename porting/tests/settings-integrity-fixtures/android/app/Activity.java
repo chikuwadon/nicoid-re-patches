@@ -1,1 +1,1 @@
-package android.app;public class Activity extends android.content.Context {public void recreate(){}public void invalidateOptionsMenu(){}public boolean stopService(android.content.Intent i){return true;}}
+package android.app;public class Activity extends android.content.Context {public android.content.Intent getIntent(){return new android.content.Intent();}public void recreate(){}public void invalidateOptionsMenu(){}public boolean stopService(android.content.Intent i){return true;}}

@@ -183,6 +183,12 @@
 
     .line 21
     :cond_7
+    invoke-static {p0, p1}, Le/e/a/Ranking190;->startupIntent(Landroid/content/Context;Ljava/lang/String;)Landroid/content/Intent;
+    move-result-object v0
+    if-eqz v0, :standard_startup
+    invoke-virtual {p0, v0}, Landroid/app/Activity;->startActivity(Landroid/content/Intent;)V
+    return-void
+    :standard_startup
     const-string v0, "shorts"
 
     invoke-virtual {v0, p1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
@@ -357,6 +363,8 @@
 
     if-eqz v1, :cond_18
 
+    invoke-static {v1}, Le/e/a/Ranking190;->startupSettings(Landroid/preference/Preference;)V
+
     return-void
 
     :cond_18
@@ -465,6 +473,8 @@
     invoke-virtual {v2, p0}, Landroid/preference/ListPreference;->setSummary(Ljava/lang/CharSequence;)V
 
     invoke-virtual {v2, v3}, Landroid/preference/ListPreference;->setOrder(I)V
+
+    invoke-static {v2}, Le/e/a/Ranking190;->startupSettings(Landroid/preference/Preference;)V
 
     invoke-virtual {v1, v2}, Landroid/preference/PreferenceGroup;->addPreference(Landroid/preference/Preference;)Z
 

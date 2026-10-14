@@ -13,12 +13,12 @@ public final class DialogInputs {
    for(View ancestor=parent;ancestor!=null;ancestor=ancestor.getParent() instanceof View?(View)ancestor.getParent():null){if(ancestor.getPaddingLeft()>0||ancestor.getPaddingRight()>0){padded=true;break;}}
    int margin=padded?0:inset;
    ViewGroup.LayoutParams lp=view.getLayoutParams();
-   if(lp instanceof ViewGroup.MarginLayoutParams){ViewGroup.MarginLayoutParams margins=(ViewGroup.MarginLayoutParams)lp;margins.leftMargin=margin;margins.rightMargin=margin;try{margins.getClass().getMethod("setMarginStart",int.class).invoke(margins,margin);margins.getClass().getMethod("setMarginEnd",int.class).invoke(margins,margin);}catch(Exception ignored){}view.setLayoutParams(margins);}
+   if(lp instanceof ViewGroup.MarginLayoutParams){ViewGroup.MarginLayoutParams margins=(ViewGroup.MarginLayoutParams)lp;margins.topMargin=Math.max(margins.topMargin,Math.round(16*view.getResources().getDisplayMetrics().density));margins.leftMargin=margin;margins.rightMargin=margin;try{margins.getClass().getMethod("setMarginStart",int.class).invoke(margins,margin);margins.getClass().getMethod("setMarginEnd",int.class).invoke(margins,margin);}catch(Exception ignored){}view.setLayoutParams(margins);}
    // Keep the themed underline's own horizontal inset so the caret and text stay
    // between the visible ends of the underline (including in search and NG forms).
    Rect backgroundPadding=new Rect();Drawable background=field.getBackground();
    if(background!=null)background.getPadding(backgroundPadding);
-   field.setPadding(backgroundPadding.left,field.getPaddingTop(),backgroundPadding.right,field.getPaddingBottom());
+   field.setPadding(backgroundPadding.left,field.getPaddingTop(),backgroundPadding.right,field.getPaddingBottom());SearchRange.alignInput(field);
   }
   if(view instanceof ViewGroup){ViewGroup group=(ViewGroup)view;for(int i=0;i<group.getChildCount();i++)pad(group.getChildAt(i));}
  }

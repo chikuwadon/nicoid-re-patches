@@ -137,6 +137,7 @@ public final class FollowFeed {
         }catch(Exception error){android.util.Log.w("nicoid-feed","Feed view failed",error);}
     }
     public static boolean menu(Activity a,Menu menu){
+        if(Ranking190.managerMenu(a,menu))return true;
         menu.clear();menu.add(text(a,"更新","Refresh","重新整理")).setOnMenuItemClickListener(item->{load(a);return true;});return true;
     }
     private static String cookie(Activity a)throws Exception{

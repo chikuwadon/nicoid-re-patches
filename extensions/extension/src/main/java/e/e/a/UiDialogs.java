@@ -20,12 +20,17 @@ public final class UiDialogs {
     }
     public static int accent(Context context) { return ThemeChoice.accent(owner(context)); }
     public static int surface(Context context) {
-        Context c=owner(context); if(ThemeChoice.isAmoled(c))return 0xff000000;boolean dark=ThemeChoice.isNight(c);
+        Context c=owner(context); if(ThemeChoice.isAmoled(c))return 0xff000000;boolean dark=ThemeChoice.isNight(c);if(dark)return DialogColors.SURFACE_DARK;
         if(Build.VERSION.SDK_INT>=31 && android.preference.PreferenceManager.getDefaultSharedPreferences(c).getBoolean("material_you_mode",false)) {
             int id=c.getResources().getIdentifier(dark?"system_neutral1_900":"system_neutral1_50","color","android");
             if(id!=0) return c.getResources().getColor(id,c.getTheme());
         }
         return dark?0xff191b20:0xfffafafa;
+    }
+    /** Insets for custom dialog content; preserve any larger intentional spacing. */
+    public static void insetContent(View content) {
+        int horizontal=PanelUi.dp(content.getContext(),20),vertical=PanelUi.dp(content.getContext(),12);
+        content.setPadding(Math.max(horizontal,content.getPaddingLeft()),Math.max(vertical,content.getPaddingTop()),Math.max(horizontal,content.getPaddingRight()),Math.max(vertical,content.getPaddingBottom()));
     }
     public static void secondaryButton(Button button) {
         Context c=button.getContext();boolean dark=ThemeChoice.isNight(owner(c));
@@ -57,9 +62,18 @@ public final class UiDialogs {
             AbsListView.OnScrollListener listener=new AbsListView.OnScrollListener(){public void onScrollStateChanged(AbsListView view,int state){}public void onScroll(AbsListView view,int first,int count,int total){for(int n=0;n<view.getChildCount();n++)inputs(view.getChildAt(n),accent,dark);}};
             list.setOnScrollListener(listener);list.post(()->listener.onScroll(list,0,list.getChildCount(),list.getCount()));
         }
-        if(v instanceof TextView&&!"nicoid_duration".equals(v.getTag())) ((TextView)v).setTextColor(v instanceof Button&&!"nicoid-range-control".equals(v.getTag())?accent:dark?0xffeeeeee:0xff202124);
+        if(v instanceof TextView&&!"nicoid_duration".equals(v.getTag())) ((TextView)v).setTextColor(v instanceof Button&&!(v instanceof CompoundButton)&&!"nicoid-range-control".equals(v.getTag())?accent:dark?0xffeeeeee:0xff202124);
         String name="";try{if(v.getId()!=View.NO_ID)name=v.getResources().getResourceEntryName(v.getId());}catch(Exception ignored){}
+        // Stock NG/mylist forms have an unpadded spinner and input inside mainlay.
+        if(name.equals("mainlay") && v instanceof LinearLayout) {
+            LinearLayout form=(LinearLayout)v;
+            if(form.getChildCount()==2 && form.getChildAt(0) instanceof Spinner && form.getChildAt(1) instanceof EditText) {
+                insetContent(form);DialogInputs.pad(form);
+            }
+        }
         if(name.equals("parentPanel")||name.equals("topPanel")||name.equals("contentPanel")||name.equals("buttonPanel")||name.equals("customPanel"))v.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+        if(v instanceof Spinner)ThemeChoice.spinner((Spinner)v);
+        ThemeChoice.controlsOne(v);
         if(v instanceof EditText) {
             EditText e=(EditText)v;e.setTextColor(dark?0xffeeeeee:0xff202124);e.setHintTextColor(dark?0xffb7bac3:0xff666a73);e.setBackgroundTintList(tint);
             if(Build.VERSION.SDK_INT>=29) {

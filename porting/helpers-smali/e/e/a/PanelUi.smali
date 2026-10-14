@@ -137,22 +137,10 @@
 
 .method static ink(Landroid/content/Context;)I
     .registers 1
-
-    .line 5
     invoke-static {p0}, Le/e/a/ThemeChoice;->isNight(Landroid/content/Context;)Z
-
     move-result p0
-
-    if-eqz p0, :cond_a
-
-    const p0, -0x111112
-
-    goto :goto_d
-
-    :cond_a
-    const p0, -0xdfdedc
-
-    :goto_d
+    invoke-static {p0}, Le/e/a/DialogColors;->ink(Z)I
+    move-result p0
     return p0
 .end method
 

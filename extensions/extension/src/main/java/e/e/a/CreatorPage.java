@@ -47,6 +47,7 @@ public final class CreatorPage {
     }
 
     public static boolean open(Activity a) {
+        if (Ranking190.open(a)) return true;
         if (a.getIntent().getBooleanExtra("nicoid_followed_channels", false)) return openChannels(a);
         if (a.getIntent().getBooleanExtra("nicoid_followed_mylists", false)) return openMylists(a);
         String userId = a.getIntent().getStringExtra("nicoid_creator_page");
@@ -134,27 +135,9 @@ public final class CreatorPage {
 
     private static void enrichChannelIcons(ArrayList<JSONObject> channels,NetworkTask task){boolean missing=false;for(JSONObject channel:channels)if(channel.optString("iconUrl").isEmpty())missing=true;if(!missing)return;try{JSONObject response=VideoDetails.request("https://api.feed.nicovideo.jp/v1/actors?limit=50","GET",true,task);for(FollowFeedData.Actor actor:FollowFeedData.actors(response)){String id=actor.id.startsWith("ch")?actor.id:"ch"+actor.id;for(JSONObject channel:channels)if(id.equals(channel.optString("id"))&&!actor.icon.isEmpty())channel.put("iconUrl",actor.icon);}}catch(Exception ignored){}}
     /** Keep native user rows and their actions, adding channels in the same scrolling list. */
-    public static void following(Activity a) {
-        try {
-            android.widget.ListView list=(android.widget.ListView)Review181.field(a,"A");
-            VideoDetails.initializeCookies(a);
-            LinearLayout channels=PanelUi.column(a);
-            channels.setTag("nicoid_followed_channels");
-            channels.setPadding(0,0,0,0);
-            ThemeChoice.background(channels);
-            if(list.findViewWithTag("nicoid_followed_channels")!=null)return;
-            TextView users=category(a,tr(a,"ユーザー","Users","使用者"));list.addHeaderView(users,null,false);
-            list.addFooterView(channels,null,false);
-            NetworkTask task=new NetworkTask();
-            channels.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener(){
-                public void onViewAttachedToWindow(View v){}
-                public void onViewDetachedFromWindow(View v){task.cancel();}
-            });
-            loadFollowingChannels(a,channels,task);
-        } catch(Exception error){android.util.Log.w("nicoid-creator","Unable to add followed channels",error);}
-    }
+    public static void following(Activity a) { Following190.attach(a); }
 
-    private static void loadFollowingChannels(Activity a,LinearLayout rows,NetworkTask task) {
+    static void loadFollowingChannels(Activity a,LinearLayout rows,NetworkTask task) {
         rows.removeAllViews();
         TextView loading=PanelUi.text(a,tr(a,"チャンネルを読み込み中…","Loading channels…","載入頻道…"),14);
         rows.addView(loading);
@@ -164,7 +147,7 @@ public final class CreatorPage {
                 MAIN.post(()->{
                     if(task.cancelled()||a.isFinishing())return;
                     rows.removeAllViews();
-                    if(!channels.isEmpty())rows.addView(category(a,tr(a,"公式チャンネル","Official channels","官方頻道")));
+
                     for(JSONObject channel:channels){
                         channelRow(rows,channel);
                     }
@@ -250,23 +233,24 @@ public final class CreatorPage {
             loadMylists(a,rows,1);return true;
         } catch(Exception e){android.util.Log.w("nicoid-creator","Unable to open followed mylists",e);return true;}
     }
-    private static void loadMylists(Activity a,LinearLayout rows,int page) {
+    static void loadMylists(Activity a,LinearLayout rows,int page) {
         Button more=PanelUi.button(a,tr(a,"読み込み中…","Loading…","載入中…"));more.setEnabled(false);rows.addView(more);
         NetworkTask task=new NetworkTask();rows.setTag(task);
         rows.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener(){public void onViewAttachedToWindow(View v){}public void onViewDetachedFromWindow(View v){task.cancel();}});
         task.start(WORK,()->{
             try {
-                JSONObject data=VideoDetails.request("https://nvapi.nicovideo.jp/v1/users/me/following/mylists?pageSize=100&page="+page,"GET",true,task).optJSONObject("data");
+                JSONObject data=VideoDetails.request("https://nvapi.nicovideo.jp/v1/users/me/following/mylists?sampleItemCount=0","GET",true,task).optJSONObject("data");
                 if(data==null)throw new java.io.IOException("Missing mylists");
                 JSONArray items=data.optJSONArray("items");if(items==null)items=data.optJSONArray("mylists");
-                final JSONArray result=items;final boolean next=data.optBoolean("hasNext",items!=null&&items.length()==100);
+                if(items!=null)for(int n=0;n<items.length();n++){JSONObject item=items.optJSONObject(n);if(item==null)continue;JSONObject nested=item.optJSONObject("mylist");if(nested!=null)item=nested;String id=item.optString("id",item.optString("mylistId",""));if(!id.matches("[0-9]+"))continue;if(item.optString("name",item.optString("title","")).isEmpty()){try{JSONObject list=VideoDetails.request("https://nvapi.nicovideo.jp/v2/mylists/"+id+"?pageSize=1","GET",true,task).getJSONObject("data").getJSONObject("mylist");item.put("name",list.getString("name"));}catch(Exception error){if(task.cancelled())throw error;item.put("name",tr(a,"取得できないマイリスト","Unavailable mylist","無法取得的播放清單"));}}}
+                final JSONArray result=items;final boolean next=false;
                 MAIN.post(()->{
                     if(task.cancelled()||a.isFinishing())return;rows.removeView(more);
                     if(result!=null)for(int n=0;n<result.length();n++){
                         JSONObject item=result.optJSONObject(n);if(item==null)continue;JSONObject nested=item.optJSONObject("mylist");if(nested!=null)item=nested;
                         String id=item.optString("id",item.optString("mylistId",""));if(!id.matches("[0-9]+"))continue;
-                        String name=item.optString("name",item.optString("title",id));Button row=PanelUi.button(a,name);row.setGravity(Gravity.START|Gravity.CENTER_VERTICAL);
-                        row.setOnClickListener(v->a.startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://www.nicovideo.jp/mylist/"+id)).setClassName(a,"com.sauzask.nicoid.NicoidVideoListActivity").putExtra("type",5).putExtra("name",name)));rows.addView(row);PanelUi.divider(rows);
+                        String name=item.optString("name",item.optString("title",""));TextView row=PanelUi.text(a,name,16);row.setGravity(Gravity.START|Gravity.CENTER_VERTICAL);Following190.sizeRow(row);
+                        row.setOnClickListener(v->a.startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://www.nicovideo.jp/mylist/"+id)).setClassName(a,"com.sauzask.nicoid.NicoidVideoListActivity").putExtra("type",5).putExtra("name",name)));row.setOnLongClickListener(v->{MylistFollow190.show(a,id);return true;});rows.addView(row);PanelUi.divider(rows);
                     }
                     if(page==1&&rows.getChildCount()==0)rows.addView(PanelUi.text(a,tr(a,"フォロー中のマイリストはありません","No followed mylists","沒有已追蹤的播放清單"),14));
                     if(next&&result!=null&&result.length()>0){more.setText(tr(a,"もっと見る","View more","查看更多"));more.setEnabled(true);more.setOnClickListener(v->{rows.removeView(more);loadMylists(a,rows,page+1);});rows.addView(more);}
@@ -278,7 +262,7 @@ public final class CreatorPage {
 
     private static TextView category(Context c,String label){TextView title=PanelUi.text(c,label,14);title.setPadding(PanelUi.dp(c,12),PanelUi.dp(c,8),PanelUi.dp(c,12),PanelUi.dp(c,8));title.setBackgroundColor(UiDialogs.accent(c)&0xffffff|0x22000000);return title;}
     private static void unfollowChannel(LinearLayout rows,View row,JSONObject channel){Context c=rows.getContext();Activity a=c instanceof Activity?(Activity)c:null;android.app.AlertDialog d=new android.app.AlertDialog.Builder(PlaybackSession.dialogContext(c)).setMessage(channel.optString("name")+"\n"+tr(c,"フォローを解除しますか？","Unfollow this channel?","取消追蹤此頻道？")).setPositiveButton(tr(c,"フォロー解除","Unfollow","取消追蹤"),(x,w)->{row.setEnabled(false);NetworkTask task=new NetworkTask();task.start(WORK,()->{boolean ok=false;try{VideoDetails.initializeCookies(c);ModernPosting.jsonPost("https://public-api.ch.nicovideo.jp/v1/user/follow",new JSONObject().put("channelId",Long.parseLong(channel.optString("id").replaceFirst("^ch",""))).put("mode","delete"),task);ok=true;}catch(Exception e){android.util.Log.w("nicoid-creator","Unable to unfollow channel: "+e.getClass().getSimpleName());}boolean success=ok;MAIN.post(()->{if(a!=null&&a.isFinishing())return;if(success){int n=rows.indexOfChild(row);if(n>=0){if(n+1<rows.getChildCount()&&rows.getChildAt(n+1).getLayoutParams().height<=PanelUi.dp(c,2))rows.removeViewAt(n+1);rows.removeView(row);}}else{row.setEnabled(true);Toast.makeText(c,tr(c,"フォロー解除に失敗しました","Unable to unfollow","取消追蹤失敗"),1).show();}});});}).setNegativeButton(tr(c,"キャンセル","Cancel","取消"),null).create();PlaybackSession.showDialog(d);}
-    private static void channelRow(LinearLayout rows,JSONObject channel){Context c=rows.getContext();LinearLayout row=new LinearLayout(c);row.setGravity(Gravity.CENTER_VERTICAL);row.setMinimumHeight(PanelUi.dp(c,56));android.widget.FrameLayout avatar=new android.widget.FrameLayout(c);android.widget.ImageView icon=new android.widget.ImageView(c);icon.setScaleType(android.widget.ImageView.ScaleType.CENTER_CROP);TextView placeholder=PanelUi.text(c,"▶",14);avatar.addView(placeholder,new android.widget.FrameLayout.LayoutParams(-1,-1));avatar.addView(icon,new android.widget.FrameLayout.LayoutParams(-1,-1));LinearLayout.LayoutParams image=new LinearLayout.LayoutParams(PanelUi.dp(c,50),PanelUi.dp(c,50));image.setMargins(PanelUi.dp(c,3),PanelUi.dp(c,3),0,PanelUi.dp(c,3));row.addView(avatar,image);TextView name=PanelUi.text(c,channel.optString("name",channel.optString("id")),14);name.setPadding(PanelUi.dp(c,6),0,0,0);name.setGravity(Gravity.CENTER_VERTICAL);row.addView(name,new LinearLayout.LayoutParams(0,PanelUi.dp(c,56),1));row.setOnClickListener(v->ChannelPage.launch(c,channel));row.setOnLongClickListener(v->{unfollowChannel(rows,row,channel);return true;});rows.addView(row);PanelUi.divider(rows);ShortImages.load(channel.optString("iconUrl"),icon,placeholder);}
+    private static void channelRow(LinearLayout rows,JSONObject channel){Context c=rows.getContext();LinearLayout row=new LinearLayout(c);row.setGravity(Gravity.CENTER_VERTICAL);Following190.sizeRow(row);android.widget.FrameLayout avatar=new android.widget.FrameLayout(c);android.widget.ImageView icon=new android.widget.ImageView(c);icon.setScaleType(android.widget.ImageView.ScaleType.CENTER_CROP);TextView placeholder=PanelUi.text(c,"▶",14);avatar.addView(placeholder,new android.widget.FrameLayout.LayoutParams(-1,-1));avatar.addView(icon,new android.widget.FrameLayout.LayoutParams(-1,-1));LinearLayout.LayoutParams image=new LinearLayout.LayoutParams(PanelUi.dp(c,44),PanelUi.dp(c,44));avatar.setBackground(PanelUi.round(c,UiDialogs.surface(c),44));Following190.roundAvatar(avatar);row.addView(avatar,image);TextView name=PanelUi.text(c,channel.optString("name",channel.optString("id")),16);name.setPadding(PanelUi.dp(c,6),0,0,0);name.setGravity(Gravity.CENTER_VERTICAL);row.addView(name,new LinearLayout.LayoutParams(0,-2,1));row.setOnClickListener(v->ChannelPage.launch(c,channel));row.setOnLongClickListener(v->{unfollowChannel(rows,row,channel);return true;});rows.addView(row);PanelUi.divider(rows);ShortImages.load(channel.optString("iconUrl"),icon,placeholder);}
 
     private static String thumbnail(JSONObject item) {
         String value=item.optString("thumbnailUrl", ""); JSONObject thumb=item.optJSONObject("thumbnail");

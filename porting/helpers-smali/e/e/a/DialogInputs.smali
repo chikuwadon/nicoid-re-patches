@@ -271,6 +271,15 @@
     check-cast v14, Landroid/view/ViewGroup$MarginLayoutParams;
 
     .local v14, "margins":Landroid/view/ViewGroup$MarginLayoutParams;
+    invoke-virtual {v1}, Landroid/view/View;->getContext()Landroid/content/Context;
+    move-result-object v0
+    const/16 v15, 0x10
+    invoke-static {v0, v15}, Le/e/a/PanelUi;->dp(Landroid/content/Context;I)I
+    move-result v0
+    iget v15, v14, Landroid/view/ViewGroup$MarginLayoutParams;->topMargin:I
+    invoke-static {v0, v15}, Ljava/lang/Math;->max(II)I
+    move-result v0
+    iput v0, v14, Landroid/view/ViewGroup$MarginLayoutParams;->topMargin:I
     iput v12, v14, Landroid/view/ViewGroup$MarginLayoutParams;->leftMargin:I
 
     iput v12, v14, Landroid/view/ViewGroup$MarginLayoutParams;->rightMargin:I
@@ -392,6 +401,7 @@
     .end local v13    # "lp":Landroid/view/ViewGroup$LayoutParams;
     .end local v16    # "backgroundPadding":Landroid/graphics/Rect;
     :cond_121
+    invoke-static {v1}, Le/e/a/SearchRange;->alignInput(Landroid/view/View;)V
     instance-of v0, v1, Landroid/view/ViewGroup;
 
     if-eqz v0, :cond_139

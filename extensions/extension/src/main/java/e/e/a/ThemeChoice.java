@@ -46,9 +46,10 @@ public final class ThemeChoice {
         if (!watching) {
             watching = true;
             a.getApplication().registerActivityLifecycleCallbacks(new android.app.Application.ActivityLifecycleCallbacks() {
-                public void onActivityCreated(Activity activity, android.os.Bundle state) { }
+                public void onActivityCreated(Activity activity, android.os.Bundle state) { activity.getWindow().getDecorView().post(()->controls(activity.getWindow().getDecorView())); }
                 public void onActivityStarted(Activity activity) { }
                 public void onActivityResumed(Activity activity) {
+                    activity.getWindow().getDecorView().post(()->controls(activity.getWindow().getDecorView()));
                     String old = APPLIED.get(activity), current = stamp(activity);
                     if (old != null && !old.equals(current) && !activity.isFinishing()) {
                         APPLIED.put(activity, current);
@@ -110,13 +111,17 @@ public final class ThemeChoice {
         if (!c.getTheme().resolveAttribute(attr, v, true)) return fallback;
         return v.resourceId == 0 ? v.data : c.getResources().getColor(v.resourceId);
     }
-    public static int accent(Context c) { return color(c, 0x7f03005e, isNight(c) ? 0xffb6c4f4 : 0xff006b5b); }
-    public static int textColor(View v) { return color(v.getContext(), android.R.attr.textColorPrimary, isNight(v.getContext()) ? 0xffeeeeee : 0xff202124); }
+    public static int accent(Context c) { return DialogColors.accent(color(UiDialogs.owner(c),0x7f03005e,isNight(c)?DialogColors.ACCENT_DARK:0xff006b5b),isNight(c)); }
+    public static int textColor(View v) { return isNight(v.getContext())?DialogColors.INK_DARK:color(v.getContext(),android.R.attr.textColorPrimary,DialogColors.INK_LIGHT); }
     public static boolean amoled(Context c){return isAmoled(c);}
     public static void tree(View view){
         if(view instanceof android.widget.TextView){android.widget.TextView text=(android.widget.TextView)view;if(!"nicoid_duration".equals(view.getTag()))text.setTextColor(textColor(view));text.setHintTextColor(isNight(view.getContext())?0xffb7bac3:0xff666a73);}
+        controlsOne(view);
         if(view instanceof android.view.ViewGroup){android.view.ViewGroup group=(android.view.ViewGroup)view;for(int n=0;n<group.getChildCount();n++)tree(group.getChildAt(n));}
     }
+    public static void controls(View view){if(!isNight(view.getContext()))return;controlsOne(view);if(view instanceof android.widget.Spinner)spinner((android.widget.Spinner)view);if(view instanceof android.view.ViewGroup){android.view.ViewGroup g=(android.view.ViewGroup)view;for(int i=0;i<g.getChildCount();i++)controls(g.getChildAt(i));}}
+    static boolean purpleStates(android.content.res.ColorStateList colors){if(colors==null)return false;if(DialogColors.purple(colors.getDefaultColor()))return true;for(int state:new int[]{android.R.attr.state_pressed,android.R.attr.state_checked,android.R.attr.state_selected,android.R.attr.state_focused})if(DialogColors.purple(colors.getColorForState(new int[]{android.R.attr.state_enabled,state},colors.getDefaultColor())))return true;return false;}
+    static void controlsOne(View v){if(!isNight(v.getContext()))return;android.content.res.ColorStateList tint=android.content.res.ColorStateList.valueOf(accent(v.getContext()));if(v instanceof android.widget.TextView){android.widget.TextView t=(android.widget.TextView)v;if(purpleStates(t.getTextColors()))t.setTextColor(DialogColors.INK_DARK);if(purpleStates(t.getHintTextColors()))t.setHintTextColor(DialogColors.MUTED_DARK);if(purpleStates(t.getLinkTextColors()))t.setLinkTextColor(tint);}if(v instanceof android.widget.ImageView){android.widget.ImageView image=(android.widget.ImageView)v;if(purpleStates(image.getImageTintList()))image.setImageTintList(android.content.res.ColorStateList.valueOf(v.isSelected()||v.isActivated()?accent(v.getContext()):DialogColors.INK_DARK));}if(v instanceof android.widget.EditText){v.setBackgroundTintList(tint);if(android.os.Build.VERSION.SDK_INT>=29){android.widget.EditText t=(android.widget.EditText)v;android.graphics.drawable.Drawable cursor=t.getTextCursorDrawable();if(cursor!=null){cursor=cursor.mutate();cursor.setTintList(tint);t.setTextCursorDrawable(cursor);}for(android.graphics.drawable.Drawable d:new android.graphics.drawable.Drawable[]{t.getTextSelectHandle(),t.getTextSelectHandleLeft(),t.getTextSelectHandleRight()})if(d!=null)d.mutate().setTintList(tint);}}if(v instanceof android.widget.CompoundButton)((android.widget.CompoundButton)v).setButtonTintList(tint);if(v instanceof android.widget.CheckedTextView)((android.widget.CheckedTextView)v).setCheckMarkTintList(tint);if(v instanceof android.widget.ProgressBar){((android.widget.ProgressBar)v).setProgressTintList(tint);((android.widget.ProgressBar)v).setIndeterminateTintList(tint);}if(v instanceof android.widget.SeekBar)((android.widget.SeekBar)v).setThumbTintList(tint);if(v.getBackground() instanceof android.graphics.drawable.ColorDrawable&&DialogColors.purple(((android.graphics.drawable.ColorDrawable)v.getBackground()).getColor()))v.setBackgroundColor(UiDialogs.surface(v.getContext()));android.content.res.ColorStateList background=v.getBackgroundTintList();if(purpleStates(background))v.setBackgroundTintList(tint);}
     public static void spinner(android.widget.Spinner spinner){
         android.widget.SpinnerAdapter original=spinner.getAdapter();
         if(original==null||original instanceof ThemedSpinner)return;
@@ -129,13 +134,13 @@ public final class ThemeChoice {
         public View getView(int position,View convert,android.view.ViewGroup parent){View view=original.getView(position,convert,parent);tree(view);return view;}
         public View getDropDownView(int position,View convert,android.view.ViewGroup parent){View view=original.getDropDownView(position,convert,parent);background(view);tree(view);return view;}
     }
-    public static void background(View v) { v.setBackgroundColor(isAmoled(v.getContext())?0xff000000:color(v.getContext(), android.R.attr.colorBackground, isNight(v.getContext()) ? 0xff191b20 : 0xffffffff)); }
+    public static void background(View v) { v.setBackgroundColor(isNight(v.getContext())?UiDialogs.surface(v.getContext()):color(v.getContext(),android.R.attr.colorBackground,0xffffffff)); }
     public static void button(android.widget.Button b) {
         Context c = b.getContext(); boolean dark = isNight(c);
         int surfaceAttr = c.getResources().getIdentifier("nicoidSurface", "attr", c.getPackageName());
-        int surface = color(c, surfaceAttr, dark ? 0xff303238 : 0xffe7e7e7);
+        int surface = dark?DialogColors.secondary(UiDialogs.surface(c),true):color(c,surfaceAttr,0xffe7e7e7);
         int ink = textColor(b);
-        if ("material".equals(mode(c)) && android.os.Build.VERSION.SDK_INT >= 31) {
+        if (!dark && "material".equals(mode(c)) && android.os.Build.VERSION.SDK_INT >= 31) {
             int id = c.getResources().getIdentifier(dark ? "system_accent1_700" : "system_accent1_100", "color", "android");
             if (id != 0) surface = c.getResources().getColor(id);
             id = c.getResources().getIdentifier(dark ? "system_neutral1_50" : "system_neutral1_900", "color", "android");

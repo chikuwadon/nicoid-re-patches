@@ -163,8 +163,8 @@
   },
   "DialogInputs": {
     "owner": "smali",
-    "java_sha256": "9514b14bda6a8ec5c6aee66d0793b36af624566f84dbf03570d852ca98be4f57",
-    "smali_sha256": "27e61e954c515f30600707b576d5165ec45d6d67db127a7bd41ddbe5143827a1"
+    "java_sha256": "8c12bcf67c0fcd3c367ba059ddb6b5d1653cb7825c1f21100381916769acdc57",
+    "smali_sha256": "8aced0e84d360f21b0543f1f17ca086371ae452d0e2ff524a08b408cabf7da82"
   },
   "DirectoryIndex": {
     "owner": "java"
@@ -258,8 +258,8 @@
   },
   "NgCommentSettings": {
     "owner": "smali",
-    "java_sha256": "c90d289fe04ac4385b4756b1ced219a8a7a4f668710c1b9f092e881af213df27",
-    "smali_sha256": "0ce10928cff4a09cc5cdbd2fbb938af1d982db0e177a80f6098d090d44bba651"
+    "java_sha256": "df8b23b2084fd861efc15e557ce7b26dced6e10b761fee917cb709b25bc36bbf",
+    "smali_sha256": "d76264868ef2d3e4020c644a28e496a40ffd06ea22ef495da6dbaf61193571ed"
   },
   "OverlayRules": {
     "owner": "smali",
@@ -281,8 +281,8 @@
   },
   "PanelUi": {
     "owner": "smali",
-    "java_sha256": "86a9ae116fc226482f0c176aa8427dd484fb343b2b5367c7decdf4bfc51678bf",
-    "smali_sha256": "9102e1690699be68da4a7e030d601a6f25638bb4b8eb1ec3cf269352150187a5"
+    "java_sha256": "f8fc4de1a25fb45d6f9b80cb7294bcba164524c14980432028d17de9a62e7119",
+    "smali_sha256": "46c79cbfb68fa65844b2e3a8b680f8e238e728654f89ff03c551b5c14b407b5e"
   },
   "PatchInfo": {
     "owner": "java"
@@ -447,6 +447,36 @@
     "owner": "java"
   },
   "CrashDiagnostics": {
+    "owner": "java"
+  },
+  "Following190": {
+    "owner": "java"
+  },
+  "Nicoad190": {
+    "owner": "java"
+  },
+  "Ranking190": {
+    "owner": "java"
+  },
+  "RankingRules190": {
+    "owner": "java"
+  },
+  "RankingFetch190": {
+    "owner": "java"
+  },
+  "MylistFollow190": {
+    "owner": "java"
+  },
+  "RankingCatalog190": {
+    "owner": "java"
+  },
+  "RankingPages190": {
+    "owner": "java"
+  },
+  "CommentViewport190": {
+    "owner": "java"
+  },
+  "UiGlyph190": {
     "owner": "java"
   }
 }

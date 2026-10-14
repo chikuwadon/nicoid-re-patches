@@ -11,7 +11,7 @@ nicoid 6.49の元APKにMorphe Managerでパッチを適用すると、「nicoid 
 - 対象アプリ：`com.sauzask.nicoid`（バージョン`6.49`）
 - 適用後のアプリ名：**nicoid Re**
 - 適用後のパッケージ名：`com.sauzask.nicoid.hls`
-- 正式版：`v1.8.6`
+- 正式版：`v1.9.0`
 - 開発版：`dev`ブランチで管理
 
 パッチ適用には次の元APKを使用してください。
@@ -21,7 +21,7 @@ SHA-256：`17fc6b46228af184437ade7e6f5573915bc655b86996307ff3270fdf35279cce`
 ## パッチ配布
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.8.6](https://github.com/chikuwadon/nicoid-re-patches/releases/tag/v1.8.6)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`ブランチ&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件
+> **[v1.9.0](https://github.com/chikuwadon/nicoid-re-patches/releases/tag/v1.9.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`ブランチ&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件
 <details open>
 <summary>📦 nicoid&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件</summary>
 <br>
@@ -103,6 +103,11 @@ https://github.com/chikuwadon/nicoid-re-patches
 - NGコメントを一覧で追加・削除・複数削除できるように。
 - キャッシュの保存先を変更できるように。
 - 連続再生・シャッフル再生を追加。
+- ランキングのジャンルを並び替え・非表示にでき、最大1,000位まで追加読み込みできるように。
+- ジャンルとタグ条件を組み合わせたカスタムランキングを作成・編集でき、起動時の画面にも指定できるように。
+- 動画情報から内部ブラウザでニコニ広告を開けるように。
+- 公開マイリストをフォロー・解除できるように。
+- 「フォロー中」をユーザー・チャンネル・マイリストのタブに分け、横スワイプで切り替えられるように。
 - ショート動画機能を追加。
 - 検索結果の先頭でスワイプして更新できるように。
 - 検索で投稿日の開始日・終了日と、動画時間の下限・上限を指定可能。

@@ -70,7 +70,12 @@
     invoke-interface {v1, v2, v0}, Landroid/content/SharedPreferences;->getString(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 
     move-result-object v1
-
+    invoke-static {p0, v1}, Le/e/a/Ranking190;->startupIntent(Landroid/content/Context;Ljava/lang/String;)Landroid/content/Intent;
+    move-result-object v2
+    if-eqz v2, :standard_startup
+    move-object p1, v2
+    goto/16 :goto_bb
+    :standard_startup
     const-string v2, "shorts"
 
     invoke-virtual {v2, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z

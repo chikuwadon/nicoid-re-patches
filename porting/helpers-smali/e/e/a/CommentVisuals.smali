@@ -856,11 +856,11 @@
 
     move-result v0
 
-    invoke-virtual/range {p1 .. p1}, Landroid/graphics/Canvas;->getWidth()I
+    invoke-static/range {p0 .. p1}, Le/e/a/CommentViewport190;->width(Ljava/lang/Object;Landroid/graphics/Canvas;)I
 
     move-result v8
 
-    invoke-virtual/range {p1 .. p1}, Landroid/graphics/Canvas;->getHeight()I
+    invoke-static/range {p0 .. p1}, Le/e/a/CommentViewport190;->height(Ljava/lang/Object;Landroid/graphics/Canvas;)I
 
     move-result v10
 

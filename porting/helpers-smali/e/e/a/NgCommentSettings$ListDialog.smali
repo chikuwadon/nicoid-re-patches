@@ -149,6 +149,8 @@
 
     iput-object p1, p0, Le/e/a/NgCommentSettings$ListDialog;->body:Landroid/widget/LinearLayout;
 
+    invoke-static {p1}, Le/e/a/UiDialogs;->insetContent(Landroid/view/View;)V
+
     iget-object p1, p0, Le/e/a/NgCommentSettings$ListDialog;->context:Landroid/content/Context;
 
     const-string v2, ""
@@ -435,6 +437,8 @@
     invoke-static {v0}, Le/e/a/PanelUi;->column(Landroid/content/Context;)Landroid/widget/LinearLayout;
 
     move-result-object v0
+
+    invoke-static {v0}, Le/e/a/UiDialogs;->insetContent(Landroid/view/View;)V
 
     new-instance v5, Landroid/widget/RadioGroup;
 

@@ -14,6 +14,19 @@ public final class ListActions {
  private static final int SUPER_LONG_EXTRA_MS=950;
  private static final Handler MAIN=new Handler(Looper.getMainLooper());
 
+ /** One flat fill, retaining the original bottom-right triangle and hit target. */
+ public static void corner(View button){button.setBackgroundTintList(null);button.setBackground(new Corner());}
+ static final class Corner extends android.graphics.drawable.Drawable {
+  final android.graphics.Paint paint=new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+  final android.graphics.Path path=new android.graphics.Path();int alpha=255;boolean pressed;
+  public void draw(android.graphics.Canvas canvas){android.graphics.Rect b=getBounds();float leg=Math.min(b.width(),b.height())*.5625f;path.reset();path.moveTo(b.right-leg,b.bottom);path.lineTo(b.right,b.bottom-leg);path.lineTo(b.right,b.bottom);path.close();paint.setColor(DialogColors.LIST_CORNER);paint.setAlpha((pressed?204:153)*alpha/255);canvas.drawPath(path,paint);}
+  public void setAlpha(int value){alpha=value;invalidateSelf();}
+  public void setColorFilter(android.graphics.ColorFilter filter){paint.setColorFilter(filter);invalidateSelf();}
+  public int getOpacity(){return android.graphics.PixelFormat.TRANSLUCENT;}
+  public boolean isStateful(){return true;}
+  protected boolean onStateChange(int[] state){boolean next=false;for(int value:state)if(value==android.R.attr.state_pressed||value==android.R.attr.state_focused)next=true;if(next==pressed)return false;pressed=next;invalidateSelf();return true;}
+ }
+
  static final class Action {
   final String title;final boolean enabled;final int id;final Runnable run;
   Action(MenuItem item,Runnable run){title=item.getTitle().toString();enabled=item.isEnabled();id=item.getItemId();this.run=run;}
@@ -71,14 +84,14 @@ public final class ListActions {
  public static void show(Object listener,Object popup){try{List<Action> actions=ACTIONS.remove(popup);if(!LONG.contains(listener)||actions==null){popup.getClass().getMethod("a").invoke(popup);return;}Object adapter=get(listener,"e");Activity host=(Activity)get(adapter,"d");Context c=PlaybackSession.dialogContext(host);String title=String.valueOf(get(listener,"b"));CharSequence[] labels=new CharSequence[actions.size()];for(int n=0;n<labels.length;n++)labels[n]=actions.get(n).title;AlertDialog dialog=new AlertDialog.Builder(c).setTitle(title).setItems(labels,(d,n)->{Action action=actions.get(n);if(action.enabled){if(action.id==18101||action.id==18102)action.run.run();else LocalPlaylists.withAdapterMode(host,adapter,action.run);}}).create();UiDialogs.show(dialog);}catch(Exception e){android.util.Log.w("nicoid-menu","Unable to display video actions",e);}}
  static boolean cacheList(Activity host){return host!=null&&host.getClass().getName().equals("com.sauzask.nicoid.NicoidCacheManagerActivity");}
  public static void adjustHistoryMenu(Object object,Menu menu){try{
-  Activity a=(Activity)object;android.content.SharedPreferences prefs=android.preference.PreferenceManager.getDefaultSharedPreferences(a);MenuItem continuous=menu.findItem(0x7f0f0201);if(continuous==null)return;
+  Activity a=(Activity)object;android.content.SharedPreferences prefs=android.preference.PreferenceManager.getDefaultSharedPreferences(a);MenuItem continuous=menu.findItem(0x7f0f0201);if(continuous==null){MylistFollow190.menu(a,menu);return;}
   int type=a.getClass().getField("E").getInt(a);if(type==4)menu.removeItem(0x7f0f020a);if(type==8)menu.removeItem(0x7f0f020b);menu.removeItem(18120);menu.removeItem(18121);
   ArrayList<MenuItem> old=new ArrayList<>();for(int n=0;n<menu.size();n++)old.add(menu.getItem(n));
   old.sort((x,y)->Integer.compare(menuRank(x.getItemId()),menuRank(y.getItemId())));menu.clear();int order=0;
   for(MenuItem item:old){MenuItem copy=menu.add(item.getGroupId(),item.getItemId(),order++,item.getTitle());copy.setCheckable(item.isCheckable()).setChecked(item.isChecked()).setEnabled(item.isEnabled()).setVisible(item.isVisible());if(item.getIcon()!=null){copy.setIcon(item.getIcon());copy.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);}
    if(item.getItemId()==0x7f0f0201){boolean shuffle=prefs.getBoolean("continuous_play",false)&&prefs.getInt("continuous_play_mode",0)==2;copy.setChecked(!shuffle&&prefs.getBoolean("continuous_play",false));copy.setOnMenuItemClickListener(i->{playback(a,!i.isChecked(),false);return true;});MenuItem random=menu.add(0,18120,order++,UiStrings.translate("シャッフル再生"));random.setCheckable(true).setChecked(shuffle).setOnMenuItemClickListener(i->{playback(a,!i.isChecked(),true);return true;});}
   }
-  if(type==4||type==8)historyHeader(a,0);themeHeader(a);
+  if(type==4||type==8)historyHeader(a,0);themeHeader(a);MylistFollow190.menu(a,menu);
  }catch(Exception e){android.util.Log.w("nicoid-list","Unable to update list options",e);}}
  private static int menuRank(int id){return id==0x7f0f0201?0:id==1?1:id==0x7f0f0120?2:3;}
  public static boolean handleHistoryShuffle(Object object,MenuItem item){if(item.getItemId()!=18120)return false;try{playback((Activity)object,!item.isChecked(),true);}catch(Exception e){android.util.Log.w("nicoid-list","Unable to change playback mode",e);}return true;}

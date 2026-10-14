@@ -130,65 +130,12 @@
     .registers 16
 
     :try_start_0
-    const-string v0, "Ranking request started"
-
-    invoke-static {v0}, Le/e/a/ModernDebug;->record(Ljava/lang/String;)V
-
-    iget-object v0, p0, Le/e/a/e0;->a:Ljava/lang/String;
-
-    invoke-static {v0}, Le/e/a/CachePlayback;->parse(Ljava/lang/String;)Landroid/net/Uri;
-
-    move-result-object v0
-
-    invoke-virtual {v0}, Landroid/net/Uri;->getLastPathSegment()Ljava/lang/String;
-
-    move-result-object v0
-
-    const-string v1, "{\"all\":\"e9uj2uks\",\"hot-topic\":\"e9uj2uks\",\"entertainment\":\"8kjl94d9\",\"radio\":\"oxzi6bje\",\"music_sound\":\"wq76qdin\",\"dance\":\"6yuf530c\",\"animal\":\"ne72lua2\",\"nature\":\"24aa8fkw\",\"cooking\":\"lq8d5918\",\"traveling_outdoor\":\"k1libcse\",\"vehicle\":\"3d8zlls9\",\"sports\":\"4w3p65pf\",\"society_politics_news\":\"lzicx0y6\",\"technology_craft\":\"n46kcz9u\",\"commentary_lecture\":\"v6wdx6p5\",\"anime\":\"zc49b03a\",\"game\":\"4eet3ca4\",\"other\":\"ramuboyn\"}"
-
-    new-instance v2, Lorg/json/JSONObject;
-
-    invoke-direct {v2, v1}, Lorg/json/JSONObject;-><init>(Ljava/lang/String;)V
-
-    const-string v1, "e9uj2uks"
-
-    invoke-virtual {v2, v0, v0}, Lorg/json/JSONObject;->optString(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
-
-    move-result-object v0
-
-    new-instance v1, Ljava/lang/StringBuilder;
-
-    const-string v2, "https://www.nicovideo.jp/ranking/genre/"
-
-    invoke-direct {v1, v2}, Ljava/lang/StringBuilder;-><init>(Ljava/lang/String;)V
-
-    invoke-virtual {v1, v0}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-
-    const-string v2, "?term="
-
-    invoke-virtual {v1, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-
-    iget-object v2, p0, Le/e/a/e0;->a:Ljava/lang/String;
-
-    invoke-static {v2}, Le/e/a/CachePlayback;->parse(Ljava/lang/String;)Landroid/net/Uri;
-
-    move-result-object v2
-
-    const-string v3, "term"
-
-    invoke-virtual {v2, v3}, Landroid/net/Uri;->getQueryParameter(Ljava/lang/String;)Ljava/lang/String;
-
-    move-result-object v2
-
-    if-nez v2, :cond_3b
-
-    const-string v2, "24h"
-
-    :cond_3b
-    invoke-virtual {v1, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-
-    invoke-virtual {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
-
+    invoke-static {p0}, Le/e/a/RankingPages190;->custom(Ljava/lang/Object;)Z
+    move-result v0
+    if-eqz v0, :normal_ranking
+    return-void
+    :normal_ranking
+    invoke-static {p0}, Le/e/a/RankingPages190;->url(Ljava/lang/Object;)Ljava/lang/String;
     move-result-object v0
 
     new-instance v1, Ljava/net/URL;
@@ -211,6 +158,13 @@
 
     const-string v3, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36"
 
+    invoke-virtual {v1, v2, v3}, Ljava/net/HttpURLConnection;->setRequestProperty(Ljava/lang/String;Ljava/lang/String;)V
+
+    const-string v2, "X-Frontend-Id"
+    const-string v3, "6"
+    invoke-virtual {v1, v2, v3}, Ljava/net/HttpURLConnection;->setRequestProperty(Ljava/lang/String;Ljava/lang/String;)V
+    const-string v2, "X-Frontend-Version"
+    const-string v3, "0"
     invoke-virtual {v1, v2, v3}, Ljava/net/HttpURLConnection;->setRequestProperty(Ljava/lang/String;Ljava/lang/String;)V
 
     invoke-virtual {v1}, Ljava/net/HttpURLConnection;->getInputStream()Ljava/io/InputStream;
@@ -251,64 +205,7 @@
 
     move-result-object v4
 
-    const-string v5, "<meta name=\"server-response\" content=\"([^\"]*)\""
-
-    invoke-static {v5}, Ljava/util/regex/Pattern;->compile(Ljava/lang/String;)Ljava/util/regex/Pattern;
-
-    move-result-object v5
-
-    invoke-virtual {v5, v4}, Ljava/util/regex/Pattern;->matcher(Ljava/lang/CharSequence;)Ljava/util/regex/Matcher;
-
-    move-result-object v4
-
-    invoke-virtual {v4}, Ljava/util/regex/Matcher;->find()Z
-
-    move-result v5
-
-    if-eqz v5, :cond_1aa
-
-    const/4 v5, 0x1
-
-    invoke-virtual {v4, v5}, Ljava/util/regex/Matcher;->group(I)Ljava/lang/String;
-
-    move-result-object v4
-
-    invoke-static {v4}, Lorg/apache/commons/lang3/StringEscapeUtils;->unescapeHtml4(Ljava/lang/String;)Ljava/lang/String;
-
-    move-result-object v4
-
-    new-instance v5, Lorg/json/JSONObject;
-
-    invoke-direct {v5, v4}, Lorg/json/JSONObject;-><init>(Ljava/lang/String;)V
-
-    const-string v4, "data"
-
-    invoke-virtual {v5, v4}, Lorg/json/JSONObject;->getJSONObject(Ljava/lang/String;)Lorg/json/JSONObject;
-
-    move-result-object v5
-
-    const-string v4, "response"
-
-    invoke-virtual {v5, v4}, Lorg/json/JSONObject;->getJSONObject(Ljava/lang/String;)Lorg/json/JSONObject;
-
-    move-result-object v5
-
-    const-string v4, "$getTeibanRanking"
-
-    invoke-virtual {v5, v4}, Lorg/json/JSONObject;->getJSONObject(Ljava/lang/String;)Lorg/json/JSONObject;
-
-    move-result-object v5
-
-    const-string v4, "data"
-
-    invoke-virtual {v5, v4}, Lorg/json/JSONObject;->getJSONObject(Ljava/lang/String;)Lorg/json/JSONObject;
-
-    move-result-object v5
-
-    const-string v4, "items"
-
-    invoke-virtual {v5, v4}, Lorg/json/JSONObject;->getJSONArray(Ljava/lang/String;)Lorg/json/JSONArray;
-
+    invoke-static {v4}, Le/e/a/RankingFetch190;->parseOfficial(Ljava/lang/String;)Lorg/json/JSONArray;
     move-result-object v5
 
     new-instance v6, Ljava/util/ArrayList;
@@ -404,9 +301,7 @@
 
     iput-object v10, v9, Le/e/a/x1;->c:Ljava/lang/String;
 
-    add-int/lit8 v10, v7, 0x1
-
-    invoke-static {v10}, Ljava/lang/String;->valueOf(I)Ljava/lang/String;
+    invoke-static {p0, v7}, Le/e/a/RankingPages190;->rank(Ljava/lang/Object;I)Ljava/lang/String;
 
     move-result-object v10
 
@@ -526,13 +421,7 @@
 
     move-result v7
 
-    if-lez v7, :cond_1aa
-
-    iput v7, p0, Le/e/a/e0;->f:I
-
-    const/4 v7, 0x0
-
-    iput v7, p0, Le/e/a/e0;->i:I
+    invoke-static {p0, v6}, Le/e/a/RankingPages190;->loaded(Ljava/lang/Object;Ljava/util/ArrayList;)V
 
     iget-object v7, p0, Le/e/a/e0;->l:Landroid/os/Handler;
 
@@ -582,157 +471,7 @@
     return-void
 .end method
 
-.method public static populateCategories(Lcom/sauzask/nicoid/NicoidRankingActivity;)V
-    .registers 7
 
-    move-object v0, p0
-
-    const/4 v1, 0x0
-
-    const-string v3, ""
-
-    const/4 v5, 0x0
-
-    const-string v2, "\u7dcf\u5408"
-
-    const-string v4, "e9uj2uks"
-
-    invoke-virtual/range {v0 .. v5}, Lcom/sauzask/nicoid/NicoidRankingActivity;->a(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
-
-    const-string v2, "\u30b2\u30fc\u30e0"
-
-    const-string v4, "4eet3ca4"
-
-    invoke-virtual/range {v0 .. v5}, Lcom/sauzask/nicoid/NicoidRankingActivity;->a(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
-
-    const-string v2, "\u30a2\u30cb\u30e1"
-
-    const-string v4, "zc49b03a"
-
-    invoke-virtual/range {v0 .. v5}, Lcom/sauzask/nicoid/NicoidRankingActivity;->a(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
-
-    const-string v2, "\u30dc\u30ab\u30ed"
-
-    const-string v4, "dshv5do5"
-
-    invoke-virtual/range {v0 .. v5}, Lcom/sauzask/nicoid/NicoidRankingActivity;->a(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
-
-    const-string v2, "\u97f3\u58f0\u5408\u6210\u5b9f\u6cc1\u30fb\u89e3\u8aac\u30fb\u5287\u5834"
-
-    const-string v4, "wnm2mhv0"
-
-    invoke-virtual/range {v0 .. v5}, Lcom/sauzask/nicoid/NicoidRankingActivity;->a(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
-
-    const-string v2, "\u30a8\u30f3\u30bf\u30e1"
-
-    const-string v4, "8kjl94d9"
-
-    invoke-virtual/range {v0 .. v5}, Lcom/sauzask/nicoid/NicoidRankingActivity;->a(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
-
-    const-string v2, "\u97f3\u697d"
-
-    const-string v4, "wq76qdin"
-
-    invoke-virtual/range {v0 .. v5}, Lcom/sauzask/nicoid/NicoidRankingActivity;->a(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
-
-    const-string v2, "\u6b4c\u3063\u3066\u307f\u305f"
-
-    const-string v4, "1ya6bnqd"
-
-    invoke-virtual/range {v0 .. v5}, Lcom/sauzask/nicoid/NicoidRankingActivity;->a(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
-
-    const-string v2, "\u8e0a\u3063\u3066\u307f\u305f"
-
-    const-string v4, "6yuf530c"
-
-    invoke-virtual/range {v0 .. v5}, Lcom/sauzask/nicoid/NicoidRankingActivity;->a(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
-
-    const-string v2, "\u6f14\u594f\u3057\u3066\u307f\u305f"
-
-    const-string v4, "6r5jr8nd"
-
-    invoke-virtual/range {v0 .. v5}, Lcom/sauzask/nicoid/NicoidRankingActivity;->a(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
-
-    const-string v2, "\u89e3\u8aac\u30fb\u8b1b\u5ea7"
-
-    const-string v4, "v6wdx6p5"
-
-    invoke-virtual/range {v0 .. v5}, Lcom/sauzask/nicoid/NicoidRankingActivity;->a(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
-
-    const-string v2, "\u6599\u7406"
-
-    const-string v4, "lq8d5918"
-
-    invoke-virtual/range {v0 .. v5}, Lcom/sauzask/nicoid/NicoidRankingActivity;->a(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
-
-    const-string v2, "\u65c5\u884c\u30fb\u30a2\u30a6\u30c8\u30c9\u30a2"
-
-    const-string v4, "k1libcse"
-
-    invoke-virtual/range {v0 .. v5}, Lcom/sauzask/nicoid/NicoidRankingActivity;->a(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
-
-    const-string v2, "\u81ea\u7136"
-
-    const-string v4, "24aa8fkw"
-
-    invoke-virtual/range {v0 .. v5}, Lcom/sauzask/nicoid/NicoidRankingActivity;->a(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
-
-    const-string v2, "\u4e57\u308a\u7269"
-
-    const-string v4, "3d8zlls9"
-
-    invoke-virtual/range {v0 .. v5}, Lcom/sauzask/nicoid/NicoidRankingActivity;->a(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
-
-    const-string v2, "\u6280\u8853\u30fb\u5de5\u4f5c"
-
-    const-string v4, "n46kcz9u"
-
-    invoke-virtual/range {v0 .. v5}, Lcom/sauzask/nicoid/NicoidRankingActivity;->a(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
-
-    const-string v2, "\u793e\u4f1a\u30fb\u653f\u6cbb\u30fb\u6642\u4e8b"
-
-    const-string v4, "lzicx0y6"
-
-    invoke-virtual/range {v0 .. v5}, Lcom/sauzask/nicoid/NicoidRankingActivity;->a(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
-
-    const-string v2, "MMD"
-
-    const-string v4, "p1acxuoz"
-
-    invoke-virtual/range {v0 .. v5}, Lcom/sauzask/nicoid/NicoidRankingActivity;->a(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
-
-    const-string v2, "VTuber"
-
-    const-string v4, "6mkdo4xd"
-
-    invoke-virtual/range {v0 .. v5}, Lcom/sauzask/nicoid/NicoidRankingActivity;->a(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
-
-    const-string v2, "\u30e9\u30b8\u30aa"
-
-    const-string v4, "oxzi6bje"
-
-    invoke-virtual/range {v0 .. v5}, Lcom/sauzask/nicoid/NicoidRankingActivity;->a(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
-
-    const-string v2, "\u30b9\u30dd\u30fc\u30c4"
-
-    const-string v4, "4w3p65pf"
-
-    invoke-virtual/range {v0 .. v5}, Lcom/sauzask/nicoid/NicoidRankingActivity;->a(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
-
-    const-string v2, "\u52d5\u7269"
-
-    const-string v4, "ne72lua2"
-
-    invoke-virtual/range {v0 .. v5}, Lcom/sauzask/nicoid/NicoidRankingActivity;->a(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
-
-    const-string v2, "\u305d\u306e\u4ed6"
-
-    const-string v4, "ramuboyn"
-
-    invoke-virtual/range {v0 .. v5}, Lcom/sauzask/nicoid/NicoidRankingActivity;->a(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V
-
-    return-void
-.end method
 
 .method public static term(I)Ljava/lang/String;
     .registers 2
@@ -778,4 +517,10 @@
         :pswitch_f
         :pswitch_12
     .end packed-switch
+.end method
+
+.method public static populateCategories(Lcom/sauzask/nicoid/NicoidRankingActivity;)V
+    .registers 1
+    invoke-static {p0}, Le/e/a/Ranking190;->populate(Ljava/lang/Object;)V
+    return-void
 .end method

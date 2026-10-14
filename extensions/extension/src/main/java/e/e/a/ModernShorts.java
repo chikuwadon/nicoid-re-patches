@@ -61,7 +61,7 @@ import org.json.JSONObject;
 
 /** Short feeds reuse nicoid's existing player, comments and playback policies. */
 public final class ModernShorts {
-    private static final String PATCH_VERSION = "v1.8.6 @chikuwadon";
+    private static final String PATCH_VERSION = "v1.9.0 @chikuwadon";
     private static final String PLAYER = "com.sauzask.nicoid.NicoidVideoActivity";
     private static final String MODE = "nicoid_re_shorts";
     private static final String SESSION = "nicoid_re_shorts_session";

@@ -62,6 +62,8 @@
 .method public static install(Ljava/lang/Object;)V
     .registers 13
 
+    invoke-static {p0}, Le/e/a/RankingPages190;->install(Ljava/lang/Object;)V
+
     .line 7
     const-string v0, "ranking_period"
 

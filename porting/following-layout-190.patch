@@ -1,0 +1,14 @@
+--- a/smali/com/sauzask/nicoid/NicoidFavUserActivity.smali
++++ b/smali/com/sauzask/nicoid/NicoidFavUserActivity.smali
+@@ -211,9 +211,9 @@
+ 
+     iget-object v0, p0, Lcom/sauzask/nicoid/NicoidFavUserActivity;->C:Le/e/a/z;
+ 
++    invoke-virtual {p1, v0}, Landroid/widget/ListView;->setAdapter(Landroid/widget/ListAdapter;)V
++
+     invoke-static {p0}, Le/e/a/CreatorPage;->following(Landroid/app/Activity;)V
+-
+-    invoke-virtual {p1, v0}, Landroid/widget/ListView;->setAdapter(Landroid/widget/ListAdapter;)V
+ 
+     iget-object p1, p0, Lcom/sauzask/nicoid/NicoidFavUserActivity;->A:Landroid/widget/ListView;
+ 

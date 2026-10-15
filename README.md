@@ -12,7 +12,10 @@
 <a href="LICENSE"><img alt="ライセンス GPL v3" src="https://img.shields.io/badge/License-GPL_v3-687078?style=flat-square"></a>
 </p>
 
-<p><a href="https://morphe.software/add-source?github=chikuwadon%2Fnicoid-re-patches&amp;name=nicoid%20Re"><strong>Morphe Managerに追加 ↗</strong></a>　 · 　<a href="https://github.com/chikuwadon/nicoid-re-patches/releases/latest">パッチをダウンロード ↗</a></p>
+<p>
+<a href="https://morphe.software/add-source?github=chikuwadon%2Fnicoid-re-patches&amp;name=nicoid%20Re"><strong>Morphe Managerに追加 ↗</strong></a><br>
+<a href="https://github.com/chikuwadon/nicoid-re-patches/releases/latest">パッチをダウンロード ↗</a>
+</p>
 
 </div>
 
@@ -200,7 +203,8 @@ nicoid-re_log_yyyyMMddHHmmss.txt
 ### 配布情報
 
 <!-- PATCHES_START COMPACT -->
-[nicoid Reの最新パッチ](https://github.com/chikuwadon/nicoid-re-patches/releases/latest) · 対応アプリ：nicoid 6.49
+[nicoid Reの最新パッチ](https://github.com/chikuwadon/nicoid-re-patches/releases/latest)<br>
+対応アプリ：nicoid 6.49
 <!-- PATCHES_END -->
 
 ---

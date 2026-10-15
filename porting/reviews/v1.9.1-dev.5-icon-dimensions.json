@@ -1,0 +1,483 @@
+[
+  {
+    "resource": "play",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_pixels": [
+      128,
+      128
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "pause",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_pixels": [
+      128,
+      128
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "next",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_pixels": [
+      128,
+      128
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "prev",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_pixels": [
+      128,
+      128
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "fullscreen",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_pixels": [
+      128,
+      128
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "normalscreen",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_pixels": [
+      128,
+      128
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "popup",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_pixels": [
+      128,
+      128
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "repeaton",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_pixels": [
+      128,
+      128
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "repeatoff",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_pixels": [
+      128,
+      128
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "commenton",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_pixels": [
+      128,
+      128
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "commentoff",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_pixels": [
+      128,
+      128
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "commentpost",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_pixels": [
+      128,
+      128
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "info",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_pixels": [
+      128,
+      128
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "lock",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      256,
+      256
+    ],
+    "new_pixels": [
+      256,
+      256
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "unlock",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      256,
+      256
+    ],
+    "new_pixels": [
+      256,
+      256
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "menubutton",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_pixels": [
+      128,
+      128
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "dicon",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      45,
+      45
+    ],
+    "new_pixels": [
+      45,
+      45
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "dicoff",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      45,
+      45
+    ],
+    "new_pixels": [
+      45,
+      45
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "combig",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      32,
+      18
+    ],
+    "new_pixels": [
+      32,
+      18
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "commedium",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      32,
+      18
+    ],
+    "new_pixels": [
+      32,
+      18
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "comsmall",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      32,
+      18
+    ],
+    "new_pixels": [
+      32,
+      18
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "comue",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      32,
+      18
+    ],
+    "new_pixels": [
+      32,
+      18
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "comnaka",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      32,
+      18
+    ],
+    "new_pixels": [
+      32,
+      18
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "comshita",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      32,
+      18
+    ],
+    "new_pixels": [
+      32,
+      18
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "ic_menu_search",
+    "folder": "drawable-mdpi",
+    "old_pixels": [
+      32,
+      32
+    ],
+    "new_pixels": [
+      32,
+      32
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "ic_drawer",
+    "folder": "drawable-mdpi",
+    "old_pixels": [
+      16,
+      16
+    ],
+    "new_pixels": [
+      16,
+      16
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "ic_menu_share",
+    "folder": "drawable-mdpi",
+    "old_pixels": [
+      32,
+      32
+    ],
+    "new_pixels": [
+      32,
+      32
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "ic_menu_recent_history",
+    "folder": "drawable-mdpi",
+    "old_pixels": [
+      32,
+      32
+    ],
+    "new_pixels": [
+      32,
+      32
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "ic_menu_recent_history",
+    "folder": "drawable-xxhdpi",
+    "old_pixels": [
+      96,
+      96
+    ],
+    "new_pixels": [
+      96,
+      96
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "ic_menu_search",
+    "folder": "drawable-xhdpi",
+    "old_pixels": [
+      64,
+      64
+    ],
+    "new_pixels": [
+      64,
+      64
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "ic_drawer",
+    "folder": "drawable-xhdpi",
+    "old_pixels": [
+      32,
+      32
+    ],
+    "new_pixels": [
+      32,
+      32
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "ic_menu_share",
+    "folder": "drawable-xhdpi",
+    "old_pixels": [
+      64,
+      64
+    ],
+    "new_pixels": [
+      64,
+      64
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "ic_menu_recent_history",
+    "folder": "drawable-xhdpi",
+    "old_pixels": [
+      64,
+      64
+    ],
+    "new_pixels": [
+      64,
+      64
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "ic_menu_search",
+    "folder": "drawable-hdpi",
+    "old_pixels": [
+      48,
+      48
+    ],
+    "new_pixels": [
+      48,
+      48
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "ic_drawer",
+    "folder": "drawable-hdpi",
+    "old_pixels": [
+      24,
+      24
+    ],
+    "new_pixels": [
+      24,
+      24
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "ic_menu_share",
+    "folder": "drawable-hdpi",
+    "old_pixels": [
+      48,
+      48
+    ],
+    "new_pixels": [
+      48,
+      48
+    ],
+    "format": "PNG"
+  },
+  {
+    "resource": "ic_menu_recent_history",
+    "folder": "drawable-hdpi",
+    "old_pixels": [
+      48,
+      48
+    ],
+    "new_pixels": [
+      48,
+      48
+    ],
+    "format": "PNG"
+  }
+]

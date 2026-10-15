@@ -148,6 +148,8 @@
 
     .line 123
     :goto_3a
+    invoke-static {}, Le/e/a/CacheControl110;->check()V
+
     invoke-virtual {v1, v3}, Ljava/io/InputStream;->read([B)I
 
     move-result v4
@@ -319,6 +321,8 @@
     move-result-object v0
 
     check-cast v0, Ljava/net/HttpURLConnection;
+
+    invoke-static {v0}, Le/e/a/CacheControl110;->connection(Ljava/net/HttpURLConnection;)V
 
     .line 98
     const/16 v1, 0x2ee0
@@ -571,6 +575,8 @@
     const/4 p0, 0x0
 
     invoke-direct {v0, p2, p1, p0}, Le/e/a/CacheHls;->playlist(Ljava/net/URL;Ljava/io/File;I)V
+
+    invoke-static {}, Le/e/a/CacheControl110;->check()V
 
     .line 30
     iget-wide v1, v0, Le/e/a/CacheHls;->mediaBytes:J
@@ -875,6 +881,8 @@
     :cond_37
     :goto_37
     :try_start_37
+    invoke-static {}, Le/e/a/CacheControl110;->check()V
+
     invoke-virtual {v1}, Ljava/io/BufferedReader;->readLine()Ljava/lang/String;
 
     move-result-object v12
@@ -1138,6 +1146,8 @@
     .line 166
     :goto_25
     :try_start_25
+    invoke-static {}, Le/e/a/CacheControl110;->check()V
+
     invoke-virtual {v6}, Ljava/io/BufferedReader;->readLine()Ljava/lang/String;
 
     move-result-object v8

@@ -10,6 +10,7 @@ import android.widget.*;
 
 /** One palette for native dialogs, generated forms and action lists. */
 public final class UiDialogs {
+    public static AlertDialog.Builder builder(Context c){return new AlertDialog.Builder(UiTheme191.context(c));}
     static Context owner(Context context) {
         for (int n=0; n<12 && context instanceof ContextWrapper && !(context instanceof android.app.Activity); n++) {
             Context base=((ContextWrapper)context).getBaseContext();
@@ -49,10 +50,20 @@ public final class UiDialogs {
         dialog.getWindow().setBackgroundDrawable(background);
         for(int which:new int[]{-1,-2,-3}) if(dialog.getButton(which)!=null) dialog.getButton(which).setTextColor(accent);
         boolean dark=ThemeChoice.isNight(owner(c));
-        if(ThemeChoice.isAmoled(c))blackPanels(dialog.getWindow().getDecorView());
-        inputs(dialog.getWindow().getDecorView(),accent,dark);
-        if(ThemeChoice.isAmoled(c)){View decor=dialog.getWindow().getDecorView();decor.post(()->blackPanels(decor));}
+        UiTheme191.surface(dialog.getWindow().getDecorView());
+        inputs(dialog.getWindow().getDecorView(),accent,dark);ListDividers191.tree(dialog.getWindow().getDecorView());
+        for(int which:new int[]{-1,-2,-3})if(dialog.getButton(which)!=null)actionButton(dialog.getButton(which),which==-1);FlatUi191.window(dialog);
 
+
+    }
+    /** 44 dp visible pill inside a 48 dp accessible hit target. */
+    public static void actionButton(Button b,boolean primary){
+        Context c=b.getContext();int pad=PanelUi.dp(c,16);b.setTag("nicoid-dialog-action");b.setAllCaps(false);b.setTextSize(14);b.setSingleLine(true);b.setGravity(Gravity.CENTER);b.setIncludeFontPadding(false);b.setMinWidth(PanelUi.dp(c,80));b.setMinimumWidth(PanelUi.dp(c,80));b.setMinHeight(PanelUi.dp(c,48));b.setMinimumHeight(PanelUi.dp(c,48));b.setPadding(pad,0,pad,0);b.setElevation(0);b.setBackgroundTintList(null);
+        android.graphics.drawable.Drawable bg=primary?new android.graphics.drawable.InsetDrawable(PanelUi.round(c,accent(c),22),0,PanelUi.dp(c,2),0,PanelUi.dp(c,2)):new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT);
+        b.setBackground(new android.graphics.drawable.RippleDrawable(ColorStateList.valueOf((accent(c)&0xffffff)|0x33000000),bg,null));
+        b.setTextColor(new ColorStateList(new int[][]{new int[]{-android.R.attr.state_enabled},new int[]{}},new int[]{0xff75787f,primary?0xff101114:accent(c)}));
+        ViewGroup.LayoutParams lp=b.getLayoutParams();if(lp!=null){lp.height=PanelUi.dp(c,48);lp.width=primary?Math.max(PanelUi.dp(c,80),(int)b.getPaint().measureText(b.getText().toString())+pad*2):ViewGroup.LayoutParams.WRAP_CONTENT;if(lp instanceof LinearLayout.LayoutParams){LinearLayout.LayoutParams l=(LinearLayout.LayoutParams)lp;l.weight=0;l.gravity=Gravity.CENTER_VERTICAL;l.leftMargin=PanelUi.dp(c,4);}b.setLayoutParams(lp);}
+        if(b.getParent() instanceof LinearLayout){LinearLayout row=(LinearLayout)b.getParent();row.setOrientation(LinearLayout.HORIZONTAL);row.setGravity(Gravity.END|Gravity.CENTER_VERTICAL);}
     }
     private static void blackPanels(View view){if(view instanceof ViewGroup){view.setBackgroundColor(0xff000000);ViewGroup group=(ViewGroup)view;for(int n=0;n<group.getChildCount();n++)blackPanels(group.getChildAt(n));}}
     private static void inputs(View v,int accent,boolean dark) {
@@ -75,7 +86,7 @@ public final class UiDialogs {
         if(v instanceof Spinner)ThemeChoice.spinner((Spinner)v);
         ThemeChoice.controlsOne(v);
         if(v instanceof EditText) {
-            EditText e=(EditText)v;e.setTextColor(dark?0xffeeeeee:0xff202124);e.setHintTextColor(dark?0xffb7bac3:0xff666a73);e.setBackgroundTintList(tint);
+            EditText e=(EditText)v;e.setTextColor(dark?0xffeeeeee:0xff202124);e.setHintTextColor(dark?0xffb7bac3:0xff666a73);if(!"nicoid-managed-input".equals(v.getTag()))e.setBackgroundTintList(tint);
             if(Build.VERSION.SDK_INT>=29) {
                 android.graphics.drawable.Drawable cursor=e.getTextCursorDrawable();if(cursor!=null){cursor=cursor.mutate();cursor.setTint(accent);e.setTextCursorDrawable(cursor);}
             }

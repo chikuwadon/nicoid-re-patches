@@ -155,7 +155,7 @@ public final class ModernEnhancements {
                 int current = (Integer) get(get(object, "z"), "e");
                 selected = current == 4 ? 2 : current == 3 ? 1 : 0;
             }
-            AlertDialog dialog = new AlertDialog.Builder(PlaybackSession.dialogContext(service))
+            AlertDialog dialog = UiDialogs.builder(PlaybackSession.dialogContext(service))
                 .setTitle(mode == 1 ? "再生速度" : "画質")
                 .setSingleChoiceItems(labels, selected, (d, index) -> {
                     d.dismiss();

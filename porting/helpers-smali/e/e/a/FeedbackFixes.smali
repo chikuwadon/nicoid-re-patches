@@ -201,67 +201,10 @@
 .end method
 
 .method public static dialogContext(Landroid/content/Context;)Landroid/content/Context;
-    .registers 8
-
-    .line 47
-    invoke-static {p0}, Le/e/a/FeedbackFixes;->amoled(Landroid/content/Context;)Z
-
-    move-result v0
-
-    :try_start_4
-    const-string v1, "ThemeChoice"
-
-    const-string v2, "isNight"
-
-    const/4 v3, 0x1
-
-    new-array v4, v3, [Ljava/lang/Class;
-
-    const-class v5, Landroid/content/Context;
-
-    const/4 v6, 0x0
-
-    aput-object v5, v4, v6
-
-    new-array v3, v3, [Ljava/lang/Object;
-
-    aput-object p0, v3, v6
-
-    invoke-static {v1, v2, v4, v3}, Le/e/a/FeedbackFixes;->helper(Ljava/lang/String;Ljava/lang/String;[Ljava/lang/Class;[Ljava/lang/Object;)Ljava/lang/Object;
-
-    move-result-object v1
-
-    check-cast v1, Ljava/lang/Boolean;
-
-    invoke-virtual {v1}, Ljava/lang/Boolean;->booleanValue()Z
-
-    move-result v1
-    :try_end_1e
-    .catch Ljava/lang/Exception; {:try_start_4 .. :try_end_1e} :catch_20
-
-    or-int/2addr v0, v1
-
-    goto :goto_21
-
-    :catch_20
-    move-exception v1
-
-    :goto_21
-    new-instance v1, Landroid/view/ContextThemeWrapper;
-
-    if-eqz v0, :cond_29
-
-    const v0, 0x1030226
-
-    goto :goto_2c
-
-    :cond_29
-    const v0, 0x103023a
-
-    :goto_2c
-    invoke-direct {v1, p0, v0}, Landroid/view/ContextThemeWrapper;-><init>(Landroid/content/Context;I)V
-
-    return-object v1
+    .registers 1
+    invoke-static {p0}, Le/e/a/UiTheme191;->context(Landroid/content/Context;)Landroid/content/Context;
+    move-result-object p0
+    return-object p0
 .end method
 
 .method static dp(Landroid/content/Context;I)I

@@ -12,6 +12,7 @@ public final class ListActions {
  static final Set<Object> LONG=Collections.newSetFromMap(new IdentityHashMap<Object,Boolean>());
  static final Map<Object,List<Action>> ACTIONS=new WeakHashMap<>();
  private static final int SUPER_LONG_EXTRA_MS=950;
+ private static final int POPUP_HOLD_MS=500;
  private static final Handler MAIN=new Handler(Looper.getMainLooper());
 
  /** One flat fill, retaining the original bottom-right triangle and hit target. */
@@ -38,7 +39,7 @@ public final class ListActions {
  public static void bind(View view,Object adapter,int position){
   try{
    ArrayList<?> rows=(ArrayList<?>)get(adapter,"b");if(position<0||position>=rows.size())return;
-   Object row=rows.get(position);CacheProgress.bind(view,adapter,row);if(BulkSelection.bind(view,adapter,row))return;view.getOverlay().clear();String url=value(row,"videourl");
+   Object row=rows.get(position);VideoRows191.bind(view,adapter,row);CacheProgress.bind(view,adapter,row);if(BulkSelection.bind(view,adapter,row))return;view.getOverlay().clear();String url=value(row,"videourl");
    if(!url.matches("https?://[^/]*nicovideo.jp/(?:watch|shorts)/.*"))return;
    view.setOnClickListener(v->{AdapterView<?> list=findList(v);if(list==null)return;int index=list.getPositionForView(v);if(index>=0)list.performItemClick(v,index,list.getItemIdAtPosition(index));});
    Hold hold=new Hold(adapter,row,url,value(row,"title"));
@@ -46,26 +47,34 @@ public final class ListActions {
   }catch(Exception e){android.util.Log.w("nicoid-menu","Unable to bind video actions",e);}
  }
 
- private static final class Hold implements View.OnTouchListener,View.OnLongClickListener {
+ private static Hold activeHold;
+ static class Hold implements View.OnTouchListener,View.OnLongClickListener {
   final Object adapter,row;final String url,title;final Handler handler=MAIN;
-  boolean longPressed,superHandled;Runnable pending;
+  boolean longPressed,superHandled,down,cancelled;long started;float startX,startY;Runnable pending;PopupWindow popup;
   Hold(Object adapter,Object row,String url,String title){this.adapter=adapter;this.row=row;this.url=url;this.title=title;}
   @Override public boolean onLongClick(View view){
+   if(cancelled||longPressed||pending!=null)return true;
+   long delay=down?Math.max(0,Math.max(POPUP_HOLD_MS,ViewConfiguration.getLongPressTimeout())-(android.os.SystemClock.uptimeMillis()-started)):0;
+   if(delay>0){pending=()->{pending=null;if(down&&!cancelled)open(view);};handler.postDelayed(pending,delay);}else open(view);
+   return true;
+  }
+  void open(View view){
    longPressed=true;AdapterView<?> list=findList(view);
-   if(list==null||(!LocalPlaylists.hasAdapter(adapter)&&list.getOnItemLongClickListener()==null)){showActions(view,adapter,row,url,title);return true;}
-   pending=()->{if(!view.isPressed())return;superHandled=dispatchSuperLong(view,adapter,row,list);};
-   handler.postDelayed(pending,SUPER_LONG_EXTRA_MS);return true;
+   if(list!=null&&(LocalPlaylists.hasAdapter(adapter)||BulkSelection.owner(list)!=null)){pending=()->{if(!down)return;superHandled=dispatchSuperLong(view,adapter,row,list);if(superHandled&&popup!=null)popup.dismiss();};handler.postDelayed(pending,SUPER_LONG_EXTRA_MS);}
+   activeHold=this;try{showActions(view,adapter,row,url,title);}finally{activeHold=null;}
   }
   @Override public boolean onTouch(View view,MotionEvent event){
-   if(event.getActionMasked()==MotionEvent.ACTION_DOWN){longPressed=false;superHandled=false;cancel();}
-   else if(event.getActionMasked()==MotionEvent.ACTION_UP){if(longPressed){boolean show=!superHandled;cancel();if(show)showActions(view,adapter,row,url,title);}}
-   else if(event.getActionMasked()==MotionEvent.ACTION_CANCEL){cancel();}
+   if(event.getActionMasked()==MotionEvent.ACTION_DOWN){cancel();down=true;cancelled=false;longPressed=false;superHandled=false;started=android.os.SystemClock.uptimeMillis();startX=event.getX();startY=event.getY();}
+   else if(event.getActionMasked()==MotionEvent.ACTION_MOVE&&!longPressed){int slop=ViewConfiguration.get(view.getContext()).getScaledTouchSlop();if(Math.abs(event.getX()-startX)>slop||Math.abs(event.getY()-startY)>slop){cancelled=true;cancel();}}
+   else if(event.getActionMasked()==MotionEvent.ACTION_POINTER_DOWN){cancelled=true;down=false;cancel();if(popup!=null)popup.dismiss();}
+   else if(event.getActionMasked()==MotionEvent.ACTION_UP){down=false;cancel();if(popup!=null&&!superHandled){popup.setTouchable(true);popup.setFocusable(true);popup.setOutsideTouchable(true);popup.update();}}
+   else if(event.getActionMasked()==MotionEvent.ACTION_CANCEL){down=false;cancelled=true;cancel();if(popup!=null)popup.dismiss();}
    return false;
   }
   void cancel(){if(pending!=null){handler.removeCallbacks(pending);pending=null;}}
  }
-
- private static AdapterView<?> findList(View view){ViewParent parent=view.getParent();while(parent!=null){if(parent instanceof AdapterView)return (AdapterView<?>)parent;parent=parent.getParent();}return null;}
+ private static void heldPopup(Activity host,String title,List<Action> actions,Hold hold,Object adapter){Context c=PlaybackSession.dialogContext(host);LinearLayout box=PanelUi.column(c);box.setPadding(PanelUi.dp(c,20),PanelUi.dp(c,12),PanelUi.dp(c,20),PanelUi.dp(c,12));box.setBackground(PanelUi.round(c,UiDialogs.surface(c),20));TextView heading=PanelUi.text(c,title,16);heading.setMaxLines(3);heading.setPadding(0,0,0,PanelUi.dp(c,8));box.addView(heading);ScrollView scroll=new ScrollView(c);LinearLayout rows=PanelUi.column(c);scroll.addView(rows);box.addView(scroll,new LinearLayout.LayoutParams(-1,Math.min(PanelUi.dp(c,360),host.getResources().getDisplayMetrics().heightPixels/2)));PopupWindow window=new PopupWindow(box,Math.min(host.getResources().getDisplayMetrics().widthPixels-PanelUi.dp(c,32),PanelUi.dp(c,420)),-2,false);hold.popup=window;window.setBackgroundDrawable(PanelUi.round(c,UiDialogs.surface(c),20));window.setElevation(0);window.setTouchable(!hold.down);window.setFocusable(!hold.down);window.setOutsideTouchable(!hold.down);for(Action action:actions){TextView item=PanelUi.text(c,action.title.toString(),15);item.setGravity(Gravity.CENTER_VERTICAL);item.setMinHeight(PanelUi.dp(c,46));item.setEnabled(action.enabled);item.setAlpha(action.enabled?1:.4f);rows.addView(item);item.setOnClickListener(v->{window.dismiss();if(action.enabled)LocalPlaylists.withAdapterMode(host,adapter,action.run);});}window.showAtLocation(host.getWindow().getDecorView(),Gravity.CENTER,0,0);}
+ static AdapterView<?> findList(View view){ViewParent parent=view.getParent();while(parent!=null){if(parent instanceof AdapterView)return (AdapterView<?>)parent;parent=parent.getParent();}return null;}
  private static boolean dispatchSuperLong(View view,Object adapter,Object row,AdapterView<?> list){
   if(LocalPlaylists.superLong(adapter,row))return true;
   AdapterView.OnItemLongClickListener listener=list.getOnItemLongClickListener();if(listener==null)return false;
@@ -79,9 +88,10 @@ public final class ListActions {
   catch(Exception e){android.util.Log.w("nicoid-menu","Unable to show video actions",e);}finally{if(listener!=null)LONG.remove(listener);}
  }
 
- public static void extra(Object listener,Object popup){try{Object adapter=get(listener,"e");Activity host=(Activity)get(adapter,"d");int index=(Integer)get(listener,"c");ArrayList<?> rows=(ArrayList<?>)get(adapter,"b");if(index<0||index>=rows.size())return;Object row=rows.get(index);String owner=(String)get(row,"y");Menu menu=(Menu)get(popup,"a");ArrayList<MenuItem> original=new ArrayList<>();for(int n=0;n<menu.size();n++)original.add(menu.getItem(n));Object callback=Class.forName("e.e.a.b0$a$a").getConstructor(listener.getClass()).newInstance(listener);menu.clear();List<Action> actions=new ArrayList<>();int order=0;boolean inserted=false;for(MenuItem item:original){MenuItem copy=menu.add(0,item.getItemId(),order++,item.getTitle());copy.setEnabled(item.isEnabled());Runnable run=()->{try{callback.getClass().getMethod("onMenuItemClick",MenuItem.class).invoke(callback,item);}catch(Exception e){android.util.Log.w("nicoid-menu","Video action failed",e);}};copy.setOnMenuItemClickListener(i->{run.run();return true;});actions.add(new Action(copy,run));if(item.getOrder()==5&&!inserted){addExtra(menu,actions,host,owner,row,order);order+=3;inserted=true;}}if(!inserted)addExtra(menu,actions,host,owner,row,order);ACTIONS.put(popup,actions);}catch(Exception e){android.util.Log.w("nicoid-menu","Unable to add video actions",e);}}
- private static void addExtra(Menu menu,List<Action> actions,Activity host,String owner,Object row,int order){MenuItem playlist=menu.add(0,18102,order,PanelUi.tr(host,"プレイリストに追加","Add to playlist","加入播放清單"));Runnable add=()->LocalPlaylists.addRow(host,row);playlist.setOnMenuItemClickListener(i->{add.run();return true;});actions.add(new Action(playlist,add));if(cacheList(host)){MenuItem retry=menu.add(0,18103,order+2,UiStrings.translate("キャッシュを再取得"));Runnable retrieve=()->CacheRetry.confirm(host,HistoryRules.id(value(row,"videourl")),value(row,"title"));retry.setOnMenuItemClickListener(i->{retrieve.run();return true;});actions.add(new Action(retry,retrieve));}MenuItem block=menu.add(0,18101,order+1,PanelUi.tr(host,"投稿者をNG","Block uploader","封鎖投稿者"));Runnable ng=()->ContentFilter.confirmOwner(host,owner);block.setOnMenuItemClickListener(i->{ng.run();return true;});actions.add(new Action(block,ng));}
- public static void show(Object listener,Object popup){try{List<Action> actions=ACTIONS.remove(popup);if(!LONG.contains(listener)||actions==null){popup.getClass().getMethod("a").invoke(popup);return;}Object adapter=get(listener,"e");Activity host=(Activity)get(adapter,"d");Context c=PlaybackSession.dialogContext(host);String title=String.valueOf(get(listener,"b"));CharSequence[] labels=new CharSequence[actions.size()];for(int n=0;n<labels.length;n++)labels[n]=actions.get(n).title;AlertDialog dialog=new AlertDialog.Builder(c).setTitle(title).setItems(labels,(d,n)->{Action action=actions.get(n);if(action.enabled){if(action.id==18101||action.id==18102)action.run.run();else LocalPlaylists.withAdapterMode(host,adapter,action.run);}}).create();UiDialogs.show(dialog);}catch(Exception e){android.util.Log.w("nicoid-menu","Unable to display video actions",e);}}
+ public static void extra(Object listener,Object popup){try{Object adapter=get(listener,"e");Activity host=(Activity)get(adapter,"d");int index=(Integer)get(listener,"c");ArrayList<?> rows=(ArrayList<?>)get(adapter,"b");if(index<0||index>=rows.size())return;Object row=rows.get(index);String owner=(String)get(row,"y");Menu menu=(Menu)get(popup,"a");ArrayList<MenuItem> original=new ArrayList<>();for(int n=0;n<menu.size();n++)original.add(menu.getItem(n));Object callback=Class.forName("e.e.a.b0$a$a").getConstructor(listener.getClass()).newInstance(listener);menu.clear();List<Action> actions=new ArrayList<>();int order=0;boolean inserted=false;for(MenuItem item:original){if(cacheList(host)&&item.getItemId()==10)continue;MenuItem copy=menu.add(0,item.getItemId(),order++,item.getTitle());copy.setEnabled(item.isEnabled());Runnable run=()->{try{callback.getClass().getMethod("onMenuItemClick",MenuItem.class).invoke(callback,item);}catch(Exception e){android.util.Log.w("nicoid-menu","Video action failed",e);}};copy.setOnMenuItemClickListener(i->{run.run();return true;});actions.add(new Action(copy,run));if(item.getOrder()==5&&!inserted){addExtra(menu,actions,host,owner,row,order);order+=3;inserted=true;}}if(!inserted)addExtra(menu,actions,host,owner,row,order);ACTIONS.put(popup,actions);}catch(Exception e){android.util.Log.w("nicoid-menu","Unable to add video actions",e);}}
+ private static void addExtra(Menu menu,List<Action> actions,Activity host,String owner,Object row,int order){if(cacheList(host)||history(host)){String label=cacheList(host)?PanelUi.tr(host,"キャッシュを削除","Delete cache","刪除快取"):PanelUi.tr(host,"視聴履歴を削除","Delete watch history","刪除觀看紀錄");MenuItem remove=menu.add(0,18104,order+4,label);Runnable delete=()->BulkSelection.deleteOne(host,row);remove.setOnMenuItemClickListener(i->{delete.run();return true;});actions.add(new Action(remove,delete));}MenuItem playlist=menu.add(0,18102,order,PanelUi.tr(host,"プレイリストに追加","Add to playlist","加入播放清單"));Runnable add=()->LocalPlaylists.addRow(host,row);playlist.setOnMenuItemClickListener(i->{add.run();return true;});actions.add(new Action(playlist,add));if(cacheList(host)){MenuItem retry=menu.add(0,18103,order+2,UiStrings.translate("キャッシュを再取得"));Runnable retrieve=()->CacheRetry.confirm(host,HistoryRules.id(value(row,"videourl")),value(row,"title"));retry.setOnMenuItemClickListener(i->{retrieve.run();return true;});actions.add(new Action(retry,retrieve));}MenuItem block=menu.add(0,18101,order+1,PanelUi.tr(host,"投稿者をNG","Block uploader","封鎖投稿者"));Runnable ng=()->ContentFilter.confirmOwner(host,owner);block.setOnMenuItemClickListener(i->{ng.run();return true;});actions.add(new Action(block,ng));}
+ public static void show(Object listener,Object popup){try{List<Action> actions=ACTIONS.remove(popup);if(!LONG.contains(listener)||actions==null){popup.getClass().getMethod("a").invoke(popup);return;}Object adapter=get(listener,"e");Activity host=(Activity)get(adapter,"d");Context c=PlaybackSession.dialogContext(host);String title=String.valueOf(get(listener,"b"));if(activeHold!=null){heldPopup(host,title,actions,activeHold,adapter);return;}CharSequence[] labels=new CharSequence[actions.size()];for(int n=0;n<labels.length;n++)labels[n]=actions.get(n).title;AlertDialog dialog=UiDialogs.builder(c).setTitle(title).setItems(labels,(d,n)->{Action action=actions.get(n);if(action.enabled){if(action.id==18101||action.id==18102)action.run.run();else LocalPlaylists.withAdapterMode(host,adapter,action.run);}}).create();UiDialogs.show(dialog);}catch(Exception e){android.util.Log.w("nicoid-menu","Unable to display video actions",e);}}
+ static boolean history(Activity host){try{int kind=host.getClass().getField("E").getInt(host);return kind==4||kind==8;}catch(Exception e){return false;}}
  static boolean cacheList(Activity host){return host!=null&&host.getClass().getName().equals("com.sauzask.nicoid.NicoidCacheManagerActivity");}
  public static void adjustHistoryMenu(Object object,Menu menu){try{
   Activity a=(Activity)object;android.content.SharedPreferences prefs=android.preference.PreferenceManager.getDefaultSharedPreferences(a);MenuItem continuous=menu.findItem(0x7f0f0201);if(continuous==null){MylistFollow190.menu(a,menu);return;}

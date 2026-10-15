@@ -12,6 +12,8 @@ import java.util.*;
 /** Shared in-list selection controls for saved lists and watch history. */
 public final class BulkSelection {
  private BulkSelection() {}
+ private static final Map<Activity,Object> ACTIVE=new WeakHashMap<>();
+ private static final Map<Object,LinearLayout> FOOTERS=new WeakHashMap<>();
  private static final Map<Object,java.lang.ref.WeakReference<Object>> OWNERS=new WeakHashMap<>();
  private static final Set<Object> BUSY=Collections.newSetFromMap(new IdentityHashMap<Object,Boolean>());
  static Object get(Object o,String name)throws Exception{return o.getClass().getField(name).get(o);}
@@ -26,15 +28,15 @@ public final class BulkSelection {
  public static void modeChanged(Object o){
   try{
    if(selecting(o)){OWNERS.put(get(o,cache(o)?"C":"p0"),new java.lang.ref.WeakReference<>(o));install(o);}
-   else for(Object row:rows(o))set(row,false);
+   else {ACTIVE.remove(activity(o));activity(o).invalidateOptionsMenu();Object label=get(o,cache(o)?"S":"selectionCount");if(label instanceof View)((View)label).setVisibility(View.GONE);for(Object row:rows(o))set(row,false);}
    refresh(o);
   }catch(Exception e){log(e);}
  }
- static String countText(Context c,int count){return PanelUi.tr(c,"選択中："+count+"件","Selected: "+count,"已選取："+count+"項");}
- static TextView countLabel(Context c,int count){TextView label=PanelUi.text(c,countText(c,count),14);label.setGravity(Gravity.CENTER);return label;}
+ static String countText(Context c,int count){return PanelUi.tr(c,count+"件選択",count+" selected","已選取 "+count+" 項");}
+ static TextView countLabel(Context c,int count){TextView label=PanelUi.text(c,countText(c,count),14);label.setGravity(Gravity.START|Gravity.CENTER_VERTICAL);label.setTextSize(13);return label;}
  static void updateCount(Object o)throws Exception {
   int count=0;for(Object row:rows(o))if(checked(row))count++;
-  Object label=get(o,cache(o)?"S":"selectionCount");if(label instanceof TextView)((TextView)label).setText(countText(activity(o),count));
+  Object label=get(o,cache(o)?"S":"selectionCount");if(label instanceof TextView){((TextView)label).setText(countText(activity(o),count));((View)label).setVisibility(selecting(o)?View.VISIBLE:View.GONE);}SelectionUi191.enabled(FOOTERS.get(o),count);
  }
  static Object owner(AdapterView<?> list){
   try{Object listener=list.getOnItemLongClickListener();if(listener==null)return null;String name=listener.getClass().getName();
@@ -59,15 +61,17 @@ public final class BulkSelection {
   for(int n=0;n<footer.getChildCount();n++){View child=footer.getChildAt(n);if(child.getId()==View.NO_ID&&child instanceof ViewGroup&&((ViewGroup)child).getChildCount()==0)child.setVisibility(View.GONE);}
   Field countField=o.getClass().getField(cache(o)?"S":"selectionCount");TextView previous=(TextView)countField.get(o);
   if(previous!=null&&previous.getParent() instanceof ViewGroup)((ViewGroup)previous.getParent()).removeView(previous);
-  TextView label=countLabel(a,0);countField.set(o,label);footer.addView(label,0,new LinearLayout.LayoutParams(-1,-2));
-  all.removeAllViews();actions.removeAllViews();
-  button(all,PanelUi.tr(a,"全選択","Select all","全選"),()->selectAll(o,true));
-  button(all,PanelUi.tr(a,"全解除","Clear all","取消全選"),()->selectAll(o,false));
-  button(actions,PanelUi.tr(a,"完了","Done","完成"),()->done(o));
-  // Only account mylists have an account folder to move out of.
-  if(!cache(o)&&o.getClass().getField("g0").getInt(o)==5&&o.getClass().getField("h0").getInt(o)!=4)
-   button(actions,PanelUi.tr(a,"移動","Move","移動"),()->nativeClick(o,"com.sauzask.nicoid.NicoidVideoListFragment$j"));
-  button(actions,PanelUi.tr(a,"削除","Delete","刪除"),()->confirmDelete(o));
+  TextView label=countLabel(a,0);countField.set(o,label);
+  View list;
+  if(cache(o))list=(View)get(o,"A");else {list=findList(root);}
+  if(list==null)throw new IllegalStateException("Missing list column");
+  if(!(list.getParent() instanceof LinearLayout)){ViewGroup parent=(ViewGroup)list.getParent();int index=parent.indexOfChild(list);ViewGroup.LayoutParams lp=list.getLayoutParams();parent.removeView(list);LinearLayout wrapper=PanelUi.column(a);parent.addView(wrapper,index,lp);wrapper.addView(list,new LinearLayout.LayoutParams(-1,0,1));}
+  LinearLayout column=(LinearLayout)list.getParent();column.addView(label,column.indexOfChild(list),new LinearLayout.LayoutParams(-1,-2));
+  all.removeAllViews();all.setVisibility(View.GONE);actions.removeAllViews();ViewGroup.LayoutParams actionParams=actions.getLayoutParams();actionParams.height=ViewGroup.LayoutParams.WRAP_CONTENT;actions.setLayoutParams(actionParams);
+  LinearLayout controls=SelectionUi191.footer(a,()->confirmDelete(o),()->done(o));actions.addView(controls,new LinearLayout.LayoutParams(-1,-2));FOOTERS.put(o,controls);ACTIVE.put(a,o);a.invalidateOptionsMenu();
+ }
+ static View findList(View v){if(v instanceof ListView)return v;if(v instanceof ViewGroup){ViewGroup g=(ViewGroup)v;for(int n=0;n<g.getChildCount();n++){View found=findList(g.getChildAt(n));if(found!=null)return found;}}return null;}
+ public static void menu(Activity a,Menu menu){Object o=ACTIVE.get(a);if(o==null)return;try{if(!selecting(o))return;boolean move=!cache(o)&&o.getClass().getField("g0").getInt(o)==5&&o.getClass().getField("h0").getInt(o)!=4;SelectionUi191.menu(menu,a,()->selectAll(o,true),()->selectAll(o,false),move?()->nativeClick(o,"com.sauzask.nicoid.NicoidVideoListFragment$j"):null);}catch(Exception e){log(e);}
  }
  static void button(LinearLayout row,String text,Runnable action){Context c=row.getContext();Button b=PanelUi.button(c,text);b.setTextSize(12);b.setMinWidth(0);b.setMinimumWidth(0);b.setOnClickListener(v->action.run());row.addView(b,new LinearLayout.LayoutParams(0,PanelUi.dp(c,48),1));}
  static void selectAll(Object o,boolean value){try{for(Object row:rows(o))set(row,value);refresh(o);}catch(Exception e){log(e);}}
@@ -75,12 +79,14 @@ public final class BulkSelection {
  static void nativeClick(Object o,String type){try{((View.OnClickListener)Class.forName(type).getConstructor(o.getClass()).newInstance(o)).onClick(null);}catch(Exception e){log(e);}}
  static void confirmDelete(Object o){
   try{Activity a=activity(o);ArrayList<Object> selected=new ArrayList<>();for(Object row:rows(o))if(checked(row))selected.add(row);if(selected.isEmpty())return;
-   UiDialogs.show(new AlertDialog.Builder(PlaybackSession.dialogContext(a)).setTitle(PanelUi.tr(a,"選択した動画を削除しますか？","Remove selected videos?","刪除所選影片？")).setMessage(PanelUi.tr(a,selected.size()+"件選択しています",selected.size()+" videos selected","已選取 "+selected.size()+" 部影片"))
+   UiDialogs.show(UiDialogs.builder(PlaybackSession.dialogContext(a)).setTitle(PanelUi.tr(a,"選択した動画を削除しますか？","Remove selected videos?","刪除所選影片？")).setMessage(PanelUi.tr(a,selected.size()+"件選択しています",selected.size()+" videos selected","已選取 "+selected.size()+" 部影片"))
     .setPositiveButton(PanelUi.tr(a,"削除","Delete","刪除"),(d,w)->delete(o,selected)).setNegativeButton(PanelUi.tr(a,"キャンセル","Cancel","取消"),null).create());
   }catch(Exception e){log(e);}
  }
+ static void deleteOne(Activity a,Object row){UiDialogs.show(UiDialogs.builder(PlaybackSession.dialogContext(a)).setTitle(cache(a)?PanelUi.tr(a,"キャッシュを削除しますか？","Delete cache?","刪除快取？"):PanelUi.tr(a,"視聴履歴を削除しますか？","Delete watch history?","刪除觀看紀錄？")).setPositiveButton(UiStrings.translate("削除"),(d,w)->{if(cache(a)){CacheControl110.remove(a,HistoryRules.id(ListActions.value(row,"videourl")),a::recreate);return;}try{Object owner=get(a,"F");ArrayList<Object> chosen=new ArrayList<>();chosen.add(row);if(!selecting(owner))toggleMode(owner);delete(owner,chosen);}catch(Exception e){log(e);}}).setNegativeButton(UiStrings.translate("キャンセル"),null).create());}
  static void delete(Object o,ArrayList<Object> selected){
   try{
+   if(cache(o)){Activity a=activity(o);CacheControl110.stop(a);new Thread(()->{boolean ok=true;try{CacheControl110.await();for(Object row:selected)if(!CacheControl110.delete(a,HistoryRules.id(ListActions.value(row,"videourl"))))ok=false;}catch(Exception e){ok=false;}boolean success=ok;a.runOnUiThread(()->{if(!a.isFinishing()){if(success)a.recreate();else Toast.makeText(a,UiStrings.translate("削除に失敗しました"),1).show();}});},"nicoid-cache-delete").start();return;}
    if(!cache(o)&&o.getClass().getField("h0").getInt(o)==4){deleteAccountHistory(o,selected);return;}
    String type=cache(o)?"e.e.a.i":"e.e.a.z1";
    if(!cache(o)&&o.getClass().getField("g0").getInt(o)==8){

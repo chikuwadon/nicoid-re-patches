@@ -27,7 +27,7 @@ for owner, name, target in [
 
 for owner in ['Ranking190', 'RankingFetch190', 'RankingRules190', 'Following190', 'MylistFollow190', 'Nicoad190', 'UiGlyph190']:
     assert (root / 'e/e/a' / (owner + '.smali')).exists(), ('Missing packaged helper', owner)
-assert 'v1.9.0 @chikuwadon' in (root / 'e/e/a/ModernShorts.smali').read_text()
+assert 'v1.9.1-dev.1 @chikuwadon' in (root / 'e/e/a/ModernShorts.smali').read_text()
 print('Development feature entry points and unique DEX method definitions verified')
 
 for owner in ["ModernRanking", "ModernSearch"]:

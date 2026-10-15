@@ -26,9 +26,8 @@ public final class FollowFeed {
         final HashSet<String> ids=new HashSet<>(),cursors=new HashSet<>();
         final LinkedHashMap<String,Actor> actors=new LinkedHashMap<>();
         final ArrayList<Object> visible=new ArrayList<>();
-        final ArrayList<Button> chips=new ArrayList<>();
         ListView list; TextView status; ProgressBar progress; Button more;
-        LinearLayout authors; Rows rows; NetworkTask task;
+        Ui110.Tabs tabs; Ui110.Swipe swipe; LinearLayout authors; Rows rows; NetworkTask task;
         String cursor,actorKey,authorStamp; int filter=0; boolean end,busy,failed,stopped;
         long now;
     }
@@ -64,7 +63,7 @@ public final class FollowFeed {
         b.setTextColor(ThemeChoice.textColor(b));return b;
     }
     private static String filterName(Context c,int i){
-        String[][] names={{"コンテンツ投稿","Content uploads","內容投稿"},{"動画投稿","Video uploads","影片投稿"},{"ショート投稿","Short uploads","短影片投稿"},{"すべて","All","全部"}};
+        String[][] names={{"コンテンツ","Content","內容"},{"動画","Videos","影片"},{"ショート","Shorts","短影片"},{"すべて","All","全部"}};
         return text(c,names[i][0],names[i][1],names[i][2]);
     }
     public static void load(Activity a){
@@ -77,30 +76,23 @@ public final class FollowFeed {
             if(s==null){
                 s=new State();s.list=(ListView)PlaybackSession.get(a,"A");if(s.list==null)return;
                 Object bar=PlaybackSession.get(a,"O");
-                if(bar!=null)PlaybackSession.call(bar,"b",new Class<?>[]{CharSequence.class},(Object)null);
+                if(bar!=null)PlaybackSession.call(bar,"b",new Class<?>[]{CharSequence.class},text(a,"ニコレポ","Nico Reports","Nico 動態"));
                 a.setTitle(text(a,"ニコレポ","Nico Reports","Nico 動態"));
-                if(bar!=null)PlaybackSession.call(bar,"c",new Class<?>[]{CharSequence.class},text(a,"ニコレポ","Nico Reports","Nico 動態"));
+                if(bar!=null)PlaybackSession.call(bar,"c",new Class<?>[]{CharSequence.class},(Object)null);
                 View footer=(View)PlaybackSession.get(a,"Q");if(footer!=null)s.list.removeFooterView(footer);
                 if(s.list.getParent() instanceof ViewGroup)((ViewGroup)s.list.getParent()).removeView(s.list);
-                LinearLayout root=new LinearLayout(a);root.setOrientation(LinearLayout.VERTICAL);ThemeChoice.background(root);
+                LinearLayout root=new LinearLayout(a);root.setOrientation(LinearLayout.VERTICAL);ThemeChoice.background(root);TabViewport110.fill(root);
                 State state=s;
-                TextView heading=label(a,20,true);heading.setText(text(a,"ニコレポ","Nico Reports","Nico 動態"));heading.setPadding(dp(a,16),dp(a,12),dp(a,16),dp(a,4));root.addView(heading);
                 LinearLayout authorRow=new LinearLayout(a);authorRow.setGravity(Gravity.CENTER_VERTICAL);authorRow.setPadding(dp(a,8),dp(a,8),dp(a,8),dp(a,4));
                 HorizontalScrollView scroll=new HorizontalScrollView(a);scroll.setHorizontalScrollBarEnabled(false);
                 s.authors=new LinearLayout(a);s.authors.setGravity(Gravity.CENTER_VERTICAL);scroll.addView(s.authors);
                 authorRow.addView(scroll,new LinearLayout.LayoutParams(0,-2,1));
-                Button follow=chip(a,text(a,"フォロー一覧","Following","追蹤列表"));
+                Button follow=chip(a,text(a,"フォロー一覧 ›","Following ›","追蹤列表 ›"));Ui110.flat(follow);follow.setTextSize(13);
                 follow.setOnClickListener(v->a.startActivity(new Intent(Intent.ACTION_VIEW).setClassName(a,"com.sauzask.nicoid.NicoidFavUserActivity")));
                 authorRow.addView(follow,new LinearLayout.LayoutParams(-2,dp(a,48)));root.addView(authorRow);
 
-                LinearLayout chips=new LinearLayout(a);chips.setPadding(dp(a,12),dp(a,8),dp(a,12),dp(a,8));
-                for(int i=0;i<4;i++){
-                    final int index=i;Button b=chip(a,filterName(a,i));s.chips.add(b);
-                    b.setTextSize(11);b.setPadding(dp(a,3),0,dp(a,3),0);b.setMaxLines(2);
-                    LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,dp(a,48),1);p.setMargins(0,0,i==3?0:dp(a,4),0);chips.addView(b,p);
-                    b.setOnClickListener(v->{if(state.filter!=index){state.filter=index;request(a,state,true);state.list.setSelection(0);}});
-                }
-                root.addView(chips,new LinearLayout.LayoutParams(-1,-2));
+                s.swipe=new Ui110.Swipe(a,4,index->{state.filter=index;state.tabs.select(index);request(a,state,true);state.list.setSelection(0);});
+                s.tabs=new Ui110.Tabs(a,new String[]{filterName(a,0),filterName(a,1),filterName(a,2),filterName(a,3)},index->state.swipe.select(index));root.addView(s.tabs);
                 LinearLayout loading=new LinearLayout(a);loading.setGravity(Gravity.CENTER_VERTICAL);loading.setPadding(dp(a,16),0,dp(a,16),0);
                 s.status=label(a,12,false);s.status.setAlpha(.7f);loading.addView(s.status,new LinearLayout.LayoutParams(0,-2,1));
                 s.progress=new ProgressBar(a);s.progress.getIndeterminateDrawable().mutate().setColorFilter(ThemeChoice.accent(a),PorterDuff.Mode.SRC_IN);
@@ -120,7 +112,7 @@ public final class FollowFeed {
                         if(!state.failed&&!state.visible.isEmpty()&&count>0&&first+count>=total-1)request(a,state,false);
                     }
                 });
-                root.addView(s.list,new LinearLayout.LayoutParams(-1,0,1));
+                s.swipe.addView(s.list,new FrameLayout.LayoutParams(-1,-1));root.addView(s.swipe,new LinearLayout.LayoutParams(-1,0,1));
                 a.getClass().getField("y").set(a,root);STATES.put(a,s);
                 renderAuthors(a,s);rebuild(a,s);
                 a.getApplication().registerActivityLifecycleCallbacks(new android.app.Application.ActivityLifecycleCallbacks(){
@@ -214,14 +206,8 @@ public final class FollowFeed {
         for(Item item:s.items)if(item.matches(3,s.actorKey)){
             int bucket=FollowFeedData.bucket(item.time,s.now);if(bucket!=last){s.visible.add(Integer.valueOf(bucket));last=bucket;}s.visible.add(item);
         }
-        for(int i=0;i<s.chips.size();i++){
-            Button b=s.chips.get(i);boolean selected=i==s.filter;b.setSelected(selected);
-            b.setBackground(shape(a,selected?ThemeChoice.accent(a):surface(a),24,false));
-            int ink=ThemeChoice.accent(a);double light=(Color.red(ink)*299+Color.green(ink)*587+Color.blue(ink)*114)/1000.;
-            b.setTextColor(selected?(light>155?0xff101114:Color.WHITE):ThemeChoice.textColor(b));
-        }
         if(!s.busy&&!s.failed)s.status.setText(s.actorKey==null?"":text(a,"投稿者で絞り込み中","Filtered by creator","依投稿者篩選"));
-        s.rows.notifyDataSetChanged();
+        if(s.tabs!=null)s.tabs.select(s.filter);s.rows.notifyDataSetChanged();
     }
     private static void renderAuthors(Activity a,State s){
         StringBuilder stamp=new StringBuilder(String.valueOf(s.actorKey));int count=0;
@@ -249,7 +235,7 @@ public final class FollowFeed {
         ImageView image=new ImageView(a);image.setScaleType(ImageView.ScaleType.CENTER_CROP);box.addView(image,new FrameLayout.LayoutParams(-1,-1));
         TextView fallback=label(a,round?18:28,false);fallback.setText(round?"●":"▶");fallback.setTextColor(ThemeChoice.accent(a));fallback.setGravity(Gravity.CENTER);box.addView(fallback,new FrameLayout.LayoutParams(-1,-1));
         box.setTag(new View[]{image,fallback});
-        if(round)box.setClipToOutline(true);return box;
+        if(round)Following190.roundAvatar(box);return box;
     }
     private static final class Thumbnail extends FrameLayout {
         Thumbnail(Context c){super(c);}
@@ -319,10 +305,10 @@ public final class FollowFeed {
                 h.avatar=imageBox(a,true);actor.addView(h.avatar,new LinearLayout.LayoutParams(dp(a,40),dp(a,40)));
                 LinearLayout words=new LinearLayout(a);words.setOrientation(LinearLayout.VERTICAL);words.setPadding(dp(a,12),0,0,0);
                 LinearLayout top=new LinearLayout(a);top.setGravity(Gravity.CENTER_VERTICAL);
-                h.name=label(a,14,true);h.name.setSingleLine(true);h.name.setEllipsize(android.text.TextUtils.TruncateAt.END);
+                h.name=label(a,14,false);h.name.setSingleLine(true);h.name.setEllipsize(android.text.TextUtils.TruncateAt.END);
                 top.addView(h.name,new LinearLayout.LayoutParams(0,-2,1));h.date=label(a,12,false);h.date.setAlpha(.65f);top.addView(h.date);
                 words.addView(top);h.event=label(a,12,false);h.event.setAlpha(.7f);words.addView(h.event);actor.addView(words,new LinearLayout.LayoutParams(0,-2,1));row.addView(actor);
-                h.card=new LinearLayout(a);h.card.setOrientation(LinearLayout.VERTICAL);h.card.setBackground(shape(a,surface(a),12,true));h.card.setClipToOutline(true);
+                h.card=new LinearLayout(a);h.card.setOrientation(LinearLayout.VERTICAL);h.card.setBackground(shape(a,Ui110.actionColor(a),12,true));h.card.setClipToOutline(true);
                 LinearLayout.LayoutParams cardParams=new LinearLayout.LayoutParams(-1,-2);cardParams.setMargins(dp(a,52),dp(a,8),0,0);row.addView(h.card,cardParams);
                 h.thumbnail=imageBox(a,false);h.card.addView(h.thumbnail,new LinearLayout.LayoutParams(-1,-2));
                 h.badge=label(a,11,true);h.badge.setTextColor(Color.WHITE);h.badge.setPadding(dp(a,5),dp(a,2),dp(a,5),dp(a,2));h.badge.setBackground(shape(a,0xbb111111,3,false));
@@ -331,7 +317,7 @@ public final class FollowFeed {
                 FrameLayout.LayoutParams duration=new FrameLayout.LayoutParams(-2,-2,Gravity.BOTTOM|Gravity.END);duration.setMargins(0,0,dp(a,8),dp(a,8));h.thumbnail.addView(h.duration,duration);
                 LinearLayout bottom=new LinearLayout(a);bottom.setGravity(Gravity.CENTER_VERTICAL);bottom.setPadding(dp(a,10),dp(a,8),0,dp(a,8));
                 h.title=label(a,14,false);h.title.setMaxLines(3);h.title.setEllipsize(android.text.TextUtils.TruncateAt.END);bottom.addView(h.title,new LinearLayout.LayoutParams(0,-2,1));
-                h.menu=chip(a,"⋮");h.menu.setTextSize(24);h.menu.setPadding(0,0,0,0);h.menu.setContentDescription(text(a,"動画メニュー","Video menu","影片選單"));bottom.addView(h.menu,new LinearLayout.LayoutParams(dp(a,48),dp(a,48)));h.card.addView(bottom);
+                h.menu=chip(a,"⋮");Ui110.circle(h.menu);h.menu.setTextSize(24);h.menu.setPadding(0,0,0,0);h.menu.setContentDescription(text(a,"動画メニュー","Video menu","影片選單"));bottom.addView(h.menu,new LinearLayout.LayoutParams(dp(a,48),dp(a,48)));h.card.addView(bottom);
                 row.setTag(h);
             }else{row=(LinearLayout)recycled;h=(Holder)row.getTag();}
             h.name.setText(item.actor.isEmpty()?text(a,"投稿者","Creator","投稿者"):item.actor);h.date.setText(FollowFeedData.date(item));h.event.setText(event(a,item));
@@ -339,7 +325,7 @@ public final class FollowFeed {
             bindImage(h.avatar,item.author.icon);bindImage(h.thumbnail,item.thumbnail);
             h.card.setContentDescription(item.title);h.card.setOnClickListener(v->open(a,s,item,false));h.thumbnail.setOnClickListener(v->open(a,s,item,false));h.title.setOnClickListener(v->open(a,s,item,false));
             h.menu.setOnClickListener(v->{
-                PopupMenu menu=new PopupMenu(a,v);
+                PopupMenu menu=new PopupMenu(UiTheme191.context(a),v);
                 menu.getMenu().add(text(a,"再生","Play","播放")).setOnMenuItemClickListener(m->{open(a,s,item,false);return true;});
                 menu.getMenu().add(text(a,"動画情報","Video details","影片資訊")).setOnMenuItemClickListener(m->{open(a,s,item,true);return true;});
                 menu.getMenu().add(text(a,"共有","Share","分享")).setOnMenuItemClickListener(m->{

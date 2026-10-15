@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+ <color name="nicoid_surface_dark">#ff191b20</color><color name="nicoid_surface_light">#fffafafa</color><color name="nicoid_ink_dark">#ffeeeeee</color><color name="nicoid_ink_light">#ff202124</color><color name="nicoid_muted_dark">#ffb7bac3</color><color name="nicoid_muted_light">#ff666a73</color><color name="nicoid_accent_dark">#ff52cca3</color><color name="nicoid_highlight_dark">#3352cca3</color>
+ <color name="nicoid_list_divider_dark">#22eeeeee</color>
+ <color name="nicoid_list_divider_light">#22202124</color>
+ <color name="nicoid_detail_item_dark">#ff292b31</color>
+ <color name="nicoid_tag_item_dark">#ff24262b</color>
+ <color name="nicoid_tag_item_light">#fff0f0f0</color>
+</resources>

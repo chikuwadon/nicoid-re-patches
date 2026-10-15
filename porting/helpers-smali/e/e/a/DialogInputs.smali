@@ -24,6 +24,13 @@
 
     if-eqz v0, :cond_121
 
+    const-string v0, "nicoid-managed-input"
+    invoke-virtual {v1}, Landroid/view/View;->getTag()Ljava/lang/Object;
+    move-result-object v2
+    invoke-virtual {v0, v2}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+    move-result v0
+    if-nez v0, :cond_121
+
     .line 7
     move-object v2, v1
 

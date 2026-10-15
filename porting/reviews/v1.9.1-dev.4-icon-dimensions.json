@@ -1,0 +1,446 @@
+[
+  {
+    "resource": "play",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_dimensions": [
+      "128px",
+      "128px"
+    ]
+  },
+  {
+    "resource": "pause",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_dimensions": [
+      "128px",
+      "128px"
+    ]
+  },
+  {
+    "resource": "next",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_dimensions": [
+      "128px",
+      "128px"
+    ]
+  },
+  {
+    "resource": "prev",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_dimensions": [
+      "128px",
+      "128px"
+    ]
+  },
+  {
+    "resource": "fullscreen",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_dimensions": [
+      "128px",
+      "128px"
+    ]
+  },
+  {
+    "resource": "normalscreen",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_dimensions": [
+      "128px",
+      "128px"
+    ]
+  },
+  {
+    "resource": "popup",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_dimensions": [
+      "128px",
+      "128px"
+    ]
+  },
+  {
+    "resource": "repeaton",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_dimensions": [
+      "128px",
+      "128px"
+    ]
+  },
+  {
+    "resource": "repeatoff",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_dimensions": [
+      "128px",
+      "128px"
+    ]
+  },
+  {
+    "resource": "commenton",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_dimensions": [
+      "128px",
+      "128px"
+    ]
+  },
+  {
+    "resource": "commentoff",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_dimensions": [
+      "128px",
+      "128px"
+    ]
+  },
+  {
+    "resource": "commentpost",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_dimensions": [
+      "128px",
+      "128px"
+    ]
+  },
+  {
+    "resource": "info",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_dimensions": [
+      "128px",
+      "128px"
+    ]
+  },
+  {
+    "resource": "lock",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      256,
+      256
+    ],
+    "new_dimensions": [
+      "256px",
+      "256px"
+    ]
+  },
+  {
+    "resource": "unlock",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      256,
+      256
+    ],
+    "new_dimensions": [
+      "256px",
+      "256px"
+    ]
+  },
+  {
+    "resource": "menubutton",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      128,
+      128
+    ],
+    "new_dimensions": [
+      "128px",
+      "128px"
+    ]
+  },
+  {
+    "resource": "dicon",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      45,
+      45
+    ],
+    "new_dimensions": [
+      "45px",
+      "45px"
+    ]
+  },
+  {
+    "resource": "dicoff",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      45,
+      45
+    ],
+    "new_dimensions": [
+      "45px",
+      "45px"
+    ]
+  },
+  {
+    "resource": "combig",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      32,
+      18
+    ],
+    "new_dimensions": [
+      "32px",
+      "18px"
+    ]
+  },
+  {
+    "resource": "commedium",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      32,
+      18
+    ],
+    "new_dimensions": [
+      "32px",
+      "18px"
+    ]
+  },
+  {
+    "resource": "comsmall",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      32,
+      18
+    ],
+    "new_dimensions": [
+      "32px",
+      "18px"
+    ]
+  },
+  {
+    "resource": "comue",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      32,
+      18
+    ],
+    "new_dimensions": [
+      "32px",
+      "18px"
+    ]
+  },
+  {
+    "resource": "comnaka",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      32,
+      18
+    ],
+    "new_dimensions": [
+      "32px",
+      "18px"
+    ]
+  },
+  {
+    "resource": "comshita",
+    "folder": "drawable-nodpi",
+    "old_pixels": [
+      32,
+      18
+    ],
+    "new_dimensions": [
+      "32px",
+      "18px"
+    ]
+  },
+  {
+    "resource": "ic_menu_search",
+    "folder": "drawable-mdpi",
+    "old_pixels": [
+      32,
+      32
+    ],
+    "new_dimensions": [
+      "32dp",
+      "32dp"
+    ]
+  },
+  {
+    "resource": "ic_drawer",
+    "folder": "drawable-mdpi",
+    "old_pixels": [
+      16,
+      16
+    ],
+    "new_dimensions": [
+      "16dp",
+      "16dp"
+    ]
+  },
+  {
+    "resource": "ic_menu_share",
+    "folder": "drawable-mdpi",
+    "old_pixels": [
+      32,
+      32
+    ],
+    "new_dimensions": [
+      "32dp",
+      "32dp"
+    ]
+  },
+  {
+    "resource": "ic_menu_recent_history",
+    "folder": "drawable-mdpi",
+    "old_pixels": [
+      32,
+      32
+    ],
+    "new_dimensions": [
+      "32dp",
+      "32dp"
+    ]
+  },
+  {
+    "resource": "ic_menu_recent_history",
+    "folder": "drawable-xxhdpi",
+    "old_pixels": [
+      96,
+      96
+    ],
+    "new_dimensions": [
+      "32dp",
+      "32dp"
+    ]
+  },
+  {
+    "resource": "ic_menu_search",
+    "folder": "drawable-xhdpi",
+    "old_pixels": [
+      64,
+      64
+    ],
+    "new_dimensions": [
+      "32dp",
+      "32dp"
+    ]
+  },
+  {
+    "resource": "ic_drawer",
+    "folder": "drawable-xhdpi",
+    "old_pixels": [
+      32,
+      32
+    ],
+    "new_dimensions": [
+      "16dp",
+      "16dp"
+    ]
+  },
+  {
+    "resource": "ic_menu_share",
+    "folder": "drawable-xhdpi",
+    "old_pixels": [
+      64,
+      64
+    ],
+    "new_dimensions": [
+      "32dp",
+      "32dp"
+    ]
+  },
+  {
+    "resource": "ic_menu_recent_history",
+    "folder": "drawable-xhdpi",
+    "old_pixels": [
+      64,
+      64
+    ],
+    "new_dimensions": [
+      "32dp",
+      "32dp"
+    ]
+  },
+  {
+    "resource": "ic_menu_search",
+    "folder": "drawable-hdpi",
+    "old_pixels": [
+      48,
+      48
+    ],
+    "new_dimensions": [
+      "32dp",
+      "32dp"
+    ]
+  },
+  {
+    "resource": "ic_drawer",
+    "folder": "drawable-hdpi",
+    "old_pixels": [
+      24,
+      24
+    ],
+    "new_dimensions": [
+      "16dp",
+      "16dp"
+    ]
+  },
+  {
+    "resource": "ic_menu_share",
+    "folder": "drawable-hdpi",
+    "old_pixels": [
+      48,
+      48
+    ],
+    "new_dimensions": [
+      "32dp",
+      "32dp"
+    ]
+  },
+  {
+    "resource": "ic_menu_recent_history",
+    "folder": "drawable-hdpi",
+    "old_pixels": [
+      48,
+      48
+    ],
+    "new_dimensions": [
+      "32dp",
+      "32dp"
+    ]
+  }
+]

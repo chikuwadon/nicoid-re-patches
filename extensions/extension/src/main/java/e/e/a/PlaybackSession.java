@@ -28,15 +28,8 @@ public final class PlaybackSession {
     public static int metadataVersion(Bundle b) {
         return PlaybackRules.version(b.get("nicovideo_version"));
     }
-    public static Context dialogContext(Context c) {
-        boolean night = night(c);
-        try { night = night || (Boolean)Class.forName("e.e.a.DynamicTheme").getMethod("isNight",Context.class).invoke(null,c); } catch(Exception e) { log(e); }
-        return new ContextThemeWrapper(c,night ? android.R.style.Theme_Material_Dialog_Alert : android.R.style.Theme_Material_Light_Dialog_Alert);
-    }
-    public static boolean night(Context c){
-        try{if((Boolean)Class.forName("e.e.a.DynamicTheme").getMethod("isNight",Context.class).invoke(null,c))return true;}catch(Exception e){log(e);}
-        android.util.TypedValue v=new android.util.TypedValue();if(c.getTheme().resolveAttribute(android.R.attr.colorBackground,v,true)){int color=v.resourceId==0?v.data:c.getResources().getColor(v.resourceId);return android.graphics.Color.red(color)*299+android.graphics.Color.green(color)*587+android.graphics.Color.blue(color)*114<128000;}return false;
-    }
+    public static Context dialogContext(Context c) {return UiTheme191.context(c);}
+    public static boolean night(Context c){return ThemeChoice.isNight(c);}
     public static void styleDialog(AlertDialog d) {
         try {DialogInputs.pad(d.getWindow().getDecorView());UiDialogs.style(d);}
         catch(Exception e){log(e);}
@@ -66,7 +59,7 @@ public final class PlaybackSession {
             float current=Class.forName("e.e.a.ModernControls").getField("speed").getFloat(null);
             if(mode==1) for(int i=0;i<SPEEDS.length;i++) if(SPEEDS[i]==current) selected=i;
             if(mode==0) { int q=(Integer)get(get(fragment,"h1"),"e"); selected=q==4?2:q==3?1:0; }
-            AlertDialog d=new AlertDialog.Builder(dialogContext(a)).setTitle(mode==1?"再生速度":"画質")
+            AlertDialog d=UiDialogs.builder(dialogContext(a)).setTitle(mode==1?"再生速度":"画質")
                 .setSingleChoiceItems(labels,selected,(dialog,index)->{
                     dialog.dismiss();
                     try {

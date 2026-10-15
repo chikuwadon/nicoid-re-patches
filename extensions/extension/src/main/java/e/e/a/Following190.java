@@ -16,7 +16,7 @@ public final class Following190 {
   if(!(installed instanceof UserRows)||((UserRows)installed).original!=nativeAdapter)users.setAdapter(new UserRows(nativeAdapter));
   ViewGroup parent=(ViewGroup)users.getParent();if(parent==null||parent instanceof Pager)return;
   VideoDetails.initializeCookies(a);int index=parent.indexOfChild(users);ViewGroup.LayoutParams old=users.getLayoutParams();parent.removeView(users);
-  LinearLayout page=PanelUi.column(a);page.setTag("nicoid_following_tabs");ThemeChoice.background(page);parent.addView(page,index,old);
+  LinearLayout page=PanelUi.column(a);page.setTag("nicoid_following_tabs");ThemeChoice.background(page);old.height=-1;parent.addView(page,index,old);
   LinearLayout tabs=new LinearLayout(a);page.addView(tabs,new LinearLayout.LayoutParams(-1,-2));
   Pager pager=new Pager(a);page.addView(pager,new LinearLayout.LayoutParams(-1,0,1));pager.addView(users,new FrameLayout.LayoutParams(-1,-1));
   LinearLayout[] rows=new LinearLayout[3];
@@ -33,14 +33,12 @@ public final class Following190 {
   for(int i=0;i<3;i++){final int tab=i;LinearLayout slot=PanelUi.column(a);tabs.addView(slot,new LinearLayout.LayoutParams(0,-2,1));buttons[i]=PanelUi.text(a,PanelUi.tr(a,ja[i],en[i],zh[i]),14);buttons[i].setGravity(android.view.Gravity.CENTER);slot.addView(buttons[i],new LinearLayout.LayoutParams(-1,PanelUi.dp(a,48)));indicators[i]=new View(a);indicators[i].setBackgroundColor(i==0?UiDialogs.accent(a):android.graphics.Color.TRANSPARENT);slot.addView(indicators[i],new LinearLayout.LayoutParams(-1,PanelUi.dp(a,2)));buttons[i].setSelected(i==0);buttons[i].setTextColor(i==0?UiDialogs.accent(a):PanelUi.ink(a));buttons[i].setOnClickListener(v->pager.select(tab));}
  }catch(Exception error){android.util.Log.w("nicoid-following","Unable to initialize following tabs",error);}}
  /** Intercept only horizontal gestures; child lists retain vertical scrolling and long presses. */
- static final class Pager extends FrameLayout {
-  int selected;Runnable changed;float startX,startY;boolean horizontal,vertical,animating;final int slop;android.view.VelocityTracker velocity;
-  Pager(android.content.Context c){super(c);setClipChildren(true);slop=android.view.ViewConfiguration.get(c).getScaledTouchSlop();}
-  public boolean onInterceptTouchEvent(android.view.MotionEvent e){int action=e.getActionMasked();if(action==0){startX=e.getX();startY=e.getY();horizontal=false;vertical=startX<PanelUi.dp(getContext(),24)||animating;if(velocity!=null)velocity.recycle();velocity=android.view.VelocityTracker.obtain();velocity.addMovement(e);}else if(action==2&&!vertical){float dx=e.getX()-startX,dy=e.getY()-startY;if(Math.abs(dy)>slop&&Math.abs(dy)>=Math.abs(dx))vertical=true;else if(Gestures.isHorizontal(dx,dy,slop)){horizontal=true;getParent().requestDisallowInterceptTouchEvent(true);return true;}}else if(action==1||action==3)recycleVelocity();return horizontal;}
-  public boolean onTouchEvent(android.view.MotionEvent e){if(!horizontal)return true;if(velocity!=null)velocity.addMovement(e);int action=e.getActionMasked();if(e.getPointerCount()>1){horizontal=false;recycleVelocity();return true;}if(action==1||action==3){float speed=0;if(velocity!=null){velocity.computeCurrentVelocity(1000);speed=velocity.getXVelocity();}float dx=e.getX()-startX;horizontal=false;recycleVelocity();getParent().requestDisallowInterceptTouchEvent(false);if(action==1&&Gestures.shouldSwitch(dx,speed,getWidth(),PanelUi.dp(getContext(),600)))select(selected+(dx<0?1:-1));}return true;}
-  void recycleVelocity(){if(velocity!=null){velocity.recycle();velocity=null;}}
+ static final class Pager extends TabViewport110 {
+  int selected;Runnable changed;boolean animating;
+  Pager(android.content.Context c){super(c);}
+  boolean switching(){return animating;}void swipe(int direction){select(selected+direction);}
   void select(int tab){if(tab<0||tab>=3||tab==selected||animating)return;int previous=selected;selected=tab;View outgoing=getChildAt(previous),incoming=getChildAt(tab);int direction=tab>previous?1:-1;incoming.setVisibility(View.VISIBLE);incoming.setTranslationX(direction*getWidth());if(changed!=null)changed.run();if(getWidth()==0){outgoing.setVisibility(View.GONE);incoming.setTranslationX(0);return;}animating=true;outgoing.animate().translationX(-direction*getWidth()).setDuration(200).start();incoming.animate().translationX(0).setDuration(200).withEndAction(()->{outgoing.setVisibility(View.GONE);outgoing.setTranslationX(0);animating=false;}).start();}
-  protected void onDetachedFromWindow(){for(int i=0;i<getChildCount();i++){View v=getChildAt(i);v.animate().cancel();v.setTranslationX(0);v.setVisibility(i==selected?View.VISIBLE:View.GONE);}animating=false;horizontal=false;recycleVelocity();super.onDetachedFromWindow();}
+  protected void onDetachedFromWindow(){for(int i=0;i<getChildCount();i++){View v=getChildAt(i);v.animate().cancel();v.setTranslationX(0);v.setVisibility(i==selected?View.VISIBLE:View.GONE);}animating=false;super.onDetachedFromWindow();}
  }
  static final class Gestures {
  static boolean isHorizontal(float dx,float dy,int slop){return Math.abs(dx)>slop&&Math.abs(dx)>Math.abs(dy)*1.3f;}

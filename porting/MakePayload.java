@@ -54,13 +54,14 @@ public class MakePayload {
         for(ClassDef helper:helpers) if(!unique.add(helper.getType())||original.containsKey(helper.getType())) throw new IllegalStateException("Duplicate helper "+helper.getType());
         DexPool.writeTo(output.resolve("helpers.mpe").toString(),new ImmutableDexFile(Opcodes.getDefault(),helpers));
         try(ZipFile before=new ZipFile(args[0]); ZipFile after=new ZipFile(args[1]); ZipOutputStream payload=new ZipOutputStream(Files.newOutputStream(output.resolve("resources.zip")))) {
+            if(after.getEntry("AndroidManifest.xml")==null||after.getEntry("resources.arsc")==null) throw new IllegalStateException("Missing identity-bearing APK resources");
             Enumeration<? extends ZipEntry> entries=after.entries();
             int count=0;
             while(entries.hasMoreElements()) {
                 ZipEntry entry=entries.nextElement(); String name=entry.getName();
                 if(!(name.equals("AndroidManifest.xml")||name.equals("resources.arsc")||name.startsWith("res/"))) continue;
                 byte[] next=after.getInputStream(entry).readAllBytes(); ZipEntry prev=before.getEntry(name);
-                if(prev!=null&&Arrays.equals(next,before.getInputStream(prev).readAllBytes())) continue;
+                if(!name.equals("AndroidManifest.xml")&&prev!=null&&Arrays.equals(next,before.getInputStream(prev).readAllBytes())) continue;
                 payload.putNextEntry(new ZipEntry(name)); payload.write(next);payload.closeEntry();count++;
             }
             System.out.println("Resource entries: "+count);

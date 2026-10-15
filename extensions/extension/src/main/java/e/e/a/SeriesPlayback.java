@@ -12,11 +12,13 @@ import java.util.concurrent.*;
 import org.json.*;
 
 /** Build a series-only native queue and respect the configured tap playback mode. */
-final class SeriesPlayback {
+public final class SeriesPlayback {
     private static final ExecutorService WORK=Executors.newSingleThreadExecutor();
     private static final Handler MAIN=new Handler(Looper.getMainLooper());
     private static final Set<Activity> BUSY=Collections.newSetFromMap(new WeakHashMap<Activity,Boolean>());
     private static final Map<Activity,Object> CHANGES=new WeakHashMap<>();
+    static final class QueueState {boolean repeat,touched;String series;QueueState(boolean repeat){this.repeat=repeat;}}
+    private static final Map<Object,QueueState> QUEUES=new WeakHashMap<>();
     static boolean shuffled(Context c,String series){return PreferenceManager.getDefaultSharedPreferences(c).getBoolean("series_shuffle_"+series,false);}
     static boolean enabled(Context c,String series){return PreferenceManager.getDefaultSharedPreferences(c).getBoolean("series_continuous_"+series,false);}
     static Activity activity(Context c){for(int n=0;n<12&&c instanceof ContextWrapper&&!(c instanceof Activity);n++){Context next=((ContextWrapper)c).getBaseContext();if(next==null||next==c)break;c=next;}return c instanceof Activity?(Activity)c:null;}
@@ -31,16 +33,25 @@ final class SeriesPlayback {
             ArrayList<JSONObject> videos=fetch(a,series,task);if(shuffled(context,series))Collections.shuffle(videos);ArrayList<Object> rows=rows(videos);int index=-1;
             for(int n=0;n<videos.size();n++)if(current.equals(HistoryRules.id(DetailData.target(videos.get(n))))){index=n;break;}
             if(index<0)throw new java.io.IOException("Current video is not in series");int selected=index;
-            MAIN.post(()->{synchronized(CHANGES){if(CHANGES.get(a)!=token)return;}try{if(!a.isFinishing()&&current.equals(HistoryRules.id(String.valueOf(Review181.field(fragment,"b0")))))bind(fragment,rows,selected);}catch(Exception ignored){}});
+            MAIN.post(()->{synchronized(CHANGES){if(CHANGES.get(a)!=token)return;}try{if(!a.isFinishing()&&current.equals(HistoryRules.id(String.valueOf(Review181.field(fragment,"b0"))))){bind(fragment,rows,selected);QueueState state=QUEUES.get(fragment);if(state!=null)state.series=series;}}catch(Exception ignored){}});
         }catch(Exception error){MAIN.post(()->{synchronized(CHANGES){if(CHANGES.get(a)!=token)return;}if(!a.isFinishing())Toast.makeText(a,PanelUi.tr(a,"シリーズを取得できませんでした","Unable to load series","無法載入系列"),Toast.LENGTH_SHORT).show();});}});
     }
     private static void bind(Object fragment,ArrayList<?> rows,int index){try{
+        boolean enabled=rows!=null&&!rows.isEmpty()&&index>=0&&index<rows.size();
+        boolean repeat=fragment.getClass().getField("F0").getBoolean(fragment);
+        QueueState state=QUEUES.get(fragment);
+        if(enabled&&state==null){QUEUES.put(fragment,new QueueState(repeat));fragment.getClass().getField("F0").setBoolean(fragment,false);}
+        if(!enabled&&state!=null){QUEUES.remove(fragment);if(!state.touched)fragment.getClass().getField("F0").setBoolean(fragment,state.repeat);}
         fragment.getClass().getField("U0").setBoolean(fragment,false);
-        fragment.getClass().getField("C1").set(fragment,rows);
-        fragment.getClass().getField("D1").setInt(fragment,index);
-        boolean enabled=rows!=null&&!rows.isEmpty();fragment.getClass().getField("U0").setBoolean(fragment,enabled);
-        try{Object player=Review181.field(fragment,"a0");if(player!=null){boolean repeat=fragment.getClass().getField("F0").getBoolean(fragment);player.getClass().getMethod("setRepeatMode",int.class).invoke(player,!enabled&&repeat?1:0);}}catch(Exception ignored){}
+        fragment.getClass().getField("C1").set(fragment,enabled?rows:null);
+        fragment.getClass().getField("D1").setInt(fragment,enabled?index:0);
+        fragment.getClass().getField("U0").setBoolean(fragment,enabled);applyRepeat(fragment);
     }catch(Exception error){android.util.Log.w("nicoid-series","Unable to update playback queue",error);}}
+    static void ensure(Context context,String series){if(!enabled(context,series))return;Activity a=activity(context);if(a==null)return;try{Object fragment=Review181.field(a,"v");QueueState state=QUEUES.get(fragment);if(state!=null&&series.equals(state.series)&&fragment.getClass().getField("U0").getBoolean(fragment))return;}catch(Exception ignored){}toggle(context,series,true);}
+    public static void prepared(Object fragment){try{if(fragment.getClass().getField("U0").getBoolean(fragment)&&!QUEUES.containsKey(fragment)){QUEUES.put(fragment,new QueueState(fragment.getClass().getField("F0").getBoolean(fragment)));fragment.getClass().getField("F0").setBoolean(fragment,false);}}catch(Exception ignored){}applyRepeat(fragment);}
+    public static void applyRepeat(Object fragment){try{Object player=Review181.field(fragment,"a0");boolean repeat=fragment.getClass().getField("F0").getBoolean(fragment);if(player!=null)player.getClass().getMethod("setRepeatMode",int.class).invoke(player,repeat?1:0);try{android.view.View button=(android.view.View)Review181.field(fragment,"p1");Class.forName("e.e.a.PlayerIcons").getMethod("background",android.view.View.class,int.class).invoke(null,button,repeat?0x7f07019d:0x7f07019c);}catch(Exception ignored){}}catch(Exception error){android.util.Log.w("nicoid-series","Unable to apply repeat",error);}}
+    public static void toggleRepeat(Object fragment){try{boolean repeat=!fragment.getClass().getField("F0").getBoolean(fragment);fragment.getClass().getField("F0").setBoolean(fragment,repeat);QueueState state=QUEUES.get(fragment);if(state!=null)state.touched=true;applyRepeat(fragment);try{android.content.SharedPreferences.Editor editor=(android.content.SharedPreferences.Editor)Review181.field(fragment,"I1");editor.putBoolean("player_isloop",repeat).apply();}catch(Exception ignored){}}catch(Exception error){android.util.Log.w("nicoid-series","Unable to change repeat",error);}}
+    public static boolean repeatCompletion(Object fragment){try{if(!fragment.getClass().getField("U0").getBoolean(fragment)||!fragment.getClass().getField("F0").getBoolean(fragment))return false;Object player=Review181.field(fragment,"a0");if(player!=null){player.getClass().getMethod("seekTo",long.class).invoke(player,0L);player.getClass().getMethod("start").invoke(player);}return true;}catch(Exception error){return true;}}
     private static ArrayList<JSONObject> fetch(Activity a,String series,NetworkTask task)throws Exception{
         ArrayList<JSONObject> videos=new ArrayList<>();Set<String> seen=new HashSet<>();
         for(int page=1;;page++){
@@ -53,7 +64,7 @@ final class SeriesPlayback {
     }
     private static ArrayList<Object> rows(ArrayList<JSONObject> videos)throws Exception{
         Class<?> type=Class.forName("e.e.a.x1");java.lang.reflect.Method put=type.getMethod("a",String.class,Object.class);ArrayList<Object> rows=new ArrayList<>();
-        for(JSONObject item:videos){String url=DetailData.target(item);Object row=type.getConstructor().newInstance();put.invoke(row,"videourl",url);put.invoke(row,"title",item.optString("title"));put.invoke(row,"thumbnail",DetailData.thumbnail(item));type.getField("b").set(row,HistoryRules.id(url));rows.add(row);}return rows;
+        for(JSONObject item:videos){String url=DetailData.target(item);Object row=type.getConstructor().newInstance();put.invoke(row,"videourl",url);put.invoke(row,"title",item.optString("title"));put.invoke(row,"thumbnail",DetailData.thumbnail(item));for(String key:new String[]{"length","videoinfo","posttime"})put.invoke(row,key,new android.text.SpannableString(""));type.getField("b").set(row,HistoryRules.id(url));rows.add(row);}return rows;
     }
     static void open(Context context,String series,JSONObject selected,boolean continuous) {
         Context c=context;while(c instanceof ContextWrapper&&!(c instanceof Activity)){Context next=((ContextWrapper)c).getBaseContext();if(next==c)break;c=next;}

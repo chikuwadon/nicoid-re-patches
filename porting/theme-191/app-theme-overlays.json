@@ -1,0 +1,59 @@
+{
+  "values-v31/MyThemeMaterialYou": {
+    "android:alertDialogTheme": "@style/NicoidDialogLight",
+    "alertDialogTheme": "@style/NicoidDialogLight",
+    "colorControlActivated": "?colorAccent",
+    "android:colorControlActivated": "?colorAccent",
+    "android:colorControlNormal": "@color/nicoid_muted_light"
+  },
+  "values/MyThemeMaterialYou": {
+    "android:alertDialogTheme": "@style/NicoidDialogLight",
+    "alertDialogTheme": "@style/NicoidDialogLight",
+    "colorControlActivated": "?colorAccent",
+    "android:colorControlActivated": "?colorAccent",
+    "android:colorControlNormal": "@color/nicoid_muted_light"
+  },
+  "values/MyThemeDark": {
+    "android:alertDialogTheme": "@style/NicoidDialogDark",
+    "alertDialogTheme": "@style/NicoidDialogDark",
+    "colorControlActivated": "?colorAccent",
+    "android:colorControlActivated": "?colorAccent",
+    "android:colorControlNormal": "@color/nicoid_muted_dark",
+    "colorAccent": "@color/nicoid_accent_dark",
+    "android:colorAccent": "@color/nicoid_accent_dark",
+    "android:textColorLink": "@color/nicoid_accent_dark",
+    "android:textColorPrimary": "@color/nicoid_ink_dark",
+    "android:textColorSecondary": "@color/nicoid_muted_dark"
+  },
+  "values/MyThemeLight": {
+    "android:alertDialogTheme": "@style/NicoidDialogLight",
+    "alertDialogTheme": "@style/NicoidDialogLight",
+    "colorControlActivated": "?colorAccent",
+    "android:colorControlActivated": "?colorAccent",
+    "android:colorControlNormal": "@color/nicoid_muted_light"
+  },
+  "values/MyThemeAMOLED": {
+    "android:alertDialogTheme": "@style/NicoidDialogAMOLED",
+    "alertDialogTheme": "@style/NicoidDialogAMOLED",
+    "colorControlActivated": "?colorAccent",
+    "android:colorControlActivated": "?colorAccent",
+    "android:colorControlNormal": "@color/nicoid_muted_dark",
+    "colorAccent": "@color/nicoid_accent_dark",
+    "android:colorAccent": "@color/nicoid_accent_dark",
+    "android:textColorLink": "@color/nicoid_accent_dark",
+    "android:textColorPrimary": "@color/nicoid_ink_dark",
+    "android:textColorSecondary": "@color/nicoid_muted_dark"
+  },
+  "values-night-v31/MyThemeMaterialYou": {
+    "android:alertDialogTheme": "@style/NicoidDialogDark",
+    "alertDialogTheme": "@style/NicoidDialogDark",
+    "colorControlActivated": "?colorAccent",
+    "android:colorControlActivated": "?colorAccent",
+    "android:colorControlNormal": "@color/nicoid_muted_dark",
+    "colorAccent": "@color/nicoid_accent_dark",
+    "android:colorAccent": "@color/nicoid_accent_dark",
+    "android:textColorLink": "@color/nicoid_accent_dark",
+    "android:textColorPrimary": "@color/nicoid_ink_dark",
+    "android:textColorSecondary": "@color/nicoid_muted_dark"
+  }
+}

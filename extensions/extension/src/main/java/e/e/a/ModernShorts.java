@@ -61,7 +61,7 @@ import org.json.JSONObject;
 
 /** Short feeds reuse nicoid's existing player, comments and playback policies. */
 public final class ModernShorts {
-    private static final String PATCH_VERSION = "v1.9.0 @chikuwadon";
+    private static final String PATCH_VERSION = "v1.9.1-dev.1 @chikuwadon";
     private static final String PLAYER = "com.sauzask.nicoid.NicoidVideoActivity";
     private static final String MODE = "nicoid_re_shorts";
     private static final String SESSION = "nicoid_re_shorts_session";
@@ -586,7 +586,7 @@ public final class ModernShorts {
         title.setTextColor(color(a, android.R.attr.textColorPrimary, 0xffffffff)); panel.addView(title);
         ScrollView scroll = new ScrollView(a); LinearLayout rows = new LinearLayout(a); rows.setOrientation(LinearLayout.VERTICAL);
         scroll.addView(rows); panel.addView(scroll, new LinearLayout.LayoutParams(-1, dp(a, 400)));
-        AlertDialog dialog = new AlertDialog.Builder(a).setView(panel).create();
+        AlertDialog dialog = UiDialogs.builder(a).setView(panel).create();
         for (int n = 0; n < s.feed.items.size(); n++) {
             final int index = n; Item item = s.feed.items.get(n);
             LinearLayout row = new LinearLayout(a); row.setGravity(Gravity.CENTER_VERTICAL); row.setPadding(dp(a, 8), dp(a, 8), dp(a, 8), dp(a, 8));

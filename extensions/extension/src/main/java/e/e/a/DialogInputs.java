@@ -3,7 +3,7 @@ import android.content.res.ColorStateList;import android.graphics.Rect;import an
 /** Native theme-aware underline, aligned with the surrounding dialog content. */
 public final class DialogInputs {
  public static void pad(View view){
-  if(view instanceof EditText){
+  if(view instanceof EditText&&!"nicoid-managed-input".equals(view.getTag())){
    EditText field=(EditText)view,themed=new EditText(view.getContext());field.setBackgroundDrawable(themed.getBackground());
    int accent=ThemeChoice.accent(view.getContext()),ink=ThemeChoice.textColor(view),muted=(ink&0x00ffffff)|0x99000000;
    try{view.getClass().getMethod("setBackgroundTintList",ColorStateList.class).invoke(view,new ColorStateList(new int[][]{new int[]{android.R.attr.state_focused},new int[]{}},new int[]{accent,muted}));}catch(Exception ignored){}

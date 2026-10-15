@@ -73,20 +73,10 @@
 
     move-result-object v1
 
-    invoke-static {v1}, Le/e/a/ThemeChoice;->isNight(Landroid/content/Context;)Z
+    invoke-static {v1}, Le/e/a/ListDividers191;->color(Landroid/content/Context;)I
 
     move-result v1
 
-    if-eqz v1, :cond_17
-
-    const v1, 0x28ffffff
-
-    goto :goto_19
-
-    :cond_17
-    const/high16 v1, 0x22000000
-
-    :goto_19
     invoke-virtual {v0, v1}, Landroid/view/View;->setBackgroundColor(I)V
 
     new-instance v1, Landroid/widget/LinearLayout$LayoutParams;

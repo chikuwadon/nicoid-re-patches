@@ -183,7 +183,7 @@ total = sum(len(e["patches"]) for e in by_pkg.values()) + len(universal)
 readme = readme_path.read_text(encoding="utf-8")
 
 # Marker pattern — matches both <!-- PATCHES_START --> and <!-- PATCHES_START EXPANDED -->
-START_PATTERN = r"<!-- PATCHES_START(?:\s+EXPANDED)?\s*-->"
+START_PATTERN = r"<!-- PATCHES_START(?:\s+(?:EXPANDED|COMPACT))?\s*-->"
 END_MARKER    = "<!-- PATCHES_END -->"
 
 marker_match = re.search(START_PATTERN, readme)
@@ -211,7 +211,10 @@ expanded = (
     "EXPANDED" in actual_start
 )
 
-generated  = build_content(expanded=expanded)
+if "COMPACT" in actual_start:
+    generated = f"[nicoid Reの最新パッチ](https://github.com/{repo_full}/releases/latest) · 対応アプリ：nicoid 6.49"
+else:
+    generated = build_content(expanded=expanded)
 
 # Replace template links if present
 readme = readme.replace("https://morphe.software/add-source?github=xyz-user/xyz-patches", f"https://morphe.software/add-source?github={repo_full}")

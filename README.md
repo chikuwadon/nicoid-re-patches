@@ -12,82 +12,50 @@
 <a href="LICENSE"><img alt="ライセンス GPL v3" src="https://img.shields.io/badge/License-GPL_v3-687078?style=flat-square"></a>
 </p>
 
-<p>
-<a href="https://morphe.software/add-source?github=chikuwadon%2Fnicoid-re-patches&amp;name=nicoid%20Re"><img alt="Morphe Managerにソースを追加" src="https://img.shields.io/badge/ADD_TO_MORPHE-167D8D?style=for-the-badge"></a>
-<a href="https://github.com/chikuwadon/nicoid-re-patches/releases/latest"><img alt="最新版のパッチをダウンロード" src="https://img.shields.io/badge/DOWNLOAD-37474F?style=for-the-badge"></a>
-</p>
-
-<p><a href="#installation">導入・更新</a> · <a href="#features">機能</a> · <a href="#guides">使い方</a> · <a href="#development">開発</a></p>
+<p><a href="https://morphe.software/add-source?github=chikuwadon%2Fnicoid-re-patches&amp;name=nicoid%20Re"><strong>Morphe Managerに追加 ↗</strong></a>　 · 　<a href="https://github.com/chikuwadon/nicoid-re-patches/releases/latest">パッチをダウンロード ↗</a></p>
 
 </div>
 
-nicoid Reは、nicoidを現在のニコニコ動画の再生形式に対応させ、再生・コメント・検索・動画管理の機能を拡張するパッチである。nicoid 6.49の元APKにMorphe Managerで適用すると、nicoid Reとして利用できる。
+nicoid Reは、nicoidを現在のニコニコ動画の再生形式に対応させ、再生・コメント・検索・動画管理の機能を拡張するパッチです。nicoid 6.49の元APKにMorphe Managerで適用すると、nicoid Reとして利用できます。
+
+---
 
 <a id="installation"></a>
 
 ## 導入・更新
 
-| 項目 | 内容 |
-|---|---|
-| 対象アプリ | **nicoid 6.49** |
-| パッチ適用 | **Morphe Manager** |
-| 適用後のアプリ名 | **nicoid Re** |
-| パッチ配布 | [最新の正式版](https://github.com/chikuwadon/nicoid-re-patches/releases/latest) |
+nicoid **6.49**の元APKと、Android端末にインストールした**Morphe Manager**を使用します。
 
 ### 初めて利用する
 
-1. Morphe ManagerをインストールしたAndroid端末で、[nicoid Reの追加リンク](https://morphe.software/add-source?github=chikuwadon%2Fnicoid-re-patches&name=nicoid%20Re)を開く。
-2. Morpheの確認画面でソース名とURLを確認し、「追加」をタップする。
-3. nicoid **6.49**の元APKを用意し、Morphe Managerでパッチを適用する。
-4. 生成されたアプリをインストールする。
+1. [Morphe Managerへの追加リンク](https://morphe.software/add-source?github=chikuwadon%2Fnicoid-re-patches&name=nicoid%20Re)を開きます。
+2. ソース名とURLを確認し、「追加」をタップします。
+3. nicoid **6.49**の元APKを選び、パッチを適用します。
+4. 生成されたアプリをインストールします。
 
-<details>
-<summary>対応APKの詳細</summary>
+### 更新する
 
-| 項目 | 値 |
-|---|---|
-| 元APKのパッケージ名 | `com.sauzask.nicoid` |
-| 元APKのバージョン | `6.49` |
-| 適用後のパッケージ名 | `com.sauzask.nicoid.hls` |
+「Sources」でnicoid Reの更新ボタン（↻）をタップします。ホーム画面のカードに「Update」が表示されたら、案内に沿って再パッチしてください。
 
-元APKのSHA-256：
+ソースの更新だけでは、インストール済みのアプリには反映されません。アプリにも新しいパッチを適用する必要があります。
 
-```text
-17fc6b46228af184437ade7e6f5573915bc655b86996307ff3270fdf35279cce
-```
+### 手動でソースを追加する
 
-</details>
-
-<details>
-<summary>追加リンクが開かない場合</summary>
-
-1. Morphe Managerのホーム画面下部から「Sources」を開く。
-2. 「＋」をタップし、「Remote」を選ぶ。
-3. 次のURLを入力して「Add」をタップする。
+追加リンクが開かない場合は、Morphe Managerで「Sources」→「＋」→「Remote」を選択し、次のURLを入力して「Add」をタップしてください。
 
 ```text
 https://github.com/chikuwadon/nicoid-re-patches
 ```
 
-</details>
-
-### パッチを更新する
-
-Morphe Managerは追加したソースの新しいパッチを定期的に確認する。すぐに確認する場合は、「Sources」を開き、nicoid Reのソースカードにある更新ボタン（↻）をタップする。
-
-ホーム画面でnicoid Reのカードに「Update」が表示されたら、カードを開いて案内に沿って再パッチする。
-
-> **ソースの更新と、アプリへのパッチ適用は別の操作である。** ソースを更新した後、アプリにも新しいパッチを適用する必要がある。
+---
 
 <a id="features"></a>
 
 ## 機能
 
-[再生・操作](#playback) · [コメント](#comments) · [NG・フィルター](#filters) · [ランキング・検索](#discovery) · [キャッシュ・プレイリスト](#library) · [フォロー・動画情報](#following) · [テーマ・設定](#settings)
-
 <a id="playback"></a>
 
-### 再生・操作
+### 01　再生・操作
 
 - **再生方法**：通常再生・バックグラウンド再生・ポップアップ再生に対応。
 - **速度・画質**：通常再生とポップアップ再生で変更可能。再生速度は0.1〜3.0倍のスライダーで調整でき、モバイル通信時の画質も指定可能。
@@ -102,7 +70,7 @@ Morphe Managerは追加したソースの新しいパッチを定期的に確認
 
 <a id="comments"></a>
 
-### コメント
+### 02　コメント
 
 - **表示調整**：文字サイズ10〜300%、太字、不透明度、影の大きさ、最大行数、表示時間を設定可能。表示時間の変更でスクロール速度を調整できる。
 - **コマンド**：コメントコマンドによる色指定・上下固定・文字サイズに対応。
@@ -114,7 +82,7 @@ Morphe Managerは追加したソースの新しいパッチを定期的に確認
 
 <a id="filters"></a>
 
-### NG・コンテンツフィルター
+### 03　NG・コンテンツフィルター
 
 - **NGコメント**：一覧から追加・削除・複数削除が可能。
 - **動画の非表示**：動画タイトルのキーワードや、投稿者・チャンネル名を条件として設定可能。
@@ -124,7 +92,7 @@ Morphe Managerは追加したソースの新しいパッチを定期的に確認
 
 <a id="discovery"></a>
 
-### ランキング・検索
+### 04　ランキング・検索
 
 - **ランキング**：ジャンルの並べ替え・非表示に対応。最大1,000位まで追加読み込み可能。
 - **カスタムランキング**：ジャンルとタグ条件を組み合わせて作成・編集可能。起動時の画面にも指定できる。
@@ -136,7 +104,7 @@ Morphe Managerは追加したソースの新しいパッチを定期的に確認
 
 <a id="library"></a>
 
-### キャッシュ・プレイリスト
+### 05　キャッシュ・プレイリスト
 
 - **キャッシュ管理**：保存先の変更と、容量・取得率・取得状態の確認に対応。
 - **取得の中断**：確認ダイアログから進行中のキャッシュ取得を停止可能。
@@ -146,7 +114,7 @@ Morphe Managerは追加したソースの新しいパッチを定期的に確認
 
 <a id="following"></a>
 
-### フォロー・動画情報
+### 06　フォロー・動画情報
 
 - **フォロー管理**：動画情報から投稿者をフォロー・解除可能。公開マイリストのフォロー・解除にも対応。
 - **フォロー一覧**：ユーザー・チャンネル・マイリストのタブを、横スワイプで切り替え可能。
@@ -158,7 +126,7 @@ Morphe Managerは追加したソースの新しいパッチを定期的に確認
 
 <a id="settings"></a>
 
-### テーマ・設定
+### 07　テーマ・設定
 
 - **テーマ**：ライト・ダーク・AMOLEDダーク・Material Youに対応。
 - **デザイン**：装飾的な影を抑えたフラットなUI。動画一覧の文字・アイコン・情報配置を共通化。
@@ -170,84 +138,75 @@ Morphe Managerは追加したソースの新しいパッチを定期的に確認
 
 <a id="guides"></a>
 
+---
+
 ## 使い方
 
-<details>
-<summary>コメント取得数を設定する</summary>
+### コメント取得数
 
-設定の「コメント取得数」で、「標準（追加取得なし）」または500〜10,000件の取得目標を500件単位で選択する。変更は次の再生から反映される。
+設定の「コメント取得数」で、「標準（追加取得なし）」または500〜10,000件の取得目標を500件単位で選べます。変更は次の再生から反映されます。
 
-標準のコメントに加えて過去のコメントを取得し、重複を除いて表示する。実際に取得できる件数は動画やログイン状態によって異なり、動画に表示される総コメント数や設定した件数のすべてを取得できるとは限らない。
+標準のコメントに加えて過去のコメントを取得し、重複を除いて表示します。実際の取得件数は動画やログイン状態によって異なり、総コメント数や設定した件数のすべてを取得できるとは限りません。
 
-</details>
+### Cookieでログイン
 
-<details>
-<summary>Cookieを手動入力してログインする</summary>
+WebViewでログインできない場合は、設定のログインから「Cookie手動入力」を選択します。
 
-WebViewでログインできない端末では、設定のログインから「Cookie手動入力」を選択する。
+1. 別の端末・PCでニコニコにログインし、ブラウザの開発者ツールでCookieを確認します。
+2. `user_session`の値をコピーし、nicoid Reに貼り付けて保存します。`user_session=値`の形式や、`user_session`を含むCookieヘッダーも入力できます。
+3. 動画再生やアカウントのマイリストで動作を確認します。
 
-1. 別の端末・PCでニコニコにログインし、ブラウザの開発者ツールでニコニコのCookieを確認する。
-2. `user_session`の値をコピーし、nicoid Reの入力欄に貼り付けて保存する。`user_session=値`の形式や、`user_session`を含むCookieヘッダーも入力可能。
-3. 保存後は動画再生やアカウントのマイリストなどで動作を確認する。
+Cookieの保存だけでは認証の成功は確認できません。期限切れやログアウトで利用できなくなった場合は、Cookieを再取得してください。
 
-Cookieの保存だけではサイト側の認証成功は確認されない。期限切れやログアウトで利用できなくなった場合は、ログインし直してCookieを再取得する。
+> Cookieはログイン情報です。他の人に渡したり、Issueやログに貼り付けたりしないでください。
 
-**Cookieはログイン情報である。他の人に渡したり、Issueやログに貼り付けたりしないこと。**
+### デバッグログ
 
-</details>
+設定の「デバッグ」→「デバッグログの保存」を選び、確認画面で「保存」をタップします。Downloadフォルダーに次の名前で保存されます。
 
-<details>
-<summary>デバッグログを保存する</summary>
+```text
+nicoid-re_log_yyyyMMddHHmmss.txt
+```
 
-設定の「デバッグ」から「デバッグログの保存」を選択し、確認画面で「保存」をタップする。
+---
 
-Downloadフォルダーに、`nicoid-re_log_yyyyMMddHHmmss.txt`の形式で保存される。
+## 対応APK
 
-</details>
+| 項目 | 内容 |
+|---|---|
+| 対象アプリ | nicoid **6.49** |
+| 元のパッケージ名 | `com.sauzask.nicoid` |
+| 適用後のアプリ名 | **nicoid Re** |
+| 適用後のパッケージ名 | `com.sauzask.nicoid.hls` |
+
+元APKは、次のSHA-256に一致するものを使用してください。
+
+```text
+17fc6b46228af184437ade7e6f5573915bc655b86996307ff3270fdf35279cce
+```
 
 <a id="development"></a>
 
 ## 開発
 
-<details>
-<summary>ローカルでビルドする</summary>
-
-リポジトリのルートで次のコマンドを実行する。
+リポジトリのルートで次のコマンドを実行します。
 
 ```sh
 ./gradlew :patches:buildAndroid --no-daemon
 ```
 
-生成されるパッチファイルは`patches/build/libs/*.mpp`である。ローカルでビルドする場合は、MorpheのGitHub Packagesを読み取るための認証が必要。
+生成されるパッチファイルは`patches/build/libs/*.mpp`です。ビルドには、MorpheのGitHub Packagesを読み取るための認証が必要です。
 
-</details>
+### 配布情報
 
-<details>
-<summary>配布パッチの詳細</summary>
-
-<!-- PATCHES_START EXPANDED -->
-> **[v1.9.1](https://github.com/chikuwadon/nicoid-re-patches/releases/tag/v1.9.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`ブランチ&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件
-<details open>
-<summary>📦 nicoid&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件</summary>
-<br>
-
-**🎯 対応バージョン：**
-
-| 6.49 |
-| :---: |
-
-| 💊 パッチ | 📜 説明 | ⚙️ 設定 |
-|----------|----------------|-----------|
-| [nicoid Re](#nicoid-re) | nicoid向けのMorpheパッチ。現在のニコニコ動画の仕様に対応。ダークモードとAndroid 16に対応。その他、各種機能の改善・追加。 | なし |
-
-</details>
-
+<!-- PATCHES_START COMPACT -->
+[nicoid Reの最新パッチ](https://github.com/chikuwadon/nicoid-re-patches/releases/latest) · 対応アプリ：nicoid 6.49
 <!-- PATCHES_END -->
 
-</details>
+---
 
 ## ライセンス・クレジット
 
-テンプレート由来のコードは[GPLv3](LICENSE)および[NOTICE](NOTICE)に従う。
+テンプレート由来のコードは[GPLv3](LICENSE)および[NOTICE](NOTICE)に従います。
 
 nicoid：© sauza-sk

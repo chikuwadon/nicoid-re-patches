@@ -1,3 +1,6 @@
+import java.util.zip.ZipFile
+import java.io.File
+
 group = "app.nicoid"
 
 repositories {
@@ -115,10 +118,10 @@ val prepareNicoidSmali = tasks.register("prepareNicoidSmali") {
             target.writeText(source.readText(Charsets.UTF_8).replace("@NICOID_PATCH_VERSION@", version), Charsets.UTF_8)
         }
         // Canonical, device-verified implementation recovered from the final development bundle.
-        java.util.zip.ZipFile(rootProject.file("porting/helpers-v1.9.2.zip")).use { archive ->
+        ZipFile(rootProject.file("porting/helpers-v1.9.2.zip")).use { archive ->
             archive.entries().asSequence().filter { !it.isDirectory && it.name.endsWith(".smali") }.forEach { entry ->
                 val target = staged.get().asFile.resolve(entry.name)
-                check(target.canonicalPath.startsWith(staged.get().asFile.canonicalPath + java.io.File.separator))
+                check(target.canonicalPath.startsWith(staged.get().asFile.canonicalPath + File.separator))
                 target.parentFile.mkdirs()
                 target.writeText(archive.getInputStream(entry).bufferedReader(Charsets.UTF_8).use { it.readText() }
                     .replace("@NICOID_PATCH_VERSION@", version), Charsets.UTF_8)

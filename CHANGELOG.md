@@ -1,3 +1,38 @@
+## 1.9.2 (2026-10-17)
+
+### ✨ New Features
+
+* **nicoid:** Add a dedicated comment appearance editor with a preview, custom font support, finer font-weight adjustment, and controls for text size, opacity, shadows, display duration and maximum rows. ([#66](https://github.com/chikuwadon/nicoid-re-patches/issues/66))
+* **nicoid:** Add one-tap background playback.
+* **nicoid:** Add customizable player buttons with visibility controls, drag reordering and a reset option.
+* **nicoid:** Extend always-visible playback controls to popup playback, with options for normal playback, popup playback, both or neither.
+* **nicoid:** Add visibility settings for follow, like and Niconi Ads buttons in video details.
+* **nicoid:** Allow the popup video-information button to be placed on the left or right.
+* **nicoid:** Add tag suggestions to custom-ranking conditions using the existing search suggestion system. ([#68](https://github.com/chikuwadon/nicoid-re-patches/issues/68))
+* **nicoid:** Add bulk watch-history deletion and improve access to selection controls. ([#67](https://github.com/chikuwadon/nicoid-re-patches/issues/67))
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix account watch-history deletion and remove entries from the list only after successful deletion. ([#67](https://github.com/chikuwadon/nicoid-re-patches/issues/67))
+* **nicoid:** Fix custom rankings failing to display when tag conditions are specified. ([#68](https://github.com/chikuwadon/nicoid-re-patches/issues/68))
+* **nicoid:** Improve series continuous-playback handling and restore playback queues correctly when list views are recreated. ([#62](https://github.com/chikuwadon/nicoid-re-patches/issues/62))
+* **nicoid:** Prevent crashes caused by uninitialized playback lists when taking screenshots or recreating player views.
+* **nicoid:** Fix popup playback startup crashes caused by controls being customized before native views are initialized.
+* **nicoid:** Restore the translucent popup toolbar background and prevent the center playback button from remaining visible after controls are hidden.
+* **nicoid:** Refresh video statistics during pull-to-refresh instead of retaining outdated values.
+* **nicoid:** Add an authenticated HLS relay for Google Cast playback, including playlist, audio, video and encryption-key delivery, to address playback remaining stuck on the preparation screen. ([#70](https://github.com/chikuwadon/nicoid-re-patches/issues/70))
+
+### 🔧 Improvements
+
+* **nicoid:** Display tag-filtered rankings after collecting the first 100 matching videos, then load further results as needed.
+* **nicoid:** Improve pull-to-refresh behavior, retain existing results while loading, and preserve the displayed data when updates fail.
+* **nicoid:** Standardize selection-count, select-all and clear-selection controls across supported lists. Keep selection mode active after clearing the selection.
+* **nicoid:** Refine comment-preview control spacing, center dropdown text and improve the visibility of the back button.
+* **nicoid:** Set the default comment shadow size to 0.5 dp and place comment appearance settings first in the comment category.
+* **nicoid:** Improve player icon sizing and use thinner outlines for the center playback icons.
+* **nicoid:** Distinguish follow states with neutral-colored icons for unfollowed creators and accent-colored icons for followed creators.
+* **nicoid:** Clarify button-setting names and add explanatory summaries.
+
 ## 1.9.1 (2026-10-15)
 
 ### ✨ New Features

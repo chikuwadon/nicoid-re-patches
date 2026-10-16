@@ -1,0 +1,13 @@
+{
+  "base": "nicoid-re-1.9.2-dev.7.mpp",
+  "base_sha256": "13cf70acc5d93ef64ab012f4210afc63784c99b0b9e1285c2fee31696399d3ee",
+  "version": "1.9.2-dev.8",
+  "output_sha256": "509baea099050c35d847aa2e591364fb2c5b4895563b72636d77af24492955fa",
+  "modified_helpers": [
+    "SearchSuggestions.smali",
+    "Ranking190.smali",
+    "CommentSettings192.smali",
+    "SettingsIntegrity.smali",
+    "ModernShorts.smali"
+  ]
+}

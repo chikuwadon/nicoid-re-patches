@@ -1,0 +1,22 @@
+{
+  "base": "nicoid-re-1.9.2-dev.5.mpp",
+  "base_sha256": "565018b43fcf64f6f5b2dc09ed9c35f96837743bdf7da7c874680ba6b3c3a5e7",
+  "version": "1.9.2-dev.6",
+  "output_sha256": "9f506d65de62c58991043ea1754edd8fec2b9d923b4f3b729cbc911f96dd358f",
+  "modified_helpers": [
+    "PlayerIcons$Icon.smali",
+    "RankingPages190.smali",
+    "PlayerVisibility192$Popup.smali",
+    "ModernShorts.smali",
+    "PopupControls193.smali",
+    "CommentAppearance192.smali",
+    "PlayerButtons192.smali",
+    "CommentSettings194$Editor$14.smali",
+    "DetailActions195.smali",
+    "VideoDetails$FollowIcon.smali",
+    "PlaybackQueue192.smali",
+    "CommentSettings194$Editor.smali",
+    "ControlSizing193.smali",
+    "ShadowSettings194.smali"
+  ]
+}

@@ -3,6 +3,11 @@ package app.nicoid.patches;
 import com.android.tools.smali.dexlib2.Opcodes;
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile;
 import com.android.tools.smali.dexlib2.iface.ClassDef;
+import com.android.tools.smali.dexlib2.iface.Field;
+import com.android.tools.smali.dexlib2.iface.Method;
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction;
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction;
+import com.android.tools.smali.dexlib2.iface.reference.*;
 import com.android.tools.smali.dexlib2.writer.io.FileDataStore;
 import com.android.tools.smali.dexlib2.writer.pool.DexPool;
 
@@ -12,6 +17,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Adds newly compiled Java helpers to the checked-in helper DEX while keeping
@@ -36,6 +43,11 @@ public final class NicoidDexMerger {
         Set<String> generatedTypes = new HashSet<>();
         Set<String> mergedTypes = new HashSet<>();
         DexPool pool = new DexPool(generated.getOpcodes());
+        Set<String> providedTypes = new HashSet<>();
+        List<ClassDef> selected = new ArrayList<>();
+        for (ClassDef c : generated.getClasses()) providedTypes.add(c.getType());
+        for (ClassDef c : existing.getClasses()) providedTypes.add(c.getType());
+        for (ClassDef c : overrides.getClasses()) providedTypes.add(c.getType());
 
         // Reviewed smali overrides preserve changes recovered from the device-tested dev bundle.
         // Remove an override when its Java source becomes the canonical implementation.
@@ -43,6 +55,7 @@ public final class NicoidDexMerger {
             overrideTypes.add(classDef.getType());
             mergedTypes.add(classDef.getType());
             pool.internClass(classDef);
+            selected.add(classDef);
         }
 
         // Prefer freshly compiled versions for any classes present in both DEXes.
@@ -51,6 +64,7 @@ public final class NicoidDexMerger {
             if (overridden(classDef.getType(), overrideTypes)) continue;
             mergedTypes.add(classDef.getType());
             pool.internClass(classDef);
+            selected.add(classDef);
         }
 
         // Keep DEX-only helpers (for example DynamicTheme and ModernDebug).
@@ -58,12 +72,43 @@ public final class NicoidDexMerger {
             if (!overridden(classDef.getType(), generatedTypes) && !overridden(classDef.getType(), overrideTypes)) {
                 mergedTypes.add(classDef.getType());
                 pool.internClass(classDef);
+                selected.add(classDef);
             }
         }
 
         if (!mergedTypes.contains(DYNAMIC_THEME) || !mergedTypes.contains(DYNAMIC_THEME_REFRESH)
                 || !mergedTypes.contains(MODERN_DEBUG)) {
             throw new IllegalStateException("Existing helper DEX is missing required support classes");
+        }
+
+        // D8 may share a lambda across source families. A canonical override
+        // can remove its generated owner while a Java-owned caller still uses
+        // it. Reject that output before it becomes a runtime NoClassDefFoundError.
+        for (ClassDef c : selected) {
+            Set<String> references = new HashSet<>();
+            references.add(c.getSuperclass());
+            references.addAll(c.getInterfaces());
+            for (Field field : c.getFields()) references.add(field.getType());
+            for (Method method : c.getMethods()) {
+                methodTypes(method, references);
+                if (method.getImplementation() == null) continue;
+                for (Instruction instruction : method.getImplementation().getInstructions()) {
+                    if (!(instruction instanceof ReferenceInstruction)) continue;
+                    Reference ref = ((ReferenceInstruction) instruction).getReference();
+                    if (ref instanceof TypeReference) references.add(((TypeReference) ref).getType());
+                    else if (ref instanceof MethodReference) methodTypes((MethodReference) ref, references);
+                    else if (ref instanceof FieldReference) {
+                        references.add(((FieldReference) ref).getDefiningClass());
+                        references.add(((FieldReference) ref).getType());
+                    }
+                }
+            }
+            for (String type : references) {
+                if (type == null) continue;
+                while (type.startsWith("[")) type = type.substring(1);
+                if (providedTypes.contains(type) && !mergedTypes.contains(type))
+                    throw new IllegalStateException("Merged helper dependency is missing: " + c.getType() + " -> " + type);
+            }
         }
 
         File output = new File(args[3]);
@@ -77,6 +122,12 @@ public final class NicoidDexMerger {
         } finally {
             store.close();
         }
+    }
+
+    private static void methodTypes(MethodReference method, Set<String> types) {
+        types.add(method.getDefiningClass());
+        types.add(method.getReturnType());
+        for (CharSequence parameter : method.getParameterTypes()) types.add(parameter.toString());
     }
 
     private static boolean overridden(String type, Set<String> overrides) {

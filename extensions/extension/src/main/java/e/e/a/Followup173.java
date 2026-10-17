@@ -61,7 +61,7 @@ public final class Followup173 {
   if(content!=null)ThemeChoice.background(content);
  }
  private static void translatePreferences(PreferenceGroup group){
-  for(int i=0;i<group.getPreferenceCount();i++){Preference p=group.getPreference(i);if(p.getTitle()!=null)p.setTitle(UiStrings.translate(p.getTitle().toString()));if(p.getSummary()!=null)p.setSummary(UiStrings.translate(p.getSummary().toString()));if(p instanceof ListPreference){ListPreference l=(ListPreference)p;CharSequence[] entries=l.getEntries();if(entries!=null){CharSequence[] translated=new CharSequence[entries.length];for(int j=0;j<entries.length;j++)translated[j]=UiStrings.translate(entries[j].toString());l.setEntries(translated);}}if(p instanceof PreferenceGroup)translatePreferences((PreferenceGroup)p);}
+  UiText.preferences(group);
  }
  private static int savedLimit(Context context){SharedPreferences prefs=PreferenceManager.getDefaultSharedPreferences(context);return prefs.getInt(COMMENT_LIMIT,0);}
  private static String limitSummary(int limit){

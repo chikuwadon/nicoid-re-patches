@@ -15,7 +15,6 @@
 
 .method public static preferences(Landroid/preference/Preference;)V
     .registers 8
-    .param p0, "preference"    # Landroid/preference/Preference;
 
     .line 14
     if-nez p0, :cond_3
@@ -34,174 +33,219 @@
 
     invoke-virtual {p0, v0}, Landroid/preference/Preference;->setTitle(Ljava/lang/CharSequence;)V
 
-    .line 17
+    .line 18
     invoke-virtual {p0}, Landroid/preference/Preference;->getKey()Ljava/lang/String;
 
     move-result-object v0
 
-    .line 18
-    .local v0, "key":Ljava/lang/String;
-    const-string v1, "default_playback_speed"
-
-    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
-
-    move-result v1
-
-    if-nez v1, :cond_35
-
-    const-string v1, "app_switch_playback"
-
-    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
-
-    move-result v1
-
-    if-nez v1, :cond_35
-
     .line 19
-    const-string v1, "back_playback"
-
-    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
-
-    move-result v1
-
-    if-nez v1, :cond_35
-
-    const-string v1, "quality_mode"
-
-    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
-
-    move-result v1
-
-    if-eqz v1, :cond_33
-
-    goto :goto_35
-
-    :cond_33
-    const/4 v1, 0x0
-
-    goto :goto_36
-
-    :cond_35
-    :goto_35
-    const/4 v1, 0x1
-
-    .line 20
-    .local v1, "selectedEntry":Z
-    :goto_36
-    if-eqz v1, :cond_3f
-
-    instance-of v2, p0, Landroid/preference/ListPreference;
-
-    if-eqz v2, :cond_3f
-
-    const-string v2, "%s"
-
-    goto :goto_47
-
-    :cond_3f
     invoke-virtual {p0}, Landroid/preference/Preference;->getSummary()Ljava/lang/CharSequence;
 
-    move-result-object v2
+    move-result-object v1
 
-    invoke-static {v2}, Le/e/a/UiText;->text(Ljava/lang/CharSequence;)Ljava/lang/CharSequence;
+    .line 20
+    const-string v2, "default_playback_speed"
 
-    move-result-object v2
+    invoke-virtual {v2, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
 
-    :goto_47
-    invoke-virtual {p0, v2}, Landroid/preference/Preference;->setSummary(Ljava/lang/CharSequence;)V
+    move-result v2
+
+    const/4 v3, 0x0
+
+    const/4 v4, 0x1
+
+    if-nez v2, :cond_4a
+
+    const-string v2, "app_switch_playback"
+
+    invoke-virtual {v2, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v2
+
+    if-nez v2, :cond_4a
 
     .line 21
-    instance-of v2, p0, Landroid/preference/ListPreference;
+    const-string v2, "back_playback"
 
-    if-eqz v2, :cond_6c
+    invoke-virtual {v2, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v2
+
+    if-nez v2, :cond_4a
+
+    const-string v2, "quality_mode"
+
+    invoke-virtual {v2, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v2
+
+    if-nez v2, :cond_4a
 
     .line 22
-    move-object v2, p0
+    const-string v2, "startup_screen"
 
-    check-cast v2, Landroid/preference/ListPreference;
+    invoke-virtual {v2, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v2
+
+    if-nez v2, :cond_4a
+
+    const-string v2, "mobile_quality_mode"
+
+    invoke-virtual {v2, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-nez v0, :cond_4a
+
+    .line 20
+    move v0, v3
+
+    goto :goto_4b
+
+    :cond_4a
+    move v0, v4
 
     .line 23
-    .local v2, "list":Landroid/preference/ListPreference;
-    invoke-virtual {v2}, Landroid/preference/ListPreference;->getEntries()[Ljava/lang/CharSequence;
+    :goto_4b
+    instance-of v2, p0, Landroid/preference/ListPreference;
 
-    move-result-object v3
+    if-eqz v2, :cond_67
 
     .line 24
-    .local v3, "entries":[Ljava/lang/CharSequence;
-    if-eqz v3, :cond_6c
+    move-object v5, p0
+
+    check-cast v5, Landroid/preference/ListPreference;
+
+    invoke-virtual {v5}, Landroid/preference/ListPreference;->getEntry()Ljava/lang/CharSequence;
+
+    move-result-object v5
 
     .line 25
-    array-length v4, v3
+    if-eqz v1, :cond_65
 
-    new-array v4, v4, [Ljava/lang/CharSequence;
+    if-eqz v5, :cond_65
 
-    .line 26
-    .local v4, "translated":[Ljava/lang/CharSequence;
-    const/4 v5, 0x0
-
-    .local v5, "n":I
-    :goto_5b
-    array-length v6, v3
-
-    if-ge v5, v6, :cond_69
-
-    aget-object v6, v3, v5
-
-    invoke-static {v6}, Le/e/a/UiText;->text(Ljava/lang/CharSequence;)Ljava/lang/CharSequence;
+    invoke-interface {v1}, Ljava/lang/CharSequence;->toString()Ljava/lang/String;
 
     move-result-object v6
 
-    aput-object v6, v4, v5
+    invoke-virtual {v6, v5}, Ljava/lang/String;->contentEquals(Ljava/lang/CharSequence;)Z
 
-    add-int/lit8 v5, v5, 0x1
+    move-result v5
 
-    goto :goto_5b
+    if-eqz v5, :cond_65
+
+    goto :goto_66
+
+    :cond_65
+    move v4, v3
+
+    :goto_66
+    or-int/2addr v0, v4
 
     .line 27
-    .end local v5    # "n":I
-    :cond_69
-    invoke-virtual {v2, v4}, Landroid/preference/ListPreference;->setEntries([Ljava/lang/CharSequence;)V
+    :cond_67
+    if-eqz v0, :cond_6e
+
+    if-eqz v2, :cond_6e
+
+    const-string v0, "%s"
+
+    goto :goto_72
+
+    :cond_6e
+    invoke-static {v1}, Le/e/a/UiText;->text(Ljava/lang/CharSequence;)Ljava/lang/CharSequence;
+
+    move-result-object v0
+
+    :goto_72
+    invoke-virtual {p0, v0}, Landroid/preference/Preference;->setSummary(Ljava/lang/CharSequence;)V
+
+    .line 28
+    if-eqz v2, :cond_96
+
+    .line 29
+    move-object v0, p0
+
+    check-cast v0, Landroid/preference/ListPreference;
+
+    .line 30
+    invoke-virtual {v0}, Landroid/preference/ListPreference;->getEntries()[Ljava/lang/CharSequence;
+
+    move-result-object v1
 
     .line 31
-    .end local v2    # "list":Landroid/preference/ListPreference;
-    .end local v3    # "entries":[Ljava/lang/CharSequence;
-    .end local v4    # "translated":[Ljava/lang/CharSequence;
-    :cond_6c
-    instance-of v2, p0, Landroid/preference/PreferenceGroup;
-
-    if-eqz v2, :cond_84
+    if-eqz v1, :cond_96
 
     .line 32
-    move-object v2, p0
+    array-length v2, v1
 
-    check-cast v2, Landroid/preference/PreferenceGroup;
+    new-array v2, v2, [Ljava/lang/CharSequence;
 
     .line 33
-    .local v2, "group":Landroid/preference/PreferenceGroup;
-    const/4 v3, 0x0
+    move v4, v3
 
-    .local v3, "n":I
-    :goto_74
-    invoke-virtual {v2}, Landroid/preference/PreferenceGroup;->getPreferenceCount()I
+    :goto_84
+    array-length v5, v1
 
-    move-result v4
+    if-lt v4, v5, :cond_8b
 
-    if-ge v3, v4, :cond_84
+    .line 34
+    invoke-virtual {v0, v2}, Landroid/preference/ListPreference;->setEntries([Ljava/lang/CharSequence;)V
 
-    invoke-virtual {v2, v3}, Landroid/preference/PreferenceGroup;->getPreference(I)Landroid/preference/Preference;
+    goto :goto_96
 
-    move-result-object v4
+    .line 33
+    :cond_8b
+    aget-object v5, v1, v4
 
-    invoke-static {v4}, Le/e/a/UiText;->preferences(Landroid/preference/Preference;)V
+    invoke-static {v5}, Le/e/a/UiText;->text(Ljava/lang/CharSequence;)Ljava/lang/CharSequence;
+
+    move-result-object v5
+
+    aput-object v5, v2, v4
+
+    add-int/lit8 v4, v4, 0x1
+
+    goto :goto_84
+
+    .line 38
+    :cond_96
+    :goto_96
+    instance-of v0, p0, Landroid/preference/PreferenceGroup;
+
+    if-eqz v0, :cond_ae
+
+    .line 39
+    check-cast p0, Landroid/preference/PreferenceGroup;
+
+    .line 40
+    nop
+
+    :goto_9d
+    invoke-virtual {p0}, Landroid/preference/PreferenceGroup;->getPreferenceCount()I
+
+    move-result v0
+
+    if-lt v3, v0, :cond_a4
+
+    goto :goto_ae
+
+    :cond_a4
+    invoke-virtual {p0, v3}, Landroid/preference/PreferenceGroup;->getPreference(I)Landroid/preference/Preference;
+
+    move-result-object v0
+
+    invoke-static {v0}, Le/e/a/UiText;->preferences(Landroid/preference/Preference;)V
 
     add-int/lit8 v3, v3, 0x1
 
-    goto :goto_74
+    goto :goto_9d
 
-    .line 35
-    .end local v2    # "group":Landroid/preference/PreferenceGroup;
-    .end local v3    # "n":I
-    :cond_84
+    .line 42
+    :cond_ae
+    :goto_ae
     return-void
 .end method
 

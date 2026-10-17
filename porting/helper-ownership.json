@@ -304,8 +304,8 @@
   },
   "Followup173": {
     "owner": "snapshot",
-    "java_sha256": "f020b37ebe43c2a0bc173087923646ded304eeb045c8136b905aeb7109b536c7",
-    "smali_sha256": "dc97f48a9d25f35b1644d7496680f268565bbac15f771f0058edd43b7fe1d4ca"
+    "java_sha256": "05d57d9246aa8caab68904c019925287e7a8a96dd1305556e2dbdc0443be314d",
+    "smali_sha256": "d35007f3127efa1ed883e34ca11e8f9f091256f7cc2564280aa52d608e2c4df6"
   },
   "FullscreenControls": {
     "owner": "snapshot",
@@ -714,8 +714,8 @@
   },
   "UiText": {
     "owner": "snapshot",
-    "java_sha256": "0cb028503fb57c4e356c3e9a430e108055efa1f2eca108b9f3fe3b54cbbafb49",
-    "smali_sha256": "f0ca64a746cce1c0c4aee3526d80a0c1ebba864665ceca9369940c9ff8054dcc"
+    "java_sha256": "4536cf370569d7cf6846a075ebb530e8246d10ea8ccf320f57e551d5f4cc2fca",
+    "smali_sha256": "fb8528a155c92076c0c6aae91684c984da9cd491271b856d39fca6a3ee6e7950"
   },
   "UiTheme191": {
     "owner": "snapshot",

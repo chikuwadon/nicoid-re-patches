@@ -52,9 +52,9 @@ public final class ThemeChoice {
                 public void onActivityResumed(Activity activity) {
                     activity.getWindow().getDecorView().post(()->{controls(activity.getWindow().getDecorView());UiTheme191.activity(activity);ListDividers191.tree(activity.getWindow().getDecorView());});
                     String old = APPLIED.get(activity), current = stamp(activity);
-                    if (old != null && !old.equals(current) && !activity.isFinishing()) {
+                    if (old != null && !old.equals(current) && !activity.isFinishing() && !activity.isDestroyed()) {
                         APPLIED.put(activity, current);
-                        activity.getWindow().getDecorView().post(activity::recreate);
+                        activity.getWindow().getDecorView().post(new Refresh(activity));
                     }
                 }
                 public void onActivityPaused(Activity activity) { }
@@ -62,6 +62,16 @@ public final class ThemeChoice {
                 public void onActivitySaveInstanceState(Activity activity, android.os.Bundle state) { }
                 public void onActivityDestroyed(Activity activity) { APPLIED.remove(activity); }
             });
+        }
+    }
+    // A named class stays in this family when snapshot-owned helper families
+    // replace compiler output. A shared method-reference lambda can be assigned
+    // to another family and removed with that family's generated classes.
+    private static final class Refresh implements Runnable {
+        private final Activity activity;
+        Refresh(Activity activity) { this.activity = activity; }
+        @Override public void run() {
+            if (!activity.isFinishing() && !activity.isDestroyed()) activity.recreate();
         }
     }
     private static void legacy(String cls,String method,Class<?> arg,Object value){try{Class.forName(cls).getMethod(method,arg).invoke(null,value);}catch(Exception error){android.util.Log.w("nicoid-theme","Theme compatibility hook failed",error);}}

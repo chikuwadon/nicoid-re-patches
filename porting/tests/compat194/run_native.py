@@ -11,5 +11,5 @@ for item in cp.split(':'):
  else:entries.append(item)
 cp=':'.join(entries)
 
-subprocess.run(['java','-jar',str(a.ecj),'-1.8','-warn:none','-cp',cp,'-d',str(w/'classes'),str(source/'NativeLinkTest.java'),str(source/'CastNetwork194Test.java'),str(source/'NativeAuth194Test.java')],check=True)
-subprocess.run(['java','-Drobolectric.offline=true','-Drobolectric.usePreinstrumentedJars=false','-Drobolectric.dependency.dir='+str(a.sdk_dir.resolve()),'-cp',str(w/'classes')+':'+cp,'org.junit.runner.JUnitCore','e.e.a.NativeLinkTest','e.e.a.CastNetwork194Test','e.e.a.NativeAuth194Test'],check=True)
+subprocess.run(['java','-jar',str(a.ecj),'-1.8','-warn:none','-cp',cp,'-d',str(w/'classes'),str(source/'NativeLinkTest.java'),str(source/'CastNetwork194Test.java'),str(source/'NativeAuth194Test.java'),str(source/'NativeVideoTitle194Test.java'),str(source/'NativePreference194Test.java'),str(source/'NativeThemeResume194Test.java')],check=True)
+subprocess.run(['java','-Drobolectric.offline=true','-Drobolectric.usePreinstrumentedJars=false','-Drobolectric.dependency.dir='+str(a.sdk_dir.resolve()),'-cp',str(w/'classes')+':'+cp,'org.junit.runner.JUnitCore','e.e.a.NativeLinkTest','e.e.a.CastNetwork194Test','e.e.a.NativeAuth194Test','e.e.a.NativeVideoTitle194Test','e.e.a.NativePreference194Test','e.e.a.NativeThemeResume194Test'],check=True)

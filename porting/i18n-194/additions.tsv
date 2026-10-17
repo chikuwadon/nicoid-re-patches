@@ -1,0 +1,109 @@
+AMOLEDダークモード	AMOLED dark mode	AMOLED 深色模式
+バックグラウンド再生に切り替えられませんでした	Could not switch to background playback	無法切換至背景播放
+並び替え	Reorder	調整順序
+操作ボタンのカスタマイズ	Customize player controls	自訂播放器按鈕
+キャッシュをすべて削除しますか？	Delete all cached videos?	要刪除所有快取影片嗎？
+削除しました	Deleted	已刪除
+削除に失敗しました	Could not delete	無法刪除
+コメント表示時間	Comment display duration	彈幕顯示時間
+最大コメント行数	Maximum comment rows	彈幕最大行數
+文字サイズ	Text size	文字大小
+フォントの太さ	Font weight	字型粗細
+影の大きさ	Shadow size	陰影大小
+コメント表示設定	Comment display settings	彈幕顯示設定
+コメントを流す	Animate preview comments	播放預覽彈幕
+明るい	Light	淺色
+暗い	Dark	深色
+フォント	Font	字型
+標準フォント	Default font	預設字型
+カスタムフォント	Custom font	自訂字型
+ファイルを選択	Choose file	選擇檔案
+初期値に戻す	Reset to default	還原預設值
+影の種類	Shadow style	陰影樣式
+なし	None	無
+フォントを読み込み中	Loading font…	正在載入字型…
+ONの場合、プレビューのコメントを30fpsでアニメーション表示します。OFFの場合は連続描画を停止します。	When enabled, preview comments animate at 30 fps. Turn off to stop continuous rendering.	啟用時，預覽彈幕會以 30 fps 播放；關閉後停止連續繪製。
+読み込み完了後に適用してください	Wait for loading to finish before applying	請在載入完成後套用
+フォントによっては太さを変更しても見た目が変わらない場合があります。対応するウェイトやAndroidのバージョンによって表示が異なるため、プレビューで確認してください。	Some fonts may look the same at different weights. Available weights and appearance depend on the font and Android version. Check the preview.	部分字型在不同粗細設定下可能看起來相同。可用的粗細與外觀取決於字型及 Android 版本，請以預覽確認。
+初期値に戻しますか？	Reset to default?	要還原預設值嗎？
+適用するまでは保存されません	Changes are saved only when you apply them	按下套用後才會儲存變更
+戻す	Reset	還原
+を減らす	 — decrease	：減少
+を増やす	 — increase	：增加
+ストリーミング	Streaming	串流播放
+キャッシュ	Cache	快取
+コメント表示プレビュー	Comment preview	彈幕預覽
+分:秒で、最短 ≦ 最長になるよう指定してください	Use minutes:seconds and keep the minimum at or below the maximum	請以分:秒輸入，且最短時間不可超過最長時間
+もっと見る	Show more	顯示更多
+折りたたむ	Show less	收合
+通常再生に戻れませんでした	Could not return to normal playback	無法返回一般播放
+一部のタグ情報を取得できなかったため、取得できた動画のみ表示しています	Some tags could not be loaded. Only videos with available tag information are shown.	部分標籤無法載入，目前僅顯示已取得標籤資訊的影片。
+フォントの種類やAndroidのバージョンによって、選択できる太さや見た目が異なります。隣り合う段階で違いが出ない場合があります。プレビューで確認してください。	Available weights and appearance depend on the font and Android version. Adjacent weights may look the same. Check the preview.	可用的粗細與外觀取決於字型及 Android 版本。相鄰粗細可能看起來相同，請以預覽確認。
+フォントの太さの説明	About font weight	字型粗細說明
+登録済みのNG設定はありません	No filter rules saved	尚未儲存封鎖規則
+ニコるの解除に失敗しました	Could not undo Nicoru	無法取消 Nico 讚
+ニコるにはログインしてください	Sign in to use Nicoru	請登入以使用 Nico 讚
+プレイヤー操作	Player controls	播放器操作
+長押しでプレイヤー操作	Long press for player controls	長按以開啟播放器操作
+投稿者名を取得できませんでした	Could not load the creator name	無法載入投稿者名稱
+NGリストに保存しました	Saved to the filter list	已儲存至封鎖清單
+一部の統計情報を更新できませんでした	Some statistics could not be refreshed	部分統計資訊無法更新
+ミニプレイヤー	Mini player	迷你播放器
+ミュート	Mute	靜音
+初期状態に戻す	Restore defaults	還原預設設定
+操作部の常時表示	Keep player controls visible	持續顯示播放器操作列
+通常再生時のみ	Normal playback only	僅一般播放時
+ポップアップ再生時のみ	Pop-up playback only	僅懸浮視窗播放時
+戻る	Back	返回
+検索の更新がタイムアウトしました。通信状況を確認してください。	Search refresh timed out. Check your connection.	搜尋更新逾時，請確認網路連線。
+NG設定の削除に失敗しました	Could not delete the filter rule	無法刪除封鎖規則
+NG設定を削除しますか？	Delete this filter rule?	要刪除此封鎖規則嗎？
+投稿日の範囲	Upload date range	投稿日期範圍
+指定なし	Any	不限
+◀ 前の期間	◀ Previous period	◀ 上一期間
+次の期間 ▶	Next period ▶	下一期間 ▶
+上限なし	No upper limit	無上限
+動画時間の範囲	Video duration range	影片長度範圍
+投稿者情報を取得できませんでした	Could not load creator information	無法載入投稿者資訊
+コメントの時間に移動	Jump to comment time	跳至留言時間
+ニコるに失敗しました。ログインと通信状況を確認してください。	Could not add Nicoru. Check your sign-in status and connection.	無法新增 Nico 讚，請確認登入狀態及網路連線。
+ニコる	Nicoru	Nico 讚
+ニコる済み	Nicoru added	已按 Nico 讚
+プレビューを見ながら文字と影、表示時間、最大行数を調整します	Adjust text, shadows, duration and maximum rows using the preview	使用預覽調整文字、陰影、顯示時間及最大行數
+最後の動画です	This is the last video	這是最後一部影片
+いいねの変更に失敗しました。ログインと通信状況を確認してください。	Could not update your like. Check your sign-in status and connection.	無法變更按讚狀態，請確認登入狀態及網路連線。
+いいねするにはログインしてください	Sign in to like videos	請登入以對影片按讚
+シリーズ情報を取得できませんでした	Could not load series information	無法載入系列資訊
+ログインが必要です	Sign in required	需要登入
+フォローの変更に失敗しました	Could not update your follow status	無法變更追蹤狀態
+動画情報を取得できませんでした	Could not load video information	無法載入影片資訊
+ページを開けませんでした	Could not open the page	無法開啟頁面
+シリーズ	Series	系列
+シリーズに登録されていません	Not part of a series	未加入任何系列
+親作品・子作品	Parent and child works	父作品與子作品
+通常再生で開く	Open in normal player	使用一般播放器開啟
+読み込み中…	Loading…	正在載入…
+未指定（フォルダーを選択してください）	Not set (choose a folder)	未設定（請選擇資料夾）
+コメント表示	Show comments	顯示彈幕
+リピート	Repeat	重複播放
+タグ条件	Tag filters	標籤條件
+動画情報欄のボタン	Video details buttons	影片資訊按鈕
+名前を変更	Rename	重新命名
+キャッシュを削除	Delete cache	刪除快取
+視聴履歴を削除	Delete viewing history	刪除觀看紀錄
+プレイリストに追加	Add to playlist	加入播放清單
+投稿者をNG	Block creator	封鎖投稿者
+一部の動画のタグを取得できませんでした	Tags could not be loaded for some videos	部分影片的標籤無法載入
+ポップアップ再生を終了	Close pop-up player	關閉懸浮播放器
+動画時間の下限・上限。入力欄から秒単位でも指定できます	Minimum and maximum duration. You can also enter an exact time in seconds.	影片長度下限及上限，也可在輸入欄指定精確秒數。
+メールアドレス・パスワードを確認して下さい	Check your email address and password	請確認電子郵件地址及密碼
+アニメ・ゲーム・絵	Anime, games and art	動畫、遊戲與繪畫
+エンタメ・音楽	Entertainment and music	娛樂與音樂
+生活・一般・スポ	Lifestyle, general and sports	生活、綜合與運動
+科学・技術	Science and technology	科學與技術
+ログインに失敗しました\n確認コードが間違っています	Sign-in failed.\nThe verification code is incorrect.	登入失敗。\n驗證碼不正確。
+詳細をみる	View details	查看詳情
+全画面広告のタイミング	Full-screen ad timing	全螢幕廣告時機
+全画面広告の表示タイミングを設定します（再生開始前に設定するとループに影響しなくなります）	Choose when full-screen ads appear. Showing them before playback avoids interrupting repeats.	設定全螢幕廣告的顯示時機；設為播放前顯示可避免影響重複播放。
+広告非表示オプション	Remove ads option	移除廣告選項
+nicoid内の全ての広告を非表示にできるオプションを購入できます	Purchase the option to remove all ads in nicoid	購買選項以移除 nicoid 內的所有廣告

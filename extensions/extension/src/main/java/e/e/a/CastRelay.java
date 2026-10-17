@@ -28,9 +28,10 @@ public final class CastRelay {
             Object server = service.getClass().getField("n").get(service);
             try {
                 String base = (String) service.getClass().getField("i").get(service);
-                if (base == null || !base.startsWith("http://")) throw new IOException("No local Cast address");
+                base = (String) Class.forName("e.e.a.CastAddress194").getMethod("resolve",Object.class,String.class).invoke(null,service,base);
                 String url = base.replaceAll("/+$", "") + session.hls.route(session.master);
                 Session old = active.put(server, session); if (old != null) old.close();
+                service.getClass().getField("i").set(service,base);
                 service.getClass().getField("j").set(service, url);
                 CastDiagnostics.record("Cast: authenticated HLS relay attached");
             } catch (Exception error) { active.remove(server); session.close(); throw error; }

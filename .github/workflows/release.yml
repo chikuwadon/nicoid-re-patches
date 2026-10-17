@@ -92,6 +92,11 @@ jobs:
         run: |
           javac -d /tmp/nicoid-theme-tests extensions/extension/src/main/java/e/e/a/ThemeRules.java porting/tests/ThemeRulesTest.java
           java -cp /tmp/nicoid-theme-tests e.e.a.ThemeRulesTest
+      - name: Check translation dictionary contracts
+        run: |
+          javac -encoding UTF-8 -d /tmp/nicoid-i18n-tests extensions/extension/src/main/java/e/e/a/UiStrings.java porting/tests/UiStringsTest.java porting/tests/compat194/I18nAudit194Test.java
+          java -cp /tmp/nicoid-i18n-tests e.e.a.UiStringsTest
+          java -cp /tmp/nicoid-i18n-tests e.e.a.I18nAudit194Test patches/src/main/resources/nicoid/ui-strings.txt porting/i18n-194/additions.tsv
       - name: Validate bundled Android manifest
         run: python3 porting/tests/VerifyManifest.py patches/src/main/resources/nicoid/resources.zip
       - name: Validate bundled settings
@@ -123,4 +128,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew clean :patches:buildAndroid --no-daemon
+
+      - name: Save audit verification bundle
+        if: github.ref == 'refs/heads/perf/audit-194' && steps.release.outputs.new_release_published != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: nicoid-audit-verification
+          path: patches/build/libs/*.mpp
+          if-no-files-found: error
+          retention-days: 14
 

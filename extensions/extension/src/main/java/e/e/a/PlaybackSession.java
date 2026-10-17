@@ -41,7 +41,7 @@ public final class PlaybackSession {
     private static void form(android.view.View v,boolean dark){
         if(v instanceof android.widget.Spinner)try{Class.forName("e.e.a.ThemeChoice").getMethod("spinner",android.widget.Spinner.class).invoke(null,v);}catch(Exception e){log(e);}
         if(v instanceof android.widget.LinearLayout||v instanceof android.widget.ScrollView)v.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-        if(v instanceof android.widget.EditText){android.widget.EditText e=(android.widget.EditText)v;e.setTextColor(dark?0xffffffff:0xff202124);e.setHintTextColor(dark?0xffb7bac3:0xff666a73);android.util.TypedValue value=new android.util.TypedValue();v.getContext().getTheme().resolveAttribute(0x7f03005e,value,true);int color=value.resourceId==0?value.data:v.getResources().getColor(value.resourceId);e.setBackgroundTintList(android.content.res.ColorStateList.valueOf(color));}
+        if(v instanceof android.widget.EditText){android.widget.EditText e=(android.widget.EditText)v;e.setTextColor(dark?0xffffffff:0xff202124);e.setHintTextColor(dark?0xffb7bac3:0xff666a73);android.util.TypedValue value=new android.util.TypedValue();v.getContext().getTheme().resolveAttribute(0x7f03005e,value,true);int color=value.resourceId==0?value.data:v.getResources().getColor(value.resourceId);if(!"nicoid-managed-input".equals(v.getTag()))e.setBackgroundTintList(android.content.res.ColorStateList.valueOf(color));}
         if(v instanceof android.view.ViewGroup){android.view.ViewGroup g=(android.view.ViewGroup)v;for(int i=0;i<g.getChildCount();i++)form(g.getChildAt(i),dark);}
     }
     public static void normalChoose(Object fragment,int mode) {

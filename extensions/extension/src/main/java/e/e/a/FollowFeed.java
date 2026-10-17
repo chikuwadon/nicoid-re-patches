@@ -156,8 +156,7 @@ public final class FollowFeed {
         menu.clear();menu.add(text(a,"更新","Refresh","重新整理")).setOnMenuItemClickListener(item->{load(a);return true;});return true;
     }
     private static String cookie(Activity a)throws Exception{
-        Class<?> v=Class.forName("e.e.a.v0");Object store=PlaybackSession.get(a,"E");if(store==null)store=v.getField("b").get(null);
-        return store==null?"":(String)v.getMethod("a",Class.forName("org.apache.http.client.CookieStore")).invoke(null,store);
+        return SessionCookies194.cookie(a,PlaybackSession.get(a,"E"));
     }
     private static JSONObject fetch(String path,String auth,NetworkTask task)throws Exception{
         HttpURLConnection c=(HttpURLConnection)new URL("https://api.feed.nicovideo.jp/v1/"+path).openConnection();
@@ -327,7 +326,7 @@ public final class FollowFeed {
             }
             Item item=(Item)value;LinearLayout row;Holder h;
             if(recycled==null){
-                row=new LinearLayout(a);row.setOrientation(LinearLayout.VERTICAL);row.setPadding(dp(a,16),dp(a,12),dp(a,16),dp(a,12));h=new Holder();
+                row=new FeedLayout194(a);row.setOrientation(LinearLayout.VERTICAL);row.setPadding(dp(a,16),dp(a,12),dp(a,16),dp(a,12));h=new Holder();
                 LinearLayout actor=new LinearLayout(a);actor.setGravity(Gravity.CENTER_VERTICAL);
                 h.avatar=imageBox(a,true);actor.addView(h.avatar,new LinearLayout.LayoutParams(dp(a,40),dp(a,40)));
                 LinearLayout words=new LinearLayout(a);words.setOrientation(LinearLayout.VERTICAL);words.setPadding(dp(a,12),0,0,0);

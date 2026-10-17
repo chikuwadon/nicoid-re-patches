@@ -12,19 +12,22 @@ import java.util.*;
 public final class FullscreenViewport209 {
  private static final Map<View,Session> sessions=new WeakHashMap<View,Session>();
  private static final Map<View,Session> sideSessions=new WeakHashMap<View,Session>();
+ private static final Map<View,Session> normalSessions=new WeakHashMap<View,Session>();
  private static View find(View root,String name){return root.findViewById(root.getResources().getIdentifier(name,"id",root.getContext().getPackageName()));}
  private static Activity owner(Context c){for(int i=0;i<16;i++){if(c instanceof Activity)return (Activity)c;if(!(c instanceof ContextWrapper))break;Context next=((ContextWrapper)c).getBaseContext();if(next==c)break;c=next;}return null;}
  public static void update(View root,ViewGroup decor,View bar){
-  if(root==null)return;
-  Session s=sessions.get(root);if(s==null){s=new Session();sessions.put(root,s);s.activity=owner(root.getContext());s.decor=decor;s.flags=decor.getSystemUiVisibility();if(s.activity!=null)s.windowFlags=s.activity.getWindow().getAttributes().flags;}
+  if(root==null||decor==null)return;
+  ViewGroup layer=bar!=null&&bar.getParent() instanceof FrameLayout?(ViewGroup)bar.getParent():decor;
+  if(!(layer instanceof FrameLayout))return;
+  Session s=sessions.get(root);if(s==null){s=new Session();sessions.put(root,s);s.activity=owner(root.getContext());s.decor=decor;s.flags=decor.getSystemUiVisibility();if(s.activity!=null)s.windowFlags=s.activity.getWindow().getAttributes().flags;s.attachRoot=root;final java.lang.ref.WeakReference<View> target=new java.lang.ref.WeakReference<View>(root);s.detach=new View.OnAttachStateChangeListener(){public void onViewAttachedToWindow(View v){}public void onViewDetachedFromWindow(View v){View r=target.get();if(r!=null)restore(r);}};root.addOnAttachStateChangeListener(s.detach);}
   if(s.activity!=null){Window w=s.activity.getWindow();if((w.getAttributes().flags&WindowManager.LayoutParams.FLAG_FULLSCREEN)==0)w.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);int flags=s.flags|0x1706;if(decor.getSystemUiVisibility()!=flags)decor.setSystemUiVisibility(flags);
    if(android.os.Build.VERSION.SDK_INT>=28)try{WindowManager.LayoutParams p=w.getAttributes();java.lang.reflect.Field f=p.getClass().getField("layoutInDisplayCutoutMode");if(s.cutout<0)s.cutout=f.getInt(p);int mode=android.os.Build.VERSION.SDK_INT>=30?3:1;if(f.getInt(p)!=mode){f.setInt(p,mode);w.setAttributes(p);}}catch(Exception ignored){}
   }
   View frame=find(root,"videoLayout"),comments=find(root,"commentlay"),video=find(root,"video");
-  if(s.controller==null)s.controller=find(root,"controller");
-  if(s.bottom==null)s.bottom=find(root,"bottommenulay");
+  s.controller=s.control(root,s.controller,"controller",layer);
+  s.bottom=s.control(root,s.bottom,"bottommenulay",layer);
   View controller=s.controller;
-  ViewGroup layer=bar!=null&&bar.getParent() instanceof FrameLayout?(ViewGroup)bar.getParent():decor;
+
   s.capture(controller);s.capture(s.bottom);s.bottomIcons();
   s.overlay(controller,layer,0);
   s.overlay(s.bottom,layer,controller==null?0:controller.getHeight());
@@ -35,17 +38,17 @@ public final class FullscreenViewport209 {
   if(controller!=null)s.timeline(controller);
   String mode=android.preference.PreferenceManager.getDefaultSharedPreferences(root.getContext()).getString("player_controls_visibility_mode","off");
   boolean held="normal".equals(mode)||"both".equals(mode);
-  int upper=held&&bar!=null?bar.getLayoutParams().height:0;
+  int upper=held&&bar!=null&&bar.getLayoutParams()!=null?bar.getLayoutParams().height:0;
   int lower=held&&controller!=null?controller.getHeight():0;
   s.fit(video,-1,-1,Math.max(0,upper),Math.max(0,lower),false);
   s.fit(comments,-1,-1,Math.max(0,upper),Math.max(0,lower),false);
   s.commentBounds(comments);s.fit(find(root,"video_view"),-1,-1,0,0,false);
  }
- public static void restore(View root){restoreSession(sessions.remove(root));restoreSession(sideSessions.remove(root));}
+ public static void restore(View root){restoreSession(sessions.remove(root));restoreSession(sideSessions.remove(root));restoreSession(normalSessions.remove(root));}
  private static void restoreSession(Session s){if(s==null)return;if(s.attachRoot!=null)s.attachRoot.removeOnAttachStateChangeListener(s.detach);s.removeListeners();s.restoreParents();for(Map.Entry<View,Saved> e:s.saved.entrySet())e.getValue().restore(e.getKey());if(s.decor!=null)s.decor.setSystemUiVisibility(s.flags);if(s.activity!=null){Window w=s.activity.getWindow();w.setFlags(s.windowFlags,WindowManager.LayoutParams.FLAG_FULLSCREEN);if(s.cutout>=0)try{WindowManager.LayoutParams p=w.getAttributes();p.getClass().getField("layoutInDisplayCutoutMode").setInt(p,s.cutout);w.setAttributes(p);}catch(Exception ignored){}}}
  /** Keep the native information pane's reserved width; controls stay inside the picture column. */
  public static boolean side(View root){
-  if(root==null)return false;View frame=find(root,"videoLayout"),info=find(root,"info");
+  if(root==null)return false;normalStatus(root);View frame=find(root,"videoLayout"),info=find(root,"info");
   if(frame==null||info==null||info.getVisibility()!=View.VISIBLE||!(info.getLayoutParams() instanceof RelativeLayout.LayoutParams))return false;
   RelativeLayout.LayoutParams ip=(RelativeLayout.LayoutParams)info.getLayoutParams();
   if(ip.getRules()[RelativeLayout.RIGHT_OF]!=frame.getId()&&ip.getRules()[RelativeLayout.END_OF]!=frame.getId())return false;
@@ -60,6 +63,15 @@ public final class FullscreenViewport209 {
   state.belowStatus(titlebar,status);
   if(tools!=null&&!within(tools,titlebar))state.belowStatus(tools,status);
   return true;
+ }
+ private static void normalStatus(final View root){
+  final View bar=find(root,"titlebar");if(bar==null||!(bar.getLayoutParams() instanceof ViewGroup.MarginLayoutParams))return;
+  Session state=normalSessions.get(root);int status=statusTop(root);int[] position=new int[2];bar.getLocationInWindow(position);
+  if(state==null&&position[1]>=status)return;
+  if(state==null){state=new Session();state.attachRoot=root;final java.lang.ref.WeakReference<View> target=new java.lang.ref.WeakReference<View>(root);state.detach=new View.OnAttachStateChangeListener(){public void onViewAttachedToWindow(View v){}public void onViewDetachedFromWindow(View v){View r=target.get();if(r!=null)restore(r);}};root.addOnAttachStateChangeListener(state.detach);normalSessions.put(root,state);}
+  state.save(bar);Saved saved=state.saved.get(bar);if(saved==null)return;ViewGroup.MarginLayoutParams current=(ViewGroup.MarginLayoutParams)bar.getLayoutParams();int original=((ViewGroup.MarginLayoutParams)saved.params).topMargin;int origin=position[1]-(current.topMargin-original);int wanted=original+Math.max(0,status-origin);
+  if(current.topMargin!=wanted){ViewGroup.MarginLayoutParams next=(ViewGroup.MarginLayoutParams)copy(current);next.topMargin=wanted;bar.setLayoutParams(next);}
+  if(!state.listeners.containsKey(bar)){View.OnLayoutChangeListener listener=new View.OnLayoutChangeListener(){public void onLayoutChange(View v,int l,int t,int r,int b,int ol,int ot,int or,int ob){normalStatus(root);}};state.listeners.put(bar,listener);bar.addOnLayoutChangeListener(listener);}
  }
  private static boolean within(View child,View ancestor){if(ancestor==null)return false;View current=child;while(current!=null){if(current==ancestor)return true;ViewParent parent=current.getParent();current=parent instanceof View?(View)parent:null;}return false;}
  private static int statusTop(View root){
@@ -125,7 +137,8 @@ public final class FullscreenViewport209 {
  private static ViewGroup.LayoutParams copy(ViewGroup.LayoutParams p){if(p instanceof RelativeLayout.LayoutParams)return new RelativeLayout.LayoutParams((RelativeLayout.LayoutParams)p);if(p instanceof LinearLayout.LayoutParams)return new LinearLayout.LayoutParams((LinearLayout.LayoutParams)p);if(p instanceof FrameLayout.LayoutParams)return new FrameLayout.LayoutParams((FrameLayout.LayoutParams)p);if(p instanceof ViewGroup.MarginLayoutParams)return new ViewGroup.MarginLayoutParams((ViewGroup.MarginLayoutParams)p);return new ViewGroup.LayoutParams(p);}
  private static final class Session {
   final Map<View,Saved> saved=new LinkedHashMap<View,Saved>();final Map<View,Long> sizes=new WeakHashMap<View,Long>();final Map<View,View.OnLayoutChangeListener> listeners=new HashMap<View,View.OnLayoutChangeListener>();final List<Moved> moved=new ArrayList<Moved>();Activity activity;View decor,controller,bottom,attachRoot;View.OnAttachStateChangeListener detach;int flags,windowFlags,cutout=-1;
-  void save(View v){if(v!=null&&!saved.containsKey(v))saved.put(v,new Saved(v));}
+  void save(View v){if(v!=null&&v.getLayoutParams()!=null&&!saved.containsKey(v))saved.put(v,new Saved(v));}
+  View control(View root,View old,String name,ViewGroup layer){View found=find(root,name);if(found==null&&old!=null&&old.getParent()==layer)return old;if(old!=null&&old!=found){if(old.getParent()==layer)layer.removeView(old);for(Iterator<Moved> i=moved.iterator();i.hasNext();)if(i.next().view==old)i.remove();for(Iterator<Map.Entry<View,Saved>> i=saved.entrySet().iterator();i.hasNext();)if(within(i.next().getKey(),old))i.remove();}return found;}
   void fit(View v,int width,int height,int top,int bottom,boolean bottomAligned){
    if(v==null||v.getLayoutParams()==null)return;save(v);ViewGroup.LayoutParams old=v.getLayoutParams(),p=copy(old);p.width=width;p.height=height;
    boolean changed=old.width!=width||old.height!=height;
@@ -138,7 +151,7 @@ public final class FullscreenViewport209 {
    if(!(bottom instanceof ViewGroup))return;ViewGroup row=(ViewGroup)bottom;save(row);if(!(row.getBackground() instanceof Band))row.setBackground(new Band(row));
    int height=Math.round(40*bottom.getResources().getDisplayMetrics().density),width=Math.round(44*bottom.getResources().getDisplayMetrics().density);
    for(int i=0;i<row.getChildCount();i++){
-    View button=row.getChildAt(i);save(button);ViewGroup.LayoutParams old=button.getLayoutParams(),p=copy(old);boolean changed=p.width!=width||p.height!=height;p.width=width;p.height=height;
+    View button=row.getChildAt(i);if(button.getLayoutParams()==null)continue;save(button);ViewGroup.LayoutParams old=button.getLayoutParams(),p=copy(old);boolean changed=p.width!=width||p.height!=height;p.width=width;p.height=height;
     if(p instanceof LinearLayout.LayoutParams){LinearLayout.LayoutParams lp=(LinearLayout.LayoutParams)p;changed|=lp.weight!=0||lp.leftMargin!=0||lp.topMargin!=0||lp.rightMargin!=0||lp.bottomMargin!=0;lp.weight=0;lp.setMargins(0,0,0,0);}
     if(changed)button.setLayoutParams(p);
     if(button.getPaddingLeft()!=0||button.getPaddingTop()!=0||button.getPaddingRight()!=0||button.getPaddingBottom()!=0)button.setPadding(0,0,0,0);
@@ -165,13 +178,13 @@ public final class FullscreenViewport209 {
   }
   void capture(View v){if(v==null)return;for(Moved m:moved)if(m.view==v)return;if(!(v.getParent() instanceof ViewGroup))return;save(v);moved.add(new Moved(v));}
   void overlay(View v,ViewGroup layer,int bottomMargin){
-   if(v==null||layer==null)return;
+   if(v==null||!(layer instanceof FrameLayout)||!(v.getParent() instanceof ViewGroup))return;
    // Revision201's picture-column placement translates the row in window space.
    // Once moved to the screen overlay, that old offset would move both actions offscreen.
    if(v.getTranslationX()!=0)v.setTranslationX(0);
    if(v.getTranslationY()!=0)v.setTranslationY(0);
    if(v.getParent()!=layer){((ViewGroup)v.getParent()).removeView(v);layer.addView(v,new FrameLayout.LayoutParams(-1,-2,Gravity.BOTTOM|Gravity.LEFT));}
-   FrameLayout.LayoutParams p=(FrameLayout.LayoutParams)v.getLayoutParams();
+   FrameLayout.LayoutParams p=v.getLayoutParams() instanceof FrameLayout.LayoutParams?(FrameLayout.LayoutParams)v.getLayoutParams():new FrameLayout.LayoutParams(-1,-2,Gravity.BOTTOM|Gravity.LEFT);
    if(p.width!=-1||p.height!=-2||p.gravity!=(Gravity.BOTTOM|Gravity.LEFT)||p.leftMargin!=0||p.topMargin!=0||p.rightMargin!=0||p.bottomMargin!=bottomMargin){p.width=-1;p.height=-2;p.gravity=Gravity.BOTTOM|Gravity.LEFT;p.setMargins(0,0,0,bottomMargin);p.setMarginStart(0);p.setMarginEnd(0);v.setLayoutParams(p);}
    if(v.getPaddingLeft()!=0||v.getPaddingTop()!=0||v.getPaddingRight()!=0||v.getPaddingBottom()!=0)v.setPadding(0,0,0,0);
   }

@@ -29,11 +29,12 @@ public final class ThemeChoice {
     public static boolean isNight(Context c) { return ThemeRules.night(mode(c), systemNight(c)); }
     public static boolean isAmoled(Context c) { return "amoled".equals(prefs(c).getString("app_theme", "")); }
     public static void apply(Activity a) {
+        UiStrings.selectLanguage(prefs(a).getString("app_lang","0"));
         String selected = mode(a);
         SharedPreferences p = prefs(a);
         boolean material = "material".equals(selected);
         if (!p.contains(KEY) || p.getBoolean("material_you_mode", false) != material)
-            p.edit().putString(KEY, selected).putBoolean("material_you_mode", material).commit();
+            p.edit().putString(KEY, selected).putBoolean("material_you_mode", material).apply();
         String style = ThemeRules.style(selected, systemNight(a), android.os.Build.VERSION.SDK_INT);
         int id = a.getResources().getIdentifier(style, "style", a.getPackageName());
         if (id != 0) a.setTheme(id);
@@ -64,7 +65,7 @@ public final class ThemeChoice {
         }
     }
     private static void legacy(String cls,String method,Class<?> arg,Object value){try{Class.forName(cls).getMethod(method,arg).invoke(null,value);}catch(Exception error){android.util.Log.w("nicoid-theme","Theme compatibility hook failed",error);}}
-    private static String stamp(Context c) { return mode(c) + ":" + isNight(c); }
+    private static String stamp(Context c) { return mode(c) + ":" + isNight(c) + ":" + prefs(c).getString("app_lang","0"); }
     public static void settings(PreferenceActivity a) {
         Preference old = a.findPreference("material_you_mode");
         Preference choice=a.findPreference(KEY);
@@ -83,7 +84,7 @@ public final class ThemeChoice {
                 .setTitle(UiStrings.translate("テーマ"))
                 .setSingleChoiceItems(labels, index(mode(a)), (d, which) -> {
                     String selected = VALUES[which];
-                    prefs(a).edit().putString(KEY, selected).putBoolean("material_you_mode", "material".equals(selected)).commit();
+                    prefs(a).edit().putString(KEY, selected).putBoolean("material_you_mode", "material".equals(selected)).apply();
                     d.dismiss(); a.recreate();
                 }).setNegativeButton(UiStrings.translate("キャンセル"), null).create();
             PlaybackSession.showDialog(dialog);
@@ -119,11 +120,11 @@ public final class ThemeChoice {
         controlsOne(view);
         if(view instanceof android.view.ViewGroup){android.view.ViewGroup group=(android.view.ViewGroup)view;for(int n=0;n<group.getChildCount();n++)tree(group.getChildAt(n));}
     }
-    public static void controls(View view){if(!isNight(view.getContext()))return;controlsOne(view);if(view instanceof android.widget.Spinner)spinner((android.widget.Spinner)view);if(view instanceof android.view.ViewGroup){android.view.ViewGroup g=(android.view.ViewGroup)view;for(int i=0;i<g.getChildCount();i++)controls(g.getChildAt(i));}}
+    public static void controls(View view){if(view==null)return;controlsOne(view);if(view instanceof android.widget.Spinner)spinner((android.widget.Spinner)view);if(view instanceof android.view.ViewGroup){android.view.ViewGroup g=(android.view.ViewGroup)view;for(int i=0;i<g.getChildCount();i++)controls(g.getChildAt(i));}}
     static boolean purpleStates(android.content.res.ColorStateList colors){if(colors==null)return false;if(DialogColors.purple(colors.getDefaultColor()))return true;for(int state:new int[]{android.R.attr.state_pressed,android.R.attr.state_checked,android.R.attr.state_selected,android.R.attr.state_focused})if(DialogColors.purple(colors.getColorForState(new int[]{android.R.attr.state_enabled,state},colors.getDefaultColor())))return true;return false;}
-    static void controlsOne(View v){if(!isNight(v.getContext()))return;android.content.res.ColorStateList tint=android.content.res.ColorStateList.valueOf(accent(v.getContext()));if(v instanceof android.widget.TextView){android.widget.TextView t=(android.widget.TextView)v;if(purpleStates(t.getTextColors()))t.setTextColor(DialogColors.INK_DARK);if(purpleStates(t.getHintTextColors()))t.setHintTextColor(DialogColors.MUTED_DARK);if(purpleStates(t.getLinkTextColors()))t.setLinkTextColor(tint);}if(v instanceof android.widget.ImageView){android.widget.ImageView image=(android.widget.ImageView)v;if(purpleStates(image.getImageTintList()))image.setImageTintList(android.content.res.ColorStateList.valueOf(v.isSelected()||v.isActivated()?accent(v.getContext()):DialogColors.INK_DARK));}if(v instanceof android.widget.EditText){if(!"nicoid-managed-input".equals(v.getTag()))v.setBackgroundTintList(tint);if(android.os.Build.VERSION.SDK_INT>=29){android.widget.EditText t=(android.widget.EditText)v;android.graphics.drawable.Drawable cursor=t.getTextCursorDrawable();if(cursor!=null){cursor=cursor.mutate();cursor.setTintList(tint);t.setTextCursorDrawable(cursor);}for(android.graphics.drawable.Drawable d:new android.graphics.drawable.Drawable[]{t.getTextSelectHandle(),t.getTextSelectHandleLeft(),t.getTextSelectHandleRight()})if(d!=null)d.mutate().setTintList(tint);}}if(v instanceof android.widget.CompoundButton)((android.widget.CompoundButton)v).setButtonTintList(tint);if(v instanceof android.widget.Switch||v.getClass().getName().endsWith("SwitchCompat")){int checked=accent(v.getContext()),muted=DialogColors.MUTED_DARK;android.content.res.ColorStateList thumb=new android.content.res.ColorStateList(new int[][]{new int[]{android.R.attr.state_checked},new int[]{}},new int[]{checked,muted});android.content.res.ColorStateList track=new android.content.res.ColorStateList(new int[][]{new int[]{android.R.attr.state_checked},new int[]{}},new int[]{(checked&0xffffff)|0x66000000,0xff52565e});try{v.getClass().getMethod("setThumbTintList",android.content.res.ColorStateList.class).invoke(v,thumb);v.getClass().getMethod("setTrackTintList",android.content.res.ColorStateList.class).invoke(v,track);}catch(Exception ignored){}}if(v instanceof android.widget.CheckedTextView)((android.widget.CheckedTextView)v).setCheckMarkTintList(tint);if(v instanceof android.widget.ProgressBar){((android.widget.ProgressBar)v).setProgressTintList(tint);((android.widget.ProgressBar)v).setIndeterminateTintList(tint);}if(v instanceof android.widget.SeekBar)((android.widget.SeekBar)v).setThumbTintList(tint);if(v.getBackground() instanceof android.graphics.drawable.ColorDrawable&&DialogColors.purple(((android.graphics.drawable.ColorDrawable)v.getBackground()).getColor()))v.setBackgroundColor(UiDialogs.surface(v.getContext()));android.content.res.ColorStateList background=v.getBackgroundTintList();if(purpleStates(background))v.setBackgroundTintList(tint);}
+    static void controlsOne(View v){UiControls194.apply(v);}
     public static void spinner(android.widget.Spinner spinner){
-        if(isNight(spinner.getContext()))spinner.setPopupBackgroundDrawable(new android.graphics.drawable.ColorDrawable(UiDialogs.surface(spinner.getContext())));
+        spinner.setPopupBackgroundDrawable(new android.graphics.drawable.ColorDrawable(UiDialogs.surface(spinner.getContext())));
         android.widget.SpinnerAdapter original=spinner.getAdapter();
         if(original==null||original instanceof ThemedSpinner)return;
         int selected=spinner.getSelectedItemPosition();spinner.setAdapter(new ThemedSpinner(original,spinner.getContext()));spinner.setSelection(Math.max(0,selected));

@@ -52,7 +52,7 @@ public final class UiDialogs {
         boolean dark=ThemeChoice.isNight(owner(c));
         UiTheme191.surface(dialog.getWindow().getDecorView());
         inputs(dialog.getWindow().getDecorView(),accent,dark);ListDividers191.tree(dialog.getWindow().getDecorView());
-        for(int which:new int[]{-1,-2,-3})if(dialog.getButton(which)!=null)actionButton(dialog.getButton(which),which==-1);FlatUi191.window(dialog);
+        for(int which:new int[]{-1,-2,-3})if(dialog.getButton(which)!=null)actionButton(dialog.getButton(which),which==-1);DialogActions194.watch(dialog);FlatUi191.window(dialog);
 
 
     }
@@ -61,13 +61,12 @@ public final class UiDialogs {
         Context c=b.getContext();int pad=PanelUi.dp(c,16);b.setTag("nicoid-dialog-action");b.setAllCaps(false);b.setTextSize(14);b.setSingleLine(true);b.setGravity(Gravity.CENTER);b.setIncludeFontPadding(false);b.setMinWidth(PanelUi.dp(c,80));b.setMinimumWidth(PanelUi.dp(c,80));b.setMinHeight(PanelUi.dp(c,48));b.setMinimumHeight(PanelUi.dp(c,48));b.setPadding(pad,0,pad,0);b.setElevation(0);b.setBackgroundTintList(null);
         android.graphics.drawable.Drawable bg=primary?new android.graphics.drawable.InsetDrawable(PanelUi.round(c,accent(c),22),0,PanelUi.dp(c,2),0,PanelUi.dp(c,2)):new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT);
         b.setBackground(new android.graphics.drawable.RippleDrawable(ColorStateList.valueOf((accent(c)&0xffffff)|0x33000000),bg,null));
-        b.setTextColor(new ColorStateList(new int[][]{new int[]{-android.R.attr.state_enabled},new int[]{}},new int[]{0xff75787f,primary?0xff101114:accent(c)}));
+        b.setTextColor(new ColorStateList(new int[][]{new int[]{-android.R.attr.state_enabled},new int[]{}},new int[]{0xff75787f,primary?DialogColors.onAccent(accent(c)):accent(c)}));
         ViewGroup.LayoutParams lp=b.getLayoutParams();if(lp!=null){lp.height=PanelUi.dp(c,48);lp.width=primary?Math.max(PanelUi.dp(c,80),(int)b.getPaint().measureText(b.getText().toString())+pad*2):ViewGroup.LayoutParams.WRAP_CONTENT;if(lp instanceof LinearLayout.LayoutParams){LinearLayout.LayoutParams l=(LinearLayout.LayoutParams)lp;l.weight=0;l.gravity=Gravity.CENTER_VERTICAL;l.leftMargin=PanelUi.dp(c,4);}b.setLayoutParams(lp);}
-        if(b.getParent() instanceof LinearLayout){LinearLayout row=(LinearLayout)b.getParent();row.setOrientation(LinearLayout.HORIZONTAL);row.setGravity(Gravity.END|Gravity.CENTER_VERTICAL);}
+        if(b.getParent() instanceof LinearLayout)((LinearLayout)b.getParent()).setGravity(Gravity.END|Gravity.CENTER_VERTICAL);
     }
     private static void blackPanels(View view){if(view instanceof ViewGroup){view.setBackgroundColor(0xff000000);ViewGroup group=(ViewGroup)view;for(int n=0;n<group.getChildCount();n++)blackPanels(group.getChildAt(n));}}
     private static void inputs(View v,int accent,boolean dark) {
-        ColorStateList tint=ColorStateList.valueOf(accent);
         if(v instanceof AbsListView) {
             AbsListView list=(AbsListView)v;list.setBackgroundColor(surface(owner(v.getContext())));
             AbsListView.OnScrollListener listener=new AbsListView.OnScrollListener(){public void onScrollStateChanged(AbsListView view,int state){}public void onScroll(AbsListView view,int first,int count,int total){for(int n=0;n<view.getChildCount();n++)inputs(view.getChildAt(n),accent,dark);}};
@@ -86,14 +85,11 @@ public final class UiDialogs {
         if(v instanceof Spinner)ThemeChoice.spinner((Spinner)v);
         ThemeChoice.controlsOne(v);
         if(v instanceof EditText) {
-            EditText e=(EditText)v;e.setTextColor(dark?0xffeeeeee:0xff202124);e.setHintTextColor(dark?0xffb7bac3:0xff666a73);if(!"nicoid-managed-input".equals(v.getTag()))e.setBackgroundTintList(tint);
+            EditText e=(EditText)v;e.setTextColor(dark?0xffeeeeee:0xff202124);e.setHintTextColor(dark?0xffb7bac3:0xff666a73);if(!"nicoid-managed-input".equals(v.getTag()))UiControls194.apply(e);
             if(Build.VERSION.SDK_INT>=29) {
                 android.graphics.drawable.Drawable cursor=e.getTextCursorDrawable();if(cursor!=null){cursor=cursor.mutate();cursor.setTint(accent);e.setTextCursorDrawable(cursor);}
             }
         }
-        if(v instanceof SeekBar) {((SeekBar)v).setProgressTintList(tint);((SeekBar)v).setThumbTintList(tint);}
-        if(v instanceof CompoundButton) ((CompoundButton)v).setButtonTintList(tint);
-        if(v instanceof CheckedTextView) ((CheckedTextView)v).setCheckMarkTintList(tint);
         if(v instanceof ViewGroup) {ViewGroup g=(ViewGroup)v;for(int n=0;n<g.getChildCount();n++) inputs(g.getChildAt(n),accent,dark);}
     }
     public static void show(AlertDialog dialog) { dialog.show();PlaybackSession.styleDialog(dialog);style(dialog); }

@@ -603,6 +603,11 @@ val nicoidModPatch = bytecodePatch(
         }
         fun isUiResource(ref: MethodReference) = ref.name == "getString" &&
             ref.returnType == "Ljava/lang/String;" &&
+            // SharedPreferences.getString(String, String) returns application data,
+            // including credentials and IDs. Only Android resource overloads are UI.
+            ((ref.parameterTypes.size == 1 && ref.parameterTypes[0] == "I") ||
+                (ref.parameterTypes.size == 2 && ref.parameterTypes[0] == "I" &&
+                    ref.parameterTypes[1] == "[Ljava/lang/Object;")) &&
             (ref.definingClass.startsWith("Landroid/content/") || ref.definingClass.startsWith("Landroid/app/") ||
                 ref.definingClass.startsWith("Landroid/preference/") || ref.definingClass.startsWith("Lcom/sauzask/nicoid/"))
         val uiClasses = mutableListOf<String>()

@@ -47,13 +47,13 @@ public final class UiStrings {
         TEXT.put("件。", new String[]{" comments. ", " 則留言。"});
         TEXT.put("設定", new String[]{"Settings", "設定"});
         TEXT.put("標準", new String[]{"Standard", "標準"});
-        TEXT.put("自動", new String[]{"Automatic", "自動"});
+        TEXT.put("自動", new String[]{"Auto", "自動"});
         TEXT.put("速度", new String[]{"Speed", "速度"});
         TEXT.put("倍", new String[]{"×", "倍"});
-        TEXT.put("最小", new String[]{"Minimum", "最小"});
+        TEXT.put("最小", new String[]{"Smallest", "最小"});
         TEXT.put("小", new String[]{"Small", "小"});
         TEXT.put("大", new String[]{"Large", "大"});
-        TEXT.put("最大", new String[]{"Maximum", "最大"});
+        TEXT.put("最大", new String[]{"Largest", "最大"});
         TEXT.put("料理", new String[]{"Cooking", "料理"});
         TEXT.put("自然", new String[]{"Nature", "自然"});
         TEXT.put("動物", new String[]{"Animals", "動物"});
@@ -65,7 +65,7 @@ public final class UiStrings {
         TEXT.put("登入成功", new String[]{"Signed in successfully", "登入成功"});
 
         TEXT.put("デフォルトに戻す", new String[]{"Reset to default", "還原預設值"});
-        TEXT.put("キャッシュのみを使用し再生", new String[]{"Play using cached files only", "僅使用快取播放"});
+        TEXT.put("キャッシュのみを使用し再生", new String[]{"Use cached files for offline playback", "使用快取檔案離線播放"});
         TEXT.put("常に使用", new String[]{"Always", "一律使用"});
         TEXT.put("モバイル通信時のみ", new String[]{"On mobile data only", "僅使用行動網路時"});
         TEXT.put("使用しない", new String[]{"Never", "不使用"});
@@ -74,12 +74,12 @@ public final class UiStrings {
         TEXT.put("コメント取得数", new String[]{"Comments to load", "留言載入數量"});
         TEXT.put("取得数：", new String[]{"Target: ", "目標："});
         TEXT.put("次回の再生から反映されます。追加取得数は動画やログイン状態により異なります。", new String[]{"Applies on the next playback. The number of additional comments depends on the video and sign-in status.", "下次播放時生效。可額外載入的留言數量依影片及登入狀態而異。"});
-        TEXT.put("デバッグログの保存", new String[]{"Save debug log", "儲存偵錯紀錄"});
-        TEXT.put("再生状況と通信結果をDownloadフォルダに保存", new String[]{"Save playback and network diagnostics to Downloads", "將播放與網路診斷記錄儲存至 Downloads"});
+        TEXT.put("\u30c7\u30d0\u30c3\u30b0\u30ed\u30b0\u306e\u4fdd\u5b58", new String[]{"Save debug log", "\u5132\u5b58\u5075\u932f\u8a18\u9304"});
+        TEXT.put("\u518d\u751f\u72b6\u6cc1\u3068\u901a\u4fe1\u7d50\u679c\u3092Download\u30d5\u30a9\u30eb\u30c0\u306b\u4fdd\u5b58", new String[]{"Save playback and network logs to Downloads", "\u5c07\u64ad\u653e\u8207\u7db2\u8def\u8a18\u9304\u5132\u5b58\u81f3 Downloads"});
         TEXT.put("再生状況や通信エラーなどの診断ログを Download フォルダに保存します。不具合報告時に利用できます。", new String[]{"Save diagnostic logs, including playback status and network errors, to the Downloads folder for troubleshooting.", "將播放狀態與網路錯誤等診斷記錄儲存至 Downloads 資料夾，以便排查問題。"});
 
         TEXT.put("ニコる数順", new String[]{"Nicoru count", "Nico 讚數量順序"});
-        TEXT.put("コメント取得数", new String[]{"Comments to load", "留言載入數量"});
+
         TEXT.put("標準（追加取得なし）", new String[]{"Standard (no additional loading)", "標準（不額外載入）"});
         TEXT.put("次の再生から反映。追加取得できる件数は動画やログイン状態によって異なります", new String[]{"Applies on the next playback. Additional comments depend on the video and sign-in status.", "下次播放時生效。可額外載入的留言數量依影片及登入狀態而異。"});
         TEXT.put("再生位置に自動追従", new String[]{"Follow playback position", "自動跟隨播放位置"});
@@ -95,14 +95,14 @@ public final class UiStrings {
         TEXT.put("旧コメント経路の取得上限", new String[]{"Legacy comment path limit", "舊留言路徑載入上限"});
         TEXT.put("旧コメント経路にのみ適用。次の再生から反映", new String[]{"Legacy comment path only; applies on the next playback", "僅適用於舊留言路徑，下次播放時生效"});
         TEXT.put("自動（動画の長さに応じて変更）", new String[]{"Automatic (based on video length)", "自動（依影片長度調整）"});
-        TEXT.put("件", new String[]{" comments", " 則"});
+        TEXT.put("件", new String[]{" items", " 筆"});
         TEXT.put("デバッグログをDownloadフォルダに保存しますか？", new String[]{"Save the debug log to Downloads?", "要將偵錯紀錄儲存至 Downloads 嗎？"});
         TEXT.put("保存", new String[]{"Save", "儲存"});
         TEXT.put("\u691c\u7d22\u30b5\u30b8\u30a7\u30b9\u30c8", new String[]{"Search suggestions", "\u641c\u5c0b\u5efa\u8b70"});
         TEXT.put("\u691c\u7d22\u5165\u529b\u6642\u306b\u5019\u88dc\u3092\u8868\u793a\u3057\u307e\u3059", new String[]{"Show suggestions while entering a search", "\u8f38\u5165\u641c\u5c0b\u6642\u986f\u793a\u5efa\u8b70"});
         TEXT.put("\u52d5\u4f5c\u3092\u5b89\u5b9a\u3055\u305b\u308b\u305f\u3081\u8868\u793a\u3059\u308b\u30b3\u30e1\u30f3\u30c8\u91cf\u3092\u5c11\u306a\u304f\u3057\u30d5\u30ec\u30fc\u30e0\u30ec\u30fc\u30c8\u3092\u4f4e\u304f\u5236\u9650\u3057\u307e\u3059\u3002", new String[]{"Reduce displayed comments and frame rate for stable casting.", "\u6e1b\u5c11\u986f\u793a\u7684\u5f48\u5e55\u6578\u91cf\u4e26\u9650\u5236\u5f71\u683c\u7387\uff0c\u4ee5\u7a69\u5b9a\u6295\u653e\u3002"});
-        TEXT.put("\u30c7\u30d0\u30c3\u30b0\u30ed\u30b0\u306e\u4fdd\u5b58", new String[]{"Save debug log", "\u5132\u5b58\u5075\u932f\u8a18\u9304"});
-        TEXT.put("\u518d\u751f\u72b6\u6cc1\u3068\u901a\u4fe1\u7d50\u679c\u3092Download\u30d5\u30a9\u30eb\u30c0\u306b\u4fdd\u5b58", new String[]{"Save playback and network logs to Downloads", "\u5c07\u64ad\u653e\u8207\u7db2\u8def\u8a18\u9304\u5132\u5b58\u81f3 Downloads"});
+
+
         TEXT.put("Download\u306b\u4fdd\u5b58\u3057\u307e\u3057\u305f", new String[]{"Saved to Downloads", "\u5df2\u5132\u5b58\u81f3 Downloads"});
         TEXT.put("\u30ed\u30b0\u3092\u4fdd\u5b58\u3067\u304d\u307e\u305b\u3093\u3067\u3057\u305f", new String[]{"Could not save the log", "\u7121\u6cd5\u5132\u5b58\u8a18\u9304"});
 
@@ -116,7 +116,7 @@ public final class UiStrings {
         TEXT.put("上下スワイプで再生画面の輝度を調整します。音量調整もONの場合は動画の左側で操作します", new String[]{"Swipe vertically to adjust video brightness. When volume gestures are also enabled, use the left side of the video.", "上下滑動調整播放畫面的亮度。若同時啟用音量調整，請在影片左側操作。"});
         TEXT.put("キャッシュのコピーが完了しました", new String[]{"Cache copy completed", "快取複製完成"});
         TEXT.put("キャッシュをコピー中", new String[]{"Copying cached videos…", "正在複製快取影片…"});
-        TEXT.put("キャッシュ取得", new String[]{"Cache download", "快取下載"});
+        TEXT.put("キャッシュ取得", new String[]{"Download cache", "下載快取"});
         TEXT.put("キャッシュ取得中", new String[]{"Downloading cache", "正在下載快取"});
         TEXT.put("キャッシュ取得完了", new String[]{"Cache download complete", "快取下載完成"});
         TEXT.put("取得済み: ", new String[]{"Downloaded: ", "已下載："});
@@ -166,7 +166,7 @@ public final class UiStrings {
         TEXT.put("デバッグログを共有", new String[]{"Share debug log", "分享偵錯紀錄"});
         TEXT.put("その他", new String[]{"Other", "其他"});
         TEXT.put("設定を反映して最初から開く", new String[]{"Restart to apply settings", "重新啟動以套用設定"});
-        TEXT.put("設定", new String[]{"Settings", "設定"});
+
         TEXT.put("アプリ設定", new String[]{"App settings", "應用程式設定"});
         TEXT.put("一般設定・再生設定", new String[]{"General and playback settings", "一般與播放設定"});
         TEXT.put("サイドバーにショートを表示", new String[]{"Show Shorts in the sidebar", "在側邊選單顯示短片"});
@@ -210,9 +210,9 @@ public final class UiStrings {
         TEXT.put("高画質", new String[]{"High quality", "高畫質"});
         TEXT.put("標準画質", new String[]{"Standard quality", "標準畫質"});
         TEXT.put("低画質", new String[]{"Low quality", "低畫質"});
-        TEXT.put("標準", new String[]{"Standard", "標準"});
-        TEXT.put("自動", new String[]{"Auto", "自動"});
-        TEXT.put("速度", new String[]{"Speed", "速度"});
+
+
+
         TEXT.put("画質", new String[]{"Quality", "畫質"});
         TEXT.put("ループ", new String[]{"Loop", "循環"});
         TEXT.put("再生速度", new String[]{"Playback speed", "播放速度"});
@@ -220,7 +220,7 @@ public final class UiStrings {
         TEXT.put("画質を取得できませんでした", new String[]{"Could not retrieve video quality", "無法取得影片畫質"});
         TEXT.put("画質: ", new String[]{"Quality: ", "畫質： "});
         TEXT.put("再生速度: ", new String[]{"Playback speed: ", "播放速度： "});
-        TEXT.put("倍", new String[]{"×", "倍"});
+
         TEXT.put("ループ再生: ", new String[]{"Loop playback: ", "循環播放： "});
         TEXT.put("操作に失敗しました。ログを確認してください", new String[]{"Action failed. Please check the log.", "操作失敗。請查看紀錄。"});
         TEXT.put("デフォルトの再生速度", new String[]{"Default playback speed", "預設播放速度"});
@@ -238,10 +238,10 @@ public final class UiStrings {
         TEXT.put("従来形式の動画で取得するコメント数を増やします。通信量と描画負荷が増えます", new String[]{"Load more comments for videos using the legacy format. This increases data usage and rendering load.", "載入更多舊格式影片的留言。這會增加網路流量與繪製負擔。"});
         TEXT.put("コメントの大きさ", new String[]{"Comment size", "留言大小"});
         TEXT.put("最小・小・標準・大・最大（次の再生から反映）", new String[]{"Smallest, small, standard, large or largest (applies on the next playback)", "最小、小、標準、大、最大（下次播放時生效）"});
-        TEXT.put("最小", new String[]{"Smallest", "最小"});
-        TEXT.put("小", new String[]{"Small", "小"});
-        TEXT.put("大", new String[]{"Large", "大"});
-        TEXT.put("最大", new String[]{"Largest", "最大"});
+
+
+
+
         TEXT.put("接続", new String[]{"Connect", "連線"});
         TEXT.put("接続する端末を選択", new String[]{"Choose a device to connect to", "選擇要連線的裝置"});
         TEXT.put("接続解除", new String[]{"Disconnect", "中斷連線"});
@@ -257,10 +257,10 @@ public final class UiStrings {
         TEXT.put("動画", new String[]{"Video", "影片"});
         TEXT.put("削除する履歴を選択", new String[]{"Select history entries to delete", "選取要刪除的觀看紀錄"});
         TEXT.put("選択した履歴を削除", new String[]{"Delete selected history", "刪除選取的觀看紀錄"});
-        TEXT.put("件", new String[]{" items", " 筆"});
+
         TEXT.put("ログイン画面の表示が停止しました。アプリを再起動して再試行してください。", new String[]{"The sign-in screen stopped responding. Restart the app and try again.", "登入畫面沒有回應。請重新啟動應用程式後重試。"});
         TEXT.put("ログイン画面を開けませんでした。\n", new String[]{"Could not open the sign-in screen.\n", "無法開啟登入畫面。\n"});
-        TEXT.put("保存", new String[]{"Save", "儲存"});
+
         TEXT.put("ログイン方法", new String[]{"Sign-in method", "登入方式"});
         TEXT.put("通常ログイン", new String[]{"Standard sign-in", "一般登入"});
         TEXT.put("Cookie手動入力", new String[]{"Enter session cookie", "手動輸入 Cookie"});
@@ -297,7 +297,7 @@ public final class UiStrings {
         TEXT.put("いいね", new String[]{"Likes", "按讚"});
         TEXT.put("マイリス", new String[]{"Mylists", "播放清單"});
         TEXT.put("動画再生", new String[]{"Play video", "播放影片"});
-        TEXT.put("キャッシュ取得", new String[]{"Download cache", "下載快取"});
+
         TEXT.put("キャッシュの取得", new String[]{"Download cache", "下載快取"});
         TEXT.put("ミニゲームを閉じる", new String[]{"Close mini-game", "關閉小遊戲"});
         TEXT.put("自転車ラン。タップで2段ジャンプ。障害物と穴を避けます。終了後はタップで再挑戦。", new String[]{"Bicycle Run. Tap to jump, then tap again in midair for a double jump. Avoid obstacles and gaps. Tap after game over to try again.", "自行車跑酷。輕觸跳躍，在空中再次輕觸可二段跳。避開障礙與缺口。遊戲結束後輕觸重試。"});
@@ -320,15 +320,15 @@ public final class UiStrings {
         TEXT.put("踊ってみた", new String[]{"Dance covers", "翻跳"});
         TEXT.put("演奏してみた", new String[]{"Instrumental covers", "演奏"});
         TEXT.put("解説・講座", new String[]{"Explanations and tutorials", "解說與教學"});
-        TEXT.put("料理", new String[]{"Cooking", "料理"});
+
         TEXT.put("旅行・アウトドア", new String[]{"Travel and outdoors", "旅遊與戶外"});
-        TEXT.put("自然", new String[]{"Nature", "自然"});
+
         TEXT.put("乗り物", new String[]{"Vehicles", "交通工具"});
         TEXT.put("技術・工作", new String[]{"Technology and crafts", "技術與手作"});
         TEXT.put("社会・政治・時事", new String[]{"Society, politics and current affairs", "社會、政治與時事"});
         TEXT.put("ラジオ", new String[]{"Radio", "廣播"});
         TEXT.put("スポーツ", new String[]{"Sports", "運動"});
-        TEXT.put("動物", new String[]{"Animals", "動物"});
+
         TEXT.put("Setting", new String[]{"Settings", "設定"});
         TEXT.put("nicoidについて", new String[]{"About nicoid Re", "關於 nicoid Re"});
         TEXT.put("About nicoid", new String[]{"About nicoid Re", "關於 nicoid Re"});
@@ -357,7 +357,7 @@ public final class UiStrings {
         TEXT.put("動畫情報", new String[]{"Video details", "影片資訊"});
         TEXT.put("Video playback", new String[]{"Play video", "播放影片"});
         TEXT.put("播放動畫", new String[]{"Play video", "播放影片"});
-        TEXT.put("Pop-up playback", new String[]{"Pop-up playback", "懸浮視窗播放"});
+
         TEXT.put("Popup播放", new String[]{"Pop-up playback", "懸浮視窗播放"});
         TEXT.put("強", new String[]{"High", "高"});
         TEXT.put("Strength", new String[]{"High", "高"});
@@ -383,9 +383,9 @@ public final class UiStrings {
         TEXT.put("センサーに従う", new String[]{"Auto-rotate using sensors", "依感應器自動旋轉"});
         TEXT.put("I follow the sensor", new String[]{"Auto-rotate using sensors", "依感應器自動旋轉"});
         TEXT.put("依照感應器", new String[]{"Auto-rotate using sensors", "依感應器自動旋轉"});
-        TEXT.put("常に使用", new String[]{"Always", "一律使用"});
-        TEXT.put("モバイル通信時のみ", new String[]{"On mobile data only", "僅使用行動網路時"});
-        TEXT.put("使用しない", new String[]{"Never", "不使用"});
+
+
+
         TEXT.put("ぼかし", new String[]{"Soft shadow", "柔和陰影"});
         TEXT.put("縁取り", new String[]{"Outline", "描邊"});
         TEXT.put("キャッシュを全て削除する", new String[]{"Clear all cache", "清除所有快取"});
@@ -408,7 +408,7 @@ public final class UiStrings {
         TEXT.put("キャッシュに使用する最大容量を変更できます", new String[]{"Set the maximum storage space used by cached files", "設定快取檔案可使用的最大儲存空間"});
         TEXT.put("You can set the maximum capacity to be used for cache", new String[]{"Set the maximum storage space used by cached files", "設定快取檔案可使用的最大儲存空間"});
         TEXT.put("設定快取使用的最大容量", new String[]{"Set the maximum storage space used by cached files", "設定快取檔案可使用的最大儲存空間"});
-        TEXT.put("キャッシュのみを使用し再生", new String[]{"Use cached files for offline playback", "使用快取檔案離線播放"});
+
         TEXT.put("キャッシュ取得済み(100％)の動画を再生するとき、動画だけでなく動画情報やコメントもキャッシュを使用しデータ通信を行わずに再生します", new String[]{"For fully cached videos, also use cached video details and comments to play without network access", "播放已完整快取的影片時，也使用快取的影片資訊與留言，不連線至網路"});
         TEXT.put("キャッシュ高速取得モード(非推奨)", new String[]{"Fast cache download (not recommended)", "快速下載快取（不建議）"});
         TEXT.put("すべて高速取得モード(非推奨)", new String[]{"Use fast download for all playback (not recommended)", "所有播放方式皆使用快速下載（不建議）"});
@@ -451,7 +451,7 @@ public final class UiStrings {
         TEXT.put("実験的機能", new String[]{"Experimental features", "實驗性功能"});
         TEXT.put("実験的機能について", new String[]{"About experimental features", "關於實驗性功能"});
         TEXT.put("通常は設定しないでください。こちらのオプションは正しく動作しなかったり予告なく廃止する可能性があります。", new String[]{"Leave these options off for normal use. They may not work correctly and may be removed without notice.", "一般使用時請保持關閉。這些選項可能無法正常運作，且可能不另行通知就移除。"});
-        TEXT.put("Language", new String[]{"Language", "語言"});
+
         TEXT.put("語", new String[]{"Language", "語言"});
         TEXT.put("ログイン中", new String[]{"Signing in…", "正在登入…"});
         TEXT.put("Log in", new String[]{"Signing in…", "正在登入…"});
@@ -461,7 +461,7 @@ public final class UiStrings {
         TEXT.put("設定NICONICO動畫的電郵地址・密碼", new String[]{"Sign in with your NicoNico account", "使用 Niconico 帳號登入"});
         TEXT.put("ログインに成功しました", new String[]{"Signed in successfully", "登入成功"});
         TEXT.put("I have successfully logged", new String[]{"Signed in successfully", "登入成功"});
-        TEXT.put("登入成功", new String[]{"Signed in successfully", "登入成功"});
+
         TEXT.put("ログインに失敗しました\nメールアドレスとパスワードをお確かめください", new String[]{"Sign-in failed. Check your email address and password.", "登入失敗。請確認電子郵件地址與密碼。"});
         TEXT.put("I failed to login", new String[]{"Sign-in failed. Check your email address and password.", "登入失敗。請確認電子郵件地址與密碼。"});
         TEXT.put("登入失敗", new String[]{"Sign-in failed. Check your email address and password.", "登入失敗。請確認電子郵件地址與密碼。"});
@@ -476,13 +476,13 @@ public final class UiStrings {
         TEXT.put("モバイル通信時、画質設定にかかわらず低画質で取得します", new String[]{"Use low quality on mobile data, regardless of the quality setting", "使用行動網路時一律使用低畫質，不受畫質設定影響"});
         TEXT.put("ログインせずに使用", new String[]{"Use without signing in", "不登入使用"});
         TEXT.put("The use without logging", new String[]{"Use without signing in", "不登入使用"});
-        TEXT.put("不登入使用", new String[]{"Use without signing in", "不登入使用"});
+
         TEXT.put("ログインせずにnicoidを使用できます", new String[]{"Use nicoid without a NicoNico account", "不登入 Niconico 帳號即可使用 nicoid"});
         TEXT.put("Use nicoid without logging", new String[]{"Use nicoid without a NicoNico account", "不登入 Niconico 帳號即可使用 nicoid"});
         TEXT.put("不登入使用nicoid", new String[]{"Use nicoid without a NicoNico account", "不登入 Niconico 帳號即可使用 nicoid"});
         TEXT.put("再生モード", new String[]{"Playback mode", "播放模式"});
         TEXT.put("Play mode", new String[]{"Playback mode", "播放模式"});
-        TEXT.put("播放模式", new String[]{"Playback mode", "播放模式"});
+
         TEXT.put("動画の再生方法（ストリーミング・キャッシュ）を変更できます", new String[]{"Choose streaming or cached playback", "選擇串流或快取播放"});
         TEXT.put("I will change the method of playing videos (streaming / cache)", new String[]{"Choose streaming or cached playback", "選擇串流或快取播放"});
         TEXT.put("動畫播放方法（串流・快取）變更", new String[]{"Choose streaming or cached playback", "選擇串流或快取播放"});
@@ -511,7 +511,7 @@ public final class UiStrings {
         TEXT.put("能變更取得動畫的畫質", new String[]{"Choose the video quality to download or stream", "選擇下載或串流的影片畫質"});
         TEXT.put("設定を保存しました", new String[]{"Settings saved", "已儲存設定"});
         TEXT.put("I have to save the settings", new String[]{"Settings saved", "已儲存設定"});
-        TEXT.put("已儲存設定", new String[]{"Settings saved", "已儲存設定"});
+
         TEXT.put("共有NGレベル", new String[]{"Shared comment filter strength", "共用留言過濾強度"});
         TEXT.put("NG share level", new String[]{"Shared comment filter strength", "共用留言過濾強度"});
         TEXT.put("分享NG等級", new String[]{"Shared comment filter strength", "共用留言過濾強度"});
@@ -611,13 +611,124 @@ public final class UiStrings {
         TEXT.put("フォルダーを削除", new String[]{"Delete folder", "刪除資料夾"});
         TEXT.put("フォルダーを削除しますか？", new String[]{"Delete this folder?", "要刪除此資料夾嗎？"});
         TEXT.put("フォルダー内の動画は未分類に移動します。", new String[]{"Videos in this folder will move to Unfiled.", "資料夾中的影片會移至未分類。"});
+        TEXT.put("バックグラウンド再生に切り替えられませんでした", new String[]{"Could not switch to background playback","無法切換至背景播放"});
+        TEXT.put("並び替え", new String[]{"Reorder","調整順序"});
+        TEXT.put("操作ボタンのカスタマイズ", new String[]{"Customize player controls","自訂播放器按鈕"});
+        TEXT.put("キャッシュをすべて削除しますか？", new String[]{"Delete all cached videos?","要刪除所有快取影片嗎？"});
+        TEXT.put("削除しました", new String[]{"Deleted","已刪除"});
+        TEXT.put("削除に失敗しました", new String[]{"Could not delete","無法刪除"});
+        TEXT.put("コメント表示時間", new String[]{"Comment display duration","彈幕顯示時間"});
+        TEXT.put("最大コメント行数", new String[]{"Maximum comment rows","彈幕最大行數"});
+        TEXT.put("文字サイズ", new String[]{"Text size","文字大小"});
+        TEXT.put("フォントの太さ", new String[]{"Font weight","字型粗細"});
+        TEXT.put("影の大きさ", new String[]{"Shadow size","陰影大小"});
+        TEXT.put("コメント表示設定", new String[]{"Comment display settings","彈幕顯示設定"});
+        TEXT.put("コメントを流す", new String[]{"Animate preview comments","播放預覽彈幕"});
+        TEXT.put("明るい", new String[]{"Light","淺色"});
+        TEXT.put("暗い", new String[]{"Dark","深色"});
+        TEXT.put("フォント", new String[]{"Font","字型"});
+        TEXT.put("標準フォント", new String[]{"Default font","預設字型"});
+        TEXT.put("カスタムフォント", new String[]{"Custom font","自訂字型"});
+        TEXT.put("ファイルを選択", new String[]{"Choose file","選擇檔案"});
+        TEXT.put("初期値に戻す", new String[]{"Reset to default","還原預設值"});
+        TEXT.put("影の種類", new String[]{"Shadow style","陰影樣式"});
+        TEXT.put("なし", new String[]{"None","無"});
+        TEXT.put("フォントを読み込み中", new String[]{"Loading font…","正在載入字型…"});
+        TEXT.put("ONの場合、プレビューのコメントを30fpsでアニメーション表示します。OFFの場合は連続描画を停止します。", new String[]{"When enabled, preview comments animate at 30 fps. Turn off to stop continuous rendering.","啟用時，預覽彈幕會以 30 fps 播放；關閉後停止連續繪製。"});
+        TEXT.put("読み込み完了後に適用してください", new String[]{"Wait for loading to finish before applying","請在載入完成後套用"});
+        TEXT.put("フォントによっては太さを変更しても見た目が変わらない場合があります。対応するウェイトやAndroidのバージョンによって表示が異なるため、プレビューで確認してください。", new String[]{"Some fonts may look the same at different weights. Available weights and appearance depend on the font and Android version. Check the preview.","部分字型在不同粗細設定下可能看起來相同。可用的粗細與外觀取決於字型及 Android 版本，請以預覽確認。"});
+        TEXT.put("初期値に戻しますか？", new String[]{"Reset to default?","要還原預設值嗎？"});
+        TEXT.put("適用するまでは保存されません", new String[]{"Changes are saved only when you apply them","按下套用後才會儲存變更"});
+        TEXT.put("戻す", new String[]{"Reset","還原"});
+        TEXT.put("を減らす", new String[]{" — decrease","：減少"});
+        TEXT.put("を増やす", new String[]{" — increase","：增加"});
+        TEXT.put("ストリーミング", new String[]{"Streaming","串流播放"});
+        TEXT.put("キャッシュ", new String[]{"Cache","快取"});
+        TEXT.put("コメント表示プレビュー", new String[]{"Comment preview","彈幕預覽"});
+        TEXT.put("分:秒で、最短 ≦ 最長になるよう指定してください", new String[]{"Use minutes:seconds and keep the minimum at or below the maximum","請以分:秒輸入，且最短時間不可超過最長時間"});
+        TEXT.put("もっと見る", new String[]{"Show more","顯示更多"});
+        TEXT.put("折りたたむ", new String[]{"Show less","收合"});
+        TEXT.put("通常再生に戻れませんでした", new String[]{"Could not return to normal playback","無法返回一般播放"});
+        TEXT.put("一部のタグ情報を取得できなかったため、取得できた動画のみ表示しています", new String[]{"Some tags could not be loaded. Only videos with available tag information are shown.","部分標籤無法載入，目前僅顯示已取得標籤資訊的影片。"});
+        TEXT.put("フォントの種類やAndroidのバージョンによって、選択できる太さや見た目が異なります。隣り合う段階で違いが出ない場合があります。プレビューで確認してください。", new String[]{"Available weights and appearance depend on the font and Android version. Adjacent weights may look the same. Check the preview.","可用的粗細與外觀取決於字型及 Android 版本。相鄰粗細可能看起來相同，請以預覽確認。"});
+        TEXT.put("フォントの太さの説明", new String[]{"About font weight","字型粗細說明"});
+        TEXT.put("登録済みのNG設定はありません", new String[]{"No filter rules saved","尚未儲存封鎖規則"});
+        TEXT.put("ニコるの解除に失敗しました", new String[]{"Could not undo Nicoru","無法取消 Nico 讚"});
+        TEXT.put("ニコるにはログインしてください", new String[]{"Sign in to use Nicoru","請登入以使用 Nico 讚"});
+        TEXT.put("プレイヤー操作", new String[]{"Player controls","播放器操作"});
+        TEXT.put("長押しでプレイヤー操作", new String[]{"Long press for player controls","長按以開啟播放器操作"});
+        TEXT.put("投稿者名を取得できませんでした", new String[]{"Could not load the creator name","無法載入投稿者名稱"});
+        TEXT.put("NGリストに保存しました", new String[]{"Saved to the filter list","已儲存至封鎖清單"});
+        TEXT.put("一部の統計情報を更新できませんでした", new String[]{"Some statistics could not be refreshed","部分統計資訊無法更新"});
+        TEXT.put("ミニプレイヤー", new String[]{"Mini player","迷你播放器"});
+        TEXT.put("ミュート", new String[]{"Mute","靜音"});
+        TEXT.put("初期状態に戻す", new String[]{"Restore defaults","還原預設設定"});
+        TEXT.put("操作部の常時表示", new String[]{"Keep player controls visible","持續顯示播放器操作列"});
+        TEXT.put("通常再生時のみ", new String[]{"Normal playback only","僅一般播放時"});
+        TEXT.put("ポップアップ再生時のみ", new String[]{"Pop-up playback only","僅懸浮視窗播放時"});
+        TEXT.put("戻る", new String[]{"Back","返回"});
+        TEXT.put("検索の更新がタイムアウトしました。通信状況を確認してください。", new String[]{"Search refresh timed out. Check your connection.","搜尋更新逾時，請確認網路連線。"});
+        TEXT.put("NG設定の削除に失敗しました", new String[]{"Could not delete the filter rule","無法刪除封鎖規則"});
+        TEXT.put("NG設定を削除しますか？", new String[]{"Delete this filter rule?","要刪除此封鎖規則嗎？"});
+        TEXT.put("投稿日の範囲", new String[]{"Upload date range","投稿日期範圍"});
+        TEXT.put("指定なし", new String[]{"Any","不限"});
+        TEXT.put("◀ 前の期間", new String[]{"◀ Previous period","◀ 上一期間"});
+        TEXT.put("次の期間 ▶", new String[]{"Next period ▶","下一期間 ▶"});
+        TEXT.put("上限なし", new String[]{"No upper limit","無上限"});
+        TEXT.put("動画時間の範囲", new String[]{"Video duration range","影片長度範圍"});
+        TEXT.put("投稿者情報を取得できませんでした", new String[]{"Could not load creator information","無法載入投稿者資訊"});
+        TEXT.put("コメントの時間に移動", new String[]{"Jump to comment time","跳至留言時間"});
+        TEXT.put("ニコるに失敗しました。ログインと通信状況を確認してください。", new String[]{"Could not add Nicoru. Check your sign-in status and connection.","無法新增 Nico 讚，請確認登入狀態及網路連線。"});
+        TEXT.put("ニコる", new String[]{"Nicoru","Nico 讚"});
+        TEXT.put("ニコる済み", new String[]{"Nicoru added","已按 Nico 讚"});
+        TEXT.put("プレビューを見ながら文字と影、表示時間、最大行数を調整します", new String[]{"Adjust text, shadows, duration and maximum rows using the preview","使用預覽調整文字、陰影、顯示時間及最大行數"});
+        TEXT.put("最後の動画です", new String[]{"This is the last video","這是最後一部影片"});
+        TEXT.put("いいねの変更に失敗しました。ログインと通信状況を確認してください。", new String[]{"Could not update your like. Check your sign-in status and connection.","無法變更按讚狀態，請確認登入狀態及網路連線。"});
+        TEXT.put("いいねするにはログインしてください", new String[]{"Sign in to like videos","請登入以對影片按讚"});
+        TEXT.put("シリーズ情報を取得できませんでした", new String[]{"Could not load series information","無法載入系列資訊"});
+        TEXT.put("ログインが必要です", new String[]{"Sign in required","需要登入"});
+        TEXT.put("フォローの変更に失敗しました", new String[]{"Could not update your follow status","無法變更追蹤狀態"});
+        TEXT.put("動画情報を取得できませんでした", new String[]{"Could not load video information","無法載入影片資訊"});
+        TEXT.put("ページを開けませんでした", new String[]{"Could not open the page","無法開啟頁面"});
+        TEXT.put("シリーズ", new String[]{"Series","系列"});
+        TEXT.put("シリーズに登録されていません", new String[]{"Not part of a series","未加入任何系列"});
+        TEXT.put("親作品・子作品", new String[]{"Parent and child works","父作品與子作品"});
+        TEXT.put("通常再生で開く", new String[]{"Open in normal player","使用一般播放器開啟"});
+        TEXT.put("読み込み中…", new String[]{"Loading…","正在載入…"});
+        TEXT.put("未指定（フォルダーを選択してください）", new String[]{"Not set (choose a folder)","未設定（請選擇資料夾）"});
+        TEXT.put("コメント表示", new String[]{"Show comments","顯示彈幕"});
+        TEXT.put("リピート", new String[]{"Repeat","重複播放"});
+        TEXT.put("タグ条件", new String[]{"Tag filters","標籤條件"});
+        TEXT.put("動画情報欄のボタン", new String[]{"Video details buttons","影片資訊按鈕"});
+        TEXT.put("名前を変更", new String[]{"Rename","重新命名"});
+        TEXT.put("キャッシュを削除", new String[]{"Delete cache","刪除快取"});
+        TEXT.put("視聴履歴を削除", new String[]{"Delete viewing history","刪除觀看紀錄"});
+        TEXT.put("プレイリストに追加", new String[]{"Add to playlist","加入播放清單"});
+        TEXT.put("投稿者をNG", new String[]{"Block creator","封鎖投稿者"});
+        TEXT.put("一部の動画のタグを取得できませんでした", new String[]{"Tags could not be loaded for some videos","部分影片的標籤無法載入"});
+        TEXT.put("ポップアップ再生を終了", new String[]{"Close pop-up player","關閉懸浮播放器"});
+        TEXT.put("動画時間の下限・上限。入力欄から秒単位でも指定できます", new String[]{"Minimum and maximum duration. You can also enter an exact time in seconds.","影片長度下限及上限，也可在輸入欄指定精確秒數。"});
+        TEXT.put("メールアドレス・パスワードを確認して下さい", new String[]{"Check your email address and password","請確認電子郵件地址及密碼"});
+        TEXT.put("アニメ・ゲーム・絵", new String[]{"Anime, games and art","動畫、遊戲與繪畫"});
+        TEXT.put("エンタメ・音楽", new String[]{"Entertainment and music","娛樂與音樂"});
+        TEXT.put("生活・一般・スポ", new String[]{"Lifestyle, general and sports","生活、綜合與運動"});
+        TEXT.put("科学・技術", new String[]{"Science and technology","科學與技術"});
+        TEXT.put("詳細をみる", new String[]{"View details","查看詳情"});
+        TEXT.put("全画面広告のタイミング", new String[]{"Full-screen ad timing","全螢幕廣告時機"});
+        TEXT.put("全画面広告の表示タイミングを設定します（再生開始前に設定するとループに影響しなくなります）", new String[]{"Choose when full-screen ads appear. Showing them before playback avoids interrupting repeats.","設定全螢幕廣告的顯示時機；設為播放前顯示可避免影響重複播放。"});
+        TEXT.put("広告非表示オプション", new String[]{"Remove ads option","移除廣告選項"});
+        TEXT.put("nicoid内の全ての広告を非表示にできるオプションを購入できます", new String[]{"Purchase the option to remove all ads in nicoid","購買選項以移除 nicoid 內的所有廣告"});
+        JAPANESE_ALIASES.put("不登入使用", "ログインせずに使用");
+        JAPANESE_ALIASES.put("播放模式", "再生モード");
+        JAPANESE_ALIASES.put("已儲存設定", "設定を保存しました");
+        JAPANESE_ALIASES.put("登入成功", "ログインに成功しました");
         buildJapaneseLookup();
     }
     private static String[] lookup(String source) {
         String[] exact = TEXT.get(source);
         if (exact != null) return exact;
-        if (source.matches("[0-9]+行")) { String n=source.substring(0,source.length()-1); return new String[]{n+" rows",n+" 行"}; }
-        if (source.matches("[0-9]+秒")) { String n=source.substring(0,source.length()-1); return new String[]{n+" seconds",n+" 秒"}; }
+        if (source.matches("[0-9]+行")) { String n=source.substring(0,source.length()-1); return new String[]{n+("1".equals(n)?" row":" rows"),n+" 行"}; }
+        if (source.matches("[0-9]+秒")) { String n=source.substring(0,source.length()-1); return new String[]{n+("1".equals(n)?" second":" seconds"),n+" 秒"}; }
         return null;
     }
     private static void buildJapaneseLookup() {
@@ -645,7 +756,7 @@ public final class UiStrings {
     private UiStrings() { }
     public static void selectLanguage(String preferenceValue) {
         if (preferenceValue == null) { selectedLanguage = -1; return; }
-        String value = preferenceValue.trim().toLowerCase(Locale.ROOT);
+        String value = preferenceValue.trim().toLowerCase(Locale.ROOT).replace('_','-');
         if ("0".equals(value) || "ja".equals(value) || value.startsWith("ja-") || "japanese".equals(value)) selectedLanguage = 0;
         else if ("1".equals(value) || "en".equals(value) || value.startsWith("en-") || "english".equals(value)) selectedLanguage = 1;
         else if ("2".equals(value) || "zh".equals(value) || value.startsWith("zh-") || "chinese".equals(value)) selectedLanguage = 2;

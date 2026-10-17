@@ -637,20 +637,30 @@ val nicoidModPatch = bytecodePatch(
             for (index in previous.indices.reversed()) {
                 if (index + 3 >= previous.size) continue
                 val call = (previous[index] as? ReferenceInstruction)?.reference as? MethodReference ?: continue
-                if (!isPreferenceString(call) || previous[index + 1].opcode != Opcode.MOVE_RESULT_OBJECT ||
-                    previous[index + 3].opcode != Opcode.MOVE_RESULT_OBJECT) continue
-                val result = (previous[index + 1] as OneRegisterInstruction).registerA
-                if ((previous[index + 3] as OneRegisterInstruction).registerA != result) continue
-                val hook = previous[index + 2]
-                val translate = (hook as? ReferenceInstruction)?.reference as? MethodReference ?: continue
-                val argument = when (hook) {
-                    is FiveRegisterInstruction -> if (hook.registerCount == 1) hook.registerC else -1
-                    is RegisterRangeInstruction -> if (hook.registerCount == 1) hook.startRegister else -1
-                    else -> -1
+                if (!isPreferenceString(call) || previous[index + 1].opcode != Opcode.MOVE_RESULT_OBJECT) continue
+                var result = (previous[index + 1] as OneRegisterInstruction).registerA
+                var cursor = index + 2
+                while (true) {
+                    val current = method.implementation!!.instructions.toList()
+                    if (cursor + 1 >= current.size || current[cursor + 1].opcode != Opcode.MOVE_RESULT_OBJECT) break
+                    val hook = current[cursor]
+                    val translate = (hook as? ReferenceInstruction)?.reference as? MethodReference ?: break
+                    val argument = when (hook) {
+                        is FiveRegisterInstruction -> if (hook.registerCount == 1) hook.registerC else -1
+                        is RegisterRangeInstruction -> if (hook.registerCount == 1) hook.startRegister else -1
+                        else -> -1
+                    }
+                    if (argument != result || translate.definingClass != "Le/e/a/UiStrings;" ||
+                        translate.name != "translate" || translate.parameterTypes.map { it.toString() } != listOf("Ljava/lang/String;")) break
+                    val target = (current[cursor + 1] as OneRegisterInstruction).registerA
+                    if (target == result) method.removeInstructions(cursor, 2)
+                    else {
+                        method.replaceInstruction(cursor, "move-object/16 v$target, v$result")
+                        method.removeInstructions(cursor + 1, 1)
+                        result = target
+                        cursor++
+                    }
                 }
-                if (argument == result && translate.definingClass == "Le/e/a/UiStrings;" &&
-                    translate.name == "translate" && translate.parameterTypes.map { it.toString() } == listOf("Ljava/lang/String;"))
-                    method.removeInstructions(index + 2, 2)
             }
             val instructions = method.implementation?.instructions?.toList() ?: continue
             for (index in instructions.indices.reversed()) {

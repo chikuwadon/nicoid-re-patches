@@ -58,7 +58,7 @@ val verifyHelperOwnership = tasks.register<Exec>("verifyHelperOwnership") {
     inputs.dir(rootProject.file("extensions/extension/src/main/java/e/e/a"))
     inputs.dir(rootProject.file("porting/helpers-smali/e/e/a"))
     inputs.file(rootProject.file("porting/helper-ownership.json"))
-    inputs.file(rootProject.file("porting/helpers-v1.9.2.zip"))
+    inputs.file(rootProject.file("porting/helpers-v1.9.3.zip"))
     inputs.file(rootProject.file("porting/tests/VerifyCanonicalHelpers.py"))
     workingDir(rootProject.projectDir)
     commandLine("python3", rootProject.file("porting/tests/VerifyCanonicalHelpers.py").absolutePath)
@@ -106,7 +106,7 @@ val prepareNicoidSmali = tasks.register("prepareNicoidSmali") {
     val sources = rootProject.file("porting/helpers-smali")
     val staged = layout.buildDirectory.dir("nicoid/override-smali")
     inputs.dir(sources)
-    inputs.file(rootProject.file("porting/helpers-v1.9.2.zip"))
+    inputs.file(rootProject.file("porting/helpers-v1.9.3.zip"))
     inputs.property("patchVersion", providers.gradleProperty("version").orElse(project.version.toString()))
     outputs.dir(staged)
     doLast {
@@ -118,7 +118,7 @@ val prepareNicoidSmali = tasks.register("prepareNicoidSmali") {
             target.writeText(source.readText(Charsets.UTF_8).replace("@NICOID_PATCH_VERSION@", version), Charsets.UTF_8)
         }
         // Canonical, device-verified implementation recovered from the final development bundle.
-        ZipFile(rootProject.file("porting/helpers-v1.9.2.zip")).use { archive ->
+        ZipFile(rootProject.file("porting/helpers-v1.9.3.zip")).use { archive ->
             archive.entries().asSequence().filter { !it.isDirectory && it.name.endsWith(".smali") }.forEach { entry ->
                 val target = staged.get().asFile.resolve(entry.name)
                 check(target.canonicalPath.startsWith(staged.get().asFile.canonicalPath + File.separator))

@@ -18,16 +18,15 @@ public final class Following190 {
   VideoDetails.initializeCookies(a);int index=parent.indexOfChild(users);ViewGroup.LayoutParams old=users.getLayoutParams();parent.removeView(users);
   LinearLayout page=PanelUi.column(a);page.setTag("nicoid_following_tabs");ThemeChoice.background(page);old.height=-1;parent.addView(page,index,old);
   LinearLayout tabs=new LinearLayout(a);page.addView(tabs,new LinearLayout.LayoutParams(-1,-2));
-  Pager pager=new Pager(a);page.addView(pager,new LinearLayout.LayoutParams(-1,0,1));pager.addView(users,new FrameLayout.LayoutParams(-1,-1));
+  Pager pager=new Pager(a);pager.addView(users,new FrameLayout.LayoutParams(-1,-1));
   LinearLayout[] rows=new LinearLayout[3];
   for(int i=1;i<3;i++){ScrollView scroll=new ScrollView(a);rows[i]=PanelUi.column(a);scroll.addView(rows[i]);pager.addView(scroll,new FrameLayout.LayoutParams(-1,-1));scroll.setVisibility(View.GONE);}
-  TextView[] buttons=new TextView[3];View[] indicators=new View[3];NetworkTask[] loading={null};
+  TextView[] buttons=new TextView[3];View[] indicators=new View[3];NetworkTask[] loading={null};boolean[] visited={true,false,false};
   Runnable title=()->{String label=PanelUi.tr(a,"フォロー中","Following","追蹤中");a.setTitle(label);try{Object toolbar=Review181.field(a,"L");toolbar.getClass().getMethod("b",CharSequence.class).invoke(toolbar,label);}catch(Exception ignored){}};users.post(title);
   pager.changed=()->{int tab=pager.selected;title.run();for(int j=0;j<3;j++){indicators[j].setBackgroundColor(j==tab?UiDialogs.accent(a):android.graphics.Color.TRANSPARENT);buttons[j].setSelected(j==tab);buttons[j].setTextColor(j==tab?UiDialogs.accent(a):PanelUi.ink(a));}
-   if(loading[0]!=null)loading[0].cancel();
-   if(rows[2].getTag() instanceof NetworkTask)((NetworkTask)rows[2].getTag()).cancel();
-   if(tab>0){rows[tab].removeAllViews();if(tab==1){loading[0]=new NetworkTask();CreatorPage.loadFollowingChannels(a,rows[tab],loading[0]);}else CreatorPage.loadMylists(a,rows[tab],1);}
+   if(tab>0&&!visited[tab]){visited[tab]=true;if(tab==1){loading[0]=new NetworkTask();CreatorPage.loadFollowingChannels(a,rows[tab],loading[0]);}else CreatorPage.loadMylists(a,rows[tab],1);}
   };
+  page.addView(pager,new LinearLayout.LayoutParams(-1,0,1));
   pager.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener(){public void onViewAttachedToWindow(View v){}public void onViewDetachedFromWindow(View v){if(loading[0]!=null)loading[0].cancel();if(rows[2].getTag() instanceof NetworkTask)((NetworkTask)rows[2].getTag()).cancel();}});
   String[] ja={"ユーザー","チャンネル","マイリスト"},en={"Users","Channels","Mylists"},zh={"使用者","頻道","播放清單"};
   for(int i=0;i<3;i++){final int tab=i;LinearLayout slot=PanelUi.column(a);tabs.addView(slot,new LinearLayout.LayoutParams(0,-2,1));buttons[i]=PanelUi.text(a,PanelUi.tr(a,ja[i],en[i],zh[i]),14);buttons[i].setGravity(android.view.Gravity.CENTER);slot.addView(buttons[i],new LinearLayout.LayoutParams(-1,PanelUi.dp(a,48)));indicators[i]=new View(a);indicators[i].setBackgroundColor(i==0?UiDialogs.accent(a):android.graphics.Color.TRANSPARENT);slot.addView(indicators[i],new LinearLayout.LayoutParams(-1,PanelUi.dp(a,2)));buttons[i].setSelected(i==0);buttons[i].setTextColor(i==0?UiDialogs.accent(a):PanelUi.ink(a));buttons[i].setOnClickListener(v->pager.select(tab));}

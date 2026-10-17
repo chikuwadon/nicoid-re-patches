@@ -27,9 +27,14 @@ public final class FollowFeed {
         final LinkedHashMap<String,Actor> actors=new LinkedHashMap<>();
         final ArrayList<Object> visible=new ArrayList<>();
         ListView list; TextView status; ProgressBar progress; Button more;
-        Ui110.Tabs tabs; Ui110.Swipe swipe; LinearLayout authors; Rows rows; NetworkTask task;
+        FeedRefresh209 refresh; Ui110.Tabs tabs; Ui110.Swipe swipe; LinearLayout authors; Rows rows; NetworkTask task;
         String cursor,actorKey,authorStamp; int filter=0; boolean end,busy,failed,stopped;
         long now;
+        State session,current; State[] pages;
+        Parcelable scroll; CharSequence message="";
+        boolean initialized,autoLoad=true;
+        boolean active(){return session==null||session.current==this;}
+
     }
     private FollowFeed(){}
     private static int dp(Context c,int v){return Math.round(v*c.getResources().getDisplayMetrics().density);}
@@ -82,7 +87,7 @@ public final class FollowFeed {
                 View footer=(View)PlaybackSession.get(a,"Q");if(footer!=null)s.list.removeFooterView(footer);
                 if(s.list.getParent() instanceof ViewGroup)((ViewGroup)s.list.getParent()).removeView(s.list);
                 LinearLayout root=new LinearLayout(a);root.setOrientation(LinearLayout.VERTICAL);ThemeChoice.background(root);TabViewport110.fill(root);
-                State state=s;
+                State state=s;state.session=state;state.current=state;state.pages=new State[4];state.pages[0]=state;
                 LinearLayout authorRow=new LinearLayout(a);authorRow.setGravity(Gravity.CENTER_VERTICAL);authorRow.setPadding(dp(a,8),dp(a,8),dp(a,8),dp(a,4));
                 HorizontalScrollView scroll=new HorizontalScrollView(a);scroll.setHorizontalScrollBarEnabled(false);
                 s.authors=new LinearLayout(a);s.authors.setGravity(Gravity.CENTER_VERTICAL);scroll.addView(s.authors);
@@ -91,7 +96,7 @@ public final class FollowFeed {
                 follow.setOnClickListener(v->a.startActivity(new Intent(Intent.ACTION_VIEW).setClassName(a,"com.sauzask.nicoid.NicoidFavUserActivity")));
                 authorRow.addView(follow,new LinearLayout.LayoutParams(-2,dp(a,48)));root.addView(authorRow);
 
-                s.swipe=new Ui110.Swipe(a,4,index->{state.filter=index;state.tabs.select(index);request(a,state,true);state.list.setSelection(0);});
+                s.swipe=new Ui110.Swipe(a,4,index->select(a,state,index));
                 s.tabs=new Ui110.Tabs(a,new String[]{filterName(a,0),filterName(a,1),filterName(a,2),filterName(a,3)},index->state.swipe.select(index));root.addView(s.tabs);
                 LinearLayout loading=new LinearLayout(a);loading.setGravity(Gravity.CENTER_VERTICAL);loading.setPadding(dp(a,16),0,dp(a,16),0);
                 s.status=label(a,12,false);s.status.setAlpha(.7f);loading.addView(s.status,new LinearLayout.LayoutParams(0,-2,1));
@@ -99,35 +104,53 @@ public final class FollowFeed {
                 loading.addView(s.progress,new LinearLayout.LayoutParams(dp(a,20),dp(a,20)));root.addView(loading,new LinearLayout.LayoutParams(-1,dp(a,28)));
                 LinearLayout tail=new LinearLayout(a);tail.setGravity(Gravity.CENTER);tail.setPadding(dp(a,12),dp(a,12),dp(a,12),dp(a,24));
                 s.more=chip(a,text(a,"過去の新着を読み込む","Load older activity","載入較早的動態"));
-                s.more.setOnClickListener(v->request(a,state,state.failed&&state.items.isEmpty()));tail.addView(s.more);
+                s.more.setOnClickListener(v->{State selected=state.current;request(a,selected,selected.failed&&selected.items.isEmpty());});tail.addView(s.more);
                 s.list.addFooterView(tail,null,false);s.rows=new Rows(a,s);s.list.setAdapter(s.rows);
                 s.list.setDivider(null);s.list.setCacheColorHint(Color.TRANSPARENT);ThemeChoice.background(s.list);
                 // Card controls own their clicks; category and empty rows are not selectable.
                 s.list.setOnItemClickListener((parent,view,position,id)->{
-                    if(position<state.visible.size()&&state.visible.get(position) instanceof Item)open(a,state,(Item)state.visible.get(position),false);
+                    State selected=state.current;if(position<selected.visible.size()&&selected.visible.get(position) instanceof Item)open(a,selected,(Item)selected.visible.get(position),false);
                 });
                 s.list.setOnScrollListener(new AbsListView.OnScrollListener(){
-                    public void onScrollStateChanged(AbsListView l,int mode){}
+                    public void onScrollStateChanged(AbsListView l,int mode){if(mode==AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL)state.current.autoLoad=true;}
                     public void onScroll(AbsListView l,int first,int count,int total){
-                        if(!state.failed&&!state.visible.isEmpty()&&count>0&&first+count>=total-1)request(a,state,false);
+                        State selected=state.current;if(selected.autoLoad&&!selected.failed&&!selected.visible.isEmpty()&&count>0&&first+count>=total-1)request(a,selected,false);
                     }
                 });
-                s.swipe.addView(s.list,new FrameLayout.LayoutParams(-1,-1));root.addView(s.swipe,new LinearLayout.LayoutParams(-1,0,1));
+                s.swipe.addView(s.list,new FrameLayout.LayoutParams(-1,-1));s.refresh=new FeedRefresh209(a,s.swipe,()->{State selected=state.current;if(!selected.busy){request(a,selected,true);selected.list.setSelection(0);}});root.addView(s.refresh,new LinearLayout.LayoutParams(-1,0,1));
                 a.getClass().getField("y").set(a,root);STATES.put(a,s);
                 renderAuthors(a,s);rebuild(a,s);
                 a.getApplication().registerActivityLifecycleCallbacks(new android.app.Application.ActivityLifecycleCallbacks(){
                     public void onActivityCreated(Activity x,Bundle b){}
                     public void onActivityStarted(Activity x){}
-                    public void onActivityResumed(Activity x){if(x==a){state.stopped=false;ShortImages.resume(a);updateFooter(a,state);if(!state.busy){rebuild(a,state);if(state.items.isEmpty()&&!state.failed)request(a,state,true);}}}
+                    public void onActivityResumed(Activity x){if(x==a){for(State page:state.pages)if(page!=null)page.stopped=false;ShortImages.resume(a);State selected=state.current;updateFooter(a,selected);if(!selected.busy){rebuild(a,selected);if(!selected.initialized)request(a,selected,true);}}}
                     public void onActivityPaused(Activity x){}
-                    public void onActivityStopped(Activity x){if(x==a){state.stopped=true;if(state.task!=null)state.task.cancel();state.busy=false;updateFooter(a,state);ShortImages.cancel(a);}}
+                    public void onActivityStopped(Activity x){if(x==a){for(State page:state.pages)if(page!=null){page.stopped=true;if(page.task!=null)page.task.cancel();if(page.busy&&page.items.isEmpty())page.initialized=false;page.busy=false;}updateFooter(a,state.current);ShortImages.cancel(a);}}
                     public void onActivitySaveInstanceState(Activity x,Bundle b){}
-                    public void onActivityDestroyed(Activity x){if(x==a){if(state.task!=null)state.task.cancel();STATES.remove(a);a.getApplication().unregisterActivityLifecycleCallbacks(this);}}
+                    public void onActivityDestroyed(Activity x){if(x==a){for(State page:state.pages)if(page!=null&&page.task!=null)page.task.cancel();STATES.remove(a);a.getApplication().unregisterActivityLifecycleCallbacks(this);}}
                 });
             }
-            request(a,s,true);
+            request(a,s.current,true);
         }catch(Exception error){android.util.Log.w("nicoid-feed","Feed view failed",error);}
     }
+    private static void select(Activity a,State session,int index){
+        State previous=session.current;
+        if(previous.filter==index)return;
+        previous.scroll=previous.list.onSaveInstanceState();
+        State next=session.pages[index];
+        if(next==null){
+            next=new State();next.filter=index;next.session=session;next.stopped=previous.stopped;
+            next.list=session.list;next.status=session.status;next.progress=session.progress;next.more=session.more;
+            next.refresh=session.refresh;next.tabs=session.tabs;next.swipe=session.swipe;next.authors=session.authors;next.rows=new Rows(a,next);
+            session.pages[index]=next;
+        }
+        session.current=next;next.autoLoad=false;next.authorStamp=null;
+        next.list.setAdapter(next.rows);next.tabs.select(index);next.status.setText(next.message);
+        renderAuthors(a,next);rebuild(a,next);updateFooter(a,next);
+        if(next.scroll!=null)next.list.onRestoreInstanceState(next.scroll);else next.list.setSelection(0);
+        if(!next.initialized)request(a,next,true);
+    }
+    private static void status(State s,CharSequence message){s.message=message;if(s.active())s.status.setText(message);}
     public static boolean menu(Activity a,Menu menu){
         if(Ranking190.managerMenu(a,menu))return true;
         menu.clear();menu.add(text(a,"更新","Refresh","重新整理")).setOnMenuItemClickListener(item->{load(a);return true;});return true;
@@ -155,12 +178,12 @@ public final class FollowFeed {
     private static final class LoginRequired extends IOException{}
     private static void request(Activity a,State s,boolean refresh){
         if(a.isFinishing()||a.isDestroyed()||s.stopped||(!refresh&&(s.busy||s.end)))return;
-        if(s.task!=null)s.task.cancel();s.failed=false;
+        s.initialized=true;if(s.task!=null)s.task.cancel();s.failed=false;
         if(refresh){s.cursor=null;s.end=false;s.items.clear();s.ids.clear();s.cursors.clear();s.now=System.currentTimeMillis();rebuild(a,s);}
         String credentials;try{credentials=cookie(a);}catch(Exception error){credentials="";}
-        if(credentials.isEmpty()){s.busy=false;s.failed=true;s.status.setText(text(a,"ログインが必要です","Sign in to view following activity","請登入以查看追蹤動態"));rebuild(a,s);updateFooter(a,s);return;}
+        if(credentials.isEmpty()){s.busy=false;s.failed=true;status(s,text(a,"ログインが必要です","Sign in to view following activity","請登入以查看追蹤動態"));rebuild(a,s);updateFooter(a,s);return;}
         final String auth=credentials,cursor=s.cursor;final int filter=s.filter;NetworkTask task=new NetworkTask();s.task=task;s.busy=true;rebuild(a,s);updateFooter(a,s);
-        s.status.setText(text(a,"読み込み中…","Loading…","載入中…"));
+        status(s,text(a,"読み込み中…","Loading…","載入中…"));
         task.start(WORKER,()->{
             try{
                 String[] types={"publish","video","short_video","all"};
@@ -180,12 +203,12 @@ public final class FollowFeed {
                     for(Item item:s.items)if(!item.author.name.isEmpty()&&!s.actors.containsKey(item.author.key()))s.actors.put(item.author.key(),item.author);
                     s.cursor=next.isEmpty()?null:next;s.end=empty||s.cursor==null||!s.cursors.add(next);s.busy=false;
                     renderAuthors(a,s);rebuild(a,s);updateFooter(a,s);
-                    s.status.setText(s.actorKey==null?"":text(a,"投稿者で絞り込み中","Filtered by creator","依投稿者篩選"));
+                    status(s,s.actorKey==null?"":text(a,"投稿者で絞り込み中","Filtered by creator","依投稿者篩選"));
                 });
             }catch(Exception error){
                 if(task.cancelled())return;
                 MAIN.post(()->{if(task.cancelled()||s.task!=task||a.isDestroyed()||s.stopped)return;s.busy=false;s.failed=true;
-                    s.status.setText(error instanceof LoginRequired?text(a,"ログインし直してください","Please sign in again","請重新登入"):
+                    status(s,error instanceof LoginRequired?text(a,"ログインし直してください","Please sign in again","請重新登入"):
                         text(a,"取得できませんでした。更新して再試行してください","Could not load. Refresh to retry","無法取得，請重新整理以重試"));
                     rebuild(a,s);updateFooter(a,s);});
                 android.util.Log.w("nicoid-feed","Feed request failed",error);
@@ -193,6 +216,8 @@ public final class FollowFeed {
         });
     }
     private static void updateFooter(Activity a,State s){
+        if(!s.active())return;
+        if(s.refresh!=null)s.refresh.setRefreshing(s.busy);
         s.progress.setVisibility(s.busy?View.VISIBLE:View.GONE);
         s.more.setVisibility(s.end&&!s.failed?View.GONE:View.VISIBLE);s.more.setEnabled(!s.busy&&!s.stopped);
         s.more.setText(s.failed?text(a,"再試行","Retry","重試"):text(a,"過去の新着を読み込む","Load older activity","載入較早的動態"));
@@ -202,14 +227,16 @@ public final class FollowFeed {
         return text(c,labels[bucket][0],labels[bucket][1],labels[bucket][2]);
     }
     private static void rebuild(Activity a,State s){
+        if(!s.active())return;
         s.visible.clear();int last=-1;
         for(Item item:s.items)if(item.matches(3,s.actorKey)){
             int bucket=FollowFeedData.bucket(item.time,s.now);if(bucket!=last){s.visible.add(Integer.valueOf(bucket));last=bucket;}s.visible.add(item);
         }
-        if(!s.busy&&!s.failed)s.status.setText(s.actorKey==null?"":text(a,"投稿者で絞り込み中","Filtered by creator","依投稿者篩選"));
+        if(!s.busy&&!s.failed)status(s,s.actorKey==null?"":text(a,"投稿者で絞り込み中","Filtered by creator","依投稿者篩選"));
         if(s.tabs!=null)s.tabs.select(s.filter);s.rows.notifyDataSetChanged();
     }
     private static void renderAuthors(Activity a,State s){
+        if(!s.active())return;
         StringBuilder stamp=new StringBuilder(String.valueOf(s.actorKey));int count=0;
         for(Actor actor:s.actors.values()){if(count++>=50)break;stamp.append('|').append(actor.key()).append('|').append(actor.name).append('|').append(actor.icon);}
         String value=stamp.toString();if(value.equals(s.authorStamp))return;s.authorStamp=value;

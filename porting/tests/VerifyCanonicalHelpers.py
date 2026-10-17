@@ -9,7 +9,7 @@ repo = Path(__file__).resolve().parents[2]
 java = repo / "extensions/extension/src/main/java/e/e/a"
 smali = repo / "porting/helpers-smali/e/e/a"
 manifest = json.loads((repo / "porting/helper-ownership.json").read_text())
-snapshot_path = repo / "porting/helpers-v1.9.2.zip"
+snapshot_path = repo / "porting/helpers-v1.9.3.zip"
 with ZipFile(snapshot_path) as archive:
     snapshot = {Path(n).name: archive.read(n) for n in archive.namelist()}
 

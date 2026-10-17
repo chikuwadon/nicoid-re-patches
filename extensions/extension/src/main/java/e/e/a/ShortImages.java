@@ -21,6 +21,7 @@ import java.util.concurrent.*;
 final class ShortImages {
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
     private static final ThreadPoolExecutor WORKERS = new ThreadPoolExecutor(3, 3, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+    static { WORKERS.allowCoreThreadTimeOut(true); }
     private static final Map<String, Job> jobs = new HashMap<>();
     private static final LruCache<String, Bitmap> memory = new LruCache<String, Bitmap>(12 * 1024 * 1024) {
         protected int sizeOf(String key, Bitmap bitmap) { return bitmap.getByteCount(); }
@@ -29,6 +30,7 @@ final class ShortImages {
     private static final WeakHashMap<ImageView, Binding> bindings = new WeakHashMap<>();
     private static final class Binding {
         final String url; final WeakReference<TextView> placeholder;
+        Subscription subscription;
         Binding(String url, TextView placeholder) { this.url = url; this.placeholder = new WeakReference<>(placeholder); }
     }
     static void resume(Activity activity) {
@@ -38,8 +40,14 @@ final class ShortImages {
         }
     }
     static void load(String url, ImageView target, TextView placeholder) {
+        Binding previous = bindings.get(target);
+        if (previous != null && previous.subscription != null && !previous.url.equals(url))
+            remove(previous.subscription.job, previous.subscription);
         if (url == null || !url.startsWith("https://")) return;
-        target.setTag(url); bindings.put(target, new Binding(url, placeholder));
+        target.setTag(url);
+        Binding binding = new Binding(url, placeholder);
+        if (previous != null && previous.url.equals(url)) binding.subscription = previous.subscription;
+        bindings.put(target, binding);
         Bitmap cached = memory.get(url);
         if (cached != null && cached.isRecycled()) { memory.remove(url); cached=null; }
         if (cached != null) { target.setImageBitmap(cached); if (placeholder != null) placeholder.setVisibility(View.GONE); return; }
@@ -48,6 +56,7 @@ final class ShortImages {
         if (start) { job = new Job(url, disk); jobs.put(url, job); }
         for (Subscription existing : job.subscribers) if (existing.target.get() == target) return;
         Subscription subscriber = new Subscription(target, placeholder, job);
+        binding.subscription = subscriber;
         job.subscribers.add(subscriber); target.addOnAttachStateChangeListener(subscriber);
         if (start) { Job next = job; next.task.start(WORKERS, next::run); }
     }
@@ -68,9 +77,13 @@ final class ShortImages {
     }
     private static void remove(Job job, Subscription subscriber) {
         job.subscribers.remove(subscriber); ImageView target = subscriber.target.get();
-        if (target != null) target.removeOnAttachStateChangeListener(subscriber);
+        if (target != null) {
+            target.removeOnAttachStateChangeListener(subscriber);
+            Binding binding = bindings.get(target);
+            if (binding != null && binding.subscription == subscriber) binding.subscription = null;
+        }
         if (job.subscribers.isEmpty() && jobs.get(job.url) == job) {
-            jobs.remove(job.url); job.task.cancel(); WORKERS.purge();
+            jobs.remove(job.url); job.task.cancel();
         }
     }
     private static final class Subscription implements View.OnAttachStateChangeListener {
@@ -101,6 +114,8 @@ final class ShortImages {
                     ImageView target = subscriber.target.get(); TextView placeholder = subscriber.placeholder.get();
                     if (target != null) {
                         target.removeOnAttachStateChangeListener(subscriber);
+                        Binding binding = bindings.get(target);
+                        if (binding != null && binding.subscription == subscriber) binding.subscription = null;
                         if (!task.cancelled() && result != null && !result.isRecycled() && url.equals(target.getTag())) {
                             target.setImageBitmap(result); if (placeholder != null) placeholder.setVisibility(View.GONE);
                         }

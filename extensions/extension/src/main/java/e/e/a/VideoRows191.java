@@ -20,28 +20,8 @@ public final class VideoRows191 {
     private static final java.util.Map<Object,Long> POSTED_TIMES = java.util.Collections.synchronizedMap(new java.util.WeakHashMap<Object,Long>());
     private VideoRows191() {}
 
-    static long millis(String source) {
-        if (source == null) return 0;
-        source = source.replaceAll("<[^>]*>", "").trim();
-        if (source.matches("[0-9]{10}|[0-9]{13}")) try {
-            long value = Long.parseLong(source); return source.length() == 10 ? value * 1000 : value;
-        } catch (NumberFormatException ignored) { return 0; }
-        Matcher match = DATE.matcher(source);
-        if (!match.find()) return 0;
-        String date = match.group();
-        for (String pattern : new String[]{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX", "yyyy-MM-dd'T'HH:mm:ssXXX", "yyyy-MM-dd'T'HH:mm:ssZ", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm", "yyyy/MM/dd HH:mm:ss", "yyyy/MM/dd HH:mm", "yyyy年MM月dd日 HH時mm分", "yyyy年MM月dd日 HH:mm"}) try {
-            SimpleDateFormat format = new SimpleDateFormat(pattern, Locale.ROOT);
-            format.setLenient(false); format.setTimeZone(TimeZone.getTimeZone("Asia/Tokyo"));
-            Date parsed = format.parse(date); if (parsed != null) return parsed.getTime();
-        } catch (java.text.ParseException ignored) { }
-        return 0;
-    }
-    static String date(long millis, String label) {
-        if (millis <= 0) return "";
-        SimpleDateFormat out = new SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.ROOT);
-        out.setTimeZone(TimeZone.getTimeZone("Asia/Tokyo"));
-        return out.format(new Date(millis)) + " " + UiStrings.translate(label);
-    }
+    static long millis(String source) { return RowDates194.millis(source); }
+    static String date(long millis, String label) { return RowDates194.format(millis, label); }
     static String date(String source, String label) { return date(millis(source), label); }
     static int type(Object adapter) { try { return adapter.getClass().getField("e").getInt(adapter); } catch (Exception ignored) { return -1; } }
     static String first(String... values) { for (String value : values) if (value != null && !value.isEmpty() && !value.equals("null")) return value; return ""; }

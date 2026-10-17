@@ -85,13 +85,14 @@ public final class FullscreenViewport209 {
  /** Paint one rectangular strip only behind visible right-aligned action buttons. */
  public static final class Band extends android.graphics.drawable.Drawable{
   private final ViewGroup row;private final android.graphics.Paint paint=new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
-  public Band(ViewGroup row){this.row=row;paint.setColor(0x77000000);}
+  private final android.graphics.Path path=new android.graphics.Path();private final android.graphics.RectF area=new android.graphics.RectF();private final float[] corners=new float[8];private final int post;
+  public Band(ViewGroup row){this.row=row;post=row.getResources().getIdentifier("commentpostbutton","id",row.getContext().getPackageName());paint.setColor(0x77000000);}
   @Override public void draw(android.graphics.Canvas c){
    Rect b=getBounds();int width=0;for(int i=0;i<row.getChildCount();i++){View child=row.getChildAt(i);if(child.getVisibility()!=View.GONE)width+=Math.max(0,child.getLayoutParams().width);}
-   int left=Math.max(b.left,b.right-width),post=row.getResources().getIdentifier("commentpostbutton","id",row.getContext().getPackageName());
+   int left=Math.max(b.left,b.right-width);
    float radius=Math.min(6*row.getResources().getDisplayMetrics().density,b.height()/2f);
    for(int i=0;i<row.getChildCount();i++){View child=row.getChildAt(i);if(child.getVisibility()==View.GONE)continue;int right=Math.min(b.right,left+Math.max(0,child.getLayoutParams().width));
-    if(child.getId()==post){android.graphics.Path path=new android.graphics.Path();path.addRoundRect(new android.graphics.RectF(left,b.top,right,b.bottom),new float[]{radius,radius,0,0,0,0,0,0},android.graphics.Path.Direction.CW);c.drawPath(path,paint);}else c.drawRect(left,b.top,right,b.bottom,paint);left=right;
+    if(child.getId()==post){path.rewind();area.set(left,b.top,right,b.bottom);corners[0]=corners[1]=radius;path.addRoundRect(area,corners,android.graphics.Path.Direction.CW);c.drawPath(path,paint);}else c.drawRect(left,b.top,right,b.bottom,paint);left=right;
    }
   }
   @Override public void setAlpha(int alpha){paint.setAlpha(alpha);invalidateSelf();}

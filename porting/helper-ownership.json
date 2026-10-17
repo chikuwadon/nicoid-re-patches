@@ -331,8 +331,8 @@
   },
   "FullscreenViewport209": {
     "owner": "snapshot",
-    "java_sha256": "dbb6ac5abd195e2070e1476bb9219ee19e15fb168007830058559e483b1d825a",
-    "smali_sha256": "13e6fb5445bcccae36aa78087a27c1439f4edb2dc9a9e22dd3e739c8db63a773"
+    "java_sha256": "f0b9bc9e102048df8e27a54a3326599d63868a9a025d67a9a366cdd7f38b189b",
+    "smali_sha256": "7e4048de75ce18e772c6c6a78d08610e3ac378fe054bafcfca77c53b68d10a70"
   },
   "GestureRules": {
     "owner": "snapshot",
@@ -420,9 +420,7 @@
     "smali_sha256": "14b5b6caf86c1c90d86968b2eab55195f6e814a2529b308928b29b613ab6f75d"
   },
   "NetworkTask": {
-    "owner": "snapshot",
-    "java_sha256": "321ca0edfc95eef343b655875e76622c764cb3093ea61133e47d56a44d139e58",
-    "smali_sha256": "0c78572697927a0078d24739692a498860d8df8954e17e758df3f9cf1452313d"
+    "owner": "java"
   },
   "NgCommentData": {
     "owner": "snapshot",
@@ -445,9 +443,7 @@
     "smali_sha256": "e70c4eff717e1611317823815086dd086d14b33534f9a6814bae167b764f6f32"
   },
   "PageCache": {
-    "owner": "snapshot",
-    "java_sha256": "6e846860f7bdccc7da6083cce1cdfb4c1f8709c0a1e412b984266f2d5607c5e9",
-    "smali_sha256": "d6e8a896d0cfa39e77d2b7582c145c1f635676e720278826caafa0fb347c72d4"
+    "owner": "java"
   },
   "PageRules": {
     "owner": "snapshot",
@@ -604,6 +600,9 @@
     "java_sha256": "07046d3d8aaf4cd6286f37cdba0f47dda8467dab6ea9a600dce45ac5f08ca6ed",
     "smali_sha256": "d1f89b82614b837298724dfb3fd2af424a06d4421ea14d6674dc9c4801114b97"
   },
+  "RowDates194": {
+    "owner": "java"
+  },
   "SearchFilterRules": {
     "owner": "snapshot",
     "java_sha256": "58b8c722393065cde4029fa02f0ee4b9f694223ec0d6de834cdf626b33d46a1e",
@@ -655,9 +654,7 @@
     "smali_sha256": "f2314a7f077f0797448e830295edde2f02a49b0ae525df188a178bb092d762b3"
   },
   "ShortImages": {
-    "owner": "snapshot",
-    "java_sha256": "3bf6253d8bc3f2d79589bcfef41bc3e9514c227ceb77613e015d1ec5eb47233f",
-    "smali_sha256": "617fd141ef48879b827c82d37737a1e290361b42796653028f5952d8e01fc257"
+    "owner": "java"
   },
   "ShortsRules": {
     "owner": "snapshot",
@@ -746,8 +743,8 @@
   },
   "VideoRows191": {
     "owner": "snapshot",
-    "java_sha256": "b9f12a5d4f5ea6441a39f367775d85a241945bdfea76a1c049b91f5d8b94e8c5",
-    "smali_sha256": "17fa6a2593c2d0d77b29db73108e9ee2ec2c250d1662c5e9777319c3eff01939"
+    "java_sha256": "8c595e351db92198d56099d95d1df4be8038ac37a78356909db7fe92f34a2db3",
+    "smali_sha256": "07ac30a1bd8e390e1a3d38886100baa091ec703201fd0cbfa43bf6f24d87f6f5"
   },
   "WatchRequestHeaders": {
     "owner": "snapshot",

@@ -61,7 +61,10 @@ public final class PerformanceTest {
             running.cancel(); long until=System.nanoTime()+TimeUnit.SECONDS.toNanos(3);
             while(!connection.disconnected && System.nanoTime()<until) Thread.yield();
             check(connection.disconnected && running.cancelled(),"running connection closed on cancellation");
-            Connection late = new Connection("https://example.com/late"); check(!running.bind(late)&&late.disconnected,"late connection cannot survive cancellation");
+            Connection late = new Connection("https://example.com/late"); check(!running.bind(late),"late connection rejected after cancellation");
+            until=System.nanoTime()+TimeUnit.SECONDS.toNanos(3);
+            while(!late.disconnected && System.nanoTime()<until) Thread.yield();
+            check(late.disconnected,"late connection eventually closed without blocking caller");
         } finally {workers.shutdownNow();}
         System.out.println("Performance policies verified: page hits/expiry/refresh races, disk image variants/expiry/bounds, queued and running request cancellation");
     }

@@ -26,6 +26,7 @@ public class UiMatrix194Test {
   try(PrintWriter index=new PrintWriter(new File(output,"results.csv"),"UTF-8")){
    index.println("theme,language,width_dp,height_dp,actions_fit,checked_state,disabled_state,image");
    for(String mode:MODES)for(String lang:LANGS)for(int[] size:SIZES){
+    String language="0".equals(lang)?"ja":"1".equals(lang)?"en":"zh-rTW";RuntimeEnvironment.setQualifiers(language+"-sw"+Math.min(size[0],size[1])+"dp-w"+size[0]+"dp-h"+size[1]+"dp-"+(size[0]>size[1]?"land":"port")+"-mdpi");
     org.robolectric.android.controller.ActivityController<Activity> lifecycle=Robolectric.buildActivity(Activity.class).setup().visible();Activity a=lifecycle.get();
     PreferenceManager.getDefaultSharedPreferences(a).edit().clear().putString("app_theme",mode).putString("app_lang",lang).commit();UiStrings.selectLanguage(lang);
     Context c=UiTheme191.context(a);LinearLayout form=new LinearLayout(c);form.setOrientation(LinearLayout.VERTICAL);UiDialogs.insetContent(form);
@@ -37,9 +38,9 @@ public class UiMatrix194Test {
     ScrollView scroll=new ScrollView(c);scroll.addView(form);
     AlertDialog dialog=UiDialogs.builder(a).setTitle(tr("コメントの最大行数")).setView(scroll).setPositiveButton(tr("保存"),null).setNegativeButton(tr("キャンセル"),null).setNeutralButton(tr("デフォルトに戻す"),null).create();PlaybackSession.showDialog(dialog);
     View decor=dialog.getWindow().getDecorView();for(int n=0;n<3;n++)layout(decor,size[0],size[1]);
-    org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(300));decor.jumpDrawablesToCurrentState();
+    org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(300));for(int n=0;n<3;n++)layout(decor,size[0],size[1]);decor.jumpDrawablesToCurrentState();
     String tag=mode+"-"+lang+"-"+size[0]+"x"+size[1];
-    for(int which:new int[]{-1,-2,-3}){Button b=dialog.getButton(which);assertFalse(tag+": missing action label",b.getText().toString().isEmpty());assertTrue(tag+": action clipped: "+b.getText(),b.getWidth()-b.getPaddingLeft()-b.getPaddingRight()+1>=b.getPaint().measureText(b.getText().toString()));assertTrue(tag+": action hit height",b.getHeight()>=48);}
+    for(int which:new int[]{-1,-2,-3}){Button b=dialog.getButton(which);assertFalse(tag+": missing action label",b.getText().toString().isEmpty());assertTrue(tag+": action clipped: "+b.getText(),b.getWidth()-b.getPaddingLeft()-b.getPaddingRight()+1>=b.getPaint().measureText(b.getText().toString()));assertTrue(tag+": action hit height",b.getHeight()>=48);Rect visible=new Rect();assertTrue(tag+": hidden action",b.getGlobalVisibleRect(visible));assertTrue(tag+": clipped action height",visible.height()>=48);}
     int accent=UiDialogs.accent(a);assertEquals(tag,accent,checked.getButtonTintList().getColorForState(new int[]{android.R.attr.state_enabled,android.R.attr.state_checked},0));assertNotEquals(tag,accent,disabled.getButtonTintList().getColorForState(new int[]{},0));
     double x=Compat194Test.luminance(dialog.getButton(-1).getCurrentTextColor()),y=Compat194Test.luminance(accent);assertTrue(tag+": primary contrast",(Math.max(x,y)+.05)/(Math.min(x,y)+.05)>=4.5);
     if(size[0]==320&&"1".equals(lang)){for(int which:new int[]{-1,-2,-3}){Button b=dialog.getButton(which);System.out.println("Action geometry "+mode+" "+which+" label="+b.getText()+" rect="+b.getLeft()+","+b.getTop()+","+b.getRight()+","+b.getBottom()+" baseline="+b.getBaseline()+" layout="+b.getLayout()+" visible="+b.getVisibility()+" parent="+((View)b.getParent()).getWidth()+"x"+((View)b.getParent()).getHeight()+" clip="+b.getClipBounds()+" ink="+Integer.toHexString(b.getCurrentTextColor()));}}

@@ -23,15 +23,23 @@
 
 # virtual methods
 .method public run()V
-    .registers 6
+    .registers 7
 
     iget-object v0, p0, Le/e/a/ModernControls$Apply;->task:Le/e/a/ModernControls$Switch;
 
     iget-object v1, v0, Le/e/a/ModernControls$Switch;->fragment:Lcom/sauzask/nicoid/NicoidVideoFragment;
 
+    if-eqz v1, :cond_26
+    iget-object v2, v1, Lcom/sauzask/nicoid/NicoidVideoFragment;->b0:Ljava/lang/String;
+    iget-object v3, v0, Le/e/a/ModernControls$Switch;->videoId:Ljava/lang/String;
+    invoke-static {v2, v3}, Ljava/util/Objects;->equals(Ljava/lang/Object;Ljava/lang/Object;)Z
+    move-result v2
+    if-eqz v2, :cond_26
     iget-object v1, v1, Lcom/sauzask/nicoid/NicoidVideoFragment;->a0:Lcom/devbrackets/android/exomedia/ui/widget/VideoView;
 
     if-eqz v1, :cond_26
+    iget-object v2, v0, Le/e/a/ModernControls$Switch;->player:Lcom/devbrackets/android/exomedia/ui/widget/VideoView;
+    if-ne v1, v2, :cond_26
 
     iget-object v2, v0, Le/e/a/ModernControls$Switch;->url:Ljava/lang/String;
 

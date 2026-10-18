@@ -122,4 +122,11 @@ public class FullscreenLayout209Test {
  @Test public void detachRestoresWindowFlagsAndControls(){Fixture f=new Fixture(false);int flags=f.activity.getWindow().getAttributes().flags;f.update(2048,955);f.content.removeView(f.root);assertEquals(flags,f.activity.getWindow().getAttributes().flags);assertSame(f.frame,f.controller.getParent());}
  @Test public void normalTabletToolbarAvoidsStatusBarWithoutSidePane(){Fixture f=new Fixture(false);f.layer.removeView(f.bar);f.bar.setId(id("titlebar"));RelativeLayout.LayoutParams p=new RelativeLayout.LayoutParams(-1,40);p.addRule(RelativeLayout.ALIGN_PARENT_TOP);f.frame.addView(f.bar,p);((InsetRoot)f.root).statusInset=64;layout(f.decor,2048,955);assertFalse(FullscreenViewport209.side(f.root));layout(f.decor,2048,955);int[] where=new int[2];f.bar.getLocationInWindow(where);assertTrue("Normal toolbar window Y: "+where[1],where[1]>=64);int margin=((ViewGroup.MarginLayoutParams)f.bar.getLayoutParams()).topMargin;FullscreenViewport209.side(f.root);layout(f.decor,2048,955);assertEquals(margin,((ViewGroup.MarginLayoutParams)f.bar.getLayoutParams()).topMargin);FullscreenViewport209.restore(f.root);assertEquals(0,((ViewGroup.MarginLayoutParams)f.bar.getLayoutParams()).topMargin);}
 
+ @Test public void tabletToolbarRepairsCollapsedHeightAndStaleTranslation(){
+  Fixture f=new Fixture(false);LinearLayout bar=sideToolbar(f);bar.getLayoutParams().height=1;bar.setTranslationY(-80);layout(f.decor,2048,955);
+  assertTrue(FullscreenViewport209.side(f.root));layout(f.decor,2048,955);
+  assertTrue("Visible toolbar must fit its controls",bar.getHeight()>=40);assertEquals(0f,bar.getTranslationY(),0f);
+  FullscreenViewport209.restore(f.root);
+ }
+
 }

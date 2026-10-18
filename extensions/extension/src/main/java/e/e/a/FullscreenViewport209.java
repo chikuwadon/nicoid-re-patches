@@ -60,6 +60,7 @@ public final class FullscreenViewport209 {
    if(changed)v.setLayoutParams(p);
   }
   View titlebar=find(root,"titlebar"),tools=find(root,"topmenulay");int status=statusTop(root);
+  state.toolbar(titlebar,tools);
   state.belowStatus(titlebar,status);
   if(tools!=null&&!within(tools,titlebar))state.belowStatus(tools,status);
   return true;
@@ -130,9 +131,9 @@ public final class FullscreenViewport209 {
   Moved(View v){view=v;parent=(ViewGroup)v.getParent();index=parent.indexOfChild(v);}
  }
  private static final class Saved {
-  final ViewGroup.LayoutParams params;final int[] padding;final Rect clip;final android.graphics.drawable.Drawable background;final int minWidth,minHeight,textMinWidth,textMinHeight;
-  Saved(View v){ViewGroup.LayoutParams p=v.getLayoutParams();params=copy(p);padding=new int[]{v.getPaddingLeft(),v.getPaddingTop(),v.getPaddingRight(),v.getPaddingBottom()};clip=v.getClipBounds();background=v.getBackground();minWidth=v.getMinimumWidth();minHeight=v.getMinimumHeight();textMinWidth=v instanceof TextView?((TextView)v).getMinWidth():0;textMinHeight=v instanceof TextView?((TextView)v).getMinHeight():0;}
-  void restore(View v){v.setLayoutParams(params);v.setPadding(padding[0],padding[1],padding[2],padding[3]);v.setClipBounds(clip);v.setBackground(background);v.setMinimumWidth(minWidth);v.setMinimumHeight(minHeight);if(v instanceof TextView){((TextView)v).setMinWidth(textMinWidth);((TextView)v).setMinHeight(textMinHeight);}}
+  final ViewGroup.LayoutParams params;final int[] padding;final Rect clip;final android.graphics.drawable.Drawable background;final int minWidth,minHeight,textMinWidth,textMinHeight;final float translationX,translationY;
+  Saved(View v){translationX=v.getTranslationX();translationY=v.getTranslationY();ViewGroup.LayoutParams p=v.getLayoutParams();params=copy(p);padding=new int[]{v.getPaddingLeft(),v.getPaddingTop(),v.getPaddingRight(),v.getPaddingBottom()};clip=v.getClipBounds();background=v.getBackground();minWidth=v.getMinimumWidth();minHeight=v.getMinimumHeight();textMinWidth=v instanceof TextView?((TextView)v).getMinWidth():0;textMinHeight=v instanceof TextView?((TextView)v).getMinHeight():0;}
+  void restore(View v){v.setTranslationX(translationX);v.setTranslationY(translationY);v.setLayoutParams(params);v.setPadding(padding[0],padding[1],padding[2],padding[3]);v.setClipBounds(clip);v.setBackground(background);v.setMinimumWidth(minWidth);v.setMinimumHeight(minHeight);if(v instanceof TextView){((TextView)v).setMinWidth(textMinWidth);((TextView)v).setMinHeight(textMinHeight);}}
  }
  private static ViewGroup.LayoutParams copy(ViewGroup.LayoutParams p){if(p instanceof RelativeLayout.LayoutParams)return new RelativeLayout.LayoutParams((RelativeLayout.LayoutParams)p);if(p instanceof LinearLayout.LayoutParams)return new LinearLayout.LayoutParams((LinearLayout.LayoutParams)p);if(p instanceof FrameLayout.LayoutParams)return new FrameLayout.LayoutParams((FrameLayout.LayoutParams)p);if(p instanceof ViewGroup.MarginLayoutParams)return new ViewGroup.MarginLayoutParams((ViewGroup.MarginLayoutParams)p);return new ViewGroup.LayoutParams(p);}
  private static final class Session {
@@ -168,6 +169,18 @@ public final class FullscreenViewport209 {
    float alpha=controller.getAlpha();android.view.animation.Animation animation=controller.getAnimation();
    if(animation!=null){android.view.animation.Transformation transform=new android.view.animation.Transformation();animation.getTransformation(android.view.animation.AnimationUtils.currentAnimationTimeMillis(),transform);alpha*=transform.getAlpha();}
    if(bottom.getAlpha()!=alpha)bottom.setAlpha(alpha);
+  }
+  void toolbar(View bar,View tools){
+   if(bar==null||tools==null||bar.getLayoutParams()==null)return;
+   // Native transition snapshots can retain a collapsed or translated title strip.
+   // Only repair geometry; the native visibility/alpha still controls showing it.
+   save(bar);
+   if(bar.getTranslationY()!=0)bar.setTranslationY(0);
+   int required=tools.getMinimumHeight();
+   ViewGroup.LayoutParams tp=tools.getLayoutParams();if(tp!=null&&tp.height>0)required=Math.max(required,tp.height);
+   required=Math.max(required,tools.getMeasuredHeight());
+   ViewGroup.LayoutParams bp=bar.getLayoutParams();
+   if(required>0&&bp.height>=0&&bp.height<required){ViewGroup.LayoutParams next=copy(bp);next.height=ViewGroup.LayoutParams.WRAP_CONTENT;bar.setLayoutParams(next);}
   }
   void belowStatus(View v,int status){
    if(v==null||!(v.getParent() instanceof View)||!(v.getLayoutParams() instanceof ViewGroup.MarginLayoutParams))return;

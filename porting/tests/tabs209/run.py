@@ -17,7 +17,7 @@ for item in a.classpath.read_text().strip().split(':'):
 classpath.append(str(a.sdk_dir.resolve()/'android-all-14-robolectric-10818077.jar'));cp=':'.join(classpath)
 classes=w/'classes'
 if classes.exists():shutil.rmtree(classes)
-sources=[repo/'extensions/extension/src/main/java/e/e/a'/name for name in ['FollowFeed.java','FeedRefresh209.java','Following190.java','TabViewport110.java','FollowFeedData.java','NetworkTask.java','Ui110.java','PanelUi.java']] + list(source.glob('*.java'))
+sources=[repo/'extensions/extension/src/main/java/e/e/a'/name for name in ['FollowFeed.java','FeedRefresh209.java','Following190.java','TabViewport110.java','FollowFeedData.java','NetworkTask.java','Ui110.java','PanelUi.java','SessionCookies194.java','FeedLayout194.java']] + list(source.glob('*.java'))
 cp+=':'+str(a.helpers.resolve())
 subprocess.run(['java','-jar',str(a.ecj),'-1.8','-warn:none','-cp',cp,'-d',str(classes),*map(str,sources)],check=True)
 subprocess.run(['java','-Drobolectric.offline=true','-Dnicoid.test.image='+str(w/'strip.png'),'-Drobolectric.usePreinstrumentedJars=false','-Drobolectric.dependency.dir='+str(a.sdk_dir.resolve()),'-cp',str(classes)+':'+cp.rsplit(':',1)[0],'org.junit.runner.JUnitCore','e.e.a.TabSession209Test'],check=True)

@@ -128,9 +128,7 @@
     "owner": "java"
   },
   "CastDiagnostics": {
-    "owner": "snapshot",
-    "java_sha256": "9095e21c97c7d1aa490a46cbd850f7a142682effd844627afb993acca81d57f5",
-    "smali_sha256": "e8bd64eb3727194ebe35ee86a70c2218b1c78540fa67c92fb6f2b50b2b85d442"
+    "owner": "java"
   },
   "CastHls": {
     "owner": "snapshot",
@@ -288,9 +286,7 @@
     "smali_sha256": "74048242978826f331cfcaac9409be7e6be94788fc59acc90712c3cfdbbdb17b"
   },
   "FollowFeed": {
-    "owner": "snapshot",
-    "java_sha256": "4b63b21ed35ff1940f67f41512096f46a6400d6fcc1b5dafce686b59ca70ac4b",
-    "smali_sha256": "92f0c9f57a25a9084c125f71a8c2405bb4f9ced8796c994d8263c517eee2cb8c"
+    "owner": "java"
   },
   "FollowFeedData": {
     "owner": "snapshot",
@@ -530,6 +526,9 @@
     "owner": "snapshot",
     "java_sha256": "a128a971be9b4f09e3702b0f40a3e29442fc5735fd47e5de94c5d2989f437a40",
     "smali_sha256": "aa34e16b43dabd2a6cc7ab630bbaec5e8f32570cf17ada11fa619672dc55f8ca"
+  },
+  "PopupDrag195": {
+    "owner": "java"
   },
   "PopupGestures": {
     "owner": "snapshot",

@@ -101,6 +101,8 @@ jobs:
         run: python3 porting/tests/VerifyManifest.py patches/src/main/resources/nicoid/resources.zip
       - name: Validate bundled settings
         run: python3 porting/tests/VerifySettingsPayload.py patches/src/main/resources/nicoid/resources.zip
+      - name: Check playback callback registers
+        run: python3 porting/tests/VerifyQualityRegisters195.py porting/helpers-smali
       - name: Validate helper source precedence
         run: python3 porting/tests/VerifyCanonicalHelpers.py
       - name: Install dependencies
@@ -130,7 +132,7 @@ jobs:
         run: ./gradlew clean :patches:buildAndroid --no-daemon
 
       - name: Save audit verification bundle
-        if: github.ref == 'refs/heads/perf/audit-194' && steps.release.outputs.new_release_published != 'true'
+        if: (github.ref == 'refs/heads/perf/audit-194' || github.ref == 'refs/heads/fix/post-194') && steps.release.outputs.new_release_published != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: nicoid-audit-verification

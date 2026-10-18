@@ -56,4 +56,15 @@ public class TabSession209Test {
   for(int n=0;n<3;n++){pager.select(0);pager.select(1);assertSame(channel,pager.getChildAt(1));assertFalse(task.cancelled());pager.swipe(1);assertSame(mylists,pager.getChildAt(2));assertFalse(listsTask.cancelled());}
   assertEquals(1,CreatorPage.channels);assertEquals(1,CreatorPage.mylists);assertEquals(120,scroll.getScrollY());
  }
+ @Test public void creatorSelectionFollowsEveryTabAndClearAppliesEverywhere()throws Exception{
+  Page a=activity();FollowFeed.load(a);Object root=session(a);a.setContentView(a.y);
+  FollowFeedData.Actor actor=new FollowFeedData.Actor(new JSONObject().put("id","123").put("type","user").put("name","creator"));
+  ((Map)field(root,"actors")).put(actor.key(),actor);
+  Method render=FollowFeed.class.getDeclaredMethod("renderAuthors",Activity.class,root.getClass());render.setAccessible(true);render.invoke(null,a,root);
+  ((LinearLayout)field(root,"authors")).getChildAt(1).performClick();assertEquals(actor.key(),field(root,"actorKey"));
+  for(int n=1;n<4;n++){select(a,root,n);assertEquals("New tab inherits author",actor.key(),field(field(root,"current"),"actorKey"));assertTrue(((LinearLayout)field(root,"authors")).getChildCount()>=2);}
+  LinearLayout authors=(LinearLayout)field(root,"authors");authors.getChildAt(0).performClick();
+  for(int n=0;n<4;n++){select(a,root,n);assertNull("Clearing selection applies to cached tabs",field(field(root,"current"),"actorKey"));}
+ }
+
 }

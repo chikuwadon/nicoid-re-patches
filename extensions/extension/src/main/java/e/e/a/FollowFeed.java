@@ -144,6 +144,8 @@ public final class FollowFeed {
             next.refresh=session.refresh;next.tabs=session.tabs;next.swipe=session.swipe;next.authors=session.authors;next.rows=new Rows(a,next);
             session.pages[index]=next;
         }
+        boolean authorChanged=!java.util.Objects.equals(next.actorKey,session.actorKey);
+        next.actorKey=session.actorKey;if(next.actorKey!=null&&session.actors.containsKey(next.actorKey))next.actors.put(next.actorKey,session.actors.get(next.actorKey));if(authorChanged)next.scroll=null;
         session.current=next;next.autoLoad=false;next.authorStamp=null;
         next.list.setAdapter(next.rows);next.tabs.select(index);next.status.setText(next.message);
         renderAuthors(a,next);rebuild(a,next);updateFooter(a,next);
@@ -234,6 +236,12 @@ public final class FollowFeed {
         if(!s.busy&&!s.failed)status(s,s.actorKey==null?"":text(a,"投稿者で絞り込み中","Filtered by creator","依投稿者篩選"));
         if(s.tabs!=null)s.tabs.select(s.filter);s.rows.notifyDataSetChanged();
     }
+    private static void chooseActor(Activity a,State page,String key){
+        State session=page.session==null?page:page.session;
+        session.actorKey=key;Actor chosen=page.actors.get(key);if(chosen!=null)session.actors.put(key,chosen);
+        if(session.pages!=null)for(State state:session.pages)if(state!=null){state.actorKey=key;if(chosen!=null)state.actors.put(key,chosen);state.authorStamp=null;state.scroll=null;}
+        page.actorKey=key;renderAuthors(a,page);rebuild(a,page);page.list.setSelection(0);
+    }
     private static void renderAuthors(Activity a,State s){
         if(!s.active())return;
         StringBuilder stamp=new StringBuilder(String.valueOf(s.actorKey));int count=0;
@@ -241,7 +249,7 @@ public final class FollowFeed {
         String value=stamp.toString();if(value.equals(s.authorStamp))return;s.authorStamp=value;
         s.authors.removeAllViews();
         Button all=chip(a,text(a,"すべて","All","全部"));all.setSelected(s.actorKey==null);
-        all.setOnClickListener(v->{s.actorKey=null;renderAuthors(a,s);rebuild(a,s);s.list.setSelection(0);});
+        all.setOnClickListener(v->{chooseActor(a,s,null);});
         s.authors.addView(all,new LinearLayout.LayoutParams(-2,dp(a,40)));
         int shown=0;
         for(Actor actor:s.actors.values()){
@@ -252,7 +260,7 @@ public final class FollowFeed {
             FrameLayout picture=imageBox(a,true);entry.addView(picture,new LinearLayout.LayoutParams(dp(a,48),dp(a,48)));
             TextView name=label(a,11,false);name.setText(actor.name);name.setSingleLine(true);name.setEllipsize(android.text.TextUtils.TruncateAt.END);name.setGravity(Gravity.CENTER);
             entry.addView(name,new LinearLayout.LayoutParams(-1,-2));bindImage(picture,actor.icon);
-            entry.setContentDescription(actor.name);entry.setOnClickListener(v->{s.actorKey=actor.key();renderAuthors(a,s);rebuild(a,s);s.list.setSelection(0);});
+            entry.setContentDescription(actor.name);entry.setOnClickListener(v->{chooseActor(a,s,actor.key());});
             s.authors.addView(entry,new LinearLayout.LayoutParams(dp(a,72),-2));
         }
     }

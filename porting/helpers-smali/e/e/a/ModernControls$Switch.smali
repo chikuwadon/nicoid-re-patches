@@ -13,6 +13,8 @@
 .field public position:J
 
 .field public url:Ljava/lang/String;
+.field public videoId:Ljava/lang/String;
+.field public player:Lcom/devbrackets/android/exomedia/ui/widget/VideoView;
 
 
 # direct methods
@@ -27,6 +29,12 @@
 
     iput-wide p3, p0, Le/e/a/ModernControls$Switch;->position:J
 
+    if-eqz p1, :switch_initialized195
+    iget-object p2, p1, Lcom/sauzask/nicoid/NicoidVideoFragment;->b0:Ljava/lang/String;
+    iput-object p2, p0, Le/e/a/ModernControls$Switch;->videoId:Ljava/lang/String;
+    iget-object p2, p1, Lcom/sauzask/nicoid/NicoidVideoFragment;->a0:Lcom/devbrackets/android/exomedia/ui/widget/VideoView;
+    iput-object p2, p0, Le/e/a/ModernControls$Switch;->player:Lcom/devbrackets/android/exomedia/ui/widget/VideoView;
+    :switch_initialized195
     return-void
 .end method
 
@@ -40,7 +48,11 @@
 
     iget-object v1, p0, Le/e/a/ModernControls$Switch;->fragment:Lcom/sauzask/nicoid/NicoidVideoFragment;
 
-    iget-object v2, v1, Lcom/sauzask/nicoid/NicoidVideoFragment;->b0:Ljava/lang/String;
+    if-eqz v1, :cond_1a
+
+    if-eqz v0, :cond_1a
+
+    iget-object v2, p0, Le/e/a/ModernControls$Switch;->videoId:Ljava/lang/String;
 
     if-eqz v2, :cond_1a
 
@@ -53,6 +65,8 @@
     iput-object v2, p0, Le/e/a/ModernControls$Switch;->url:Ljava/lang/String;
 
     iget-object v0, v1, Lcom/sauzask/nicoid/NicoidVideoFragment;->Y:Landroid/os/Handler;
+
+    if-eqz v0, :cond_1a
 
     new-instance v2, Le/e/a/ModernControls$Apply;
 

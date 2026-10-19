@@ -12,7 +12,8 @@ permissions:
 
 jobs:
   publish:
-    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'build: publish prepared prerelease')
+    if: >-
+      github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'build: publish prepared prerelease')
     runs-on: ubuntu-latest
     env:
       RELEASE_VERSION: 1.9.6-dev.1

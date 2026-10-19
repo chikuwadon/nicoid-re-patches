@@ -17,12 +17,12 @@
   "BikeRun": {
     "owner": "snapshot",
     "java_sha256": "3f2fc9e30b54c2fc351b2b75213f8cdecd58f0b785f17f8b9af7c5b7e5460562",
-    "smali_sha256": "886aa5326d33e26a91c3ff1242093d3f0549c6b2b10797d3299b7ed47607a0e4"
+    "smali_sha256": "291a2a6d8f2f518c2f5ace7f2e0a6ae9d1e2e4b10ea74fde7b4985d60944f721"
   },
   "BikeRunModel": {
     "owner": "snapshot",
     "java_sha256": "39940ff458d4ee70f344d976e446e1dec8d381550e0bbc80ce56ecce4a6cd979",
-    "smali_sha256": "5cf8e815f5d4ce1d97eb090933756b5d4c586e3574e4bbc7f495a8d3eed64005"
+    "smali_sha256": "8becd4334ff0caa3950eb71d1720e8d36f51896b7edaad6a99ed1b4c79dc1e11"
   },
   "BulkSelection": {
     "owner": "snapshot",
@@ -404,7 +404,7 @@
   "ModernEnhancements": {
     "owner": "snapshot",
     "java_sha256": "dd7e4a3a5b000862aa26c22deb3fc5ee229046f0622a55bd8590454b098ddbcd",
-    "smali_sha256": "948a7f9538accda8948217abaf66b2f490de6eaa414bd510db19fd85a6e15c44"
+    "smali_sha256": "a3197a49be664fd8c73ccbb52a2ca992ea14e1d3f98c1f5ff85fa8a9d1b533c5"
   },
   "ModernPosting": {
     "owner": "snapshot",
@@ -485,7 +485,7 @@
   "PlaybackSession": {
     "owner": "snapshot",
     "java_sha256": "4ff750014ee71c835958da79e5e025a73485f538b3e6b97db5f9489d64631182",
-    "smali_sha256": "fdfc08736871dabd62baf002b5dfd658de5e69fdaf291b933704183e4b3365e3"
+    "smali_sha256": "7668fcea5f3e4d4a38272ab13a75d2e23732ba8a713cebc0ec6e82bafdd9fa19"
   },
   "PlaybackTransfer": {
     "owner": "snapshot",

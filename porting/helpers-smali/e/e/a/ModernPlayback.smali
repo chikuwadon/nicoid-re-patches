@@ -172,7 +172,7 @@
 
     move-result-object v0
 
-    if-eqz v0, :cond_22
+    if-eqz v0, :cond_2a
 
     invoke-virtual {v0}, Lorg/json/JSONObject;->toString()Ljava/lang/String;
 
@@ -187,12 +187,16 @@
     iput-object v0, p0, Le/e/a/d0;->modernWatch:Lorg/json/JSONObject;
 
     iget-object v4, p0, Le/e/a/d0;->r:Ljava/lang/Boolean;
-    invoke-virtual {v4}, Ljava/lang/Boolean;->booleanValue()Z
-    move-result v4
-    if-nez v4, :cache_info_ui_kept
-    sput-object v0, Le/e/a/ModernPlayback;->latestWatch:Lorg/json/JSONObject;
-    :cache_info_ui_kept
 
+    invoke-virtual {v4}, Ljava/lang/Boolean;->booleanValue()Z
+
+    move-result v4
+
+    if-nez v4, :cond_1d
+
+    sput-object v0, Le/e/a/ModernPlayback;->latestWatch:Lorg/json/JSONObject;
+
+    :cond_1d
     const-string v2, "nicovideo_version"
 
     const/4 v3, 0x2
@@ -205,14 +209,14 @@
 
     return-object v1
 
-    :cond_22
+    :cond_2a
     const/4 v0, 0x0
 
     return-object v0
-    :try_end_24
-    .catch Ljava/lang/Exception; {:try_start_0 .. :try_end_24} :catch_24
+    :try_end_2c
+    .catch Ljava/lang/Exception; {:try_start_0 .. :try_end_2c} :catch_2c
 
-    :catch_24
+    :catch_2c
     move-exception v0
 
     const-string v1, "nicoid-modern"
@@ -534,22 +538,28 @@
     .registers 16
 
     invoke-static {p0, p1}, Le/e/a/CachedPlayback;->stream(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String;
+
     move-result-object v0
-    if-eqz v0, :network_playback
+
+    if-eqz v0, :cond_7
+
     return-object v0
-    :network_playback
 
-
+    :cond_7
     const/4 v0, 0x0
 
     iget-object v12, p0, Le/e/a/d0;->r:Ljava/lang/Boolean;
-    invoke-virtual {v12}, Ljava/lang/Boolean;->booleanValue()Z
-    move-result v12
-    if-nez v12, :cache_ui_kept_0
-    sput-object v0, Le/e/a/ModernControls;->selectedVideo:Ljava/lang/String;
-    :cache_ui_kept_0
 
-    :try_start_3
+    invoke-virtual {v12}, Ljava/lang/Boolean;->booleanValue()Z
+
+    move-result v12
+
+    if-nez v12, :cond_12
+
+    sput-object v0, Le/e/a/ModernControls;->selectedVideo:Ljava/lang/String;
+
+    :cond_12
+    :try_start_12
     const-string v0, "HLS session start"
 
     invoke-static {v0}, Le/e/a/ModernDebug;->record(Ljava/lang/String;)V
@@ -558,17 +568,21 @@
 
     move-result-object v0
 
-    if-eqz v0, :cond_110
+    if-eqz v0, :cond_123
 
     iput-object v0, p0, Le/e/a/d0;->modernWatch:Lorg/json/JSONObject;
 
     iget-object v12, p0, Le/e/a/d0;->r:Ljava/lang/Boolean;
-    invoke-virtual {v12}, Ljava/lang/Boolean;->booleanValue()Z
-    move-result v12
-    if-nez v12, :cache_ui_kept_1
-    sput-object v0, Le/e/a/ModernPlayback;->latestWatch:Lorg/json/JSONObject;
-    :cache_ui_kept_1
 
+    invoke-virtual {v12}, Ljava/lang/Boolean;->booleanValue()Z
+
+    move-result v12
+
+    if-nez v12, :cond_29
+
+    sput-object v0, Le/e/a/ModernPlayback;->latestWatch:Lorg/json/JSONObject;
+
+    :cond_29
     const-string v1, "media"
 
     invoke-virtual {v0, v1}, Lorg/json/JSONObject;->getJSONObject(Ljava/lang/String;)Lorg/json/JSONObject;
@@ -585,25 +599,25 @@
 
     const/4 v3, 0x4
 
-    if-ne v2, v3, :cond_25
+    if-ne v2, v3, :cond_3c
 
     const/4 v2, 0x2
 
-    goto :goto_2b
+    goto :goto_42
 
-    :cond_25
+    :cond_3c
     const/4 v3, 0x3
 
-    if-ne v2, v3, :cond_2a
+    if-ne v2, v3, :cond_41
 
     const/4 v2, 0x1
 
-    goto :goto_2b
+    goto :goto_42
 
-    :cond_2a
+    :cond_41
     const/4 v2, 0x0
 
-    :goto_2b
+    :goto_42
     const-string v3, "videos"
 
     invoke-virtual {v1, v3}, Lorg/json/JSONObject;->getJSONArray(Ljava/lang/String;)Lorg/json/JSONArray;
@@ -615,12 +629,16 @@
     move-result-object v3
 
     iget-object v12, p0, Le/e/a/d0;->r:Ljava/lang/Boolean;
-    invoke-virtual {v12}, Ljava/lang/Boolean;->booleanValue()Z
-    move-result v12
-    if-nez v12, :cache_ui_kept_2
-    sput-object v3, Le/e/a/ModernControls;->selectedVideo:Ljava/lang/String;
-    :cache_ui_kept_2
 
+    invoke-virtual {v12}, Ljava/lang/Boolean;->booleanValue()Z
+
+    move-result v12
+
+    if-nez v12, :cond_56
+
+    sput-object v3, Le/e/a/ModernControls;->selectedVideo:Ljava/lang/String;
+
+    :cond_56
     const-string v4, "audios"
 
     invoke-virtual {v1, v4}, Lorg/json/JSONObject;->getJSONArray(Ljava/lang/String;)Lorg/json/JSONArray;
@@ -631,9 +649,9 @@
 
     move-result-object v4
 
-    if-eqz v3, :cond_110
+    if-eqz v3, :cond_123
 
-    if-eqz v4, :cond_110
+    if-eqz v4, :cond_123
 
     new-instance v5, Ljava/lang/StringBuilder;
 
@@ -649,19 +667,9 @@
 
     invoke-static {v5}, Le/e/a/ModernDebug;->record(Ljava/lang/String;)V
 
-    new-instance v5, Lorg/json/JSONArray;
+    invoke-static {p0, v1, v4, v3}, Le/e/a/Quality195;->outputs(Ljava/lang/Object;Lorg/json/JSONObject;Ljava/lang/String;Ljava/lang/String;)Lorg/json/JSONArray;
 
-    invoke-direct {v5}, Lorg/json/JSONArray;-><init>()V
-
-    new-instance v6, Lorg/json/JSONArray;
-
-    invoke-direct {v6}, Lorg/json/JSONArray;-><init>()V
-
-    invoke-virtual {v6, v3}, Lorg/json/JSONArray;->put(Ljava/lang/Object;)Lorg/json/JSONArray;
-
-    invoke-virtual {v6, v4}, Lorg/json/JSONArray;->put(Ljava/lang/Object;)Lorg/json/JSONArray;
-
-    invoke-virtual {v5, v6}, Lorg/json/JSONArray;->put(Ljava/lang/Object;)Lorg/json/JSONArray;
+    move-result-object v5
 
     new-instance v6, Lorg/json/JSONObject;
 
@@ -719,7 +727,7 @@
 
     move-result-object v8
 
-    invoke-static {p0, v8, v6, v1}, Le/e/a/ModernPlayback;->request(Le/e/a/d0;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+    invoke-static {p0, v8, v6, v1}, Le/e/a/Quality195;->request(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 
     move-result-object v8
 
@@ -745,7 +753,7 @@
 
     move-result v10
 
-    if-eqz v10, :cond_110
+    if-eqz v10, :cond_123
 
     invoke-virtual {v0}, Lorg/json/JSONObject;->toString()Ljava/lang/String;
 
@@ -761,13 +769,13 @@
 
     move-result-object v11
 
-    if-eqz v11, :cond_d9
+    if-eqz v11, :cond_e9
 
     const-string v10, "description_original"
 
     invoke-virtual {v0, v10, v11}, Landroid/os/Bundle;->putString(Ljava/lang/String;Ljava/lang/String;)V
 
-    :cond_d9
+    :cond_e9
     const-string v10, "flvUrl"
 
     invoke-virtual {v0, v10, v9}, Landroid/os/Bundle;->putString(Ljava/lang/String;Ljava/lang/String;)V
@@ -784,11 +792,11 @@
 
     iget-object v10, p0, Le/e/a/d0;->b:Le/e/a/v;
 
-    if-eqz v10, :cond_ee
+    if-eqz v10, :cond_fe
 
     iput-object v9, v10, Le/e/a/v;->d:Ljava/lang/String;
 
-    :cond_ee
+    :cond_fe
     const-string v10, "HLS session ready; playlist sent to player"
 
     invoke-static {v10}, Le/e/a/ModernDebug;->record(Ljava/lang/String;)V
@@ -801,7 +809,7 @@
 
     iget-boolean v10, p0, Le/e/a/d0;->modernCommentsRequested:Z
 
-    if-nez v10, :cond_10f
+    if-nez v10, :cond_11f
 
     const/4 v10, 0x1
 
@@ -817,12 +825,12 @@
 
     invoke-virtual {v10}, Ljava/lang/Thread;->start()V
 
-    :cond_10f
+    :cond_11f
     invoke-static {p0, p1}, Le/e/a/CachedPlayback;->cacheWhilePlaying(Ljava/lang/Object;Ljava/lang/String;)V
 
     return-object v9
 
-    :cond_110
+    :cond_123
     const-string v0, "HLS session: no available format"
 
     invoke-static {v0}, Le/e/a/ModernDebug;->record(Ljava/lang/String;)V
@@ -834,10 +842,10 @@
     const/4 v0, 0x0
 
     return-object v0
-    :try_end_11c
-    .catch Ljava/lang/Exception; {:try_start_3 .. :try_end_11c} :catch_11c
+    :try_end_12f
+    .catch Ljava/lang/Exception; {:try_start_12 .. :try_end_12f} :catch_12f
 
-    :catch_11c
+    :catch_12f
     move-exception v0
 
     invoke-virtual {v0}, Ljava/lang/Object;->getClass()Ljava/lang/Class;

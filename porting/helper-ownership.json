@@ -136,7 +136,9 @@
     "smali_sha256": "056124abbba691860bca12e2450e0a456dc30c38a26fcbd5f08e1ca80a3c2811"
   },
   "CastRelay": {
-    "owner": "java"
+    "owner": "snapshot",
+    "java_sha256": "9b4be30c650c033c5d2b99c0af7ca8f3fd24eb9af8c0290fd7b26dd36508ff63",
+    "smali_sha256": "4f1af442ae6afc6db7c9732514bfed11f5f57fc9d82c556f624b7900ff7448b0"
   },
   "ChannelFeed": {
     "owner": "snapshot",
@@ -485,7 +487,7 @@
   "PlaybackSession": {
     "owner": "snapshot",
     "java_sha256": "4ff750014ee71c835958da79e5e025a73485f538b3e6b97db5f9489d64631182",
-    "smali_sha256": "7668fcea5f3e4d4a38272ab13a75d2e23732ba8a713cebc0ec6e82bafdd9fa19"
+    "smali_sha256": "5e1956f016a947ee5688cf8cc780c2c352d3dadf52a8fdc276a395a6b486d1e3"
   },
   "PlaybackTransfer": {
     "owner": "snapshot",
@@ -505,7 +507,7 @@
   "PlayerGestures": {
     "owner": "snapshot",
     "java_sha256": "d332f2b5d02279128eff2be625402f940d761ad727b7b392326ee24f2fd5dd8d",
-    "smali_sha256": "e7ca9cb379a8be5b4679a946393d0491a78f66b7a61a061e80dc3b03b21c0462"
+    "smali_sha256": "3734fc1888793e6260b3116529b5d20eca8d6f1802147916180759f492bb8b83"
   },
   "PlayerIcons": {
     "owner": "snapshot",
@@ -548,7 +550,7 @@
   "PopupPinchLayout": {
     "owner": "snapshot",
     "java_sha256": "9fa1e64285e301ca3f0084813431b3839859c580dafb0bf7d9473af62a314f44",
-    "smali_sha256": "6d0aff8452a18a2e8c6dd86b511dd144ae357225832af9888068d513ec38082d"
+    "smali_sha256": "5fad2e6e466aa62fa3fe5ff775886cb36b9988ee83f416f8d99f13b9bd437895"
   },
   "PostingRules": {
     "owner": "snapshot",
@@ -672,7 +674,7 @@
   "SpeedSlider": {
     "owner": "snapshot",
     "java_sha256": "c1cde850132517a19c2ef1af68ef299cb67c90e4b39dd45e52423308a2cff7d3",
-    "smali_sha256": "3ebcdefb4d0641c7958dc1ea5da1d6357f6d92a8c500269f8fec918cd8f198b6"
+    "smali_sha256": "f3ae3cd9373f3ceca9b9626078629b699bad91e945eba67b5ceeb09378c892b2"
   },
   "TabViewport110": {
     "owner": "snapshot",
@@ -709,7 +711,9 @@
     "smali_sha256": "a901efdf313095aba75d9467653072c1459a17f3e7235b1e37c31b82eb2a0187"
   },
   "UiStrings": {
-    "owner": "java"
+    "owner": "snapshot",
+    "java_sha256": "8866079d0317f5b606518fa434a8e9c83f7c48d9a0d77e6364b96063bc495af8",
+    "smali_sha256": "d56ca5b2017d0642969ec81ead65ad1c48d8b51852675f6b5cf3e89891448761"
   },
   "UiText": {
     "owner": "snapshot",

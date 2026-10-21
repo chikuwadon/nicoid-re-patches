@@ -1,0 +1,29 @@
+name: Publish prepared pre-release
+on:
+  workflow_dispatch:
+  push:
+    branches: [dev]
+    paths: ['.github/workflows/publish-prepared-prerelease.yml']
+permissions:
+  contents: write
+jobs:
+  publish:
+    if: >-
+      github.event_name == 'workflow_dispatch' || startsWith(github.event.head_commit.message, 'build: publish prepared prerelease')
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_VERSION: 1.9.6-dev.2
+    steps:
+      - uses: actions/checkout@v7
+      - name: Verify release bundle
+        shell: bash
+        run: |
+          echo '3ee2da6ad7e1993b2350bee65571645edf9337ccf3d1174834fd8232e5c37207  patches/prepared/patches-1.9.6-dev.2.mpp' | sha256sum --check
+          grep -Fx "version = $RELEASE_VERSION" gradle.properties
+          unzip -p "patches/prepared/patches-$RELEASE_VERSION.mpp" META-INF/MANIFEST.MF | tr -d '\r' | grep -Fx "Version: $RELEASE_VERSION"
+      - name: Publish pre-release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          gh release create "v$RELEASE_VERSION" "patches/prepared/patches-$RELEASE_VERSION.mpp" --target "$GITHUB_SHA" --prerelease --latest=false --title "v$RELEASE_VERSION" --notes-file ".github/release-notes/v$RELEASE_VERSION.md"

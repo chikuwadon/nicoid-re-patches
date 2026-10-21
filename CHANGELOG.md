@@ -2,10 +2,11 @@
 
 ### ✨ New Features
 
-* **nicoid:** Add a semi-transparent comment activity graph to the seek bar in normal and popup players, highlighting moments with more comments. Enabled by default and configurable in settings. Uses already-loaded comments without additional network requests.
+* **nicoid:** Add a comment activity graph to the player seek bar, highlighting moments with more comments. Enabled by default and configurable in settings.
 
 ### 🐛 Bug Fixes
 
+* **nicoid:** Fix unresponsive seeking and playback controls failing to hide automatically when playback is locked to landscape orientation.
 * **nicoid:** Fix upper playback controls becoming compressed or displaced during initial layout in tablet mode. ([#75](https://github.com/chikuwadon/nicoid-re-patches/issues/75))
 * **nicoid:** Handle incomplete or failed comment responses without blocking Google Cast playback startup. ([#70](https://github.com/chikuwadon/nicoid-re-patches/issues/70))
 * **nicoid:** Fix videos incorrectly appearing as unregistered in a series, and allow retrying when series information cannot be retrieved.
@@ -15,6 +16,7 @@
 
 ### 🔧 Improvements
 
+* **nicoid:** Move the fullscreen seek bar up by 12dp.
 * **nicoid:** Migrate playback and supported video information retrieval to Niconico's V4 watch API, including series, uploader information, tags, related video metadata, and channel video thumbnails and statistics.
 * **nicoid:** Reuse valid playback URLs and recently retrieved metadata to reduce redundant requests and unnecessary playback-session creation while preserving quality switching and video caching.
 * **nicoid:** Position the portrait seek bar inside the bottom edge of the player and keep its placement consistent across playback control settings.

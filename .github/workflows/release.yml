@@ -7,7 +7,7 @@ on:
 jobs:
   release:
     if: >-
-      github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'build: publish prepared prerelease')
+      github.event_name != 'push' || (!startsWith(github.event.head_commit.message, 'build: publish prepared prerelease') && !startsWith(github.event.head_commit.message, 'docs: update release notes'))
     name: Release
     permissions:
       contents: write

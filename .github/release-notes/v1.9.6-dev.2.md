@@ -16,7 +16,7 @@
 
 ### 🔧 Improvements
 
-* **nicoid:** Move the fullscreen seek bar up by 12dp.
+* **nicoid:** Move the fullscreen seek bar up by 12dp to avoid interference at the bottom edge of the screen and make seeking easier.
 * **nicoid:** Migrate playback and supported video information retrieval to Niconico's V4 watch API, including series, uploader information, tags, related video metadata, and channel video thumbnails and statistics.
 * **nicoid:** Reuse valid playback URLs and recently retrieved metadata to reduce redundant requests and unnecessary playback-session creation while preserving quality switching and video caching.
 * **nicoid:** Position the portrait seek bar inside the bottom edge of the player and keep its placement consistent across playback control settings.

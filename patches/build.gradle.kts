@@ -163,7 +163,7 @@ val mergeNicoidHelpersDex = tasks.register<JavaExec>("mergeNicoidHelpersDex") {
         layout.buildDirectory.file("nicoid/overrides.dex").get().asFile.absolutePath, output.get().asFile.absolutePath)
 }
 val compileDialogVerification = tasks.register<JavaCompile>("compileDialogVerification") {
-    source(rootProject.file("porting/tests/VerifyDialogArguments.java"), rootProject.file("porting/tests/VerifyListClickRouting.java"))
+    source(rootProject.file("porting/tests/VerifyDialogArguments.java"), rootProject.file("porting/tests/VerifyListClickRouting.java"), rootProject.file("porting/tests/VerifyPopupCallbacks.java"))
     classpath = sourceSets["main"].compileClasspath
     destinationDirectory.set(layout.buildDirectory.dir("nicoid/dialog-verification-classes"))
     options.release.set(8)
@@ -179,6 +179,12 @@ val verifyListClickRouting = tasks.register<JavaExec>("verifyListClickRouting") 
     dependsOn(mergeNicoidHelpersDex, compileDialogVerification)
     classpath = files(compileDialogVerification.flatMap { it.destinationDirectory }) + sourceSets["main"].compileClasspath
     mainClass.set("VerifyListClickRouting")
+    args(layout.buildDirectory.file("nicoid/merged-helper-dex/classes.dex").get().asFile.absolutePath)
+}
+val verifyPopupCallbacks = tasks.register<JavaExec>("verifyPopupCallbacks") {
+    dependsOn(mergeNicoidHelpersDex, compileDialogVerification)
+    classpath = files(compileDialogVerification.flatMap { it.destinationDirectory }) + sourceSets["main"].compileClasspath
+    mainClass.set("VerifyPopupCallbacks")
     args(layout.buildDirectory.file("nicoid/merged-helper-dex/classes.dex").get().asFile.absolutePath)
 }
 val compileMaintenanceVerification = tasks.register<JavaCompile>("compileMaintenanceVerification") {
@@ -264,7 +270,7 @@ val verifyHistorySort = tasks.register<JavaExec>("verifyHistorySort") {
     mainClass.set("e.e.a.HistorySortRulesTest")
 }
 val prepareNicoidHelpers = tasks.register("prepareNicoidHelpers") {
-    dependsOn(verifyDialogArguments, verifyListClickRouting, verifyMaintenancePayload, verifyExplicitQueues, verifySettingsIntegrity, verifySeriesQueue, verifyCacheMode, verifyPlaybackMenu, verifyHistorySort, verifyHistoryMetadata, verifyHistorySortOptions, verifyOtherSettingsOrder, verifyCrashDiagnostics)
+    dependsOn(verifyPopupCallbacks, verifyDialogArguments, verifyListClickRouting, verifyMaintenancePayload, verifyExplicitQueues, verifySettingsIntegrity, verifySeriesQueue, verifyCacheMode, verifyPlaybackMenu, verifyHistorySort, verifyHistoryMetadata, verifyHistorySortOptions, verifyOtherSettingsOrder, verifyCrashDiagnostics)
     doLast {
         val dex = layout.buildDirectory.file("nicoid/merged-helper-dex/classes.dex").get().asFile
         check(dex.isFile && dex.readBytes().take(4).toByteArray().contentEquals(byteArrayOf(0x64, 0x65, 0x78, 0x0a))) {

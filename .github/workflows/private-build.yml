@@ -11,6 +11,8 @@ permissions:
 
 jobs:
   build:
+    if: >-
+      github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'docs: update release notes')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -36,8 +38,9 @@ jobs:
           java -cp /tmp/nicoid-cache-tests e.e.a.CacheSupportTest
       - name: Check comment posting video identifiers
         run: |
-          javac -d /tmp/nicoid-posting-tests extensions/extension/src/main/java/e/e/a/PostingRules.java porting/tests/PostingRulesTest.java
-          java -cp /tmp/nicoid-posting-tests e.e.a.PostingRulesTest
+          curl -fLs --retry 2 https://repo.maven.apache.org/maven2/org/json/json/20240303/json-20240303.jar -o /tmp/nicoid-posting-json.jar
+          javac -cp /tmp/nicoid-posting-json.jar -d /tmp/nicoid-posting-tests extensions/extension/src/main/java/e/e/a/PostingRules.java porting/tests/PostingRulesTest.java
+          java -cp /tmp/nicoid-posting-tests:/tmp/nicoid-posting-json.jar e.e.a.PostingRulesTest
       - name: Check video count order and precision
         run: |
           javac -d /tmp/nicoid-count-tests extensions/extension/src/main/java/e/e/a/VideoCountRules.java porting/tests/VideoCountRulesTest.java

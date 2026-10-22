@@ -17,7 +17,7 @@
   "BikeRun": {
     "owner": "snapshot",
     "java_sha256": "3f2fc9e30b54c2fc351b2b75213f8cdecd58f0b785f17f8b9af7c5b7e5460562",
-    "smali_sha256": "291a2a6d8f2f518c2f5ace7f2e0a6ae9d1e2e4b10ea74fde7b4985d60944f721"
+    "smali_sha256": "befed90b39a224c9f144ce808e65937b032d3cf9045ef6f3b5e3266545430d89"
   },
   "BikeRunModel": {
     "owner": "snapshot",
@@ -125,10 +125,14 @@
     "smali_sha256": "264bfb1647b6f9adbd55c16fede2099b191cb5931b74b7c637e69ebcf5717db4"
   },
   "CastAddress194": {
-    "owner": "java"
+    "owner": "snapshot",
+    "java_sha256": "f78402cfb13c0a23bdd63d91c6439118621bba402e240f495e8896781e2b105c",
+    "smali_sha256": "d3e9d5ae924221a04b73c89b57e5e99e756db33cbc46902bcea429ea98e66c25"
   },
   "CastDiagnostics": {
-    "owner": "java"
+    "owner": "snapshot",
+    "java_sha256": "01e6f3bfeea44ffc1cf142c5cf726cab032ede7e467e81ed9d02c214096b0f06",
+    "smali_sha256": "c049d92c3c32780fc472646a2e62702b3c978fe96a6a49173001a52914687f70"
   },
   "CastHls": {
     "owner": "snapshot",
@@ -136,7 +140,9 @@
     "smali_sha256": "056124abbba691860bca12e2450e0a456dc30c38a26fcbd5f08e1ca80a3c2811"
   },
   "CastRelay": {
-    "owner": "java"
+    "owner": "snapshot",
+    "java_sha256": "9b4be30c650c033c5d2b99c0af7ca8f3fd24eb9af8c0290fd7b26dd36508ff63",
+    "smali_sha256": "9a8a27f0284752df83cda2ea8317778f2d642915021459648b544f808cd102df"
   },
   "ChannelFeed": {
     "owner": "snapshot",
@@ -196,7 +202,7 @@
   "CommentUi": {
     "owner": "snapshot",
     "java_sha256": "cce13210d55645ad4e6e6251abbb2f079421b4687e0646d1c1da81d4cd2b0e6f",
-    "smali_sha256": "79d7c4cceafea379ce0874f3a141c1da1f042a3313a594dafbdbad2029a70993"
+    "smali_sha256": "9ed9be81b19ec0d8195842e742a053edc1e53f62e06efb29f4a72db51ad3b513"
   },
   "CommentViewport190": {
     "owner": "snapshot",
@@ -236,13 +242,17 @@
   "DetailSettings": {
     "owner": "snapshot",
     "java_sha256": "e428d9250b079a2904de549bb6010df3aa34f3f18dee8bb63ec135742a04217c",
-    "smali_sha256": "2bf324aa2c6489a2e17a43121c43361759ebabce24a2385b4eab72142a11fef4"
+    "smali_sha256": "569a9ced83e8b17b7a74ebe29ff37f6d61d4d3edec1861b69b986e1f5c7bd3e7"
   },
   "DialogActions194": {
-    "owner": "java"
+    "owner": "snapshot",
+    "java_sha256": "805870cf44002a3a60e5cb9deb473506c2479c21d8af813ab41d90a912f42ffd",
+    "smali_sha256": "1d14ef823e0effa676360be1e43158418f4194a3b7badf26fff7c11fa7f86a9a"
   },
   "DialogColors": {
-    "owner": "java"
+    "owner": "snapshot",
+    "java_sha256": "8cee7c22813807eda5833deb2d3f6a38d3bc9485b3544256b71e75b1dd0966b6",
+    "smali_sha256": "9a492c05a4261641f82f30b2eb248962b8a844f3f46c87d6e278ffcf8324874c"
   },
   "DialogInputs": {
     "owner": "snapshot",
@@ -265,7 +275,9 @@
     "smali_sha256": "6413924d473850eba26ae75f958717aceb0036f80832fc9840cd34349ae6866e"
   },
   "FeedLayout194": {
-    "owner": "java"
+    "owner": "snapshot",
+    "java_sha256": "6782b09fd99af34eb2166f7243f30b3c3cf395eb00288ca4385ff096b6ebc303",
+    "smali_sha256": "57f00f45457d8f171c16acefe8ff5ded204b7b88ff70f3af902f47aafe2c3b1c"
   },
   "FeedRefresh209": {
     "owner": "snapshot",
@@ -273,7 +285,9 @@
     "smali_sha256": "585c8044f8e7b09ccbd4b75feeb4fb610989a2bd494dc54b6b88d33fa9ef0f9c"
   },
   "FilterRows194": {
-    "owner": "java"
+    "owner": "snapshot",
+    "java_sha256": "81c8c1c896a5c1b61e6122dbeff6dbe165eb3fe7c6a3b86a3ef6828b627a8780",
+    "smali_sha256": "05a051d75bee1e0ab1ad69ce916b867008cc6a1cf6496f47fd9ec5bd28cbd827"
   },
   "FilterUi110": {
     "owner": "snapshot",
@@ -286,7 +300,9 @@
     "smali_sha256": "74048242978826f331cfcaac9409be7e6be94788fc59acc90712c3cfdbbdb17b"
   },
   "FollowFeed": {
-    "owner": "java"
+    "owner": "snapshot",
+    "java_sha256": "0a597d188488f670c395b691807eb7bce6e4dbefa95657f4c3541c7cabc781b8",
+    "smali_sha256": "8d5665c31886c4af78fd4867a29c289403f67d47c598d7cc2720913c8b55d5de"
   },
   "FollowFeedData": {
     "owner": "snapshot",
@@ -334,7 +350,9 @@
     "smali_sha256": "0c78411b79666f5028b98bd65214f4710c7770edca6892e7ef097a06900ae825"
   },
   "FullscreenViewport209": {
-    "owner": "java"
+    "owner": "snapshot",
+    "java_sha256": "61225b9918d3a3f89015da5a4c12659de1dcd9b43cee91f00243893be7fbc362",
+    "smali_sha256": "8c70de2746698062600795fb333fea9ec7c355407af58310caddae66d9e8bb98"
   },
   "GestureRules": {
     "owner": "snapshot",
@@ -422,7 +440,9 @@
     "smali_sha256": "14b5b6caf86c1c90d86968b2eab55195f6e814a2529b308928b29b613ab6f75d"
   },
   "NetworkTask": {
-    "owner": "java"
+    "owner": "snapshot",
+    "java_sha256": "f5c9a88464561ec8e48894e53b09fbed60399567f3c7d0460085dbf96e8365cf",
+    "smali_sha256": "035a03cfa9f14db1fe9d6dbf86228de4d62dd567472853c89f73862ae537b160"
   },
   "NgCommentData": {
     "owner": "snapshot",
@@ -445,7 +465,9 @@
     "smali_sha256": "e70c4eff717e1611317823815086dd086d14b33534f9a6814bae167b764f6f32"
   },
   "PageCache": {
-    "owner": "java"
+    "owner": "snapshot",
+    "java_sha256": "0ede7d090001182c8738173ffc727a789e17457121d06fb05f874cd26cd24070",
+    "smali_sha256": "95ea89532f780b3c78150ab92aa23ff92f68558bc55c7751e649134c6667738c"
   },
   "PageRules": {
     "owner": "snapshot",
@@ -485,12 +507,12 @@
   "PlaybackSession": {
     "owner": "snapshot",
     "java_sha256": "4ff750014ee71c835958da79e5e025a73485f538b3e6b97db5f9489d64631182",
-    "smali_sha256": "7668fcea5f3e4d4a38272ab13a75d2e23732ba8a713cebc0ec6e82bafdd9fa19"
+    "smali_sha256": "5537e8ebda306e1c6f944161c777e391e475eaea88825ec4f8c7397717c7d92d"
   },
   "PlaybackTransfer": {
     "owner": "snapshot",
     "java_sha256": "70bbdf2b43d8121778c6b74b7bba89266a3c51dea0a76223c50d3c7bdd58df21",
-    "smali_sha256": "c9fa247d6f5bfe947031e13726fcd42be6662a9aa8079c32b42dd45a7140f173"
+    "smali_sha256": "be24cd646b4d82823f949e9dd4b7835ffdba84ec74c9ac7a69150380773b92a7"
   },
   "PlaybackUrls": {
     "owner": "snapshot",
@@ -505,7 +527,7 @@
   "PlayerGestures": {
     "owner": "snapshot",
     "java_sha256": "d332f2b5d02279128eff2be625402f940d761ad727b7b392326ee24f2fd5dd8d",
-    "smali_sha256": "e7ca9cb379a8be5b4679a946393d0491a78f66b7a61a061e80dc3b03b21c0462"
+    "smali_sha256": "3734fc1888793e6260b3116529b5d20eca8d6f1802147916180759f492bb8b83"
   },
   "PlayerIcons": {
     "owner": "snapshot",
@@ -528,7 +550,9 @@
     "smali_sha256": "aa34e16b43dabd2a6cc7ab630bbaec5e8f32570cf17ada11fa619672dc55f8ca"
   },
   "PopupDrag195": {
-    "owner": "java"
+    "owner": "snapshot",
+    "java_sha256": "b5c08f94b1bc4d162894c2918f2cedade5bd0cb5ece4bbffb5493e37a4f6b044",
+    "smali_sha256": "67ab910414f8fa14b9bfe6f033637312a0b8e3955d1267601282492c74e5075b"
   },
   "PopupGestures": {
     "owner": "snapshot",
@@ -548,7 +572,7 @@
   "PopupPinchLayout": {
     "owner": "snapshot",
     "java_sha256": "9fa1e64285e301ca3f0084813431b3839859c580dafb0bf7d9473af62a314f44",
-    "smali_sha256": "6d0aff8452a18a2e8c6dd86b511dd144ae357225832af9888068d513ec38082d"
+    "smali_sha256": "de0c7b8cd20317dc0f54d9abdcfca35ee40b13828d1abb09ed30cf2eadc9c084"
   },
   "PostingRules": {
     "owner": "snapshot",
@@ -606,7 +630,9 @@
     "smali_sha256": "d1f89b82614b837298724dfb3fd2af424a06d4421ea14d6674dc9c4801114b97"
   },
   "RowDates194": {
-    "owner": "java"
+    "owner": "snapshot",
+    "java_sha256": "7ecd09a9dfb6785f1f64fcb66a0dc9033db052a5a73ed1135740502ea69c1b07",
+    "smali_sha256": "1fa94de69143591f3d9ffa4371f3d4eca4c7e1eecd519253197f0f831c9b91aa"
   },
   "SearchFilterRules": {
     "owner": "snapshot",
@@ -639,7 +665,9 @@
     "smali_sha256": "069ac1b936c19b5d692c4e10491c7b392d9f8ffac9d72252d0fcabba66dfc417"
   },
   "SessionCookies194": {
-    "owner": "java"
+    "owner": "snapshot",
+    "java_sha256": "83c26499795a9650d914d7ea0670fb40bf0bb66cd6d42784fd82afe7c7553ec5",
+    "smali_sha256": "b82afe2fd5fbe76af3c7df47031229b032a735baed352ee032975964ca4cd6e3"
   },
   "SettingsBackup": {
     "owner": "snapshot",
@@ -662,7 +690,9 @@
     "smali_sha256": "f2314a7f077f0797448e830295edde2f02a49b0ae525df188a178bb092d762b3"
   },
   "ShortImages": {
-    "owner": "java"
+    "owner": "snapshot",
+    "java_sha256": "1d7db2acec9afbe0b7042a9902a8e0e24da25860d37b919410e97cfdad3facbb",
+    "smali_sha256": "57400635379bc971e2abcf842ead469e46e9866bf03d4eb37812eadb518fd701"
   },
   "ShortsRules": {
     "owner": "snapshot",
@@ -672,7 +702,7 @@
   "SpeedSlider": {
     "owner": "snapshot",
     "java_sha256": "c1cde850132517a19c2ef1af68ef299cb67c90e4b39dd45e52423308a2cff7d3",
-    "smali_sha256": "3ebcdefb4d0641c7958dc1ea5da1d6357f6d92a8c500269f8fec918cd8f198b6"
+    "smali_sha256": "f3ae3cd9373f3ceca9b9626078629b699bad91e945eba67b5ceeb09378c892b2"
   },
   "TabViewport110": {
     "owner": "snapshot",
@@ -685,7 +715,9 @@
     "smali_sha256": "895082212a076f44575179034e2de5dc2f489cee94dcd2ca3a3f18cad89e922c"
   },
   "ThemeChoice": {
-    "owner": "java"
+    "owner": "snapshot",
+    "java_sha256": "b9eb47d787695ed03074d4daa834eeec0cdb2f17dd5ea8491756ad3bd5cd3e62",
+    "smali_sha256": "8d65d7d444af4953de4fd26c891b2f21b30c7bd7ea97da8406d461980ee80d1f"
   },
   "ThemeRules": {
     "owner": "snapshot",
@@ -698,10 +730,14 @@
     "smali_sha256": "d4d27e91ca9bf71787bb1818b0c0491ff26fe9611024bda7283570b71ac13c3a"
   },
   "UiControls194": {
-    "owner": "java"
+    "owner": "snapshot",
+    "java_sha256": "387f40f8c62564c12d805852a24dbd13bd7bce830bbf39dd10150e96f22cf884",
+    "smali_sha256": "30b021da6cbe272b1a2a3aa74c4a13bd1d36d71a86914c6c991a234dc7251cef"
   },
   "UiDialogs": {
-    "owner": "java"
+    "owner": "snapshot",
+    "java_sha256": "aefd77fba02237a01f123912b341fbc82999a07691266f0dd20d9c71fb594549",
+    "smali_sha256": "cfe16ce9b36a91ae82912db2c2618e8b147621cbbe84e539520e60e77d42e7f0"
   },
   "UiGlyph190": {
     "owner": "snapshot",
@@ -709,7 +745,9 @@
     "smali_sha256": "a901efdf313095aba75d9467653072c1459a17f3e7235b1e37c31b82eb2a0187"
   },
   "UiStrings": {
-    "owner": "java"
+    "owner": "snapshot",
+    "java_sha256": "8866079d0317f5b606518fa434a8e9c83f7c48d9a0d77e6364b96063bc495af8",
+    "smali_sha256": "d56ca5b2017d0642969ec81ead65ad1c48d8b51852675f6b5cf3e89891448761"
   },
   "UiText": {
     "owner": "snapshot",
@@ -734,7 +772,7 @@
   "VideoDetails": {
     "owner": "snapshot",
     "java_sha256": "92691c3f9878d03298eb7b5446ac7efec8fe5a8490ee41a9a2dfb21e4fb648f1",
-    "smali_sha256": "da1b8858a9bfda9745378cabb8f902b4dff03df432ac9a5b06463ca9dc0915d3"
+    "smali_sha256": "a59ec218d2250c2e4417737a9c37f147282c17721b00b2ca08c5f1156a97a66e"
   },
   "VideoInfoCounts": {
     "owner": "snapshot",
@@ -749,7 +787,7 @@
   "VideoRows191": {
     "owner": "snapshot",
     "java_sha256": "8c595e351db92198d56099d95d1df4be8038ac37a78356909db7fe92f34a2db3",
-    "smali_sha256": "07ac30a1bd8e390e1a3d38886100baa091ec703201fd0cbfa43bf6f24d87f6f5"
+    "smali_sha256": "c20ee228521d54f94fecd99c64cf7faf521c752ec371907dadc1a147714ee53d"
   },
   "WatchRequestHeaders": {
     "owner": "snapshot",

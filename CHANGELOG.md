@@ -1,3 +1,40 @@
+## 1.9.6 (2026-10-23)
+
+### ✨ New Features
+
+* **nicoid:** Add adjustable hold-to-speed playback in normal and popup players. Hold the video to temporarily change playback speed, then release to restore the previous speed. ([#76](https://github.com/chikuwadon/nicoid-re-patches/issues/76))
+* **nicoid:** Add a “Playback speed while holding” slider below the default playback speed setting. The default is 2.0×, and moving the slider to the far left disables the feature. ([#76](https://github.com/chikuwadon/nicoid-re-patches/issues/76))
+* **nicoid:** Add a translucent comment activity graph to the seek bar in normal and popup players, highlighting moments with more fetched comments. Enabled by default and configurable in settings.
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix unresponsive seeking and playback controls failing to hide automatically when playback is locked to landscape orientation.
+* **nicoid:** Fix upper playback controls becoming compressed or displaced during initial layout in tablet mode. ([#75](https://github.com/chikuwadon/nicoid-re-patches/issues/75))
+* **nicoid:** Fix mobile data quality settings selecting an incorrect resolution, including when a VPN uses a mobile connection.
+* **nicoid:** Fix playback starting at a lower resolution than the configured quality.
+* **nicoid:** Select video quality by available resolution rather than stream order, and use an available fallback when the requested resolution is unavailable.
+* **nicoid:** Fix blank space and incorrect movement and resize boundaries in popup playback for some video resolutions and aspect ratios.
+* **nicoid:** Fix popup resizing and saved window dimensions when using hold-to-speed.
+* **nicoid:** Fix a crash after popup touch operations.
+* **nicoid:** Fix videos incorrectly appearing as unregistered in a series. Distinguish retrieval failures from confirmed absence of series information and allow retrying failed requests.
+* **nicoid:** Handle incomplete or failed comment responses without blocking Google Cast playback startup. ([#70](https://github.com/chikuwadon/nicoid-re-patches/issues/70))
+
+### 🔧 Improvements
+
+* **nicoid:** Add fMP4 HLS playback compatibility to the legacy Google Cast receiver to address playback remaining on “Preparing,” while preserving television-side comments and existing playback controls. ([#70](https://github.com/chikuwadon/nicoid-re-patches/issues/70))
+* **nicoid:** Improve Google Cast cleanup when switching videos or ending playback, and prevent delayed loading callbacks from restarting an obsolete playback request. ([#70](https://github.com/chikuwadon/nicoid-re-patches/issues/70))
+* **nicoid:** Expand Google Cast diagnostics to include receiver connections, media requests, loading progress and playback errors. ([#70](https://github.com/chikuwadon/nicoid-re-patches/issues/70))
+* **nicoid:** Show a compact, translucent speed indicator below the upper playback controls while holding.
+* **nicoid:** Restore the previous playback speed when dragging the popup, while prioritizing corner resizing and two-finger scaling.
+* **nicoid:** Position the portrait seek bar inside the bottom edge of the player and keep its placement consistent across playback control settings.
+* **nicoid:** Raise the fullscreen seek bar slightly to reduce interference at the bottom edge of the screen and make seeking easier.
+* **nicoid:** Retrieve series information through Niconico’s V4 additional-information API, automatically refresh expired request credentials and briefly cache successful results.
+* **nicoid:** Reuse valid playback URLs and recently retrieved metadata to reduce redundant requests and unnecessary playback-session creation while preserving quality switching and video caching.
+* **nicoid:** Reuse fetched comment data for the activity graph without additional downloads, video decoding or playback polling. Share graph data between normal and popup players, and keep it aligned with control visibility and window resizing.
+* **nicoid:** Reduce unnecessary processing during video quality selection and graph drawing, and release player view listeners and overlays when they are no longer needed.
+* **nicoid:** Show a clear login-required message when sensitive videos cannot be played while signed out.
+* **nicoid:** Suppress repeated notifications about partial statistics refresh failures while continuing to update available statistics.
+
 ## 1.9.5 (2026-10-19)
 
 ### 🐛 Bug Fixes

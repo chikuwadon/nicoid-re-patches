@@ -20,6 +20,8 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+      - name: Check hold-speed movement
+        run: python3 porting/tests/test_hold_speed_movement.py
       - name: Check short gesture policy
         run: |
           javac -d /tmp/nicoid-shorts-tests extensions/extension/src/main/java/e/e/a/ShortsRules.java porting/tests/ShortsRulesTest.java

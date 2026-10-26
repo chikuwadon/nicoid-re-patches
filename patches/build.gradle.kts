@@ -127,6 +127,49 @@ val prepareNicoidSmali = tasks.register("prepareNicoidSmali") {
                     .replace("@NICOID_PATCH_VERSION@", version), Charsets.UTF_8)
             }
         }
+        // Preserve one-finger movement after the hold gesture has activated.
+        // Before activation, slop still cancels; UP, CANCEL and multi-touch still restore speed.
+        val holdMoveFixes = mapOf(
+            "e/e/a/HoldSpeed.smali" to Pair(
+                ":cond_ee\n    invoke-static {p0}, Landroid/view/ViewConfiguration;->get(Landroid/content/Context;)Landroid/view/ViewConfiguration;",
+                """:cond_ee
+    if-eqz v3, :hold_speed_pre_hold_move
+    const/4 v5, 0x2
+    if-ne v2, v5, :hold_speed_pre_hold_move
+    invoke-virtual {p1}, Landroid/view/MotionEvent;->getPointerCount()I
+    move-result v5
+    if-ne v5, v4, :hold_speed_pre_hold_move
+    return v3
+
+    :hold_speed_pre_hold_move
+    invoke-static {p0}, Landroid/view/ViewConfiguration;->get(Landroid/content/Context;)Landroid/view/ViewConfiguration;"""
+            ),
+            "e/e/a/PopupHoldSpeed.smali" to Pair(
+                "    .line 65\n    invoke-virtual {p2}, Landroid/view/MotionEvent;->getPointerCount()I",
+                """    # Active hold-to-speed must not end merely because the finger moves.
+    # UP, CANCEL and second pointers still follow the original cleanup path.
+    const/4 v5, 0x2
+    if-ne v0, v5, :popup_hold_speed_pre_hold_move
+    if-eqz v2, :popup_hold_speed_pre_hold_move
+    invoke-virtual {p2}, Landroid/view/MotionEvent;->getPointerCount()I
+    move-result v5
+    if-ne v5, v4, :popup_hold_speed_pre_hold_move
+    return v2
+
+    :popup_hold_speed_pre_hold_move
+    .line 65
+    invoke-virtual {p2}, Landroid/view/MotionEvent;->getPointerCount()I"""
+            )
+        )
+        for ((path, replacement) in holdMoveFixes) {
+            val target = staged.get().asFile.resolve(path)
+            val content = target.readText(Charsets.UTF_8)
+            val (before, after) = replacement
+            check(content.indexOf(before) >= 0 && content.indexOf(before) == content.lastIndexOf(before)) {
+                "Hold gesture patch location changed: $path"
+            }
+            target.writeText(content.replace(before, after), Charsets.UTF_8)
+        }
     }
 }
 val assembleNicoidSmali = tasks.register<JavaExec>("assembleNicoidSmali") {

@@ -8,6 +8,8 @@ public final class ContentFilter {
  static void save(Context c,JSONArray a){PreferenceManager.getDefaultSharedPreferences(c).edit().putString(STORE,a.toString()).apply();compiled=null;}
  public static final class Rules {final String snapshot;final ArrayList<ContentFilterRules.Rule> words=new ArrayList<>(),names=new ArrayList<>();Rules(String s){snapshot=s;try{JSONArray a=new JSONArray(s);for(int i=0;i<a.length();i++){JSONObject o=a.optJSONObject(i);if(o==null||o.optString("value").isEmpty())continue;try{(o.optInt("category")==0?words:names).add(new ContentFilterRules.Rule(o.optString("value"),o.optString("mode","partial"),o.optBoolean("enabled",true)));}catch(java.util.regex.PatternSyntaxException ignored){}}}catch(Exception ignored){}}Rules(String a,String b){this(legacy(a,b));}static String legacy(String a,String b){JSONArray rows=new JSONArray();try{for(int cat=0;cat<2;cat++)for(String s:ContentFilterRules.keywords(cat==0?a:b))rows.put(new JSONObject().put("category",cat).put("value",s));}catch(Exception ignored){}return rows.toString();}public boolean blocked(String title,String channel){for(ContentFilterRules.Rule r:words)if(r.matches(title))return true;for(ContentFilterRules.Rule r:names)if(r.matches(channel))return true;return false;}boolean empty(){return words.isEmpty()&&names.isEmpty();}}
  public static void confirmOwner(Context host,String owner){if(owner==null||owner.trim().isEmpty()){Toast.makeText(host,tr(host,"投稿者名を取得できませんでした","Uploader name unavailable","無法取得投稿者名稱"),0).show();return;}Context context=UiDialogs.owner(host);if(!(context instanceof Activity))return;JSONArray rows=stored(host);JSONObject target=null;for(int n=0;n<rows.length();n++){JSONObject item=rows.optJSONObject(n);if(item!=null&&item.optInt("category")==1&&owner.equals(item.optString("value"))&&"exact".equals(item.optString("mode"))){target=item;break;}}try{if(target==null){target=new JSONObject().put("category",1).put("value",owner).put("mode","exact").put("enabled",true).put("date",System.currentTimeMillis());rows.put(target);}FilterUi110.edit((Activity)context,rows,target,1,()->Toast.makeText(host,tr(host,"NGリストに保存しました","Saved to NG list","已儲存至 NG 清單"),0).show());}catch(JSONException error){android.util.Log.w("nicoid-filter","Unable to prepare rule editor",error);}}
+ /** Registers the full title as an enabled exact-match rule without an editor. */
+ public static boolean blockTitle(Context host,String title){if(title==null||title.isEmpty()){Toast.makeText(host,tr(host,"動画タイトルを取得できませんでした","Video title unavailable","無法取得影片標題"),0).show();return false;}JSONArray rows=stored(host);try{JSONObject target=null;for(int n=0;n<rows.length();n++){JSONObject item=rows.optJSONObject(n);if(item!=null&&item.optInt("category")==0&&title.equals(item.optString("value"))&&"exact".equals(item.optString("mode"))){target=item;break;}}if(target==null)rows.put(new JSONObject().put("category",0).put("value",title).put("mode","exact").put("enabled",true).put("date",System.currentTimeMillis()));else target.put("enabled",true);save(host,rows);}catch(JSONException error){android.util.Log.w("nicoid-filter","Unable to save title rule",error);return false;}Toast.makeText(host,tr(host,"NGリストに保存しました","Saved to NG list","已儲存至 NG 清單"),0).show();return true;}
  private static volatile Rules compiled;
  public static Rules rules(Context c){SharedPreferences p=PreferenceManager.getDefaultSharedPreferences(c);String s=p.contains(STORE)?p.getString(STORE,"[]"):stored(c).toString();Rules r=compiled;if(r!=null&&r.snapshot.equals(s))return r;return compiled=new Rules(s);}
  public static boolean blocked(Context c,String title){return blocked(c,title,null);}public static boolean blocked(Context c,String title,String channel){return rules(c).blocked(title,channel);}
@@ -76,8 +78,20 @@ public final class ContentFilter {
                 if (url != null && (url.toString().contains("/watch/") || url.toString().contains("/shorts/")) &&
                     rules.blocked(title == null ? null : title.toString(), channel == null ? null : channel.toString())) rows.remove(n);
             }
+            if (VideoRows191.type(adapter) == 6) renumber(rows);
         } catch (ReflectiveOperationException error) {
             throw new IllegalStateException("Unsupported video list", error);
         }
+    }
+    /** Ranking rows only: show consecutive display ranks after hidden rows, keeping source data intact. */
+    static void renumber(List<?> rows) throws ReflectiveOperationException {
+        java.lang.reflect.Field rank = null;
+        for (int n = 0; n < rows.size(); n++) {
+            Object row = rows.get(n);
+            if (rank == null) rank = row.getClass().getField("g");
+            Object value = rank.get(row);
+            if (value == null || !value.toString().matches("[0-9]+")) return;
+        }
+        for (int n = 0; n < rows.size(); n++) rank.set(rows.get(n), Integer.toString(n + 1));
     }
 }

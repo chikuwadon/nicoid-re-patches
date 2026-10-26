@@ -41,7 +41,7 @@ public final class RankingPager196 {
     static final class Session {
         final String signature,term; final JSONArray rules; final Genre[] genres; final Source source;
         final ArrayList<JSONObject> matches=new ArrayList<>(); final Set<String> unique=new HashSet<>();
-        int rank,genreIndex,warnings; boolean ended;Scope scope;
+        int rank,genreIndex,warnings; boolean ended;Scope scope;ContentFilter.Rules hidden;
         void checkScope(NetworkTask task)throws java.io.InterruptedIOException {if(scope!=null&&!scope.active())task.cancel();check(task);}
         Session(JSONObject preset,String term,Source source)throws Exception {
             RankingRules190.validate(preset);signature=preset.toString()+"/"+term;this.term=term;this.source=source;rules=preset.getJSONArray("rules");
@@ -87,7 +87,7 @@ public final class RankingPager196 {
                 ArrayList<JSONObject> videos=new ArrayList<>();ArrayList<NetworkTask> children=new ArrayList<>();ArrayList<Future<JSONArray>> pending=new ArrayList<>();
                 try {
                     int batch=rules.length()==0?1:Math.min(4,target-matches.size());
-                    for(int n=0;n<batch;n++){JSONObject v=candidate(task);if(v==null)break;videos.add(v);if(rules.length()>0){NetworkTask child=new NetworkTask();children.add(child);pending.add(TAGS.submit(()->source.tags(v,child)));}}
+                    for(int n=0;n<batch;n++){JSONObject v=candidate(task);if(v==null)break;if(hidden!=null&&hidden.blocked(v.optString("title"),ContentFilter.owner(v))){n--;continue;}videos.add(v);if(rules.length()>0){NetworkTask child=new NetworkTask();children.add(child);pending.add(TAGS.submit(()->source.tags(v,child)));}}
                     for(int n=0;n<videos.size();n++){
                         boolean hit=rules.length()==0;
                         if(!hit)try{JSONArray tags;for(;;){checkScope(task);try{tags=pending.get(n).get(100,TimeUnit.MILLISECONDS);break;}catch(TimeoutException waiting){}}hit=RankingRules190.matches(tags,rules);}catch(ExecutionException e){warnings++;}
@@ -113,7 +113,7 @@ public final class RankingPager196 {
             // First-page refresh is transactional: leave the prior session usable on failure.
             boolean fresh=start==0||s==null||!s.signature.equals(signature);if(fresh)s=new Session(preset,term,NETWORK);
             NetworkTask task=new NetworkTask();ArrayList<JSONObject> videos;
-            int warnings=s.warnings;
+            int warnings=s.warnings;s.hidden=ContentFilter.rules(c);
             try{videos=s.page(start,task,()->!(c instanceof Activity)||!((Activity)c).isFinishing()&&!((Activity)c).isDestroyed());}finally{task.cancel();}
             if(fresh)SESSIONS.put(loader,s);
             ArrayList<Object> rows=new ArrayList<>();Class<?> model=Class.forName("e.e.a.x1"),format=Class.forName("e.e.a.ModernRanking");

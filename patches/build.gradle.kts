@@ -59,6 +59,7 @@ val verifyHelperOwnership = tasks.register<Exec>("verifyHelperOwnership") {
     inputs.dir(rootProject.file("porting/helpers-smali/e/e/a"))
     inputs.file(rootProject.file("porting/helper-ownership.json"))
     inputs.file(rootProject.file("porting/helpers-v1.9.3.zip"))
+    inputs.file(rootProject.file("porting/helpers-1.9.11.zip"))
     inputs.file(rootProject.file("porting/tests/VerifyCanonicalHelpers.py"))
     workingDir(rootProject.projectDir)
     commandLine("python3", rootProject.file("porting/tests/VerifyCanonicalHelpers.py").absolutePath)
@@ -107,6 +108,7 @@ val prepareNicoidSmali = tasks.register("prepareNicoidSmali") {
     val staged = layout.buildDirectory.dir("nicoid/override-smali")
     inputs.dir(sources)
     inputs.file(rootProject.file("porting/helpers-v1.9.3.zip"))
+    inputs.file(rootProject.file("porting/helpers-1.9.11.zip"))
     inputs.file(rootProject.file("porting/helper-ownership.json"))
     inputs.property("patchVersion", providers.gradleProperty("version").orElse(project.version.toString()))
     outputs.dir(staged)
@@ -121,7 +123,7 @@ val prepareNicoidSmali = tasks.register("prepareNicoidSmali") {
         // Canonical, device-verified implementation recovered from the final development bundle.
         val ownership = groovy.json.JsonSlurper().parse(rootProject.file("porting/helper-ownership.json")) as Map<*, *>
         val javaFamilies = ownership.filterValues { (it as Map<*, *>)["owner"] == "java" }.keys.map { it.toString() }.toSet()
-        ZipFile(rootProject.file("porting/helpers-v1.9.3.zip")).use { archive ->
+        for (snapshot in listOf("porting/helpers-v1.9.3.zip", "porting/helpers-1.9.11.zip")) ZipFile(rootProject.file(snapshot)).use { archive ->
             archive.entries().asSequence().filter {
                 !it.isDirectory && it.name.endsWith(".smali") && it.name.substringAfterLast('/').substringBefore('$').removeSuffix(".smali") !in javaFamilies
             }.forEach { entry ->

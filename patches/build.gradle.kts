@@ -103,9 +103,7 @@ val nicoidHelpersDex = tasks.register<JavaExec>("nicoidHelpersDex") {
         nicoidHelpersJar.get().archiveFile.get().asFile.absolutePath)
 }
 val prepareNicoidSmali = tasks.register("prepareNicoidSmali") {
-    val sources = rootProject.file("porting/helpers-smali")
     val staged = layout.buildDirectory.dir("nicoid/override-smali")
-    inputs.dir(sources)
     inputs.file(rootProject.file("porting/helpers-1.9.12.zip"))
     inputs.file(rootProject.file("porting/helper-ownership.json"))
     inputs.property("patchVersion", providers.gradleProperty("version").orElse(project.version.toString()))
@@ -113,11 +111,6 @@ val prepareNicoidSmali = tasks.register("prepareNicoidSmali") {
     doLast {
         val version = providers.gradleProperty("version").orElse(project.version.toString()).get()
         staged.get().asFile.deleteRecursively()
-        sources.walkTopDown().filter { it.isFile && it.extension == "smali" }.forEach { source ->
-            val target = staged.get().asFile.resolve(source.relativeTo(sources))
-            target.parentFile.mkdirs()
-            target.writeText(source.readText(Charsets.UTF_8).replace("@NICOID_PATCH_VERSION@", version), Charsets.UTF_8)
-        }
         // Canonical implementation recovered from the validated development bundle.
         val ownership = groovy.json.JsonSlurper().parse(rootProject.file("porting/helper-ownership.json")) as Map<*, *>
         val javaFamilies = ownership.filterValues { (it as Map<*, *>)["owner"] == "java" }.keys.map { it.toString() }.toSet()

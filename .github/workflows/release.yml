@@ -135,7 +135,7 @@ jobs:
       # Semantic release runs its own Gradle build command.
       # Dispatch confirmation is required; only dev and main can publish.
       - name: Release
-        uses: cycjimmy/semantic-release-action@v6
+        uses: cycjimmy/semantic-release-action@v8
         id: release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

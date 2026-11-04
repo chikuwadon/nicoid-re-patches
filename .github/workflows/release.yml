@@ -132,13 +132,36 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Semantic release runs its own Gradle build command.
-      # Dispatch confirmation is required; only dev and main can publish.
+      - name: Patch bundled npm dependency
+        run: node .github/scripts/patch-bundled-undici.cjs
+
+      # Use the verified project dependency tree, not an action that installs
+      # its own separate (unpatched) semantic-release toolchain.
       - name: Release
-        uses: cycjimmy/semantic-release-action@v6
         id: release
+        shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git ls-remote --tags origin 'refs/tags/v*' |
+            awk '{print $2}' | grep -E '^refs/tags/v[0-9]+\\.[0-9]+\\.[0-9]+' |
+            sed 's|^refs/tags/||; s|\\^{}$||' | sort -u > /tmp/nicoid-tags-before
+          ./node_modules/.bin/semantic-release
+          git ls-remote --tags origin 'refs/tags/v*' |
+            awk '{print $2}' | grep -E '^refs/tags/v[0-9]+\\.[0-9]+\\.[0-9]+' |
+            sed 's|^refs/tags/||; s|\\^{}$||' | sort -u > /tmp/nicoid-tags-after
+          mapfile -t created < <(comm -13 /tmp/nicoid-tags-before /tmp/nicoid-tags-after)
+          if (( ${#created[@]} > 1 )); then
+            echo "Unexpected multiple new release tags" >&2
+            exit 1
+          elif (( ${#created[@]} == 1 )); then
+            echo "new_release_published=true" >> "$GITHUB_OUTPUT"
+            echo "new_release_git_tag=${created[0]}" >> "$GITHUB_OUTPUT"
+          else
+            echo "new_release_published=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Attest
         if: steps.release.outputs.new_release_published == 'true' && github.event.repository.private == false

@@ -67,6 +67,10 @@ jobs:
               for key in ("critical", "high", "moderate", "low")
           )
           print(text)
+          for name, info in sorted(data.get("vulnerabilities", {}).items()):
+              if info.get("severity") in ("critical", "high"):
+                  print(f"Security advisory: {name}: {info.get('severity')}, "
+                        f"affected={info.get('range')}, fixAvailable={info.get('fixAvailable')}")
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
               f.write("## Build-tool dependency audit\n\n" + text + "\n\n")
           PY

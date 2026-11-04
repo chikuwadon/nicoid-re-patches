@@ -56,6 +56,11 @@ jobs:
         run: |
           set -euo pipefail
           npm ci --ignore-scripts
+          node .github/scripts/patch-bundled-undici.cjs
+          node --input-type=module -e "await import('semantic-release'); console.log('Release CLI import successful')"
+          # npm audit reads the upstream lockfile. It will report npm's bundled
+          # dependency until npm publishes a corrected tarball, even though the
+          # runtime copy above has been replaced with the pinned fixed package.
           npm audit --json > /tmp/nicoid-npm-audit.json || true
           python3 - <<'PY'
           import json, os

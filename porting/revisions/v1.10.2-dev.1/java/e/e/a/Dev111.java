@@ -14,7 +14,6 @@ import android.preference.PreferenceGroup;
 import android.preference.PreferenceManager;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.ListView;
 import android.widget.ScrollView;
 import java.lang.ref.Reference;
@@ -157,7 +156,7 @@ public final class Dev111 {
 
     /** Keep intra-session tab switching unchanged when restart restoration is disabled. */
     public static void loadedTabs(Object model, Context context) {
-        if (prefs(context).getBoolean(SCROLL, true)) return;
+        if (model == null || context == null || prefs(context).getBoolean(SCROLL, true)) return;
         try {
             for (Object tab : (Iterable<?>) get(model, "tabs")) {
                 field(tab.getClass(), "position").setInt(tab, 0);
@@ -339,7 +338,6 @@ public final class Dev111 {
 
     /** Explicitly call after an Activity resumes; also refresh cached playlist Activities. */
     public static void pageResumed(Activity a) {
-        if (a.getIntent().getBooleanExtra("nicoid_local_playlists", false)) enteredPage(a);
-        else enteredPage(a);
+        enteredPage(a);
     }
 }

@@ -106,4 +106,11 @@ method("MultiTabs227$1.smali", ".method public onActivityPaused(Landroid/app/Act
        "    .line 21\n    invoke-static {p1}, Le/e/a/Dev111;->capturePage(Landroid/app/Activity;)V\n\n"
        "    sget-object v0, Le/e/a/TabRoutes228;->foreground:Ljava/lang/ref/WeakReference;")
 
+# SettingsTools finishes asynchronously on the ListView message queue.
+# Repeat the idempotent installation after color/menu/watch-progress preferences exist.
+method("SettingsTools.smali", ".method static synthetic lambda$1(Landroid/preference/PreferenceActivity;)V",
+       "    invoke-static {p0}, Le/e/a/SettingsIntegrity;->stripSummaries(Landroid/preference/PreferenceActivity;)V",
+       "    invoke-static {p0}, Le/e/a/SettingsIntegrity;->stripSummaries(Landroid/preference/PreferenceActivity;)V\n\n"
+       "    invoke-static {p0}, Le/e/a/Dev111;->settings(Landroid/preference/PreferenceActivity;)V")
+
 print("Applied v1.10.2-dev.1 overlay to", ROOT)

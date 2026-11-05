@@ -29,7 +29,7 @@ expected = {
     "LocalPlaylists$Page.smali": ["LocalPlaylistData;->toString()Ljava/lang/String;"],
     "Dev111.smali": ["nicoid_restore_tab_scroll", "nicoid_app_resume_playback", "nicoid_tab_scroll111_"],
     "Dev112.smali": ["nicoid_confirm_exit", "verticalTurnReady", "playlistMenu"],
-    "StorageDiagnostics112.smali": ["nicoid_storage_diagnostic", "storage diagnostics"],
+    "StorageDiagnostics112.smali": ["nicoid_storage_diagnostic", ".method public static install(Landroid/preference/PreferenceActivity;)V"],
 }
 for name, needles in expected.items():
     text = (helper / name).read_text(encoding="utf-8")

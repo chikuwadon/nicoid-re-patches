@@ -32,6 +32,7 @@ public final class Dev111 {
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
     private static final Map<Object, Boolean> INITIAL = new WeakHashMap<>();
     private static final Map<Activity, Map<String, Position>> VIEWS = new WeakHashMap<>();
+    private static final Map<PreferenceActivity, SharedPreferences.OnSharedPreferenceChangeListener> SETTINGS_LISTENERS = new WeakHashMap<>();
     private static boolean leftApp;
 
     private Dev111() { }
@@ -119,6 +120,24 @@ public final class Dev111 {
             p.setDefaultValue("background");
             p.setSummary("%s");
             group.addPreference(p);
+        }
+        // Only applicable when switching apps starts background playback.
+        final Preference returnOption = activity.findPreference(RESUME);
+        if (returnOption != null) {
+            final SharedPreferences shared = prefs(activity);
+            returnOption.setEnabled("background".equals(shared.getString("app_switch_playback", "none")));
+            SharedPreferences.OnSharedPreferenceChangeListener previous = SETTINGS_LISTENERS.remove(activity);
+            if (previous != null) shared.unregisterOnSharedPreferenceChangeListener(previous);
+            final java.lang.ref.WeakReference<Preference> reference =
+                    new java.lang.ref.WeakReference<>(returnOption);
+            SharedPreferences.OnSharedPreferenceChangeListener listener = (preferences, key) -> {
+                if (!"app_switch_playback".equals(key)) return;
+                Preference option = reference.get();
+                if (option != null) MAIN.post(() -> option.setEnabled(
+                        "background".equals(preferences.getString("app_switch_playback", "none"))));
+            };
+            shared.registerOnSharedPreferenceChangeListener(listener);
+            SETTINGS_LISTENERS.put(activity, listener);
         }
         Preference custom = activity.findPreference("custom_palette");
         if (custom != null) {

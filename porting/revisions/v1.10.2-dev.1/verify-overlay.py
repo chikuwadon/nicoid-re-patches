@@ -11,6 +11,7 @@ expected = {
     "AppSwitchGuard$1.smali": ["Dev111;->left()V"],
     "AppSwitchGuard$2.smali": ["Dev111;->resumed(Landroid/app/Activity;)V"],
     "SettingsPlacement233.smali": ["Dev111;->settings(Landroid/preference/PreferenceActivity;)V"],
+    "SettingsTools.smali": ["Dev111;->settings(Landroid/preference/PreferenceActivity;)V"],
     "MultiTabs227.smali": ["Dev111;->loadedTabs(Ljava/lang/Object;Landroid/content/Context;)V"],
     "MultiTabs227$Host.smali": ["Dev111;->initialTab(Ljava/lang/Object;)V", "Dev111;->pageResumed(Landroid/app/Activity;)V"],
     "MultiTabs227$1.smali": ["Dev111;->capturePage(Landroid/app/Activity;)V"],

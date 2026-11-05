@@ -20,6 +20,6 @@ if [[ -z "$tools_dir" ]]; then
     mvn -q -B -f "$baseline/pom.xml" dependency:copy-dependencies -DoutputDirectory="$tools_dir"
 fi
 for part in helpers.mpe method-delta.dex; do
-    java -cp "$tools_dir/*" org.jf.smali.Main assemble "$work/payloads/${part%.*}" -o "$output/$part"
+    java -cp "$tools_dir/*" org.jf.smali.Main assemble --jobs 1 "$work/payloads/${part%.*}" -o "$output/$part"
 done
 python3 "$source_dir/verify-overlay.py" "$work/payloads" "$output"

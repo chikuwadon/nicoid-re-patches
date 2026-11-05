@@ -3,6 +3,7 @@
 import pathlib
 import sys
 import hashlib
+import struct
 
 root = pathlib.Path(sys.argv[1])
 output = pathlib.Path(sys.argv[2])
@@ -50,3 +51,31 @@ for file in ["helpers.mpe", "method-delta.dex"]:
     assert len(data) > 1000, f"Unexpected empty payload: {file}"
     print(f"{file}: {len(data)} bytes / sha256={hashlib.sha256(data).hexdigest()}")
 print("Development overlay hooks, settings, playlist refresh and DEX output: PASS")
+
+
+# Verify the actual assembled DEX class definitions, not only the staged .smali.
+# A previous build passed input-only validation while silently dropping all dev classes.
+def dex_classes(data):
+    def u32(offset):
+        return struct.unpack_from("<I", data, offset)[0]
+    strings_size, strings_off = u32(0x38), u32(0x3c)
+    type_size, type_off = u32(0x40), u32(0x44)
+    class_size, class_off = u32(0x60), u32(0x64)
+    strings = []
+    for n in range(strings_size):
+        pos = u32(strings_off + n * 4)
+        for i in range(5):
+            byte = data[pos]; pos += 1
+            if not byte & 0x80:
+                break
+        end = data.index(b"\x00", pos)
+        strings.append(data[pos:end].decode("utf-8", "replace"))
+    types = [strings[u32(type_off + i * 4)] for i in range(type_size)]
+    return {types[u32(class_off + i * 32)] for i in range(class_size)}
+
+helper_defs = dex_classes((output / "helpers.mpe").read_bytes())
+needed = ("Dev111", "Dev112", "Dev115", "Dev116", "LegacyCacheCleanup113", "StorageDiagnostics112")
+missing = [n for n in needed if "Le/e/a/" + n + ";" not in helper_defs]
+print("Assembled helper DEX class definitions:", len(helper_defs))
+print("Required development classes:", len(needed) - len(missing), "/", len(needed))
+assert not missing, "Required development classes are absent from final helpers.mpe: " + ", ".join(missing)

@@ -29,7 +29,7 @@ for name, needles in expected.items():
         assert needle in text, f"Missing {needle} in {name}"
 for file in ["helpers.mpe", "method-delta.dex"]:
     data = (output / file).read_bytes()
-    assert data.startswith(b"dex\\n".decode("unicode_escape").encode()), f"Invalid DEX magic: {file}"
+    assert data[:4] == bytes((100, 101, 120, 10)), f"Invalid DEX magic: {file}"
     assert len(data) > 1000, f"Unexpected empty payload: {file}"
     print(f"{file}: {len(data)} bytes / sha256={hashlib.sha256(data).hexdigest()}")
 print("Development overlay hooks, settings, playlist refresh and DEX output: PASS")

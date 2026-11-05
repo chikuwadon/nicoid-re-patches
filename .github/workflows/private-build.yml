@@ -83,7 +83,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p patches/build/dev-delivery
-          version=1.10.2-dev.4
+          version=1.10.2-dev.5
           git archive --format=zip --prefix="nicoid-re-$version/" \
             --output="patches/build/dev-delivery/nicoid-re-$version-source.zip" HEAD
           git archive --format=tar.gz --prefix="nicoid-re-$version/" \
@@ -103,13 +103,13 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: nicoid-re-v1.10.2-dev.4-mpp
+          name: nicoid-re-v1.10.2-dev.5-mpp
           path: patches/build/libs/*.mpp
           if-no-files-found: error
           retention-days: 7
       - uses: actions/upload-artifact@v4
         with:
-          name: nicoid-re-v1.10.2-dev.4-source-verification
+          name: nicoid-re-v1.10.2-dev.5-source-verification
           path: patches/build/dev-delivery/
           if-no-files-found: error
           retention-days: 7

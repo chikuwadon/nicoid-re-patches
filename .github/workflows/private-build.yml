@@ -83,7 +83,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p patches/build/dev-delivery
-          version=1.10.2-dev.3
+          version=1.10.2-dev.4
           git archive --format=zip --prefix="nicoid-re-$version/" \
             --output="patches/build/dev-delivery/nicoid-re-$version-source.zip" HEAD
           git archive --format=tar.gz --prefix="nicoid-re-$version/" \
@@ -95,7 +95,7 @@ jobs:
             echo "Development source overlay tests: PASS (build-payloads.sh/verify-overlay.py)"
             echo "Android device/emulator runtime testing: NOT PERFORMED"
             echo "Official release/tag update: NOT PERFORMED"
-            echo "Changes: confirm-only cleanup of legacy app-private video cache; currently selected Download/SAF location is untouched"
+            echo "Changes: current-cache delete counts, seamless return, playlist actions/thumbnails, landscape status insets"
             echo
             echo "Files (SHA-256):"
             sha256sum patches/build/libs/*.mpp patches/build/dev-delivery/*source.*
@@ -103,13 +103,13 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: nicoid-re-v1.10.2-dev.3-mpp
+          name: nicoid-re-v1.10.2-dev.4-mpp
           path: patches/build/libs/*.mpp
           if-no-files-found: error
           retention-days: 7
       - uses: actions/upload-artifact@v4
         with:
-          name: nicoid-re-v1.10.2-dev.3-source-verification
+          name: nicoid-re-v1.10.2-dev.4-source-verification
           path: patches/build/dev-delivery/
           if-no-files-found: error
           retention-days: 7

@@ -188,6 +188,24 @@ public final class Dev111 {
             Method restore = host.getClass().getDeclaredMethod("restoreScroll", Object.class, tab.getClass());
             restore.setAccessible(true);
             restore.invoke(host, fragment, tab);
+            // The initial Fragment may already be laid out by onResume, so an
+            // OnLayoutChangeListener alone may never fire. Retry after data arrives.
+            final Object view = get(fragment, "b0");
+            if (view instanceof ListView) {
+                final ListView list = (ListView) view;
+                final int position = (Integer) get(tab, "position");
+                final int top = (Integer) get(tab, "top");
+                list.post(new Runnable() {
+                    int attempts;
+                    public void run() {
+                        if (list.getCount() > 0) {
+                            list.setSelectionFromTop(Math.min(position, list.getCount() - 1), top);
+                        } else if (++attempts <= 20) {
+                            MAIN.postDelayed(this, 150);
+                        }
+                    }
+                });
+            }
         } catch (Exception error) {
             android.util.Log.w("nicoid-tabs", "Initial scroll restoration skipped", error);
         }

@@ -327,7 +327,7 @@ val prepareNicoidHelpers = tasks.register<Exec>("prepareNicoidHelpers") {
     inputs.dir(rootProject.file("porting/revisions/v1.10.1"))
     inputs.dir(devSources)
     outputs.files(payloads.resolve("helpers.mpe"), payloads.resolve("method-delta.dex"))
-    commandLine("bash", revision.resolve("build-payloads.sh"), payloads, devSources.get().asFile, project.version.toString())
+    commandLine("bash", revision.resolve("build-payloads.sh"), payloads, devSources.get().asFile, "", project.version.toString())
 }
 
 tasks {

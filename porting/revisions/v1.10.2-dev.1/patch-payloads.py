@@ -101,4 +101,10 @@ method("LocalPlaylists$Page.smali", ".method render()V",
        "    move-result v7\n\n"
        "    if-eqz v7, :cond_b2")
 
+# Persist non-list native pages when leaving the app as well as on tab switches.
+method("MultiTabs227$1.smali", ".method public onActivityPaused(Landroid/app/Activity;)V",
+       "    .line 21\n    sget-object v0, Le/e/a/TabRoutes228;->foreground:Ljava/lang/ref/WeakReference;",
+       "    .line 21\n    invoke-static {p1}, Le/e/a/Dev111;->capturePage(Landroid/app/Activity;)V\n\n"
+       "    sget-object v0, Le/e/a/TabRoutes228;->foreground:Ljava/lang/ref/WeakReference;")
+
 print("Applied v1.10.2-dev.1 overlay to", ROOT)

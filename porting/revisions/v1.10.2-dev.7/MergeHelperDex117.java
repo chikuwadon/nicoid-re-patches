@@ -31,8 +31,17 @@ public final class MergeHelperDex117 {
             if (!names.add(cls.getType())) throw new IOException("Duplicate restored class: " + cls.getType());
             pool.internClass(cls); restoredCount++;
         }
+        int skippedCompilerMarkers = 0;
         for (ClassDef cls : development.getClasses()) {
-            if (!names.add(cls.getType())) throw new IOException("Duplicate development class: " + cls.getType());
+            if (!names.add(cls.getType())) {
+                // D8 generates identical internal marker classes in both inputs.
+                // Never accept duplicates from our app-owned code or other libraries.
+                if (cls.getType().startsWith("Lcom/android/tools/r8/annotations/")) {
+                    skippedCompilerMarkers++;
+                    continue;
+                }
+                throw new IOException("Duplicate development class: " + cls.getType());
+            }
             pool.internClass(cls); developmentCount++;
         }
         if (restoredCount < 1500 || developmentCount < 25)
@@ -43,6 +52,6 @@ public final class MergeHelperDex117 {
         }
         FileDataStore store = new FileDataStore(new File(args[2]));
         try { pool.writeTo(store); } finally { store.close(); }
-        System.out.println("Merged helper classes: restored=" + restoredCount + " development=" + developmentCount + " total=" + names.size());
+        System.out.println("Merged helper classes: restored=" + restoredCount + " development=" + developmentCount + " compilerMarkersSkipped=" + skippedCompilerMarkers + " total=" + names.size());
     }
 }

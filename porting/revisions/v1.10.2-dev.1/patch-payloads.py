@@ -113,4 +113,14 @@ method("SettingsTools.smali", ".method static synthetic lambda$1(Landroid/prefer
        "    invoke-static {p0}, Le/e/a/SettingsIntegrity;->stripSummaries(Landroid/preference/PreferenceActivity;)V\n\n"
        "    invoke-static {p0}, Le/e/a/Dev111;->settings(Landroid/preference/PreferenceActivity;)V")
 
+# A playlist write can finish after the user already returned to its tab.
+# Notify visible pages only after the serialized transaction reports success.
+method("LocalPlaylists.smali",
+       ".method static synthetic lambda$1(Landroid/content/Context;ZLjava/util/function/Consumer;)V",
+       "    :cond_28\n    invoke-static {p1}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;",
+       "    :cond_28\n    if-eqz p1, :nicoid_after_playlist_notify\n\n"
+       "    invoke-static {}, Le/e/a/Dev111;->playlistsChanged()V\n\n"
+       "    :nicoid_after_playlist_notify\n"
+       "    invoke-static {p1}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;")
+
 print("Applied v1.10.2-dev.1 overlay to", ROOT)

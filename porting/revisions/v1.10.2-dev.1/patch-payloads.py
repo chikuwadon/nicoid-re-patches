@@ -74,7 +74,6 @@ method("TabRoutes228.smali",
        "    invoke-virtual {v0, v5}, Landroid/app/Activity;->setIntent(Landroid/content/Intent;)V\n\n"
        "    invoke-static {v0}, Le/e/a/Dev111;->preparePlaylist(Landroid/app/Activity;)V")
 method("TabRoutes228.smali",
-       ".method static switchPage(Le/e/a/MultiTabs227$Host;Le/e/e/a/SavedTabs227$Tab;)V" if False else
        ".method static switchPage(Le/e/a/MultiTabs227$Host;Le/e/a/SavedTabs227$Tab;)V",
        "    invoke-virtual {v0}, Landroid/app/Activity;->invalidateOptionsMenu()V",
        "    invoke-virtual {v0}, Landroid/app/Activity;->invalidateOptionsMenu()V\n\n"

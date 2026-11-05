@@ -151,7 +151,7 @@ public final class Dev111 {
         // Order only direct children; never move a preference into another category.
         String[] order = {
                 "intent_type", "startup_screen", "multiple_video_tabs", SCROLL,
-                "tab_switch_animation", "tab_animation_enabled", "list_gestures_enabled",
+                "tab_swipe_animation", "tab_switch_animation", "tab_animation_enabled", "list_gestures_enabled",
                 "gesture_customization", "video_menu_options", "show_watch_progress",
                 "local_watch_history_limit", "play_mode", "app_switch_playback", RESUME,
                 "back_playback", "videolist_tap", "main_rotation", "display_mode",

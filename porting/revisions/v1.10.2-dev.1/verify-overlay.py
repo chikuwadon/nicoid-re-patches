@@ -20,7 +20,7 @@ expected = {
         "Dev111;->preparePlaylist(Landroid/app/Activity;)V",
         "Dev111;->enteredPage(Landroid/app/Activity;)V",
     ],
-    "LocalPlaylists.smali": ["Dev111;->preparePlaylist(Landroid/app/Activity;)V"],
+    "LocalPlaylists.smali": ["Dev111;->preparePlaylist(Landroid/app/Activity;)V", "Dev111;->playlistsChanged()V"],
     "LocalPlaylists$Page.smali": ["LocalPlaylistData;->toString()Ljava/lang/String;"],
     "Dev111.smali": ["nicoid_restore_tab_scroll", "nicoid_app_resume_playback", "nicoid_tab_scroll111_"],
 }

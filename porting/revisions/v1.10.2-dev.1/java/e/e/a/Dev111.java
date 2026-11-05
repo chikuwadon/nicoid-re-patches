@@ -373,6 +373,31 @@ public final class Dev111 {
         }
     }
 
+    /** Called on the main thread after a successful serialized playlist commit.
+     * The currently visible playlist refreshes even when the write finishes
+     * after the user has already switched back from another tab. */
+    public static void playlistsChanged() {
+        try {
+            Class<?> type = Class.forName("e.e.a.LocalPlaylists");
+            Map<?, ?> pages = (Map<?, ?>) field(type, "PAGES").get(null);
+            ArrayList<Activity> visible = new ArrayList<>();
+            for (Object entry : pages.keySet()) {
+                if (!(entry instanceof Activity)) continue;
+                Activity activity = (Activity) entry;
+                if (!activity.isFinishing() && !activity.isDestroyed()
+                        && activity.getIntent().getBooleanExtra("nicoid_local_playlists", false)) {
+                    visible.add(activity);
+                }
+            }
+            for (Activity activity : visible) {
+                capturePage(activity);
+                enteredPage(activity);
+            }
+        } catch (Exception error) {
+            android.util.Log.w("nicoid-playlist", "Playlist change notification skipped", error);
+        }
+    }
+
     /** Explicitly call after an Activity resumes; also refresh cached playlist Activities. */
     public static void pageResumed(Activity a) {
         enteredPage(a);

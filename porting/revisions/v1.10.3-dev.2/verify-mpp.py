@@ -29,6 +29,6 @@ with ZipFile(bundle) as z:
     assert "v"+version+" @chikuwadon" in strings, "Shipped helper dex has stale ModernShorts version"
     for name in ("SCROLL_RESTORES", "DIRTY_ADAPTERS", "REFRESH_ARTWORK", "updateSummaries"):
         assert name in strings, "Shipped helper DEX is missing optimized member " + name
-    for name in ("Le/e/a/Dev111;","Le/e/a/Dev112;","Le/e/a/Dev113;","Le/e/a/Dev114;","Le/e/a/Dev115;","Le/e/a/Dev116;","Le/e/a/Dev117;","Le/e/a/Dev118;","Le/e/a/PlaylistUrlParser;"):
+    for name in ("Le/e/a/Dev111;","Le/e/a/Dev112;","Le/e/a/Dev113;","Le/e/a/Dev114;","Le/e/a/Dev115;","Le/e/a/Dev116;","Le/e/a/Dev117;","Le/e/a/Dev118;","Le/e/a/Dev119;","Le/e/a/Dev120;","Le/e/a/PlaylistUrlParser;"):
         assert name in strings, "Shipped helper DEX missing "+name
 print("PASS: shipped MPP manifest, byte-exact helper resources and runtime version",version)

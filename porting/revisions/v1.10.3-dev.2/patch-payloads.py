@@ -182,7 +182,7 @@ native.write_text(text,encoding="utf-8")
 
 # The published recovered payload hardcoded v1.10.1 in two classes. Replace
 # both values on the staged copy, using the selected Gradle development version.
-version=sys.argv[2] if len(sys.argv)>2 else "1.10.3-dev.1"
+version=sys.argv[2] if len(sys.argv)>2 else "1.10.3-dev.2"
 assert version.startswith("1.10.3-dev.") and len(version)<50
 method("PatchVersion237.smali", ".method public static value()Ljava/lang/String;",
        'const-string v0, "1.10.1"', 'const-string v0, "'+version+'"')
@@ -204,7 +204,7 @@ code=code.replace('    nop\n\n    nop\n\n    nop\n\n    invoke-static {p1}, Land
                   '    invoke-static {p1}, Landroid/view/MotionEvent;->obtain')
 gesture.write_text(code,encoding="utf-8")
 
-print("Applied v1.10.3-dev.1 overlay to", ROOT)
+print("Applied v1.10.3-dev.2 overlay to", ROOT)
 
 # Missing stored image URLs follow the native thumbnail fallback already used by CacheListing.
 method("LocalPlaylists$Page.smali", ".method render()V",
@@ -368,3 +368,50 @@ method("CachedPlayback.smali",
        '    return-wide v0\n\n'
        '    :nicoid117_normal_completion\n'
        '    .line 9\n    const-wide/16 v0, -0x1')
+
+# Issue #112: retain the *normal* video view through a screen-off pause, if
+# enabled and playing. Other lifecycle paths remain unchanged.
+method("PlaybackLifecycle219.smali",
+       ".method public static retain(Ljava/lang/Object;)Z",
+       "    .registers 10\n\n    const/4 v0, 0x0",
+       "    .registers 10\n\n"
+       "    invoke-static {p0}, Le/e/a/Dev119;->retainWhenScreenOff(Ljava/lang/Object;)Z\n\n"
+       "    move-result v0\n\n"
+       "    if-eqz v0, :nicoid119_default_retain\n\n"
+       "    const/4 v0, 0x1\n\n"
+       "    return v0\n\n"
+       "    :nicoid119_default_retain\n"
+       "    const/4 v0, 0x0")
+
+# Backfill only missing information in existing URL-added playlist entries.
+# The helper throttles requests and restores the previous scroll position.
+method("LocalPlaylists$Page.smali",
+       ".method render()V",
+       '    move-object/from16 v1, p0\n\n    const-string v0, "postedAt"',
+       '    move-object/from16 v1, p0\n\n'
+       '    invoke-static {p0}, Le/e/a/Dev120;->backfill(Ljava/lang/Object;)V\n\n'
+       '    const-string v0, "postedAt"')
+
+# Softer horizontal paging. The directional discrimination is unchanged so
+# vertical scrolling and multi-stroke gestures keep their existing guards.
+method("TabPagingRules233.smali",
+       ".method public static claim(FFI)Z",
+       "    .registers 4", "    .registers 5")
+method("TabPagingRules233.smali",
+       ".method public static claim(FFI)Z",
+       "    mul-int/lit8 p2, p2, 0x2\n\n    int-to-float p2, p2",
+       "    int-to-float p2, p2\n\n"
+       "    const/high16 v1, 0x3fc00000    # 1.5f\n\n"
+       "    mul-float/2addr p2, v1")
+method("TabPagingRules233.smali",
+       ".method public static commit(FIF)Z",
+       "    const v3, 0x3e99999a    # 0.3f",
+       "    const v3, 0x3e3851ec    # 0.18f")
+method("TabPagingRules233.smali",
+       ".method public static commit(FIF)Z",
+       "    const/high16 v2, 0x44160000    # 600.0f",
+       "    const/high16 v2, 0x43fa0000    # 500.0f")
+method("Following190$Gestures.smali",
+       ".method static shouldSwitch(FFII)Z",
+       "    const v1, 0x3e4ccccd    # 0.2f",
+       "    const v1, 0x3e19999a    # 0.15f")

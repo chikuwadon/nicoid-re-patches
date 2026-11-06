@@ -141,6 +141,7 @@ public final class Dev111 {
         LegacyCacheCleanup113.install(activity);
         Dev115.cacheSettings(activity);
         Dev116.settings(activity);
+        Dev119.installSettings(activity);
         final Preference returnPreference = activity.findPreference(RESUME);
         final SharedPreferences shared = prefs(activity);
         updateSummaries(activity);

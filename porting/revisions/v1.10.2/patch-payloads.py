@@ -181,9 +181,9 @@ text += '''\n.method public onBackPressed()V
 native.write_text(text,encoding="utf-8")
 
 # The published recovered payload hardcoded v1.10.1 in two classes. Replace
-# both values on the staged copy, using the selected Gradle development version.
+# both values on the staged copy, using the selected Gradle release version.
 version=sys.argv[2] if len(sys.argv)>2 else "1.10.2"
-assert version.startswith("1.10.2-dev.") and len(version)<50
+assert version == "1.10.2", f"Expected approved release v1.10.2, got {version}"
 method("PatchVersion237.smali", ".method public static value()Ljava/lang/String;",
        'const-string v0, "1.10.1"', 'const-string v0, "'+version+'"')
 versionFile=HELPERS/"ModernShorts.smali"

@@ -61,7 +61,7 @@ public final class MergeHelperDex117 {
             if (!names.contains("Le/e/a/" + needed + ";"))
                 throw new IOException("Mandatory helper missing: " + needed);
         }
-        FileDataStore store = new FileDataStore(new File(args[2]));
+        FileDataStore store = new FileDataStore(new File(args[3]));
         try { pool.writeTo(store); } finally { store.close(); }
         System.out.println("Merged helper classes: restored=" + restoredCount + " development=" + developmentCount + " compilerMarkersSkipped=" + skippedCompilerMarkers + " versionOverrides=" + versionCount + " total=" + names.size());
     }

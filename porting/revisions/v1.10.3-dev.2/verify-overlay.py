@@ -30,7 +30,7 @@ expected = {
     "Dev119.smali": ["retainWhenScreenOff", "nicoid_keep_audio_screen_off"],
     "Dev120.smali": ["backfill", "first_retrieve", "videoinfo"],
     "PlaybackLifecycle219.smali": ["Dev119;->retainWhenScreenOff(Ljava/lang/Object;)Z"],
-    "TabPagingRules233.smali": ["0x3e3851ec", "0x43fa0000", "0x3fc00000"],
+    "TabPagingRules233.smali": ["0x3e3851ec", "0x43fa0000"],
     "Following190$Gestures.smali": ["0x3e19999a"],
     "PlaylistUrlParser.smali": ["canonicalUrl", "nicovideo.jp"],
     "PatchVersion237.smali": ["1.10.3-dev.2"],

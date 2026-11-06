@@ -1,6 +1,6 @@
 # v1.10.3-dev.3 — development validation
 
-This private development build supersedes v1.10.3-dev.1 without altering its source snapshot or the published v1.10.2 release.
+This private development build supersedes v1.10.3-dev.2 without altering its source snapshot or the published v1.10.2 release.
 
 - Issue #112: optional audio continuation when the device screen turns off during **normal playback** (default ON). No automatic popup/background-player mode transition.
 - Persist watch statistics and upload timestamp when adding a NicoNico video URL to a device playlist. Restore missing metadata for visible previously pasted entries with bounded, throttled background requests and preserved list scroll.

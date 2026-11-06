@@ -170,7 +170,7 @@ public final class Dev111 {
         String[] desired={
             "app_theme", "custom_palette", "multiple_video_tabs", "startup_screen",
             "list_gestures_enabled", "videolist_tap", "intent_type", "app_switch_playback",
-            RESUME, "back_playback", Dev112.CONFIRM_EXIT,
+            RESUME, "back_playback", Dev119.KEY, Dev112.CONFIRM_EXIT,
             "tab_swipe_animation", "tab_switch_animation", "tab_animation_enabled",
             SCROLL, "show_watch_progress", "video_menu_options", "main_rotation",
             "player_rotation", "display_mode", "play_mode"

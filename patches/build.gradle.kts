@@ -350,6 +350,9 @@ tasks {
 tasks.named("buildAndroid") { dependsOn(prepareNicoidHelpers) }
 tasks.named("build") { dependsOn(prepareNicoidHelpers) }
 tasks.named("processResources") { dependsOn(prepareNicoidHelpers) }
+// Gradle 9.8+ validates generated-resource ownership for the source archive.
+// The release task generates this archive; depend on its payload producer explicitly.
+tasks.matching { it.name == "sourcesJar" }.configureEach { dependsOn(prepareNicoidHelpers) }
 
 val patchesProject = project
 gradle.projectsEvaluated {

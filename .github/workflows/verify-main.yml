@@ -27,7 +27,7 @@ jobs:
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew clean :patches:buildAndroid --no-daemon
+        run: ./gradlew clean :patches:buildAndroid :patches:generatePatchesList --no-daemon
       - name: Verify MPP was produced
         shell: bash
         run: |

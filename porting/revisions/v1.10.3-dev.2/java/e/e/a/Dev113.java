@@ -12,14 +12,11 @@ import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.xmlpull.v1.XmlPullParser;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.function.Consumer;
 
 /** Adds URLs copied from a browser to the currently open device playlist. */
@@ -87,52 +84,11 @@ public final class Dev113 {
         dialog.show();
     }
 
-    private static final class Metadata {
-        String title, owner = "", image = "";
-        Metadata(String video) { title = video; }
-    }
-
-    /** The public metadata endpoint is fixed; no user-supplied host is contacted. */
-    private static Metadata metadata(String id) {
-        Metadata result = new Metadata(id);
-        HttpURLConnection connection = null;
-        try {
-            URL endpoint = new URL("https://ext.nicovideo.jp/api/getthumbinfo/" + id);
-            connection = (HttpURLConnection) endpoint.openConnection();
-            connection.setConnectTimeout(3000);
-            connection.setReadTimeout(3000);
-            connection.setInstanceFollowRedirects(false);
-            connection.setRequestProperty("User-Agent", "nicoid-Re/1.10.3");
-            if (connection.getResponseCode() != 200) return result;
-            XmlPullParser parser = android.util.Xml.newPullParser();
-            java.io.InputStream stream = connection.getInputStream();
-            try {
-                parser.setInput(stream, "UTF-8");
-                int event;
-                while ((event = parser.next()) != XmlPullParser.END_DOCUMENT) {
-                    if (event != XmlPullParser.START_TAG) continue;
-                    String key = parser.getName();
-                    if ("title".equals(key)) result.title = parser.nextText();
-                    else if ("thumbnail_url".equals(key)) result.image = parser.nextText();
-                    else if ("user_nickname".equals(key)) result.owner = parser.nextText();
-                }
-            } finally {
-                stream.close();
-            }
-        } catch (Exception error) {
-            android.util.Log.i("nicoid-playlist", "Video metadata unavailable; adding the ID", error);
-        } finally {
-            if (connection != null) connection.disconnect();
-        }
-        if (result.title == null || result.title.trim().isEmpty()) result.title = id;
-        return result;
-    }
-
     private static void enqueueVideo(Activity activity, Object page, String folder, String videoId) {
         WeakReference<Activity> weak = new WeakReference<>(activity);
         Context app = activity.getApplicationContext();
         new Thread(() -> {
-            Metadata meta = metadata(videoId);
+            Dev120.Metadata meta = Dev120.fetch(videoId);
             try {
                 Class<?> playlists = Class.forName("e.e.a.LocalPlaylists");
                 Class<?> editType = Class.forName("e.e.a.LocalPlaylists$Edit");
@@ -146,6 +102,7 @@ public final class Dev113 {
                             JSONObject old = videos.optJSONObject(i);
                             if (old != null && folder.equals(old.optString("folder")) &&
                                     videoId.equals(old.optString("videoId"))) {
+                                meta.merge(old);
                                 duplicate.set(true);
                                 return null;
                             }
@@ -154,6 +111,15 @@ public final class Dev113 {
                             String.class, String.class, String.class);
                         add.invoke(data, folder, PlaylistUrlParser.canonicalUrl(videoId),
                             meta.title, meta.owner, meta.image);
+                        // Store the same post date and counters used by normal list rows.
+                        for (int j = videos.length() - 1; j >= 0; j--) {
+                            JSONObject saved = videos.optJSONObject(j);
+                            if (saved != null && folder.equals(saved.optString("folder")) &&
+                                    videoId.equals(saved.optString("videoId"))) {
+                                meta.merge(saved);
+                                break;
+                            }
+                        }
                         return null;
                     });
                 Consumer<Boolean> callback = success -> {

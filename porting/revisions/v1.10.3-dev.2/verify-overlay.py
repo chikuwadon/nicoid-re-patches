@@ -28,8 +28,8 @@ expected = {
     "Dev117.smali": ["completedBytes", "ThreadLocal"],
     "Dev118.smali": ["myPageTouch", "nicoid_my_page"],
     "PlaylistUrlParser.smali": ["canonicalUrl", "nicovideo.jp"],
-    "PatchVersion237.smali": ["1.10.3-dev.1"],
-    "ModernShorts.smali": ["v1.10.3-dev.1 @chikuwadon"],
+    "PatchVersion237.smali": ["1.10.3-dev.2"],
+    "ModernShorts.smali": ["v1.10.3-dev.2 @chikuwadon"],
     "TabRoutes228.smali": [
         "Dev111;->capturePage(Landroid/app/Activity;)V",
         "Dev111;->preparePlaylist(Landroid/app/Activity;)V",
@@ -104,7 +104,7 @@ print("Verified development DEX assembly and class coverage: PASS")
 
 # Verify the precise version in the *assembled* helper DEX, not only in staged smali.
 version = sys.argv[3]
-assert version.startswith("1.10.3-dev.") and version == "1.10.3-dev.1"
+assert version.startswith("1.10.3-dev.") and version == "1.10.3-dev.2"
 dex_data = (output / "helpers.mpe").read_bytes()
 def dex_strings(data):
     strings_size, strings_off = struct.unpack_from("<II", data, 0x38)

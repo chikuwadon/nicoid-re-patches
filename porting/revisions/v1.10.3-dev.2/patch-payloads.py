@@ -389,20 +389,11 @@ method("LocalPlaylists$Page.smali",
        ".method render()V",
        '    move-object/from16 v1, p0\n\n    const-string v0, "postedAt"',
        '    move-object/from16 v1, p0\n\n'
-       '    invoke-static {p0}, Le/e/a/Dev120;->backfill(Ljava/lang/Object;)V\n\n'
+       '    invoke-static {v1}, Le/e/a/Dev120;->backfill(Ljava/lang/Object;)V\n\n'
        '    const-string v0, "postedAt"')
 
 # Softer horizontal paging. The directional discrimination is unchanged so
 # vertical scrolling and multi-stroke gestures keep their existing guards.
-method("TabPagingRules233.smali",
-       ".method public static claim(FFI)Z",
-       "    .registers 4", "    .registers 5")
-method("TabPagingRules233.smali",
-       ".method public static claim(FFI)Z",
-       "    mul-int/lit8 p2, p2, 0x2\n\n    int-to-float p2, p2",
-       "    int-to-float p2, p2\n\n"
-       "    const/high16 v1, 0x3fc00000    # 1.5f\n\n"
-       "    mul-float/2addr p2, v1")
 method("TabPagingRules233.smali",
        ".method public static commit(FIF)Z",
        "    const v3, 0x3e99999a    # 0.3f",

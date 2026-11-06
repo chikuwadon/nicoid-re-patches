@@ -105,7 +105,7 @@ def dex_strings(data):
         while data[pos] & 0x80:
             pos += 1
         pos += 1
-        end = data.index(b"\\x00",pos)
+        end = data.index(b"\x00",pos)
         result.add(data[pos:end].decode("utf-8","replace"))
     return result
 actual = dex_strings(dex_data)

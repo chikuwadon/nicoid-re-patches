@@ -22,8 +22,8 @@ mkdir -p "$version_classes"
 for file in PatchVersion237.smali ModernShorts.smali; do
     cp "$work/payloads/helpers/e/e/a/$file" "$version_classes/$file"
 done
-grep -Fq "1.10.3-dev.2" "$version_classes/PatchVersion237.smali"
-grep -Fq "v1.10.3-dev.2 @chikuwadon" "$version_classes/ModernShorts.smali"
+grep -Fq "1.10.3-dev.3" "$version_classes/PatchVersion237.smali"
+grep -Fq "v1.10.3-dev.3 @chikuwadon" "$version_classes/ModernShorts.smali"
 
 test -f "$java_smali/e/e/a/Dev111.smali"
 test -f "$java_smali/e/e/a/Dev116.smali"

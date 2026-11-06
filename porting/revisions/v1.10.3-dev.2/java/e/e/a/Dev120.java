@@ -89,7 +89,9 @@ public final class Dev120 {
         try {
             Class<?> details = Class.forName("e.e.a.VideoDetails");
             Class<?> taskType = Class.forName("e.e.a.NetworkTask");
-            Object task = taskType.getConstructor().newInstance();
+            java.lang.reflect.Constructor<?> ctor = taskType.getDeclaredConstructor();
+            ctor.setAccessible(true);
+            Object task = ctor.newInstance();
             Method get = details.getDeclaredMethod("request", String.class, String.class, boolean.class, taskType);
             get.setAccessible(true);
             JSONObject response = (JSONObject)get.invoke(null,

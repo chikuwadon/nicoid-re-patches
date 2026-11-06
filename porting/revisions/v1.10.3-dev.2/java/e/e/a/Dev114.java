@@ -45,9 +45,9 @@ public final class Dev114 {
         if(option==null)return;
         SharedPreferences prefs=PreferenceManager.getDefaultSharedPreferences(activity);
         int current=prefs.getInt("comment_fetch_limit",0);
-        option.setSummary(label(activity,current)+" - "+tr(activity,
-            "次回の再生から反映。無制限でもサーバー・メモリ制限により停止します",
-            "Applies on next playback. Unlimited stops on server/resource limits."));
+        option.setSummary(label(activity,current)+"："+tr(activity,
+            "取得可能な範囲でコメントを読み込みます。実際の取得数は動画によって異なります",
+            "Load comments where available. The actual number varies by video."));
         option.setOnPreferenceClickListener(v->{
             LinearLayout content=new LinearLayout(activity);
             content.setOrientation(LinearLayout.VERTICAL);
@@ -75,9 +75,9 @@ public final class Dev114 {
                 .setPositiveButton(tr(activity,"OK","OK"),(d,w)->{
                     int selected=fromProgress(slider.getProgress());
                     prefs.edit().putInt("comment_fetch_limit",selected).apply();
-                    option.setSummary(label(activity,selected)+" - "+tr(activity,
-                        "次回の再生から反映。無制限でもサーバー・メモリ制限により停止します",
-                        "Applies on next playback. Unlimited stops on server/resource limits."));
+                    option.setSummary(label(activity,selected)+"："+tr(activity,
+            "取得可能な範囲でコメントを読み込みます。実際の取得数は動画によって異なります",
+            "Load comments where available. The actual number varies by video."));
                 })
                 .setNegativeButton(tr(activity,"キャンセル","Cancel"),null).create();
             dialog.show();

@@ -182,7 +182,7 @@ native.write_text(text,encoding="utf-8")
 
 # The published recovered payload hardcoded v1.10.1 in two classes. Replace
 # both values on the staged copy, using the selected Gradle development version.
-version=sys.argv[2] if len(sys.argv)>2 else "1.10.3-dev.2"
+version=sys.argv[2] if len(sys.argv)>2 else "1.10.3-dev.3"
 assert version.startswith("1.10.3-dev.") and len(version)<50
 method("PatchVersion237.smali", ".method public static value()Ljava/lang/String;",
        'const-string v0, "1.10.1"', 'const-string v0, "'+version+'"')
@@ -204,7 +204,7 @@ code=code.replace('    nop\n\n    nop\n\n    nop\n\n    invoke-static {p1}, Land
                   '    invoke-static {p1}, Landroid/view/MotionEvent;->obtain')
 gesture.write_text(code,encoding="utf-8")
 
-print("Applied v1.10.3-dev.2 overlay to", ROOT)
+print("Applied v1.10.3-dev.3 overlay to", ROOT)
 
 # Missing stored image URLs follow the native thumbnail fallback already used by CacheListing.
 method("LocalPlaylists$Page.smali", ".method render()V",

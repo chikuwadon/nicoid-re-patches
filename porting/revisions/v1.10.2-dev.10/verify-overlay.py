@@ -114,7 +114,7 @@ assert "v"+version+" @chikuwadon" in actual, "Actual ModernShorts version is mis
 print("Compiled patch-version string and ModernShorts version:",version,"PASS")
 
 home=(helper/"LocalPlaylists.smali").read_text(encoding="utf-8").split(".method public static home(",1)[1].split(".end method",1)[0]
-assert "LocalPlaylists;->back" not in home and "const/4 v0, 0x0" in home, "Toolbar home must delegate to native drawer"
+assert "LocalPlaylists;->back" not in home and "Dev116;->drawer" in home, "Toolbar home must invoke native drawer toggle"
 print("Playlist toolbar drawer routing: PASS")
 
 popup_native=(root/"method-delta/e/e/a/b0$a.smali").read_text(encoding="utf-8")

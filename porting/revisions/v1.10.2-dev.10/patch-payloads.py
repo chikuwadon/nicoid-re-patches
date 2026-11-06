@@ -262,11 +262,12 @@ assert code.count(signature)==1
 start=code.index(signature)
 end=code.index("\n.end method",start)
 code=code[:start]+""".method public static home(Landroid/app/Activity;Landroid/view/MenuItem;)Z
-    .registers 2
+    .registers 3
 
-    # Delegate to NicoidActivity's original drawer-toggle handler.
-    const/4 v0, 0x0
-    return v0
+    # Route through the native ActionBarDrawerToggle; return false to Activity on failure.
+    invoke-static {p0, p1}, Le/e/a/Dev116;->drawer(Landroid/app/Activity;Landroid/view/MenuItem;)Z
+    move-result p0
+    return p0
 """+code[end:]
 path.write_text(code,encoding="utf-8")
 

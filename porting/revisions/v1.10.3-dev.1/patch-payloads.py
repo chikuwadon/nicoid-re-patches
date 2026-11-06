@@ -298,8 +298,8 @@ method("LocalPlaylists.smali",
 # for the native My Page. Do not roll back its position on recognized gestures.
 method("GestureControls110.smali",
        ".method public static touch(Landroid/app/Activity;Landroid/view/MotionEvent;)Z",
-       '    invoke-static {p0}, Le/e/a/GestureControls110;->prefs(Landroid/content/Context;)Landroid/content/SharedPreferences;',
-       '    invoke-static {p0, p1}, Le/e/a/Dev118;->myPageTouch(Landroid/app/Activity;Landroid/view/MotionEvent;)Z\n\n'
+       '    .registers 14\\n\\n    invoke-static {p0}, Le/e/a/GestureControls110;->prefs(Landroid/content/Context;)Landroid/content/SharedPreferences;',
+       '    .registers 14\\n\\n    invoke-static {p0, p1}, Le/e/a/Dev118;->myPageTouch(Landroid/app/Activity;Landroid/view/MotionEvent;)Z\n\n'
        '    move-result v0\n\n'
        '    if-eqz v0, :nicoid113_native_gesture\n\n'
        '    const/4 v0, 0x1\n\n    return v0\n\n'

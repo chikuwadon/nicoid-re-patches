@@ -31,11 +31,19 @@ if [[ -z "$tools_dir" ]]; then
     mkdir -p "$tools_dir"
     mvn -q -B -f "$baseline/pom.xml" dependency:copy-dependencies -DoutputDirectory="$tools_dir"
 fi
+# org.jf.smali.Main has returned zero even after reporting invalid-register
+# errors; strict stderr checking ensures an incomplete DEX can NEVER be shipped.
 for part in helpers.mpe method-delta.dex; do
-    java -cp "$tools_dir/*" org.jf.smali.Main assemble "$work/payloads/${part%.*}" -o "$output/$part"
+    errors="$work/assemble-${part}.stderr"
+    java -cp "$tools_dir/*" org.jf.smali.Main assemble "$work/payloads/${part%.*}" -o "$output/$part" 2>"$errors"
+    if [[ -s "$errors" ]]; then cat "$errors" >&2; echo "Smali assembler reported diagnostics: $part" >&2; exit 1; fi
+    test -s "$output/$part"
 done
 # Version-only DEX is authoritative over any stale version classes in baseline.
-java -cp "$tools_dir/*" org.jf.smali.Main assemble "$work/version-classes" -o "$work/version-classes.dex"
+errors="$work/assemble-version.stderr"
+java -cp "$tools_dir/*" org.jf.smali.Main assemble "$work/version-classes" -o "$work/version-classes.dex" 2>"$errors"
+if [[ -s "$errors" ]]; then cat "$errors" >&2; echo "Smali version assembler reported diagnostics" >&2; exit 1; fi
+test -s "$work/version-classes.dex"
 
 # Avoid the previously lossy D8-to-Smali round trip: combine the two actual DEX files.
 mkdir -p "$work/merge-classes"
@@ -46,3 +54,9 @@ mv "$work/helpers-merged.mpe" "$output/helpers.mpe"
 # Generated .smali is staged for source/hook verification after assembly.
 cp -a "$java_smali/." "$work/payloads/helpers/"
 python3 "$source_dir/verify-overlay.py" "$work/payloads" "$output" "$version"
+# Confirm that the actual merged runtime DEX contains the critical menu hook.
+java -cp "$tools_dir/*" org.jf.baksmali.Main disassemble "$output/helpers.mpe" -o "$work/merged-smali" >/dev/null
+grep -Fq 'Dev116;->playlistMenu(Landroid/app/Activity;' "$work/merged-smali/e/e/a/ListActions.smali"
+grep -Fq 'Dev115;->thumbnail(Lorg/json/JSONObject;)' "$work/merged-smali/e/e/a/LocalPlaylists\$Page.smali"
+echo "Merged runtime menu and playlist thumbnail hooks: PASS"
+

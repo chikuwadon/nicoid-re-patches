@@ -224,7 +224,7 @@ method("FullscreenViewport209.smali", ".method public static restore(Landroid/vi
 # Binding at extra() runs after the original Add-to-playlist action was appended.
 method("ListActions.smali", ".method public static extra(Ljava/lang/Object;Ljava/lang/Object;)V",
        "    :cond_8c\n    sget-object v0, Le/e/a/ListActions;->ACTIONS:Ljava/util/Map;",
-       "    :cond_8c\n    invoke-static {v3, p0, v2, v11, v14}, Le/e/a/Dev116;->playlistMenu(Landroid/app/Activity;Ljava/lang/Object;Ljava/lang/Object;Landroid/view/Menu;Ljava/util/List;)V\n\n"
+       "    :cond_8c\n    move-object/from16 v0, p0\n\n    invoke-static {v3, v0, v2, v11, v14}, Le/e/a/Dev116;->playlistMenu(Landroid/app/Activity;Ljava/lang/Object;Ljava/lang/Object;Landroid/view/Menu;Ljava/util/List;)V\n\n"
        "    sget-object v0, Le/e/a/ListActions;->ACTIONS:Ljava/util/Map;")
 
 # Thumbnail UI is rebound for visible playlist rows after the native adapter

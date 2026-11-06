@@ -79,18 +79,18 @@ jobs:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Verify final distributed MPP, payload and patch version
-        run: python3 porting/revisions/v1.10.2-dev.11/verify-mpp.py 1.10.2-dev.11
+        run: python3 porting/revisions/v1.10.3-dev.1/verify-mpp.py 1.10.3-dev.1
       - name: Prepare development sources and verification report
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p patches/build/dev-delivery
-          version=1.10.2-dev.11
+          version=1.10.3-dev.1
           git archive --format=zip --prefix="nicoid-re-$version/" \
             --output="patches/build/dev-delivery/nicoid-re-$version-source.zip" HEAD
           git archive --format=tar.gz --prefix="nicoid-re-$version/" \
             --output="patches/build/dev-delivery/nicoid-re-$version-source.tar.gz" HEAD
-          python3 porting/revisions/v1.10.2-dev.11/sync-source-payloads.py "$version"
+          python3 porting/revisions/v1.10.3-dev.1/sync-source-payloads.py "$version"
           {
             echo "nicoid Re $version / development verification"
             echo "Commit: $GITHUB_SHA"
@@ -100,7 +100,8 @@ jobs:
             echo "Source ZIP/TAR DEX parity with generated MPP: PASS"
             echo "Android device/emulator runtime testing: NOT PERFORMED"
             echo "Official release/tag update: NOT PERFORMED"
-            echo "Changes: reviewed scroll restoration, thumbnail dedup/batching, and settings listener lifecycle"
+            echo "Changes: URL paste to device playlists, deep scroll pagination, unlimited comment fetch, cache index, My Page gestures"
+            echo "Known pending: Issue #112 screen-off audio lifecycle behavior"
             echo
             echo "Files (SHA-256):"
             sha256sum patches/build/libs/*.mpp patches/build/dev-delivery/*source.*
@@ -108,13 +109,13 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: nicoid-re-v1.10.2-dev.11-mpp
+          name: nicoid-re-v1.10.3-dev.1-mpp
           path: patches/build/libs/*.mpp
           if-no-files-found: error
           retention-days: 7
       - uses: actions/upload-artifact@v4
         with:
-          name: nicoid-re-v1.10.2-dev.11-source-verification
+          name: nicoid-re-v1.10.3-dev.1-source-verification
           path: patches/build/dev-delivery/
           if-no-files-found: error
           retention-days: 7

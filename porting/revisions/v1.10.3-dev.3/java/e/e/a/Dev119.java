@@ -32,7 +32,7 @@ public final class Dev119 {
             "通常再生中に画面を消しても音声を再生し続けます",
             "Continue audio during normal playback when the screen turns off",
             "一般播放時關閉螢幕後繼續播放音訊"));
-        option.setDefaultValue(Boolean.FALSE);
+        option.setDefaultValue(Boolean.TRUE);
         ((PreferenceGroup)group).addPreference(option);
     }
 
@@ -51,7 +51,7 @@ public final class Dev119 {
             if (activity == null || activity.isFinishing() || activity.isDestroyed() ||
                     activity.isChangingConfigurations()) return false;
             boolean enabled = PreferenceManager.getDefaultSharedPreferences(activity)
-                .getBoolean(KEY, false);
+                .getBoolean(KEY, true);
             if (!enabled) return false;
             PowerManager power = (PowerManager)activity.getSystemService(Context.POWER_SERVICE);
             if (power == null || power.isInteractive()) return false;

@@ -27,6 +27,11 @@ expected = {
     "Dev114.smali": ["effectiveLimit", "memoryAvailable", "installSettings"],
     "Dev117.smali": ["completedBytes", "ThreadLocal"],
     "Dev118.smali": ["myPageTouch", "nicoid_my_page"],
+    "Dev119.smali": ["retainWhenScreenOff", "nicoid_keep_audio_screen_off"],
+    "Dev120.smali": ["backfill", "first_retrieve", "videoinfo"],
+    "PlaybackLifecycle219.smali": ["Dev119;->retainWhenScreenOff(Ljava/lang/Object;)Z"],
+    "TabPagingRules233.smali": ["0x3e3851ec", "0x43fa0000", "0x3fc00000"],
+    "Following190$Gestures.smali": ["0x3e19999a"],
     "PlaylistUrlParser.smali": ["canonicalUrl", "nicovideo.jp"],
     "PatchVersion237.smali": ["1.10.3-dev.2"],
     "ModernShorts.smali": ["v1.10.3-dev.2 @chikuwadon"],
@@ -36,7 +41,7 @@ expected = {
         "Dev111;->enteredPage(Landroid/app/Activity;)V",
     ],
     "LocalPlaylists.smali": ["Dev111;->preparePlaylist(Landroid/app/Activity;)V", "Dev111;->playlistsChanged()V", "Dev113;->playlistUrlMenu(Landroid/app/Activity;Landroid/view/Menu;Ljava/lang/Object;)V"],
-    "LocalPlaylists$Page.smali": ["LocalPlaylistData;->toString()Ljava/lang/String;", "Dev115;->thumbnail(Lorg/json/JSONObject;)Ljava/lang/String;"],
+    "LocalPlaylists$Page.smali": ["LocalPlaylistData;->toString()Ljava/lang/String;", "Dev115;->thumbnail(Lorg/json/JSONObject;)Ljava/lang/String;", "Dev120;->backfill(Ljava/lang/Object;)V"],
     "FullscreenViewport209.smali": ["Dev115;->afterFullscreenRestore(Landroid/view/View;)V"],
     "Dev111.smali": ["nicoid_restore_tab_scroll", "nicoid_app_resume_playback", "nicoid_tab_scroll111_", "updateSummaries"],
     "Dev112.smali": ["nicoid_confirm_exit", "verticalTurnReady", "playlistMenu", "SCROLL_RESTORES"],
@@ -86,14 +91,14 @@ def dex_classes(data):
     return {types[u32(class_off + 32*i)] for i in range(class_size)}
 
 helper_defs = dex_classes((output / "helpers.mpe").read_bytes())
-needed = ("Dev111", "Dev112", "Dev113", "Dev114", "Dev115", "Dev116", "Dev117", "Dev118", "PlaylistUrlParser", "LegacyCacheCleanup113", "StorageDiagnostics112")
+needed = ("Dev111", "Dev112", "Dev113", "Dev114", "Dev115", "Dev116", "Dev117", "Dev118", "Dev119", "Dev120", "PlaylistUrlParser", "LegacyCacheCleanup113", "StorageDiagnostics112")
 missing = [name for name in needed if "Le/e/a/" + name + ";" not in helper_defs]
 print("Assembled helper DEX class definitions:", len(helper_defs))
 print("Required development classes:", len(needed) - len(missing), "/", len(needed))
 assert not missing, "Required development classes are absent: " + ", ".join(missing)
 
 # Include generated lambda and nested classes, not merely the entry-point class.
-expected_sources = list((root / "helpers/e/e/a").glob("Dev11*.smali"))
+expected_sources = list((root / "helpers/e/e/a").glob("Dev1*.smali"))
 for source in expected_sources:
     descriptor = "Le/e/a/" + source.stem + ";"
     assert descriptor in helper_defs, f"Final helper DEX omitted {descriptor}"

@@ -73,6 +73,16 @@ jobs:
           java -cp /tmp/nicoid-cookie-tests e.e.a.ManualCookieTest
       - name: Validate bundled Android manifest
         run: python3 porting/tests/VerifyManifest.py patches/src/main/resources/nicoid/resources.zip
+      - name: Verify screen-off audio defaults to ON
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          source = Path("porting/revisions/v1.10.3-dev.3/java/e/e/a/Dev119.java").read_text()
+          assert "option.setDefaultValue(Boolean.TRUE)" in source
+          assert ".getBoolean(KEY, true)" in source
+          assert "option.setDefaultValue(Boolean.FALSE)" not in source
+          print("PASS: new installs default ON; stored explicit OFF remains effective")
+          PY
       - name: Build Morphe bundle
         run: ./gradlew :patches:buildAndroid --no-daemon
         env:

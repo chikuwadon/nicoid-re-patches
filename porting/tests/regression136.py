@@ -1,7 +1,7 @@
 from pathlib import Path
 import subprocess,tempfile,re,shutil,sys
 repo=Path(__file__).resolve().parents[2]
-revision=repo/'porting/revisions/v1.10.3'
+revision=repo/'porting/revisions'/('v1.10.4-dev.1' if len(sys.argv)<2 else sys.argv[1])
 def method(source,start):
  s=source.index(start); a=source.index('{',s); depth=1;b=a+1
  while depth:

@@ -29,7 +29,7 @@ expected = {
     "Dev118.smali": ["myPageTouch", "nicoid_my_page"],
     "Dev119.smali": ["retainWhenScreenOff", "nicoid_keep_audio_screen_off"],
     "Dev120.smali": ["backfill", "first_retrieve", "videoinfo"],
-    "Dev121.smali": ["controls", "progress", "done"],
+    "Dev121.smali": ["controls", "progress", "done", "ticket", "valid", "update"],
     "CommentBatchPolicy121.smali": ["ready"],
     "PlaybackLifecycle219.smali": ["Dev119;->retainWhenScreenOff(Ljava/lang/Object;)Z"],
     "TabPagingRules233.smali": ["0x3e3851ec", "0x43fa0000"],

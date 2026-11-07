@@ -2,7 +2,7 @@ name: Private patch build
 
 on:
   push:
-    branches: [dev]
+    branches: [dev, audit/v1.10.4-dev.1]
   workflow_dispatch:
 
 permissions:
@@ -83,10 +83,8 @@ jobs:
           PY
       - name: Check additional cache, audio and gesture regressions
         run: python3 porting/tests/regression136.py
-      - name: Test incremental comment update policy
-        run: |
-          javac -d /tmp/nicoid-comment-batch porting/revisions/v1.10.4-dev.1/java/e/e/a/CommentBatchPolicy121.java porting/revisions/v1.10.4-dev.1/CommentBatchPolicy121Test.java
-          java -cp /tmp/nicoid-comment-batch CommentBatchPolicy121Test
+      - name: Test comment lifecycle and player controls regressions
+        run: python3 porting/tests/regression141.py
       - name: Build Morphe bundle
         run: ./gradlew :patches:buildAndroid --no-daemon
         env:
@@ -130,7 +128,8 @@ jobs:
             echo "Stable v1.10.3 resource and feature continuity: PASS"
             echo "Android device/emulator runtime testing: NOT PERFORMED"
             echo "Official release/tag update: NOT PERFORMED"
-            echo "Changes: URL paste to device playlists, deep scroll pagination, unlimited comment fetch, cache index, My Page gestures"
+            echo "Changes: 2-second controls timeout and coalesced incremental historical comment updates"
+            echo "Comment lifecycle and controls boundary tests: PASS (JVM doubles; Android runtime not covered)"
             echo "Issue #112: screen-off audio option and lifecycle hook"
             echo
             echo "Files (SHA-256):"
@@ -142,10 +141,10 @@ jobs:
           name: nicoid-re-v1.10.4-dev.1-mpp
           path: patches/build/libs/*.mpp
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 2
       - uses: actions/upload-artifact@v4
         with:
           name: nicoid-re-v1.10.4-dev.1-source-verification
           path: patches/build/dev-delivery/
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 2

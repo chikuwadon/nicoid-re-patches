@@ -498,30 +498,98 @@ method("PlayerGestures.smali",
        ".method public static touch(Landroid/app/Activity;Landroid/view/MotionEvent;)Z",
        "    move-object/from16 v1, p0\n\n    .line 26",
        "    move-object/from16 v1, p0\n\n"
-       "    invoke-static {v1}, Le/e/a/Dev121;->controls(Ljava/lang/Object;)V\n\n    .line 26")
+       "    invoke-static/range {p0 .. p1}, Le/e/a/Dev121;->controls(Ljava/lang/Object;Landroid/view/MotionEvent;)V\n\n    .line 26")
 
-# Network parsing is still background-only. At completed page boundaries,
-# use coalesced, incremental hydration instead of re-decoding the entire
-# comment history on every refresh. The original final load is retained for
-# cache persistence and compatibility with existing comment listeners.
+# Configure normal controls on creation too, before the first user touch.
+path = ROOT / "method-delta/com/sauzask/nicoid/NicoidVideoFragment.smali"
+text = path.read_text(encoding="utf-8")
+start = text.index(".method public a(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;)Landroid/view/View;")
+end = text.index(".end method", start)
+block = text[start:end]
+hook = "    invoke-static {v0}, Le/e/a/PopupReturn244;->created(Ljava/lang/Object;)V"
+assert block.count(hook) == 3
+block = block.replace(hook, "    invoke-static {v0}, Le/e/a/Dev121;->controls(Ljava/lang/Object;)V\n\n" + hook)
+path.write_text(text[:start] + block + text[end:], encoding="utf-8")
+
+# Hydration remains on the network worker. Scratch locals do not overwrite
+# the live JSON/thread cursor registers or the relocated p0 parameter.
 method("CommentHistory$Job.smali", ".method public run()V",
        "    :goto_ca\n    move-object/from16 v25, v11",
-       "    :goto_ca\n"
-       "    move-object/from16 v38, v7\n"
-       "    move-object/from16 v39, v8\n"
-       "    move-object/from16 v7, v18\n"
-       "    move/from16 v8, v23\n"
-       "    invoke-static/range {v6 .. v8}, Le/e/a/Dev121;->progress(Ljava/lang/Object;Lorg/json/JSONObject;I)V\n"
-       "    move-object/from16 v7, v38\n"
-       "    move-object/from16 v8, v39\n\n"
+       "    :goto_ca\n    :audit141_job_start\n"
+       "    move-object/from16 v38, p0\n"
+       "    move-object/from16 v39, v18\n"
+       "    move/from16 v40, v23\n"
+       "    invoke-static/range {v38 .. v40}, Le/e/a/Dev121;->progress(Ljava/lang/Object;Lorg/json/JSONObject;I)V\n\n"
        "    move-object/from16 v25, v11")
 method("CommentHistory$Job.smali", ".method public run()V",
-       "    :cond_361\n    :goto_361\n    new-instance v0, Ljava/lang/StringBuilder;",
-       "    :cond_361\n    :goto_361\n"
-       "    invoke-static {v6}, Le/e/a/Dev121;->done(Ljava/lang/Object;)V\n\n"
-       "    new-instance v0, Ljava/lang/StringBuilder;")
-
-# Two extra scratch registers preserve the live cursor/thread locals across
-# the range-form invoke; existing parameter references use p0, not v38.
+       "    :goto_47f\n    return-void",
+       "    :goto_47f\n    :audit141_job_end\n"
+       "    invoke-static/range {p0 .. p0}, Le/e/a/Dev121;->done(Ljava/lang/Object;)V\n"
+       "    return-void\n\n"
+       "    .catchall {:audit141_job_start .. :audit141_job_end} :audit141_job_cleanup\n"
+       "    :audit141_job_cleanup\n"
+       "    move-exception v0\n"
+       "    invoke-static/range {p0 .. p0}, Le/e/a/Dev121;->done(Ljava/lang/Object;)V\n"
+       "    throw v0")
 method("CommentHistory$Job.smali", ".method public run()V",
-       "    .registers 39", "    .registers 41")
+       "    .registers 39", "    .registers 42")
+
+# Capture the watch identity when the UI runnable is queued, then recheck it
+# at dispatch. Keep continuity, graph and Cast processing on their old path.
+method("CommentUi.smali", ".method public static apply(Ljava/lang/Object;Ljava/util/ArrayList;)V",
+       "    new-instance v0, Le/e/a/CommentUi$$ExternalSyntheticLambda1;\n\n"
+       "    invoke-direct {v0, p0, p1}, Le/e/a/CommentUi$$ExternalSyntheticLambda1;-><init>(Ljava/lang/Object;Ljava/util/ArrayList;)V",
+       "    invoke-static {p0, p1}, Le/e/a/Dev121;->update(Ljava/lang/Object;Ljava/util/ArrayList;)Ljava/lang/Runnable;\n\n"
+       "    move-result-object v0")
+
+method("CommentUi.smali", ".method public static apply(Ljava/lang/Object;Ljava/util/ArrayList;)V",
+       "    .registers 3", "    .registers 4")
+method("CommentUi.smali", ".method public static apply(Ljava/lang/Object;Ljava/util/ArrayList;)V",
+       "    invoke-static {p0, p1}, Le/e/a/CommentContinuity118;->merge",
+       "    invoke-static {p0}, Le/e/a/Dev121;->ticket(Ljava/lang/Object;)Ljava/lang/Object;\n"
+       "    move-result-object v1\n\n"
+       "    invoke-static {p0, p1}, Le/e/a/CommentContinuity118;->merge")
+method("CommentUi.smali", ".method public static apply(Ljava/lang/Object;Ljava/util/ArrayList;)V",
+       "    invoke-static {p0, p1}, Le/e/a/Dev121;->update",
+       "    invoke-static {v1, p1}, Le/e/a/Dev121;->update")
+
+# Reject obsolete work before continuity and dependent publishers as well.
+method("CommentUi.smali", ".method public static apply(Ljava/lang/Object;Ljava/util/ArrayList;)V",
+       "    move-result-object v1\n\n    invoke-static {p0, p1}, Le/e/a/CommentContinuity118;->merge",
+       "    move-result-object v1\n\n"
+       "    invoke-static {v1}, Le/e/a/Dev121;->valid(Ljava/lang/Object;)Z\n"
+       "    move-result v0\n"
+       "    if-nez v0, :audit141_comment_current\n"
+       "    return-void\n"
+       "    :audit141_comment_current\n"
+       "    invoke-static {p0, p1}, Le/e/a/CommentContinuity118;->merge")
+
+# Cast has its own main-thread queue; preserve the same generation there.
+path = HELPERS / "CastControls218$1.smali"
+text = path.read_text(encoding="utf-8")
+assert text.count("# instance fields") == 1
+text = text.replace("# instance fields", "# instance fields\n.field private final audit141Ticket:Ljava/lang/Object;")
+path.write_text(text, encoding="utf-8")
+method("CastControls218$1.smali", ".method constructor <init>(Ljava/lang/Object;Ljava/util/ArrayList;)V",
+       "    invoke-direct {p0}, Ljava/lang/Object;-><init>()V",
+       "    invoke-direct {p0}, Ljava/lang/Object;-><init>()V\n\n"
+       "    invoke-static {p1}, Le/e/a/Dev121;->ticket(Ljava/lang/Object;)Ljava/lang/Object;\n"
+       "    move-result-object p1\n"
+       "    iput-object p1, p0, Le/e/a/CastControls218$1;->audit141Ticket:Ljava/lang/Object;")
+method("CastControls218$1.smali", ".method public run()V",
+       "    .registers 4",
+       "    .registers 4\n\n"
+       "    iget-object v0, p0, Le/e/a/CastControls218$1;->audit141Ticket:Ljava/lang/Object;\n"
+       "    invoke-static {v0}, Le/e/a/Dev121;->valid(Ljava/lang/Object;)Z\n"
+       "    move-result v0\n"
+       "    if-nez v0, :audit141_cast_current\n"
+       "    return-void\n"
+       "    :audit141_cast_current")
+
+# Release incremental indexes before the original full parse allocates its rows.
+# The normal/exceptional epilogues remain idempotent fallbacks.
+method("CommentHistory$Job.smali", ".method public run()V",
+       "    :cond_31f\n    :goto_31f\n    if-lez v23, :cond_361",
+       "    :cond_31f\n    :goto_31f\n"
+       "    invoke-static/range {p0 .. p0}, Le/e/a/Dev121;->done(Ljava/lang/Object;)V\n\n"
+       "    if-lez v23, :cond_361")

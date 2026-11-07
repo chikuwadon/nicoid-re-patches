@@ -154,13 +154,16 @@ val mergeNicoidHelpersDex = tasks.register<JavaExec>("mergeNicoidHelpersDex") {
     mainClass.set("app.nicoid.patches.NicoidDexMerger")
     val generated = layout.buildDirectory.file("nicoid/helper-dex/classes.dex")
     val original = rootProject.file("patches/src/main/resources/nicoid/helpers.mpe")
+    val compatibility = rootProject.file("porting/compat/validated.zip")
+    inputs.file(compatibility)
     val output = layout.buildDirectory.file("nicoid/merged-helper-dex/classes.dex")
     doFirst {
         output.get().asFile.parentFile.mkdirs()
         output.get().asFile.delete()
     }
     args(generated.get().asFile.absolutePath, original.absolutePath,
-        layout.buildDirectory.file("nicoid/overrides.dex").get().asFile.absolutePath, output.get().asFile.absolutePath)
+        layout.buildDirectory.file("nicoid/overrides.dex").get().asFile.absolutePath,
+        compatibility.absolutePath, output.get().asFile.absolutePath)
 }
 val compileDialogVerification = tasks.register<JavaCompile>("compileDialogVerification") {
     source(rootProject.file("porting/tests/VerifyDialogArguments.java"), rootProject.file("porting/tests/VerifyListClickRouting.java"), rootProject.file("porting/tests/VerifyPopupCallbacks.java"))

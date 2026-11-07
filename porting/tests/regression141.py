@@ -41,6 +41,12 @@ with tempfile.TemporaryDirectory(prefix='nicoid141-') as temp:
     for name in ['CastControls218;->publish','CastComments213;->publish','CommentGraph215;->publish']:
         assert name in body
     assert 'sget-object p0, Le/e/a/CommentUi;->MAIN' in body
+    # The copy-free handoff is valid only while merge snapshots synchronously.
+    assert body.index('CommentContinuity118;->merge')<body.index('Dev121;->update')
+    continuity=(helper/'CommentContinuity118.smali').read_text()
+    a=continuity.index('.method public static merge(');b=continuity.index('.end method',a);merge=continuity[a:b]
+    assert 'new-instance v3, Ljava/util/ArrayList;' in merge and 'return-object v3' in merge
+    assert 'return-object p1' not in merge and 'return-object p0' not in merge
     cast=(helper/'CastControls218$1.smali').read_text()
     assert 'Dev121;->ticket' in cast and cast.index('Dev121;->valid')<cast.index('CastControls218;->access$2')
     assert body.index('Dev121;->valid')<body.index('CommentContinuity118;->merge')

@@ -237,7 +237,9 @@ public final class Dev121 {
 
     /** The job identity separates repeated loads of the same video. */
     public static void progress(Object job, JSONObject accumulated, int added) {
-        if (job == null || accumulated == null || added <= 0 || !current(job)) return;
+        // A first publication cannot occur below this total; avoid reflection/state on those pages.
+        if (job == null || accumulated == null || added < CommentBatchPolicy121.MIN_COMMENTS) return;
+        if (!current(job)) return;
         if (!Dev114.memoryAvailable()) return;
         try {
             Object target = owner(job);
@@ -262,7 +264,9 @@ public final class Dev121 {
                 apply.setAccessible(true);
                 UPDATE.set(new Ticket(target, job));
                 try {
-                    apply.invoke(null, target, new ArrayList<>(state.items));
+                    // apply synchronously merges into a fresh list before it queues any UI work.
+                    // The state lock keeps this input stable throughout that merge.
+                    apply.invoke(null, target, state.items);
                 } finally {
                     UPDATE.remove();
                 }

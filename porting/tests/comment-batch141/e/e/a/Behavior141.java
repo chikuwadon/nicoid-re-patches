@@ -15,9 +15,10 @@ public class Behavior141 {
   }
  }
  public static class Job {
+  static int currentCalls;
   public final WeakReference<Object> owner;public final String video;public final Object watch;
   Job(Owner o){owner=new WeakReference<Object>(o);video=o.d;watch=o.modernWatch;}
-  private boolean current(){Owner o=(Owner)owner.get();return o!=null&&!o.a&&watch==o.modernWatch&&video.equals(o.d)&&!Thread.currentThread().isInterrupted();}
+  private boolean current(){currentCalls++;Owner o=(Owner)owner.get();return o!=null&&!o.a&&watch==o.modernWatch&&video.equals(o.d)&&!Thread.currentThread().isInterrupted();}
  }
  static JSONObject comment(int i){return new JSONObject().put("id",String.valueOf(i)).put("no",i).put("body","body"+i).put("vposMs",12340).put("userId","user"+i).put("commands",new JSONArray().put("red").put("ue"));}
  static JSONArray rows(int start,int count){JSONArray a=new JSONArray();for(int i=start;i<start+count;i++)a.put(comment(i));return a;}
@@ -25,7 +26,7 @@ public class Behavior141 {
  static void progress(Job j,JSONObject r,int count){Dev121.progress(baseline?j.owner.get():j,r,count);}
  static void done(Job j){Dev121.done(baseline?j.owner.get():j);}
  static Map<?,?> snapshots()throws Exception {Field f=Dev121.class.getDeclaredField("SNAPSHOTS");f.setAccessible(true);return (Map<?,?>)f.get(null);}
- static void reset()throws Exception{snapshots().clear();CommentUi.calls=0;CommentUi.delivered=0;CommentUi.last=null;CommentUi.beforeQueue=null;CommentUi.throwApply=false;CommentUi.queued=null;SystemClock.now=100;Dev114.memory=true;}
+ static void reset()throws Exception{snapshots().clear();CommentUi.inputs.clear();Job.currentCalls=0;CommentUi.calls=0;CommentUi.delivered=0;CommentUi.last=null;CommentUi.beforeQueue=null;CommentUi.throwApply=false;CommentUi.queued=null;SystemClock.now=100;Dev114.memory=true;}
  static void retryDecode()throws Exception {
   reset();Owner o=new Owner();o.failAt=2;Job j=new Job(o);JSONObject r=root(rows(0,1000));
   progress(j,r,1000);check(CommentUi.calls==0,"failed batch is not published");
@@ -50,10 +51,14 @@ public class Behavior141 {
  static void thresholds()throws Exception {
   reset();Owner o=new Owner();Job j=new Job(o);JSONArray a=rows(0,999);JSONObject r=root(a);
   progress(j,r,999);check(CommentUi.calls==0&&o.decoded==0,"below threshold performs no decoding");
+  check(snapshots().isEmpty(),"under-threshold pages do not allocate snapshot state");
+  check(Job.currentCalls==0,"under-threshold pages skip reflective job checks");
   a.put(comment(999));progress(j,r,1000);check(CommentUi.calls==1&&o.decoded==1000,"first thousand flushes once");
+  ArrayList<?> displayed=CommentUi.last;
   for(int i=1000;i<2000;i++)a.put(comment(i));SystemClock.now+=2999;progress(j,r,2000);
   check(CommentUi.calls==1,"minimum interval coalesces pages");SystemClock.now++;progress(j,r,2000);
   check(CommentUi.calls==2&&o.decoded==2000,"incremental hydration does not reparse old rows");
+  check(displayed.size()==1000&&displayed!=CommentUi.last,"previously displayed list stays independent during next hydration");
   for(int i=2000;i<2500;i++)a.put(comment(i));SystemClock.now+=4999;progress(j,r,2500);
   check(CommentUi.calls==2,"slow batch waits five seconds");SystemClock.now++;progress(j,r,2500);
   check(CommentUi.calls==3&&o.decoded==2500,"slow batch emits after five seconds");
@@ -90,6 +95,7 @@ public class Behavior141 {
   }
   long elapsed=(System.nanoTime()-started)/1000000L;
   check(o.decoded==20000&&CommentUi.last.size()==20000&&CommentUi.calls==20,"20,000 comments decode once across 20 batches");
+  check(CommentUi.inputs.size()==1,"20 publications reuse the producer list without 20 full handoff copies");
   System.out.println("Hydration stress: 20,000 rows / 20 batches / "+elapsed+" ms (JVM doubles, excludes Android UI/Cast/graph)");done(job);
   reset();Owner concurrent=new Owner();Job shared=new Job(concurrent);JSONObject data=root(rows(0,1000));
   java.util.concurrent.ExecutorService pool=java.util.concurrent.Executors.newFixedThreadPool(4);

@@ -2,7 +2,7 @@ name: Private patch build
 
 on:
   push:
-    branches: [dev, audit/v1.10.4-dev.1]
+    branches: [dev]
   workflow_dispatch:
 
 permissions:

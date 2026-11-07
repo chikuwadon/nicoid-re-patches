@@ -4,9 +4,8 @@ from pathlib import Path
 from zipfile import ZipFile
 import glob, hashlib, struct, sys
 version=sys.argv[1]
-bundles=glob.glob("patches/build/libs/*.mpp")
-assert len(bundles)==1, f"Expected one MPP, got {bundles}"
-bundle=Path(bundles[0])
+bundle=Path(f"patches/build/libs/patches-{version}.mpp")
+assert bundle.is_file() and bundle.stat().st_size > 0, f"Release MPP missing: {bundle}"
 with ZipFile(bundle) as z:
     assert z.testzip() is None
     manifest=z.read("META-INF/MANIFEST.MF").decode()

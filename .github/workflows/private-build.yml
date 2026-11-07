@@ -77,7 +77,7 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          source = Path("porting/revisions/v1.10.3-dev.5/java/e/e/a/Dev119.java").read_text()
+          source = Path("porting/revisions/v1.10.3-dev.6/java/e/e/a/Dev119.java").read_text()
           assert "option.setDefaultValue(Boolean.TRUE)" in source
           assert ".getBoolean(KEY, true)" in source
           assert "option.setDefaultValue(Boolean.FALSE)" not in source
@@ -89,18 +89,18 @@ jobs:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Verify final distributed MPP, payload and patch version
-        run: python3 porting/revisions/v1.10.3-dev.5/verify-mpp.py 1.10.3-dev.5
+        run: python3 porting/revisions/v1.10.3-dev.6/verify-mpp.py 1.10.3-dev.6
       - name: Prepare development sources and verification report
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p patches/build/dev-delivery
-          version=1.10.3-dev.5
+          version=1.10.3-dev.6
           git archive --format=zip --prefix="nicoid-re-$version/" \
             --output="patches/build/dev-delivery/nicoid-re-$version-source.zip" HEAD
           git archive --format=tar.gz --prefix="nicoid-re-$version/" \
             --output="patches/build/dev-delivery/nicoid-re-$version-source.tar.gz" HEAD
-          python3 porting/revisions/v1.10.3-dev.5/sync-source-payloads.py "$version"
+          python3 porting/revisions/v1.10.3-dev.6/sync-source-payloads.py "$version"
           {
             echo "nicoid Re $version / development verification"
             echo "Commit: $GITHUB_SHA"
@@ -119,13 +119,13 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: nicoid-re-v1.10.3-dev.5-mpp
+          name: nicoid-re-v1.10.3-dev.6-mpp
           path: patches/build/libs/*.mpp
           if-no-files-found: error
           retention-days: 7
       - uses: actions/upload-artifact@v4
         with:
-          name: nicoid-re-v1.10.3-dev.5-source-verification
+          name: nicoid-re-v1.10.3-dev.6-source-verification
           path: patches/build/dev-delivery/
           if-no-files-found: error
           retention-days: 7

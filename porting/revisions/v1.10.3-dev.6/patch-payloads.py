@@ -467,3 +467,22 @@ native += """
 .end method
 """
 info.write_text(native, encoding="utf-8")
+
+# Release the thread-local cache snapshot on exceptional exits as well.
+path=HELPERS/"CacheListing.smali"
+text=path.read_text(encoding="utf-8")
+start=text.index(".method public static load(Ljava/util/ArrayList;Landroid/content/Context;)J")
+end=text.index(".end method",start)
+body=text[start:end]
+hook="    invoke-static {v6, v9}, Le/e/a/Dev117;->start(Ljava/lang/String;[Ljava/io/File;)V"
+assert body.count(hook)==1
+body=body.replace(hook,hook+"\n\n    :audit136_index_start")
+body+="""
+    :audit136_index_end
+    .catchall {:audit136_index_start .. :audit136_index_end} :audit136_index_cleanup
+    :audit136_index_cleanup
+    move-exception v0
+    invoke-static {}, Le/e/a/Dev117;->finish()V
+    throw v0
+"""
+path.write_text(text[:start]+body+text[end:],encoding="utf-8")

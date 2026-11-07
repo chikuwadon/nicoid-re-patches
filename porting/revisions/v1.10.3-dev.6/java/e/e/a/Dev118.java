@@ -14,18 +14,20 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.WeakHashMap;
+import java.lang.ref.WeakReference;
 
 /** Use native list-gesture semantics on the profile's ScrollView. */
 public final class Dev118 {
     private static final WeakHashMap<Activity,State> STATES=new WeakHashMap<>();
     private static final class State {
-        final ScrollView scroll;
+        final WeakReference<ScrollView> scroll;
+        final int originalScroll;
         Object rules;
         Path path=new Path();
-        View trace;
+        WeakReference<View> trace;
         int[] origin=new int[2];
         boolean claimed,enabledTrace;
-        State(ScrollView view) { scroll=view; }
+        State(ScrollView view) { scroll=new WeakReference<>(view); originalScroll=view.getScrollY(); }
     }
     private Dev118(){}
     private static Object reflect(Object owner,String method,Class<?>[] signature,Object... args)throws Exception {
@@ -49,8 +51,9 @@ public final class Dev118 {
     private static void clear(Activity activity) {
         State state=STATES.remove(activity);
         if(state==null || state.trace==null)return;
-        if(state.trace.getParent() instanceof ViewGroup) {
-            ((ViewGroup)state.trace.getParent()).removeView(state.trace);
+        View trace=state.trace.get();
+        if(trace!=null && trace.getParent() instanceof ViewGroup) {
+            ((ViewGroup)trace.getParent()).removeView(trace);
         }
     }
     private static String pattern(State state)throws Exception {
@@ -68,7 +71,7 @@ public final class Dev118 {
             trace.setClickable(false);
             ViewGroup container=(ViewGroup)a.findViewById(android.R.id.content);
             container.addView(trace,new ViewGroup.LayoutParams(-1,-1));
-            s.trace=trace;
+            s.trace=new WeakReference<>(trace);
         } catch (Exception error) {
             android.util.Log.w("nicoid-gesture","Unable to display profile gesture trace",error);
         }
@@ -78,10 +81,11 @@ public final class Dev118 {
             "action",new Class<?>[]{Context.class,String.class},a,gesture);
     }
     private static void updateTrace(Activity a,State s)throws Exception {
-        if(s.trace==null)return;
-        Class<?> type=s.trace.getClass();
+        View trace=s.trace==null?null:s.trace.get();
+        if(trace==null)return;
+        Class<?> type=trace.getClass();
         Field path=type.getDeclaredField("path");path.setAccessible(true);
-        ((Path)path.get(s.trace)).set(s.path);
+        ((Path)path.get(trace)).set(s.path);
         String p=pattern(s), name="";
         if(p.length()>=2) {
             String mapped=action(a,p);
@@ -90,15 +94,18 @@ public final class Dev118 {
                 new Class<?>[]{Context.class,String.class},a,mapped);
         }
         Field label=type.getDeclaredField("message");label.setAccessible(true);
-        label.set(s.trace,name);
-        s.trace.invalidate();
+        label.set(trace,name);
+        trace.invalidate();
     }
     private static void execute(Activity a,State s,String gesture) {
         try {
             String mapped=action(a,gesture);
             if(mapped==null || mapped.isEmpty())return;
-            if(mapped.equals("top")){s.scroll.smoothScrollTo(0,0);return;}
-            if(mapped.equals("bottom")){s.scroll.fullScroll(View.FOCUS_DOWN);return;}
+            ScrollView scroll=s.scroll.get();
+            if(scroll==null || !scroll.isAttachedToWindow())return;
+            scroll.scrollTo(0,s.originalScroll);
+            if(mapped.equals("top")){scroll.smoothScrollTo(0,0);return;}
+            if(mapped.equals("bottom")){scroll.fullScroll(View.FOCUS_DOWN);return;}
             reflect(Class.forName("e.e.a.GestureControls110"),"perform",
                 new Class<?>[]{Activity.class,String.class},a,mapped);
         } catch (Exception error) {

@@ -58,12 +58,13 @@ public final class Dev113 {
         container.setOrientation(LinearLayout.VERTICAL);
         container.setPadding(dp(activity, 24), dp(activity, 14), dp(activity, 24), 0);
         EditText input = new EditText(activity);
+        input.setTag("nicoid-managed-input");
         input.setSingleLine(true);
         input.setTextSize(15);
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
         input.setHint("https://sp.nicovideo.jp/watch/sm...");
         container.addView(input, new LinearLayout.LayoutParams(-1, -2));
-        AlertDialog dialog = new AlertDialog.Builder(activity)
+        AlertDialog dialog = Dev112.builder(activity)
             .setTitle(language(activity, "動画URLを追加", "Add video URL"))
             .setView(container)
             .setPositiveButton(language(activity, "追加", "Add"), null)
@@ -81,7 +82,7 @@ public final class Dev113 {
             dialog.dismiss();
             enqueueVideo(activity, page, folder, video);
         }));
-        dialog.show();
+        Dev112.show(dialog);
     }
 
     private static void enqueueVideo(Activity activity, Object page, String folder, String videoId) {

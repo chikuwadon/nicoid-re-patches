@@ -69,7 +69,7 @@ public final class Dev114 {
                 public void onStartTrackingTouch(SeekBar seekBar){}
                 public void onStopTrackingTouch(SeekBar seekBar){}
             });
-            AlertDialog dialog=new AlertDialog.Builder(activity)
+            AlertDialog dialog=Dev112.builder(activity)
                 .setTitle(tr(activity,"コメント取得数","Comments to load"))
                 .setView(content)
                 .setPositiveButton(tr(activity,"OK","OK"),(d,w)->{
@@ -80,7 +80,7 @@ public final class Dev114 {
             "Load comments where available. The actual number varies by video."));
                 })
                 .setNegativeButton(tr(activity,"キャンセル","Cancel"),null).create();
-            dialog.show();
+            Dev112.show(dialog);
             return true;
         });
     }

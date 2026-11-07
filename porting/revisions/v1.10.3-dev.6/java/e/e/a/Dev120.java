@@ -193,7 +193,8 @@ public final class Dev120 {
                 @SuppressWarnings("unchecked")
                 List<JSONObject> rows = (List<JSONObject>)field(target, "visible");
                 ListView list = (ListView)field(target, "videoList");
-                if (rows == null || rows.isEmpty()) return;
+                if (rows == null || rows.isEmpty() || list == null
+                        || !list.isAttachedToWindow() || !list.isShown()) return;
                 int first = list != null ? Math.max(0, list.getFirstVisiblePosition()) : 0;
                 int last = list != null ? Math.max(first, list.getLastVisiblePosition()) : 3;
                 int queued = 0;
@@ -220,10 +221,10 @@ public final class Dev120 {
     }
     private static void repair(WeakReference<Activity> activity, WeakReference<Object> page,
             String folder, String id) {
-        Metadata meta = fetch(id);
-        if (!meta.useful()) return;
         Activity a = activity.get();
         if (a == null || a.isFinishing() || a.isDestroyed()) return;
+        Metadata meta = fetch(id);
+        if (!meta.useful()) return;
         try {
             Class<?> dataClass = Class.forName("e.e.a.LocalPlaylists");
             Class<?> editType = Class.forName("e.e.a.LocalPlaylists$Edit");

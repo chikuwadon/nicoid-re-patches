@@ -51,8 +51,9 @@ public final class Dev117 {
         Index index=CURRENT.get();
         if(index==null || !index.folder.equals(strip(root)))return -2;
         Entry e=index.videos.get(videoId);
-        if(e==null || e.mp4<0)return -1;
-        if(e.packed>0 && e.playlist)return -2; // Verify archive index as before.
+        if(e==null)return -1;
+        if(e.packed>0)return -2; // Validate packed caches before checking the MP4 marker.
+        if(e.mp4<0)return -1;
         if(e.playlist)return e.assets>0?e.assets:-1;
         if(e.mp4>0 && e.mp4<1024)return -2; // Preserve incomplete-marker detection.
         return e.mp4>0?e.mp4:-1;

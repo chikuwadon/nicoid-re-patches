@@ -159,4 +159,44 @@ public final class Dev113 {
             }
         }, "nicoid-playlist-url").start();
     }
+
+    /** Add the device-local action without disturbing the existing information menu. */
+    private static final int INFO_PLAYLIST_ITEM = 18160;
+
+    public static void infoMenu(Activity activity, Menu menu) {
+        if (activity == null || menu == null || activity.isFinishing()
+                || !"com.sauzask.nicoid.NicoidVideoInfoActivity".equals(activity.getClass().getName())
+                || menu.findItem(INFO_PLAYLIST_ITEM) != null) return;
+        String language = activity.getResources().getConfiguration().locale.getLanguage();
+        String label = "ja".equals(language) ? "本体のプレイリストに登録"
+            : "zh".equals(language) ? "加入本機播放清單" : "Add to device playlist";
+        MenuItem action = menu.add(Menu.NONE, INFO_PLAYLIST_ITEM, Menu.NONE, label);
+        action.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
+        action.setOnMenuItemClickListener(item -> infoSelected(activity, item));
+    }
+
+    /** Handles the same action even if the platform routes selection to the Activity. */
+    public static boolean infoSelected(Activity activity, MenuItem item) {
+        if (item == null || item.getItemId() != INFO_PLAYLIST_ITEM) return false;
+        if (activity == null || activity.isFinishing() || activity.isDestroyed()) return true;
+        try {
+            Field videoField = activity.getClass().getDeclaredField("E");
+            Field titleField = activity.getClass().getDeclaredField("F");
+            videoField.setAccessible(true);
+            titleField.setAccessible(true);
+            String id = (String) videoField.get(activity);
+            String title = (String) titleField.get(activity);
+            if (id == null || !id.matches("(?:sm|nm|so|ss)?[0-9]+"))
+                throw new IllegalArgumentException("Invalid video identifier");
+            Method add = Class.forName("e.e.a.LocalPlaylists").getMethod("add",
+                Context.class, String.class, String.class, String.class, String.class);
+            add.invoke(null, activity, "https://www.nicovideo.jp/watch/" + id,
+                title == null ? "" : title, "", "");
+        } catch (Exception error) {
+            android.util.Log.w("nicoid-playlist", "Unable to open device playlist registration", error);
+            Toast.makeText(activity, language(activity, "プレイリスト登録を開始できませんでした",
+                "Unable to open playlist registration"), Toast.LENGTH_SHORT).show();
+        }
+        return true;
+    }
 }

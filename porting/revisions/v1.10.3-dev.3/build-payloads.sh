@@ -66,5 +66,10 @@ grep -Fq '.method public static home(Landroid/app/Activity;Landroid/view/MenuIte
 java -cp "$tools_dir/*" org.jf.baksmali.Main disassemble "$output/method-delta.dex" -o "$work/native-smali" >/dev/null
 grep -Fq 'Dev116;->nativePlaylistPopup(Ljava/lang/Object;Ljava/lang/Object;)Z' "$work/native-smali/e/e/a/b0\$a.smali"
 grep -Fq '.method public static nativePlaylistPopup(' "$work/merged-smali/e/e/a/Dev116.smali"
+
+grep -Fq 'Dev113;->infoMenu(Landroid/app/Activity;Landroid/view/Menu;)V' "$work/native-smali/com/sauzask/nicoid/NicoidVideoInfoActivity.smali"
+grep -Fq 'Dev113;->infoSelected(Landroid/app/Activity;Landroid/view/MenuItem;)Z' "$work/native-smali/com/sauzask/nicoid/NicoidVideoInfoActivity.smali"
+grep -Fq 'setBackgroundTintList(Landroid/content/res/ColorStateList;)V' "$work/merged-smali/e/e/a/CustomTheme119.smali"
+grep -Fq '.method public static infoMenu(Landroid/app/Activity;Landroid/view/Menu;)V' "$work/merged-smali/e/e/a/Dev113.smali"
 echo "Merged runtime menu, native popup, thumbnail and drawer hooks: PASS"
 

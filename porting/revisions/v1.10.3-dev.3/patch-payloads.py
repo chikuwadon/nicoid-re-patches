@@ -406,3 +406,48 @@ method("Following190$Gestures.smali",
        ".method static shouldSwitch(FFII)Z",
        "    const v1, 0x3e4ccccd    # 0.2f",
        "    const v1, 0x3e19999a    # 0.15f")
+
+# Preserve the user's chosen preview color after the common dialog theme has
+# applied its background tint. The picker already refreshes on every RGB change.
+method("CustomTheme119.smali",
+       ".method static picker(Landroid/app/Activity;Landroid/widget/EditText;)V",
+       "    invoke-static {p0}, Le/e/a/UiDialogs;->show(Landroid/app/AlertDialog;)V\n\n"
+       "    const/4 v0, -0x1",
+       "    invoke-static {p0}, Le/e/a/UiDialogs;->show(Landroid/app/AlertDialog;)V\n\n"
+       "    const/4 v0, 0x0\n\n"
+       "    invoke-virtual {v3, v0}, Landroid/widget/EditText;->setBackgroundTintList(Landroid/content/res/ColorStateList;)V\n\n"
+       "    invoke-interface {v6}, Ljava/lang/Runnable;->run()V\n\n"
+       "    const/4 v0, -0x1")
+
+# The information-screen overflow uses Activity options rather than the video
+# list's popup. Keep the native options and append one separate device action.
+info = ROOT / "method-delta/com/sauzask/nicoid/NicoidVideoInfoActivity.smali"
+native = info.read_text(encoding="utf-8")
+old = (".method public onOptionsItemSelected(Landroid/view/MenuItem;)Z\n"
+       "    .registers 9\n\n"
+       "    invoke-interface {p1}, Landroid/view/MenuItem;->getItemId()I")
+new = (".method public onOptionsItemSelected(Landroid/view/MenuItem;)Z\n"
+       "    .registers 9\n\n"
+       "    invoke-static {p0, p1}, Le/e/a/Dev113;->infoSelected(Landroid/app/Activity;Landroid/view/MenuItem;)Z\n\n"
+       "    move-result v0\n\n"
+       "    if-eqz v0, :nicoid_info_normal_item\n\n"
+       "    const/4 v0, 0x1\n\n"
+       "    return v0\n\n"
+       "    :nicoid_info_normal_item\n"
+       "    invoke-interface {p1}, Landroid/view/MenuItem;->getItemId()I")
+assert native.count(old) == 1, "Unexpected information screen options implementation"
+assert ".method public onPrepareOptionsMenu(Landroid/view/Menu;)Z" not in native
+native = native.replace(old, new)
+native += """
+.method public onPrepareOptionsMenu(Landroid/view/Menu;)Z
+    .registers 3
+
+    invoke-super {p0, p1}, Lcom/sauzask/nicoid/NicoidActivity;->onPrepareOptionsMenu(Landroid/view/Menu;)Z
+    move-result v0
+
+    invoke-static {p0, p1}, Le/e/a/Dev113;->infoMenu(Landroid/app/Activity;Landroid/view/Menu;)V
+
+    return v0
+.end method
+"""
+info.write_text(native, encoding="utf-8")

@@ -507,10 +507,21 @@ method("PlayerGestures.smali",
 method("CommentHistory$Job.smali", ".method public run()V",
        "    :goto_ca\n    move-object/from16 v25, v11",
        "    :goto_ca\n"
-       "    invoke-static {v6, v18, v23}, Le/e/a/Dev121;->progress(Ljava/lang/Object;Lorg/json/JSONObject;I)V\n\n"
+       "    move-object/from16 v38, v7\n"
+       "    move-object/from16 v39, v8\n"
+       "    move-object/from16 v7, v18\n"
+       "    move/from16 v8, v23\n"
+       "    invoke-static/range {v6 .. v8}, Le/e/a/Dev121;->progress(Ljava/lang/Object;Lorg/json/JSONObject;I)V\n"
+       "    move-object/from16 v7, v38\n"
+       "    move-object/from16 v8, v39\n\n"
        "    move-object/from16 v25, v11")
 method("CommentHistory$Job.smali", ".method public run()V",
        "    :cond_361\n    :goto_361\n    new-instance v0, Ljava/lang/StringBuilder;",
        "    :cond_361\n    :goto_361\n"
        "    invoke-static {v6}, Le/e/a/Dev121;->done(Ljava/lang/Object;)V\n\n"
        "    new-instance v0, Ljava/lang/StringBuilder;")
+
+# Two extra scratch registers preserve the live cursor/thread locals across
+# the range-form invoke; existing parameter references use p0, not v38.
+method("CommentHistory$Job.smali", ".method public run()V",
+       "    .registers 39", "    .registers 41")

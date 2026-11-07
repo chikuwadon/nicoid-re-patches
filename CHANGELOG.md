@@ -1,3 +1,16 @@
+## 1.10.4 (2026-11-08)
+
+### ✨ New Features
+
+* **nicoid:** Display additional historical comments progressively while retrieval continues.
+
+### 🔧 Improvements
+
+* **nicoid:** Set playback controls and seek bar visibility to 2 seconds in normal and popup playback.
+* **nicoid:** Batch comment updates to avoid excessive refreshes during retrieval.
+* **nicoid:** Avoid redundant comment parsing and unnecessary processing before updates.
+* **nicoid:** Reduce memory allocations by eliminating redundant comment-list copies and releasing temporary retrieval data earlier.
+
 ## 1.10.3 (2026-11-07)
 
 ### ✨ New Features

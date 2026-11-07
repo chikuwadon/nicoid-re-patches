@@ -2,7 +2,7 @@
 from pathlib import Path
 import re, subprocess, tempfile, shutil
 repo=Path(__file__).resolve().parents[2]
-revision=repo/'porting/revisions/v1.10.4-dev.1'
+revision=repo/'porting/revisions/v1.10.4'
 with tempfile.TemporaryDirectory(prefix='nicoid141-') as temp:
     out=Path(temp);classes=out/'classes';classes.mkdir()
     files=list(Path(__file__).with_name('comment-batch141').rglob('*.java'))
@@ -13,7 +13,7 @@ with tempfile.TemporaryDirectory(prefix='nicoid141-') as temp:
     stage=out/'stage'
     for name in ['helpers','method-delta']:
         shutil.copytree(repo/'porting/revisions/v1.10.1'/name,stage/name)
-    subprocess.run(['python3',str(revision/'patch-payloads.py'),str(stage),'1.10.4-dev.1'],check=True)
+    subprocess.run(['python3',str(revision/'patch-payloads.py'),str(stage),'1.10.4'],check=True)
     # Link/signature and register-format checks supplement, not replace, DEX assembly.
     helper=stage/'helpers/e/e/a'
     job=(helper/'CommentHistory$Job.smali').read_text()

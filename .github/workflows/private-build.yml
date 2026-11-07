@@ -75,7 +75,7 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          source = Path("porting/revisions/v1.10.4-dev.1/java/e/e/a/Dev119.java").read_text()
+          source = Path("porting/revisions/v1.10.4/java/e/e/a/Dev119.java").read_text()
           assert "option.setDefaultValue(Boolean.TRUE)" in source
           assert ".getBoolean(KEY, true)" in source
           assert "option.setDefaultValue(Boolean.FALSE)" not in source
@@ -91,7 +91,7 @@ jobs:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Verify final distributed MPP, payload and patch version
-        run: python3 porting/revisions/v1.10.4-dev.1/verify-mpp.py 1.10.4-dev.1
+        run: python3 porting/revisions/v1.10.4/verify-mpp.py 1.10.4
       - name: Verify stable resources and feature continuity
         env:
           GH_TOKEN: ${{ github.token }}
@@ -99,10 +99,10 @@ jobs:
           set -euo pipefail
           mkdir -p /tmp/nicoid-baseline /tmp/nicoid-stage
           gh release download v1.10.3 --repo chikuwadon/nicoid-re-patches --pattern patches-1.10.3.mpp --dir /tmp/nicoid-baseline
-          python3 porting/tests/VerifyResourceIdentity191.py /tmp/nicoid-baseline/patches-1.10.3.mpp patches/build/libs/patches-1.10.4-dev.1.mpp
-          python3 porting/tests/VerifyLegacyImageFormats191.py /tmp/nicoid-baseline/patches-1.10.3.mpp patches/build/libs/patches-1.10.4-dev.1.mpp
+          python3 porting/tests/VerifyResourceIdentity191.py /tmp/nicoid-baseline/patches-1.10.3.mpp patches/build/libs/patches-1.10.4.mpp
+          python3 porting/tests/VerifyLegacyImageFormats191.py /tmp/nicoid-baseline/patches-1.10.3.mpp patches/build/libs/patches-1.10.4.mpp
           cp -a porting/revisions/v1.10.1/helpers porting/revisions/v1.10.1/method-delta /tmp/nicoid-stage/
-          python3 porting/revisions/v1.10.4-dev.1/patch-payloads.py /tmp/nicoid-stage 1.10.4-dev.1
+          python3 porting/revisions/v1.10.4/patch-payloads.py /tmp/nicoid-stage 1.10.4
           python3 porting/tests/VerifyReleaseContinuity.py porting/revisions/v1.10.1/helpers /tmp/nicoid-stage/helpers /tmp/nicoid-stage/method-delta
           python3 porting/tests/VerifyQualityRegisters195.py /tmp/nicoid-stage
       - name: Prepare development sources and verification report
@@ -110,12 +110,12 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p patches/build/dev-delivery
-          version=1.10.4-dev.1
+          version=1.10.4
           git archive --format=zip --prefix="nicoid-re-$version/" \
             --output="patches/build/dev-delivery/nicoid-re-$version-source.zip" HEAD
           git archive --format=tar.gz --prefix="nicoid-re-$version/" \
             --output="patches/build/dev-delivery/nicoid-re-$version-source.tar.gz" HEAD
-          python3 porting/revisions/v1.10.4-dev.1/sync-source-payloads.py "$version"
+          python3 porting/revisions/v1.10.4/sync-source-payloads.py "$version"
           {
             echo "nicoid Re $version / development verification"
             echo "Commit: $GITHUB_SHA"
@@ -138,13 +138,13 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: nicoid-re-v1.10.4-dev.1-mpp
+          name: nicoid-re-v1.10.4-mpp
           path: patches/build/libs/*.mpp
           if-no-files-found: error
           retention-days: 2
       - uses: actions/upload-artifact@v4
         with:
-          name: nicoid-re-v1.10.4-dev.1-source-verification
+          name: nicoid-re-v1.10.4-source-verification
           path: patches/build/dev-delivery/
           if-no-files-found: error
           retention-days: 2

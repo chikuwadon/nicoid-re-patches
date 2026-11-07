@@ -526,7 +526,9 @@ method("CommentHistory$Job.smali", ".method public run()V",
        "    :goto_47f\n    :audit141_job_end\n"
        "    invoke-static/range {p0 .. p0}, Le/e/a/Dev121;->done(Ljava/lang/Object;)V\n"
        "    return-void\n\n"
-       "    .catchall {:audit141_job_start .. :audit141_job_end} :audit141_job_cleanup\n"
+       # Dexlib forbids overlapping catch-all regions with different handlers.
+       "    .catchall {:audit141_job_start .. :try_start_332} :audit141_job_cleanup\n"
+       "    .catchall {:try_end_350 .. :audit141_job_end} :audit141_job_cleanup\n"
        "    :audit141_job_cleanup\n"
        "    move-exception v0\n"
        "    invoke-static/range {p0 .. p0}, Le/e/a/Dev121;->done(Ljava/lang/Object;)V\n"

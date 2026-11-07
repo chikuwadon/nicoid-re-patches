@@ -22,7 +22,13 @@ with tempfile.TemporaryDirectory(prefix='nicoid141-') as temp:
     assert 'move-object/from16 v38, p0' in run and 'move-object/from16 v39, v18' in run and 'move/from16 v40, v23' in run
     assert 'invoke-static/range {v38 .. v40}, Le/e/a/Dev121;->progress' in run
     assert ':goto_47f\n    :audit141_job_end\n    invoke-static/range {p0 .. p0}, Le/e/a/Dev121;->done' in run
-    assert '.catchall {:audit141_job_start .. :audit141_job_end} :audit141_job_cleanup' in run
+    assert '.catchall {:audit141_job_start .. :try_start_332} :audit141_job_cleanup' in run
+    assert '.catchall {:try_end_350 .. :audit141_job_end} :audit141_job_cleanup' in run
+    labels={m[1]:m.start() for m in re.finditer(r'^    (:\w+)\s*$',run,re.M)}
+    handlers=[(labels[a],labels[b],h) for a,b,h in re.findall(r'\.catchall \{(:\w+) \.\. (:\w+)\} (:\w+)',run)]
+    for a,b,h in handlers:
+        for c,d,g in handlers:
+            assert h==g or max(a,c)>=min(b,d), 'Conflicting catch-all regions' 
     assert run.count('Dev121;->done')==3
     assert ':goto_31f\n    invoke-static/range {p0 .. p0}, Le/e/a/Dev121;->done' in run
     for body in [run,(helper/'PlayerGestures.smali').read_text()]:

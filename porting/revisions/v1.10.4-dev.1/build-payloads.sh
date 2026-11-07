@@ -40,13 +40,21 @@ fi
 # errors; strict stderr checking ensures an incomplete DEX can NEVER be shipped.
 for part in helpers.mpe method-delta.dex; do
     errors="$work/assemble-${part}.stderr"
-    java -cp "$tools_dir/*" org.jf.smali.Main assemble "$work/payloads/${part%.*}" -o "$output/$part" 2>"$errors"
+    if ! java -cp "$tools_dir/*" org.jf.smali.Main assemble "$work/payloads/${part%.*}" -o "$output/$part" 2>"$errors"; then
+        cat "$errors" >&2
+        echo "Smali assembler failed: $part" >&2
+        exit 1
+    fi
     if [[ -s "$errors" ]]; then cat "$errors" >&2; echo "Smali assembler reported diagnostics: $part" >&2; exit 1; fi
     test -s "$output/$part"
 done
 # Version-only DEX is authoritative over any stale version classes in baseline.
 errors="$work/assemble-version.stderr"
-java -cp "$tools_dir/*" org.jf.smali.Main assemble "$work/version-classes" -o "$work/version-classes.dex" 2>"$errors"
+if ! java -cp "$tools_dir/*" org.jf.smali.Main assemble "$work/version-classes" -o "$work/version-classes.dex" 2>"$errors"; then
+    cat "$errors" >&2
+    echo "Smali version assembler failed" >&2
+    exit 1
+fi
 if [[ -s "$errors" ]]; then cat "$errors" >&2; echo "Smali version assembler reported diagnostics" >&2; exit 1; fi
 test -s "$work/version-classes.dex"
 

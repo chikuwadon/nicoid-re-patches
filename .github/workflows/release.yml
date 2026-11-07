@@ -169,7 +169,8 @@ jobs:
         run: |
           set -euo pipefail
           ./gradlew :patches:buildAndroid --no-daemon
-          python3 porting/revisions/v1.10.2/verify-mpp.py 1.10.2
+          python3 porting/revisions/v1.10.3/verify-mpp.py 1.10.3
+          python3 porting/tests/regression136.py
 
       # Use the verified project dependency tree, not an action that installs
       # its own separate (unpatched) semantic-release toolchain.

@@ -12,6 +12,11 @@
       {
         "releaseRules": [
           {
+            "type": "feat",
+            "subject": "prepare v1.10.4-dev.1 controls and incremental comment updates",
+            "release": "patch"
+          },
+          {
             "type": "fix",
             "release": "patch"
           },

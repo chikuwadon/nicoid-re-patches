@@ -96,6 +96,7 @@ jobs:
           grep -q 'github.com/gradle/gradle-distributions' gradle/wrapper/gradle-wrapper.properties
           sed -i 's/^networkTimeout=.*/networkTimeout=180000/' gradle/wrapper/gradle-wrapper.properties
           sed -i 's/^retries=.*/retries=2/' gradle/wrapper/gradle-wrapper.properties
+          printf '\nsystemProp.org.gradle.internal.http.connectionTimeout=180000\nsystemProp.org.gradle.internal.http.socketTimeout=180000\n' >> gradle.properties
       - name: Build Morphe bundle
         run: ./gradlew :patches:buildAndroid --no-daemon
         env:

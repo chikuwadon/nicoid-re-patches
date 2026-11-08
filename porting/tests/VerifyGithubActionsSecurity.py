@@ -12,7 +12,7 @@ import re
 
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOWS = ROOT / ".github" / "workflows"
-USES = re.compile(r"^\s*(?:-\s*)?uses:\s*(\S+)", flags=re.MULTILINE)
+USES = re.compile(r"^[ \t]*(?:-[ \t]*)?uses:[ \t]*(\S+)", flags=re.MULTILINE)
 FULL_PIN = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+@[a-f0-9]{40}$")
 TAG_COMMENT = re.compile(r"#\s*v\d+(?:\.\d+)*\s*$")
 workflows = {}

@@ -90,8 +90,10 @@ jobs:
           mkdir -p /tmp/nicoid-post122
           javac -d /tmp/nicoid-post122 porting/revisions/v1.10.5-dev.1/java/e/e/a/PostingPolicy122.java porting/revisions/v1.10.5-dev.1/PostingPolicy122Test.java
           java -cp /tmp/nicoid-post122 e.e.a.PostingPolicy122Test
-      - name: Use official Gradle distribution download host
-        run: sed -i 's#services.gradle.org#downloads.gradle.org#g' gradle/wrapper/gradle-wrapper.properties
+      - name: Use the official Gradle GitHub release for CI
+        run: |
+          sed -i 's#https\\://services.gradle.org/distributions/gradle-9.8.2-bin.zip#https\\://github.com/gradle/gradle-distributions/releases/download/v9.8.2/gradle-9.8.2-bin.zip#' gradle/wrapper/gradle-wrapper.properties
+          grep -q 'github.com/gradle/gradle-distributions' gradle/wrapper/gradle-wrapper.properties
       - name: Build Morphe bundle
         run: ./gradlew :patches:buildAndroid --no-daemon
         env:

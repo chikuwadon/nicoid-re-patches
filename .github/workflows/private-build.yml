@@ -2,21 +2,30 @@ name: Private patch build
 
 on:
   push:
-    branches: [dev, audit/v1.10.6-dev.1]
+    branches: [dev, 'audit/**']
   workflow_dispatch:
 
 permissions:
   contents: read
   packages: read
 
+concurrency:
+  group: private-build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     if: >-
       github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'docs: update release notes')
     runs-on: ubuntu-latest
+    timeout-minutes: 65
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-java@v6.1.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Validate workflow action pinning and release safeguards
+        run: python3 porting/tests/VerifyGithubActionsSecurity.py
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           distribution: temurin
           java-version: '21'
@@ -193,15 +202,45 @@ jobs:
             sha256sum patches/build/libs/*.mpp patches/build/dev-delivery/*source.*
           } > patches/build/dev-delivery/verification.txt
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: nicoid-re-v1.10.6-dev.1-mpp
           path: patches/build/libs/*.mpp
           if-no-files-found: error
           retention-days: 2
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: nicoid-re-v1.10.6-dev.1-source-verification
           path: patches/build/dev-delivery/
           if-no-files-found: error
           retention-days: 2
+
+  release-tools-smoke:
+    name: Validate lockfile and release tooling without publishing
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Validate npm lockfile and release dependencies
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts
+          node .github/scripts/patch-bundled-undici.cjs
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          import semanticRelease from 'semantic-release';
+          const releaseConfig=JSON.parse(readFileSync('.releaserc','utf8'));
+          const packageJson=JSON.parse(readFileSync('package.json','utf8'));
+          if (!semanticRelease || typeof semanticRelease !== 'function') throw Error('semantic-release CLI invalid');
+          if (releaseConfig.plugins.some(x=>String(Array.isArray(x)?x[0]:x).includes('backmerge'))) throw Error('Legacy backmerge remains');
+          if (Object.keys(packageJson.devDependencies).some(x=>x.includes('backmerge'))) throw Error('Legacy dependency remains');
+          console.log('PASS: Node 24, npm --ignore-scripts, patched build-tool dependency, standalone release CLI');
+          NODE

@@ -141,7 +141,23 @@ public final class PopupTouch125 {
                 } catch (Exception ignored) { }
             } else if (result == PopupTouchPolicy125.DOUBLE_TAP) {
                 // The legacy close-vs-seek selection is unchanged.
-                if (!PopupGestures.doubleTap(owner, event)) ((Service) owner).stopSelf();
+                boolean seekMode = android.preference.PreferenceManager
+                        .getDefaultSharedPreferences((Service) owner)
+                        .getBoolean("popup_double_tap_seek", false);
+                if (seekMode) {
+                    // PopupGestures is part of the existing helper DEX, not the
+                    // separately compiled development Java source set.
+                    // Never fall back to close when seek mode is enabled.
+                    try {
+                        Class<?> gestures = Class.forName("e.e.a.PopupGestures");
+                        gestures.getMethod("doubleTap", Object.class, MotionEvent.class)
+                                .invoke(null, owner, event);
+                    } catch (Exception problem) {
+                        android.util.Log.w("nicoid-popup", "Popup double-tap seek unavailable");
+                    }
+                } else {
+                    ((Service) owner).stopSelf();
+                }
             }
             return true;
         }

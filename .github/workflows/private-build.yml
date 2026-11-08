@@ -2,7 +2,7 @@ name: Private patch build
 
 on:
   push:
-    branches: [dev, audit/v1.10.5-dev.5]
+    branches: [dev, audit/v1.10.6-dev.1]
   workflow_dispatch:
 
 permissions:
@@ -75,7 +75,7 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          source = Path("porting/revisions/v1.10.5-dev.5/java/e/e/a/Dev119.java").read_text()
+          source = Path("porting/revisions/v1.10.6-dev.1/java/e/e/a/Dev119.java").read_text()
           assert "option.setDefaultValue(Boolean.TRUE)" in source
           assert ".getBoolean(KEY, true)" in source
           assert "option.setDefaultValue(Boolean.FALSE)" not in source
@@ -88,7 +88,7 @@ jobs:
       - name: Test secure comment posting endpoint policy
         run: |
           mkdir -p /tmp/nicoid-post122
-          javac -d /tmp/nicoid-post122 porting/revisions/v1.10.5-dev.5/java/e/e/a/PostingPolicy122.java porting/revisions/v1.10.5-dev.5/PostingPolicy122Test.java
+          javac -d /tmp/nicoid-post122 porting/revisions/v1.10.6-dev.1/java/e/e/a/PostingPolicy122.java porting/revisions/v1.10.6-dev.1/PostingPolicy122Test.java
           java -cp /tmp/nicoid-post122 e.e.a.PostingPolicy122Test
       - name: Use the official Gradle GitHub release for CI
         run: |
@@ -100,23 +100,23 @@ jobs:
       - name: Test confirmed comment posting and adapter deduplication
         run: |
           mkdir -p /tmp/nicoid-post123
-          javac -d /tmp/nicoid-post123 porting/revisions/v1.10.5-dev.5/java/e/e/a/PostEcho123.java $(find porting/revisions/v1.10.5-dev.5/post-test -name '*.java' | sort)
+          javac -d /tmp/nicoid-post123 porting/revisions/v1.10.6-dev.1/java/e/e/a/PostEcho123.java $(find porting/revisions/v1.10.6-dev.1/post-test -name '*.java' | sort)
           java -cp /tmp/nicoid-post123 e.e.a.PostEcho123Test
       - name: Test popup tap, drag, double-tap and pinch policy
         run: |
           mkdir -p /tmp/nicoid-popup125
-          javac -d /tmp/nicoid-popup125 porting/revisions/v1.10.5-dev.5/java/e/e/a/PopupTouchPolicy125.java porting/revisions/v1.10.5-dev.5/PopupTouchPolicy125Test.java
+          javac -d /tmp/nicoid-popup125 porting/revisions/v1.10.6-dev.1/java/e/e/a/PopupTouchPolicy125.java porting/revisions/v1.10.6-dev.1/PopupTouchPolicy125Test.java
           java -cp /tmp/nicoid-popup125 e.e.a.PopupTouchPolicy125Test
       - name: Test public mylist title synchronization rules
         run: |
           mkdir -p /tmp/nicoid-mylists126
-          javac -d /tmp/nicoid-mylists126 porting/revisions/v1.10.5-dev.5/java/e/e/a/TabTitleRules126.java porting/revisions/v1.10.5-dev.5/TabTitleRules126Test.java
+          javac -d /tmp/nicoid-mylists126 porting/revisions/v1.10.6-dev.1/java/e/e/a/TabTitleRules126.java porting/revisions/v1.10.6-dev.1/TabTitleRules126Test.java
           java -cp /tmp/nicoid-mylists126 e.e.a.TabTitleRules126Test
       - name: Verify popup double tap bridge regression
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          root = Path("porting/revisions/v1.10.5-dev.5")
+          root = Path("porting/revisions/v1.10.6-dev.1")
           bridge = (root / "java/e/e/a/PopupTouch125.java").read_text()
           policy = (root / "java/e/e/a/PopupTouchPolicy125.java").read_text()
           assert 'getMethod("isVisible")' not in bridge
@@ -128,24 +128,38 @@ jobs:
           PY
       - name: Test popup bridge event streams
         run: python3 porting/tests/regression155.py
+      - name: Test account watch-history tab URL restoration
+        run: |
+          mkdir -p /tmp/nicoid-history127
+          javac --release 8 -d /tmp/nicoid-history127 porting/revisions/v1.10.6-dev.1/java/e/e/a/TabHistory127.java porting/revisions/v1.10.6-dev.1/TabHistory127Test.java
+          java -cp /tmp/nicoid-history127 e.e.a.TabHistory127Test
+          python3 - <<'PY'
+          from pathlib import Path
+          r=Path("porting/revisions/v1.10.6-dev.1")
+          p=(r/"patch-payloads.py").read_text()
+          for name in ('SavedTabs227$Tab.smali','MultiTabs227.smali','TabRoutes228.smali'):
+              assert 'method("'+name+'"' in p
+          assert "TabHistory127;->url(ILjava/lang/String;)" in p
+          print("PASS: all three account-history restoration hooks staged")
+          PY
       - name: Build Morphe bundle
         run: ./gradlew :patches:buildAndroid --no-daemon
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Verify final distributed MPP, payload and patch version
-        run: python3 porting/revisions/v1.10.5-dev.5/verify-mpp.py 1.10.5-dev.5
+        run: python3 porting/revisions/v1.10.6-dev.1/verify-mpp.py 1.10.6-dev.1
       - name: Verify stable resources and feature continuity
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           mkdir -p /tmp/nicoid-baseline /tmp/nicoid-stage
-          gh release download v1.10.4 --repo chikuwadon/nicoid-re-patches --pattern patches-1.10.4.mpp --dir /tmp/nicoid-baseline
-          python3 porting/tests/VerifyResourceIdentity191.py /tmp/nicoid-baseline/patches-1.10.4.mpp patches/build/libs/patches-1.10.5-dev.5.mpp
-          python3 porting/tests/VerifyLegacyImageFormats191.py /tmp/nicoid-baseline/patches-1.10.4.mpp patches/build/libs/patches-1.10.5-dev.5.mpp
+          gh release download v1.10.5 --repo chikuwadon/nicoid-re-patches --pattern patches-1.10.5.mpp --dir /tmp/nicoid-baseline
+          python3 porting/tests/VerifyResourceIdentity191.py /tmp/nicoid-baseline/patches-1.10.5.mpp patches/build/libs/patches-1.10.6-dev.1.mpp
+          python3 porting/tests/VerifyLegacyImageFormats191.py /tmp/nicoid-baseline/patches-1.10.5.mpp patches/build/libs/patches-1.10.6-dev.1.mpp
           cp -a porting/revisions/v1.10.1/helpers porting/revisions/v1.10.1/method-delta /tmp/nicoid-stage/
-          python3 porting/revisions/v1.10.5-dev.5/patch-payloads.py /tmp/nicoid-stage 1.10.5-dev.5
+          python3 porting/revisions/v1.10.6-dev.1/patch-payloads.py /tmp/nicoid-stage 1.10.6-dev.1
           python3 porting/tests/VerifyReleaseContinuity.py porting/revisions/v1.10.1/helpers /tmp/nicoid-stage/helpers /tmp/nicoid-stage/method-delta
           python3 porting/tests/VerifyQualityRegisters195.py /tmp/nicoid-stage
       - name: Prepare development sources and verification report
@@ -153,12 +167,12 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p patches/build/dev-delivery
-          version=1.10.5-dev.5
+          version=1.10.6-dev.1
           git archive --format=zip --prefix="nicoid-re-$version/" \
             --output="patches/build/dev-delivery/nicoid-re-$version-source.zip" HEAD
           git archive --format=tar.gz --prefix="nicoid-re-$version/" \
             --output="patches/build/dev-delivery/nicoid-re-$version-source.tar.gz" HEAD
-          python3 porting/revisions/v1.10.5-dev.5/sync-source-payloads.py "$version"
+          python3 porting/revisions/v1.10.6-dev.1/sync-source-payloads.py "$version"
           {
             echo "nicoid Re $version / development verification"
             echo "Commit: $GITHUB_SHA"
@@ -168,7 +182,7 @@ jobs:
             echo "Source ZIP/TAR DEX parity with generated MPP: PASS"
             echo "Audit fixes: comment echo session ownership across network/UI delay, optional popup player fallback, final-UP touch slop"
             echo "Additional JVM regressions: PASS"
-            echo "Stable v1.10.4 resource and feature continuity: PASS"
+            echo "Stable v1.10.5 resource and feature continuity: PASS"
             echo "Android device/emulator runtime testing: NOT PERFORMED"
             echo "Official release/tag update: NOT PERFORMED"
             echo "Changes: secure confirmed comment posting, same-session local echo, popup touch arbitration and public mylist tab title synchronization"
@@ -181,13 +195,13 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: nicoid-re-v1.10.5-dev.5-mpp
+          name: nicoid-re-v1.10.6-dev.1-mpp
           path: patches/build/libs/*.mpp
           if-no-files-found: error
           retention-days: 2
       - uses: actions/upload-artifact@v4
         with:
-          name: nicoid-re-v1.10.5-dev.5-source-verification
+          name: nicoid-re-v1.10.6-dev.1-source-verification
           path: patches/build/dev-delivery/
           if-no-files-found: error
           retention-days: 2

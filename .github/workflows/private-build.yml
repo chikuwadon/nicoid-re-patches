@@ -166,14 +166,14 @@ jobs:
             echo "Shipped-MPP payload and visible version verification: PASS"
             echo "Development source overlay tests: PASS (build-payloads.sh/verify-overlay.py)"
             echo "Source ZIP/TAR DEX parity with generated MPP: PASS"
-            echo "Audit fixes: packed cache fallback, cache index cleanup, shared dialog theme, gesture lifecycle and restoration, hidden-row metadata deferral"
+            echo "Audit fixes: comment echo session ownership across network/UI delay, optional popup player fallback, final-UP touch slop"
             echo "Additional JVM regressions: PASS"
-            echo "Stable v1.10.3 resource and feature continuity: PASS"
+            echo "Stable v1.10.4 resource and feature continuity: PASS"
             echo "Android device/emulator runtime testing: NOT PERFORMED"
             echo "Official release/tag update: NOT PERFORMED"
-            echo "Changes: 2-second controls timeout and coalesced incremental historical comment updates"
+            echo "Changes: secure confirmed comment posting, same-session local echo, popup touch arbitration and public mylist tab title synchronization"
             echo "Comment lifecycle and controls boundary tests: PASS (JVM doubles; Android runtime not covered)"
-            echo "Issue #112: screen-off audio option and lifecycle hook"
+            echo "Popup bridge event-stream regressions: PASS (Android boundary doubles; device runtime not covered)"
             echo
             echo "Files (SHA-256):"
             sha256sum patches/build/libs/*.mpp patches/build/dev-delivery/*source.*

@@ -24,6 +24,19 @@ public final class PostEcho123 {
     private static final int MAX_ECHOES = 4;
     private static final Object NO_WATCH_FIELD = new Object();
 
+    private static final class Session {
+        final WeakReference<ViewState> state;
+        Session(ViewState state) { this.state = new WeakReference<>(state); }
+    }
+
+    /** Capture before network work; an acknowledgement must not attach to a later replay. */
+    public static Object ticket(Object fragment) {
+        synchronized (LOCK) {
+            ViewState state = VIEWS.get(fragment);
+            return state == null ? null : new Session(state);
+        }
+    }
+
     private static final class Echo {
         final String id;
         final int no;
@@ -154,6 +167,11 @@ public final class PostEcho123 {
      * No automatic retry: a POST outcome can be ambiguous on a timeout.
      */
     public static void accepted(JSONObject reply, Object fragment, JSONObject request) throws IOException {
+        accepted(reply, fragment, request, ticket(fragment));
+    }
+
+    public static void accepted(JSONObject reply, Object fragment, JSONObject request,
+                                Object sessionToken) throws IOException {
         JSONObject meta = reply == null ? null : reply.optJSONObject("meta");
         JSONObject data = reply == null ? null : reply.optJSONObject("data");
         int code = meta == null ? 0 : meta.optInt("status");
@@ -170,12 +188,8 @@ public final class PostEcho123 {
             String body = request.optString("body");
             long position = request.optLong("vposMs");
             JSONArray commands = request.optJSONArray("commands");
-            final WeakReference<ViewState> session;
-            synchronized (LOCK) {
-                ViewState active = VIEWS.get(fragment);
-                if (active == null || !active.videoId.equals(videoId)) return;
-                session = new WeakReference<>(active);
-            }
+            if (!(sessionToken instanceof Session)) return;
+            final WeakReference<ViewState> session = ((Session) sessionToken).state;
             WeakReference<Object> target = new WeakReference<>(fragment);
             MAIN.post(() -> {
                 Object current = target.get();

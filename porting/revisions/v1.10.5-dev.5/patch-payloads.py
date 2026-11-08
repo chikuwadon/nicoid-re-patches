@@ -663,10 +663,17 @@ method("CommentHistory$Job.smali",
 # publish a same-session local echo via the existing CommentUi pipeline.
 method("ModernPosting.smali",
        ".method static synthetic lambda$0(Ljava/lang/Object;Ljava/lang/String;Le/e/a/NetworkTask;Ljava/lang/String;Ljava/lang/String;JLandroid/app/Activity;)V",
+       "    move-object/from16 v0, p2\n\n    :try_start_4",
+       "    move-object/from16 v0, p2\n\n"
+       "    invoke-static {v1}, Le/e/a/PostEcho123;->ticket(Ljava/lang/Object;)Ljava/lang/Object;\n"
+       "    move-result-object p0\n\n    :try_start_4")
+method("ModernPosting.smali",
+       ".method static synthetic lambda$0(Ljava/lang/Object;Ljava/lang/String;Le/e/a/NetworkTask;Ljava/lang/String;Ljava/lang/String;JLandroid/app/Activity;)V",
        "    invoke-static {v4, v3, v0}, Le/e/a/ModernPosting;->jsonPost(Ljava/lang/String;Lorg/json/JSONObject;Le/e/a/NetworkTask;)Lorg/json/JSONObject;\n    :try_end_11b",
        "    invoke-static {v4, v3, v0}, Le/e/a/ModernPosting;->jsonPost(Ljava/lang/String;Lorg/json/JSONObject;Le/e/a/NetworkTask;)Lorg/json/JSONObject;\n"
        "    move-result-object v4\n"
-       "    invoke-static {v4, v1, v3}, Le/e/a/PostEcho123;->accepted(Lorg/json/JSONObject;Ljava/lang/Object;Lorg/json/JSONObject;)V\n"
+       "    move-object/from16 v2, p0\n"
+       "    invoke-static {v4, v1, v3, v2}, Le/e/a/PostEcho123;->accepted(Lorg/json/JSONObject;Ljava/lang/Object;Lorg/json/JSONObject;Ljava/lang/Object;)V\n"
        "    :try_end_11b")
 
 # Attach acknowledged comments to the same comment adapter used for normal

@@ -79,6 +79,16 @@ public final class PostEcho123Test {
         PostEcho123.keep(popupModel,new ArrayList<q>());CommentUi.last=null;
         PostEcho123.accepted(reply(201,"popup",22),popup,request("sm22"));
         check(CommentUi.last!=null&&((q)CommentUi.last.get(0)).attributes[0]>=1320,"popup player position uses service video field");
+        Fragment networkFragment=new Fragment();Model networkModel=new Model(networkFragment,"sm30");
+        PostEcho123.keep(networkModel,new ArrayList<q>());
+        Object networkTicket=PostEcho123.ticket(networkFragment);
+        // Request starts in this session; the server acknowledgement arrives after a same-video reload.
+        PostEcho123.keep(new Model(networkFragment,"sm30"),new ArrayList<q>());CommentUi.last=null;
+        PostEcho123.accepted(reply(201,"network-late",30),networkFragment,request("sm30"),networkTicket);
+        check(CommentUi.last==null,"response from previous network session cannot echo into reloaded video");
+        Object currentTicket=PostEcho123.ticket(networkFragment);
+        PostEcho123.accepted(reply(201,"network-current",31),networkFragment,request("sm30"),currentTicket);
+        check(CommentUi.last!=null&&CommentUi.last.size()==1,"current network session retains confirmed echo");
         System.out.println("PostEcho123: "+checks+" assertions passed");
     }
 }

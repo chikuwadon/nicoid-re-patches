@@ -11,10 +11,11 @@ public final class PostEcho123Test {
         if(!condition)throw new AssertionError(name);
     }
     public static final class Player {public long getCurrentPosition(){return 12600L;}}
+    public static final class Popup {public final Player e=new Player();}
     public static final class Fragment {public final Player a0=new Player();}
     public static final class Model {
-        public final Fragment k;public final String d;
-        public Model(Fragment fragment,String id){k=fragment;d=id;}
+        public final Object k;public final String d;public Object modernWatch=new Object();
+        public Model(Object fragment,String id){k=fragment;d=id;}
         public void a(String flags,Integer[] attributes,String[] labels){
             attributes[0]=0;attributes[1]=0;attributes[2]=0;labels[2]="";
         }
@@ -57,6 +58,27 @@ public final class PostEcho123Test {
         check(CommentUi.last.size()==2,"already fetched server comment is not echoed twice");
         PostEcho123.accepted(reply(201,"888",8),fragment,request("sm55"));
         check(CommentUi.last.size()==2,"different video rejected");
+        Fragment f2=new Fragment();Model m2=new Model(f2,"sm99");
+        PostEcho123.keep(m2,new ArrayList<q>());
+        PostEcho123.accepted(reply(201,"new",12),f2,request("sm99"));
+        m2.modernWatch=new Object();
+        check(PostEcho123.keep(m2,new ArrayList<q>()).isEmpty(),"same video reload must drop old-session echoes");
+        android.os.Handler.defer=true;
+        PostEcho123.accepted(reply(201,"late",13),f2,request("sm99"));
+        Model replacement=new Model(f2,"sm99");
+        PostEcho123.keep(replacement,new ArrayList<q>());
+        CommentUi.last=null;
+        android.os.Handler.flush();
+        check(CommentUi.last==null,"queued acknowledgement cannot enter replacement session");
+        android.os.Handler.defer=false;
+        Object optional=new Object();Model optionalModel=new Model(optional,"sm21");
+        PostEcho123.keep(optionalModel,new ArrayList<q>());CommentUi.last=null;
+        PostEcho123.accepted(reply(201,"no-player",21),optional,request("sm21"));
+        check(CommentUi.last!=null&&CommentUi.last.size()==1,"optional player absence cannot discard accepted echo");
+        Popup popup=new Popup();Model popupModel=new Model(popup,"sm22");
+        PostEcho123.keep(popupModel,new ArrayList<q>());CommentUi.last=null;
+        PostEcho123.accepted(reply(201,"popup",22),popup,request("sm22"));
+        check(CommentUi.last!=null&&((q)CommentUi.last.get(0)).attributes[0]>=1320,"popup player position uses service video field");
         System.out.println("PostEcho123: "+checks+" assertions passed");
     }
 }

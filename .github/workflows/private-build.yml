@@ -2,7 +2,7 @@ name: Private patch build
 
 on:
   push:
-    branches: [dev]
+    branches: [dev, audit/v1.10.5-dev.5]
   workflow_dispatch:
 
 permissions:
@@ -126,6 +126,8 @@ jobs:
           assert 'if (confirmed && second)' not in policy
           print("PASS: no nonexistent View.isVisible reflection or missing GestureDetector dependency")
           PY
+      - name: Test popup bridge event streams
+        run: python3 porting/tests/regression155.py
       - name: Build Morphe bundle
         run: ./gradlew :patches:buildAndroid --no-daemon
         env:

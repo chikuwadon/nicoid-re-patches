@@ -22,6 +22,7 @@ public final class PostEcho123 {
     private static final Object LOCK = new Object();
     private static final WeakHashMap<Object, ViewState> VIEWS = new WeakHashMap<>();
     private static final int MAX_ECHOES = 4;
+    private static final Object NO_WATCH_FIELD = new Object();
 
     private static final class Echo {
         final String id;
@@ -35,10 +36,21 @@ public final class PostEcho123 {
     }
     private static final class ViewState {
         final String videoId;
+        final WeakReference<Object> watch;
+        final boolean hadWatch;
         WeakReference<Object> model;
         ArrayList<?> rows;
         final LinkedHashMap<String, Echo> echoes = new LinkedHashMap<>();
-        ViewState(String videoId) { this.videoId = videoId; }
+        ViewState(String videoId, Object model) throws Exception {
+            this.videoId = videoId;
+            Object token = watch(model);
+            watch = new WeakReference<>(token);
+            hadWatch = token != null;
+        }
+        boolean current(Object target) throws Exception {
+            Object token = watch.get();
+            return (!hadWatch || token != null) && token == watch(target);
+        }
     }
     private PostEcho123() { }
 
@@ -51,6 +63,11 @@ public final class PostEcho123 {
             } catch (NoSuchFieldException ignored) { }
         }
         throw new NoSuchFieldException(key);
+    }
+
+    private static Object watch(Object model) throws Exception {
+        try { return field(model, "modernWatch"); }
+        catch (NoSuchFieldException ignored) { return NO_WATCH_FIELD; }
     }
 
     /**
@@ -66,8 +83,9 @@ public final class PostEcho123 {
             if (fragment == null || videoId.length() == 0 || "null".equals(videoId)) return comments;
             synchronized (LOCK) {
                 ViewState state = VIEWS.get(fragment);
-                if (state == null || !state.videoId.equals(videoId)) {
-                    state = new ViewState(videoId);
+                if (state == null || !state.videoId.equals(videoId) || state.model == null
+                        || state.model.get() != model || !state.current(model)) {
+                    state = new ViewState(videoId, model);
                     VIEWS.put(fragment, state);
                 }
                 state.model = new WeakReference<>(model);
@@ -152,13 +170,30 @@ public final class PostEcho123 {
             String body = request.optString("body");
             long position = request.optLong("vposMs");
             JSONArray commands = request.optJSONArray("commands");
-            MAIN.post(() -> echo(fragment, videoId, body, commands, position, id, no));
+            final WeakReference<ViewState> session;
+            synchronized (LOCK) {
+                ViewState active = VIEWS.get(fragment);
+                if (active == null || !active.videoId.equals(videoId)) return;
+                session = new WeakReference<>(active);
+            }
+            WeakReference<Object> target = new WeakReference<>(fragment);
+            MAIN.post(() -> {
+                Object current = target.get();
+                ViewState expected = session.get();
+                if (current != null && expected != null)
+                    echo(current, expected, videoId, body, commands, position, id, no);
+            });
         }
     }
 
     private static Object newRow(Object model, Object fragment, String body,
                                   JSONArray commands, long position, int no) throws Exception {
-        Object player = field(fragment, "a0");
+        Object player = null;
+        try { player = field(fragment, "a0"); }
+        catch (NoSuchFieldException normalMissing) {
+            try { player = field(fragment, "e"); }
+            catch (NoSuchFieldException popupMissing) { /* Use the acknowledged request position. */ }
+        }
         if (player != null) {
             try {
                 Object current = player.getClass().getMethod("getCurrentPosition").invoke(player);
@@ -208,29 +243,29 @@ public final class PostEcho123 {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static void echo(Object fragment, String videoId, String body, JSONArray commands,
+    private static void echo(Object fragment, ViewState expected, String videoId, String body, JSONArray commands,
                              long position, String serverId, int no) {
         try {
             Object model;
             ArrayList<?> original;
             synchronized (LOCK) {
                 ViewState state = VIEWS.get(fragment);
-                if (state == null || !state.videoId.equals(videoId) || state.model == null) {
+                if (state != expected || !state.videoId.equals(videoId) || state.model == null) {
                     Log.i("nicoid-comment", "Posting accepted; active adapter not available");
                     return;
                 }
                 model = state.model.get();
                 original = state.rows;
             }
-            if (model == null || original == null ||
+            if (model == null || original == null || !expected.current(model) ||
                     !videoId.equals(String.valueOf(field(model, "d"))) ||
                     field(model, "k") != fragment) return;
             Object row = newRow(model, fragment, body, commands, position, no);
             ArrayList list;
             synchronized (LOCK) {
                 ViewState state = VIEWS.get(fragment);
-                if (state == null || !state.videoId.equals(videoId) || state.model == null
-                        || state.model.get() != model) return;
+                if (state != expected || !state.videoId.equals(videoId) || state.model == null
+                        || state.model.get() != model || !state.current(model)) return;
                 if (state.echoes.containsKey(serverId) ||
                         containsServerCopy(state.rows, new Echo(serverId, no, row))) return;
                 while (state.echoes.size() >= MAX_ECHOES) {

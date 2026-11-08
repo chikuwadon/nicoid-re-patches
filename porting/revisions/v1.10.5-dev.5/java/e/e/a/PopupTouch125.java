@@ -143,6 +143,9 @@ public final class PopupTouch125 {
             return true;
         }
         if (action == MotionEvent.ACTION_UP) {
+            // MOVE events can be coalesced; the final coordinate must also obey touch slop.
+            state.move(event.getRawX(), event.getRawY(),
+                    ViewConfiguration.get(root.getContext()).getScaledTouchSlop());
             forward(owner, root, event);
             boolean wasVisible = state.startedVisible();
             int result = state.end(event.getEventTime(), ViewConfiguration.getLongPressTimeout());

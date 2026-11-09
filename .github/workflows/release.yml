@@ -144,6 +144,13 @@ jobs:
       - name: Verify fixed npm release dependency
         run: node .github/scripts/verify-release-npm.cjs
 
+      - name: Make Gradle dependency downloads resilient
+        run: |
+          sed -i 's#https\\://services.gradle.org/distributions/gradle-9.8.2-bin.zip#https\\://downloads.gradle.org/distributions/gradle-9.8.2-bin.zip#' gradle/wrapper/gradle-wrapper.properties
+          sed -i 's/^networkTimeout=.*/networkTimeout=180000/' gradle/wrapper/gradle-wrapper.properties
+          sed -i 's/^retries=.*/retries=2/' gradle/wrapper/gradle-wrapper.properties
+          printf '\nsystemProp.org.gradle.internal.http.connectionTimeout=180000\nsystemProp.org.gradle.internal.http.socketTimeout=180000\n' >> gradle.properties
+
       # A manual approval must not accidentally publish v1.11.0 if development
       # commits contain minor-release types. Preview the exact next tag first.
       - name: Confirm approved release target
@@ -171,12 +178,6 @@ jobs:
           console.log('Approved release version verified: v' + expected);
           NODE
 
-      - name: Make Gradle dependency downloads resilient
-        run: |
-          sed -i 's#https\\://services.gradle.org/distributions/gradle-9.8.2-bin.zip#https\\://downloads.gradle.org/distributions/gradle-9.8.2-bin.zip#' gradle/wrapper/gradle-wrapper.properties
-          sed -i 's/^networkTimeout=.*/networkTimeout=180000/' gradle/wrapper/gradle-wrapper.properties
-          sed -i 's/^retries=.*/retries=2/' gradle/wrapper/gradle-wrapper.properties
-          printf '\nsystemProp.org.gradle.internal.http.connectionTimeout=180000\nsystemProp.org.gradle.internal.http.socketTimeout=180000\n' >> gradle.properties
       - name: Audit release candidate source and lifecycle guards
         run: python3 porting/revisions/v1.10.6/release-readiness-audit.py
       - name: Build and verify approved release payload

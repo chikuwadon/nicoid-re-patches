@@ -123,6 +123,16 @@ public final class Dev115 {
      restoring.setBoolean(state,true);
     }
    }
+   // Snapshot the Service's already-bound decoder before the existing
+   // PopupReturn244 handoff reparents its VideoView.
+   try {
+    for(Class<?> c=service.getClass();c!=null;c=c.getSuperclass())try{
+     Field video=c.getDeclaredField("e");video.setAccessible(true);
+     Dev139.remember(video.get(service));break;
+    }catch(NoSuchFieldException ignored){}
+   }catch(Exception error){
+    android.util.Log.d("nicoid-surface","Service output snapshot unavailable");
+   }
    Dev136.releaseStaleReturn((Service)service);
    Object started=Class.forName("e.e.a.PopupReturn244").getMethod("start",Service.class).invoke(null,service);
    accepted=Boolean.TRUE.equals(started);

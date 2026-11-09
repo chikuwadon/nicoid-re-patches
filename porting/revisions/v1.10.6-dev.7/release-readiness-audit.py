@@ -57,11 +57,15 @@ for name,body in sources.items():
         # Dev116 accepts legacy thumbnail URL text only to convert it to
         # HTTPS before handing it to the image loader. This is not a
         # cleartext network call; fail any other unapproved http literal.
-        verify(name=="Dev116",f"Unexpected cleartext HTTP constant in {name}")
-        verify('url.replaceFirst("^http://","https://")' in body,
-               "Legacy thumbnail URLs must be upgraded to HTTPS")
-        verify("loadImage(safeImage(original), image)" in body,
-               "Thumbnail HTTP upgrade must precede image load")
+        verify(name in ("Dev115","Dev116"),f"Unexpected cleartext HTTP constant in {name}")
+        if name=="Dev115":
+            verify('if(image.startsWith("http://"))image="https://"+image.substring(7);' in body,
+                   "Legacy playlist thumbnail URL must be upgraded to HTTPS")
+        else:
+            verify('url.replaceFirst("^http://","https://")' in body,
+                   "Legacy thumbnail URLs must be upgraded to HTTPS")
+            verify("loadImage(safeImage(original), image)" in body,
+                   "Thumbnail HTTP upgrade must precede image load")
     for host in re.findall(r'https://([a-zA-Z0-9._-]+)',body):
         host=host.lower()
         if host:

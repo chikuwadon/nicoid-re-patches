@@ -33,7 +33,7 @@ jobs:
         run: python3 porting/tests/VerifyReleaseBaseline.py
       - name: Make Gradle dependency downloads resilient
         run: |
-          sed -i 's#https\\://services.gradle.org/distributions/gradle-9.8.2-bin.zip#https\\://github.com/gradle/gradle-distributions/releases/download/v9.8.2/gradle-9.8.2-bin.zip#' gradle/wrapper/gradle-wrapper.properties
+          sed -i 's#https\\://services.gradle.org/distributions/gradle-9.8.2-bin.zip#https\\://downloads.gradle.org/distributions/gradle-9.8.2-bin.zip#' gradle/wrapper/gradle-wrapper.properties
           sed -i 's/^networkTimeout=.*/networkTimeout=180000/' gradle/wrapper/gradle-wrapper.properties
           sed -i 's/^retries=.*/retries=2/' gradle/wrapper/gradle-wrapper.properties
           printf '\nsystemProp.org.gradle.internal.http.connectionTimeout=180000\nsystemProp.org.gradle.internal.http.socketTimeout=180000\n' >> gradle.properties

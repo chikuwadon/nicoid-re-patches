@@ -106,6 +106,7 @@ public final class Dev111 {
         if (!transferring()) leftApp = true;
     }
     private static int resumeAttempt;
+    public static void suppressAutoReturn() { resetReturn(); }
     private static void resetReturn() {
         synchronized(Dev111.class) {
             leftApp=false; resumeAttempt=0; resumeScheduled=false; returnInFlight=false;

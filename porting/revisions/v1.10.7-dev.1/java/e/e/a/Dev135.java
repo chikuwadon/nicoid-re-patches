@@ -30,7 +30,7 @@ public final class Dev135 {
                             Dev112.staticCall("e.e.a.UiDialogs", "style",
                                 new Class<?>[]{AlertDialog.class}, (AlertDialog)window);
                         }
-                        catch(RuntimeException error) {
+                        catch(Exception error) {
                             android.util.Log.w("nicoid-dialog","Could not round preference dialog",error);
                         }
                     }

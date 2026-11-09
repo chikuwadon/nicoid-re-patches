@@ -50,6 +50,8 @@ with ZipFile(bundle) as z:
         assert name in strings, "Shipped helper DEX missing "+name
     assert "gesture_vertical_reversal_enabled" in strings, "Shipped MPP missing issue #113 preference key"
     assert "nicoid_audio_focus_enabled" in strings, "Shipped MPP missing audio focus preference key"
+    for option in ("addRankingLabel","addRankingTab","ランキング","/ranking/genre/all?term=hour"):
+        assert option in strings, "Shipped MPP missing ranking add-tab route: "+option
     for option in ("addtab","タブを追加","nicoid_app_resume_playback","roundSettings"):
         assert option in strings, "Shipped MPP missing v1.10.7 feature: "+option
     for option in ("nicoid_tab_bar_buttons", "tablist", "タブバーのボタン表示", "直前に閉じたタブを復元"):

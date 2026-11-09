@@ -11,7 +11,7 @@ import re
 ROOT=pathlib.Path(__file__).resolve().parents[3]
 REV=pathlib.Path(__file__).resolve().parent
 HELPERS=REV/"java/e/e/a"
-VERSION="1.10.7-dev.2"
+VERSION="1.10.7-dev.3"
 checks=0
 
 def verify(ok:bool,reason:str)->None:
@@ -143,7 +143,12 @@ verify("same(" in sources["RankingTabIdentity133"] and
        'endsWith(".nicovideo.jp")' in sources["RankingTabIdentity133"],
        "Ranking identity origin or dedup guard missing")
 
-# Regression coverage for reported Android 16 playback handoff faults.\nresume=sources["Dev111"]\npatches=(REV/"patch-payloads.py").read_text(encoding="utf-8")\nverify("resumeScheduled" in resume and "returnInFlight" in resume,\n       "Resume handoff must be one-shot across Activity callbacks")\nverify("Le/e/a/PlaybackHandoff110;->capture" in patches,\n       "Retained decoder handoff must be preferred")\nverify('method("MediaStop240.smali"' in patches and "stopForeground(Z)V" in patches,\n       "Media stop must release foreground Service notification")\nverify('method("PlaybackSession.smali"' in patches and "return v6" in patches,\n       "Asynchronous Back handoff must consume input")\n\n# Confirm official release is a separate manual action.
+# Regression coverage for reported Android 16 playback handoff faults.\nresume=sources["Dev111"]\npatches=(REV/"patch-payloads.py").read_text(encoding="utf-8")\nverify("resumeScheduled" in resume and "returnInFlight" in resume,\n       "Resume handoff must be one-shot across Activity callbacks")\nverify("Le/e/a/PlaybackHandoff110;->capture" in patches,\n       "Retained decoder handoff must be preferred")\nverify('method("MediaStop240.smali"' in patches and "stopForeground(Z)V" in patches,\n       "Media stop must release foreground Service notification")\nverify('method("PlaybackSession.smali"' in patches and "return v6" in patches,\n       "Asynchronous Back handoff must consume input")\n\n# Reject any accidental restoration of the old HLS-reloading fallback.
+verify('getMethod("open",Object.class)' not in sources["Dev115"],
+       "PlaybackReturn.open legacy reload fallback is forbidden")
+verify("duration>0" in sources["Dev111"] and "cancelPendingReturn" in sources["Dev111"],
+       "Prepared decoder or pending Back cancellation check missing")
+# Confirm official release is a separate manual action.
 workflow=(ROOT/".github/workflows/private-build.yml").read_text(encoding="utf-8")
 verify("Check ranking in-place sort and tab-bar button descriptions" in workflow,
        "Regression tests missing from workflow")

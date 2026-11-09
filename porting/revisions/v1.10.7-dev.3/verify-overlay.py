@@ -58,8 +58,8 @@ expected = {
     "TabPagingRules233.smali": ["0x3e3851ec", "0x43fa0000"],
     "Following190$Gestures.smali": ["0x3e19999a"],
     "PlaylistUrlParser.smali": ["canonicalUrl", "nicovideo.jp"],
-    "PatchVersion237.smali": ["1.10.7-dev.2"],
-    "ModernShorts.smali": ["v1.10.7-dev.2 @chikuwadon"],
+    "PatchVersion237.smali": ["1.10.7-dev.3"],
+    "ModernShorts.smali": ["v1.10.7-dev.3 @chikuwadon"],
     "TabRoutes228.smali": [
         "Dev111;->capturePage(Landroid/app/Activity;)V",
         "Dev111;->preparePlaylist(Landroid/app/Activity;)V",
@@ -103,6 +103,21 @@ for file in ["helpers.mpe", "method-delta.dex"]:
     assert data[:4] == bytes((100, 101, 120, 10)), f"Invalid DEX magic: {file}"
     assert len(data) > 1000, f"Unexpected empty payload: {file}"
     print(f"{file}: {len(data)} bytes / sha256={hashlib.sha256(data).hexdigest()}")
+# Assert the assembled smali contains one playback state machine, not a fallback.
+guard=(helper/"AppSwitchGuard.smali").read_text(encoding="utf-8")
+assert "Le/e/a/PlaybackHandoff110;->capture" in guard
+assert "Le/e/a/PlaybackTransfer;->capture" not in guard, "Obsolete second Service handoff is still reachable"
+resume=(helper/"PlaybackSession.smali").read_text(encoding="utf-8")
+leave=resume.split(".method public static leave(",1)[1].split(".end method",1)[0]
+assert "PlaybackTransfer221;->policy" in leave
+assert "PlaybackSession;->call" not in leave, "Obsolete native playback fallback survived"
+controls=(helper/"MediaControls.smali").read_text(encoding="utf-8")
+action=controls.split(".method static action(",1)[1].split(".end method",1)[0]
+assert "MediaClose248;->action" not in action, "Stop still launches the Service"
+assert "MediaAction240;->sign" in action, "Signed in-process Stop route missing"
+navigation=(helper/"PlaybackNavigation114.smali").read_text(encoding="utf-8")
+assert "Dev111;->cancelPendingReturn" in navigation, "Back ignored during retained return"
+print("Single playback handoff / notification lifecycle regression: PASS")
 print("Development overlay hooks, settings, playlist refresh and DEX output: PASS")
 
 
@@ -147,7 +162,7 @@ print("Verified development DEX assembly and class coverage: PASS")
 
 # Verify the precise version in the *assembled* helper DEX, not only in staged smali.
 version = sys.argv[3]
-assert version == "1.10.7-dev.2"
+assert version == "1.10.7-dev.3"
 dex_data = (output / "helpers.mpe").read_bytes()
 def dex_strings(data):
     strings_size, strings_off = struct.unpack_from("<II", data, 0x38)

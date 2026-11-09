@@ -12,6 +12,30 @@ public final class Dev136 {
  private static final Handler MAIN = new Handler(Looper.getMainLooper());
  private static final IdentityHashMap<Object,Runnable> JOBS = new IdentityHashMap<>();
  private Dev136(){}
+ private static final java.util.WeakHashMap<Object,Long> RETURN_REQUESTS=new java.util.WeakHashMap<>();
+ /** A pending return is not success unless its target has been adopted. */
+ public static synchronized boolean keepPending(Object pending){
+  if(pending==null)return false;
+  long now=SystemClock.uptimeMillis();
+  Long first=RETURN_REQUESTS.get(pending);
+  if(first==null){first=now;RETURN_REQUESTS.put(pending,first);}
+  try {
+   Object target=field(pending,"target");
+   boolean adopted=Boolean.TRUE.equals(field(pending,"adopted"));
+   if(adopted&&target instanceof android.app.Activity
+      && !((android.app.Activity)target).isFinishing())return true;
+  }catch(Exception ignored){}
+  if(now-first>=2500L){
+   RETURN_REQUESTS.remove(pending);
+   Log.w("nicoid-return","Abandoning stale unadopted normal-return request");
+   return false;
+  }
+  return true;
+ }
+ public static void returnStage(String stage) {
+  Log.i("nicoid-return",stage);
+ }
+
  private static Object field(Object owner,String name)throws Exception{
   Field f=owner.getClass().getDeclaredField(name); f.setAccessible(true);return f.get(owner);
  }

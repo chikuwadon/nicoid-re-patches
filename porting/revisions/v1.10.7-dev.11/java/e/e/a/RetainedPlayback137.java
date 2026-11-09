@@ -47,6 +47,7 @@ public final class RetainedPlayback137 {
   boolean committed,closing,foreground,returnSettling;
   Service service;
   MediaSession media;
+  Dev139.Retention retainedSurface;
   Session(Activity a,Object fragment,Object player,String id) {
    token=++serial;source=a;this.fragment=fragment;this.player=player;this.id=id;
    taskId=a.getTaskId();initialPosition=position(player);
@@ -106,6 +107,7 @@ public final class RetainedPlayback137 {
    }catch(RuntimeException e){
     current=null;Log.w(TAG,"Cannot start foreground keeper; no player transfer",e);return null;
    }
+   s.retainedSurface=Dev139.hold(p);
    log(s,"Original VideoView retained; no player transfer or seek");
    return ()->{
     synchronized(RetainedPlayback137.class){if(!usable(s))return;s.committed=true;}
@@ -137,6 +139,7 @@ public final class RetainedPlayback137 {
   Dev111.suppressAutoReturn();
   if(!usable(s)){finish(s,false);return;}
   if(a==s.source) {
+   if(s.retainedSurface!=null)s.retainedSurface.restore();
    log(s,"Normal player Activity resumed; keep keeper until focused/audio stable");
    if(!s.returnSettling) {
     s.returnSettling=true;
@@ -325,6 +328,7 @@ public final class RetainedPlayback137 {
  private static synchronized void finish(Session s,boolean stop) {
   if(s==null||s.closing)return;
   s.closing=true;if(current==s)current=null;
+  if(s.retainedSurface!=null){s.retainedSurface.close();s.retainedSurface=null;}
   if(s.media!=null){s.media.setActive(false);s.media.release();s.media=null;}
   Service keeper=s.service;s.service=null;
   if(keeper!=null){keeper.stopForeground(true);keeper.stopSelf();}

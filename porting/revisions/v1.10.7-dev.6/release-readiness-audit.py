@@ -160,6 +160,7 @@ verify("Dev136" in sources and "completeWhenAudible" in sources["Dev136"],
 verify("appStarted(Activity" in sources["Dev111"] and "appStopped(Activity" in sources["Dev111"],
        "App-wide foreground tracking missing")
 verify("keepPending" in sources["Dev136"], "Stale normal-return handoff guard missing")
+patches=(REV/"patch-payloads.py").read_text(encoding="utf-8")
 verify('method("PopupReturn244.smali"' not in patches,
        "Do not patch PopupReturn244 smali: Android ART VerifyError regression")
 verify("releaseStaleReturn" in sources["Dev136"] and "Dev136.releaseStaleReturn" in sources["Dev115"],

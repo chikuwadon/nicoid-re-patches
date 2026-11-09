@@ -109,7 +109,7 @@ grep -Fq 'Dev132;->show(Landroid/app/Activity;)V' "$work/merged-smali/e/e/a/Gest
 grep -Fq 'Dev132;->installSettings(Landroid/preference/PreferenceActivity;)V' "$work/merged-smali/e/e/a/Dev111.smali"
 grep -Fq 'Dev138;->perform(Landroid/app/Activity;Ljava/lang/String;)Z' "$work/merged-smali/e/e/a/GestureControls110.smali"
 grep -Fq 'Dev138;->extend([Ljava/lang/String;)[Ljava/lang/String;' "$work/merged-smali/e/e/a/GestureControls110.smali"
-grep -Fq 'Dev111;->singleReturnOwner(Landroid/app/Activity;)Z' "$work/merged-smali/e/e/a/AppSwitchGuard\\$2.smali"
+grep -Fq 'Dev111;->singleReturnOwner(Landroid/app/Activity;)Z' "$work/merged-smali/e/e/a/AppSwitchGuard\$2.smali"
 grep -Fq 'Dev132;->sameRanking(Ljava/lang/Object;Ljava/lang/Object;)Z' "$work/merged-smali/e/e/a/MultiTabs227.smali"
 grep -Fq '0x10000' "$work/merged-smali/e/e/a/RankingPeriod\$1.smali"
 grep -Fq 'Dev134;->applyPeriod(Landroid/app/Activity;Landroid/content/Intent;)Z' "$work/merged-smali/e/e/a/RankingPeriod\$1.smali"

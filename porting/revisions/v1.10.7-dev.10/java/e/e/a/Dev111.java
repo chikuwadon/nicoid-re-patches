@@ -107,6 +107,27 @@ public final class Dev111 {
     }
     private static int resumeAttempt;
     public static void suppressAutoReturn() { resetReturn(); }
+    /**
+     * Only one controller may restore a direct-background decoder.  The legacy
+     * PlaybackReturn foreground callback and the retained PopupReturn244 path
+     * otherwise both open a normal VideoView for the same notification tap.
+     */
+    public static boolean singleReturnOwner(Activity activity) {
+        if(activity==null||activity.isFinishing()||activity.isDestroyed())return false;
+        SharedPreferences p=prefs(activity);
+        if(!"background".equals(p.getString("app_switch_playback","none"))
+           || !"normal".equals(p.getString(RESUME,"background")))return false;
+        if(activeBackgroundService()==null)return false;
+        try {
+            Class<?> legacy=Class.forName("e.e.a.PlaybackReturn");
+            Field armed=field(legacy,"automaticVideo");
+            armed.set(null,null); // prevent a delayed duplicate launch after service return
+        }catch(Exception error){
+            android.util.Log.w("nicoid-return","Could not clear legacy auto-return arm",error);
+        }
+        android.util.Log.i("nicoid-return","Legacy auto-return suppressed; direct decoder handoff owns restoration");
+        return true;
+    }
     private static void resetReturn() {
         synchronized(Dev111.class) {
             leftApp=false; resumeAttempt=0; resumeScheduled=false; returnInFlight=false;

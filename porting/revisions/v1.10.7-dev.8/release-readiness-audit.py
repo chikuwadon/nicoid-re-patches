@@ -11,7 +11,7 @@ import re
 ROOT=pathlib.Path(__file__).resolve().parents[3]
 REV=pathlib.Path(__file__).resolve().parent
 HELPERS=REV/"java/e/e/a"
-VERSION="1.10.7-dev.7"
+VERSION="1.10.7-dev.8"
 checks=0
 
 def verify(ok:bool,reason:str)->None:
@@ -143,7 +143,7 @@ verify("same(" in sources["RankingTabIdentity133"] and
        'endsWith(".nicovideo.jp")' in sources["RankingTabIdentity133"],
        "Ranking identity origin or dedup guard missing")
 
-# Regression coverage for reported Android 16 playback handoff faults.\nresume=sources["Dev111"]\npatches=(REV/"patch-payloads.py").read_text(encoding="utf-8")\nverify("resumeScheduled" in resume and "returnInFlight" in resume,\n       "Resume handoff must be one-shot across Activity callbacks")\nverify("Le/e/a/PlaybackHandoff110;->capture" in patches,\n       "Retained decoder handoff must be preferred")\nverify('method("MediaStop240.smali"' in patches and "stopForeground(Z)V" in patches,\n       "Media stop must release foreground Service notification")\nverify('method("PlaybackSession.smali"' in patches and "return v6" in patches,\n       "Asynchronous Back handoff must consume input")\n\n# Reject any accidental restoration of the old HLS-reloading fallback.
+# Regression coverage for reported Android 16 playback handoff faults.\nresume=sources["Dev111"]\npatches=(REV/"patch-payloads.py").read_text(encoding="utf-8")\nverify("resumeScheduled" in resume and "returnInFlight" in resume,\n       "Resume handoff must be one-shot across Activity callbacks")\nverify("Le/e/a/RetainedPlayback137;->capture" in patches,\n       "Retained decoder handoff must be preferred")\nverify('method("MediaStop240.smali"' in patches and "stopForeground(Z)V" in patches,\n       "Media stop must release foreground Service notification")\nverify('method("PlaybackSession.smali"' in patches and "return v6" in patches,\n       "Asynchronous Back handoff must consume input")\n\n# Reject any accidental restoration of the old HLS-reloading fallback.
 verify('getMethod("open",Object.class)' not in sources["Dev115"],
        "PlaybackReturn.open legacy reload fallback is forbidden")
 verify("duration>0" in sources["Dev111"] and "cancelPendingReturn" in sources["Dev111"],
@@ -170,6 +170,25 @@ verify('    .line 81' in patches,
        "Lifecycle stopped callback must be injected before the Activity register is retyped")
 verify('completeWhenAudible' not in patches and 'completeNow' not in patches,
        "Experimental overlapping audio handoff must not be reinstated")
+# New app-switch architecture must retain a SINGLE original VideoView.
+retained=sources["RetainedPlayback137"]
+verify("startForegroundService(keeper)" in retained and
+       "serviceStart(Service service,Intent intent)" in retained,
+       "Foreground process/notification keeper missing")
+verify("no player transfer" in retained.lower() and
+       "s.player.getClass().getMethod" in retained,
+       "Original player ownership and media action hooks missing")
+verify("Dev111.suppressAutoReturn()" in retained,
+       "Old automatic return is still running over the retained Activity")
+verify("RetainedPlayback137;->capture" in patches and
+       "PlaybackHandoff110;->capture" not in patches,
+       "Legacy external-app transfer remains reachable")
+verify("RetainedPlayback137;->serviceStart" in patches and
+       "RetainedPlayback137;->retains" in patches,
+       "Missing native Service bypass or pause suppression")
+check=patches.split('replace_method("AppSwitchGuard$1.smali"',1)[1].split('# Run the optional return',1)[0]
+verify("PlaybackSession;->leave" not in check,
+       "A second Service decoder can still be started on app switch")
 # Confirm official release is a separate manual action.
 workflow=(ROOT/".github/workflows/private-build.yml").read_text(encoding="utf-8")
 verify("Check ranking in-place sort and tab-bar button descriptions" in workflow,

@@ -9,8 +9,8 @@ root = pathlib.Path(sys.argv[1])
 output = pathlib.Path(sys.argv[2])
 helper = root / "helpers/e/e/a"
 expected = {
-    "AppSwitchGuard$1.smali": ["Dev111;->left()V"],
-    "AppSwitchGuard$2.smali": ["Dev111;->resumed(Landroid/app/Activity;)V"],
+    "AppSwitchGuard$1.smali": ["RetainedPlayback137;->left()V"],
+    "AppSwitchGuard$2.smali": ["RetainedPlayback137;->resumed(Landroid/app/Activity;)V"],
     "SettingsPlacement233.smali": ["Dev111;->settings(Landroid/preference/PreferenceActivity;)V", "Dev114;->installSettings(Landroid/preference/PreferenceActivity;)V"],
     "SettingsTools.smali": ["Dev111;->settings(Landroid/preference/PreferenceActivity;)V", "Dev114;->installSettings(Landroid/preference/PreferenceActivity;)V"],
     "MultiTabs227.smali": ["Dev111;->loadedTabs(Ljava/lang/Object;Landroid/content/Context;)V", "TabHistory127;->url(ILjava/lang/String;)Ljava/lang/String;", "Dev132;->sameRanking(Ljava/lang/Object;Ljava/lang/Object;)Z"],
@@ -58,8 +58,8 @@ expected = {
     "TabPagingRules233.smali": ["0x3e3851ec", "0x43fa0000"],
     "Following190$Gestures.smali": ["0x3e19999a"],
     "PlaylistUrlParser.smali": ["canonicalUrl", "nicovideo.jp"],
-    "PatchVersion237.smali": ["1.10.7-dev.7"],
-    "ModernShorts.smali": ["v1.10.7-dev.7 @chikuwadon"],
+    "PatchVersion237.smali": ["1.10.7-dev.8"],
+    "ModernShorts.smali": ["v1.10.7-dev.8 @chikuwadon"],
     "TabRoutes228.smali": [
         "Dev111;->capturePage(Landroid/app/Activity;)V",
         "Dev111;->preparePlaylist(Landroid/app/Activity;)V",
@@ -105,7 +105,7 @@ for file in ["helpers.mpe", "method-delta.dex"]:
     print(f"{file}: {len(data)} bytes / sha256={hashlib.sha256(data).hexdigest()}")
 # Assert the assembled smali contains one playback state machine, not a fallback.
 guard=(helper/"AppSwitchGuard.smali").read_text(encoding="utf-8")
-assert "Le/e/a/PlaybackHandoff110;->capture" in guard
+assert "Le/e/a/RetainedPlayback137;->capture" in guard
 assert "Le/e/a/PlaybackTransfer;->capture" not in guard, "Obsolete second Service handoff is still reachable"
 resume=(helper/"PlaybackSession.smali").read_text(encoding="utf-8")
 leave=resume.split(".method public static leave(",1)[1].split(".end method",1)[0]
@@ -134,6 +134,25 @@ assert stopped.count("Dev111;->appStopped") == 1
 popup=(helper/"PopupReturn244.smali").read_bytes()
 assert popup==(baseline_root/"PopupReturn244.smali").read_bytes(), "PopupReturn244 must remain byte-identical for ART verification"
 assert "Dev136;->releaseStaleReturn" in (helper/"Dev115.smali").read_text(encoding="utf-8")
+# The app-switch must retain the same VideoView without a new HLS Service.
+switch=(helper/"AppSwitchGuard.smali").read_text(encoding="utf-8")
+switch_run=(helper/"AppSwitchGuard$1.smali").read_text(encoding="utf-8")
+retain=(helper/"PlaybackLifecycle219.smali").read_text(encoding="utf-8")
+native_service=(root/"method-delta/com/sauzask/nicoid/NicoidPopupViewService.smali").read_text(encoding="utf-8")
+assert "RetainedPlayback137;->capture" in switch
+assert "PlaybackHandoff110;->capture" not in switch
+assert "PlaybackTransfer;->capture" not in switch
+assert "PlaybackSession;->leave" not in switch_run, "Legacy fallback survived"
+assert "RetainedPlayback137;->retains" in retain
+assert retain.index("RetainedPlayback137;->retains") < retain.index("Dev119;->retainWhenScreenOff")
+entry=native_service.split(".method public onStartCommand(",1)[1].split(".end method",1)[0]
+assert entry.index("RetainedPlayback137;->serviceStart") < entry.index("MediaClose248;->consume")
+assert "RetainedPlayback137;->serviceDestroyed" in native_service
+assert "RetainedPlayback137;->destroyed" in callback
+assert "RetainedPlayback137;->resumed" in callback
+assert started.index("RetainedPlayback137;->started") < started.index("move-result-object v0")
+assert stopped.index("RetainedPlayback137;->stopped") < stopped.index("move-result-object p1")
+print("Single original VideoView and notification-only Service: PASS")
 print("Lifecycle Activity register alias and baseline playback transfer: PASS")
 print("Single playback handoff / notification lifecycle regression: PASS")
 print("Development overlay hooks, settings, playlist refresh and DEX output: PASS")
@@ -180,7 +199,7 @@ print("Verified development DEX assembly and class coverage: PASS")
 
 # Verify the precise version in the *assembled* helper DEX, not only in staged smali.
 version = sys.argv[3]
-assert version == "1.10.7-dev.7"
+assert version == "1.10.7-dev.8"
 dex_data = (output / "helpers.mpe").read_bytes()
 def dex_strings(data):
     strings_size, strings_off = struct.unpack_from("<II", data, 0x38)

@@ -123,6 +123,7 @@ public final class Dev115 {
      restoring.setBoolean(state,true);
     }
    }
+   Dev136.releaseStaleReturn((Service)service);
    Object started=Class.forName("e.e.a.PopupReturn244").getMethod("start",Service.class).invoke(null,service);
    accepted=Boolean.TRUE.equals(started);
    if(accepted)android.util.Log.i("nicoid-return","Retained decoder return accepted without Service replacement");

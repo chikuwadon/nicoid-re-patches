@@ -12,6 +12,23 @@ public final class Dev136 {
  private static final Handler MAIN = new Handler(Looper.getMainLooper());
  private static final IdentityHashMap<Object,Runnable> JOBS = new IdentityHashMap<>();
  private Dev136(){}
+ public static synchronized void releaseStaleReturn(android.app.Service service){
+  if(service==null)return;
+  try{
+   Class<?> cls=Class.forName("e.e.a.PopupReturn244");
+   Field pending=cls.getDeclaredField("pending");pending.setAccessible(true);
+   Object request=pending.get(null);
+   if(request==null)return;
+   Object owner=field(request,"service");
+   if(owner!=service||keepPending(request))return;
+   Method cancel=cls.getDeclaredMethod("cancel",request.getClass());
+   cancel.setAccessible(true);cancel.invoke(null,request);
+   Log.w("nicoid-return","Stale retained-return attempt cancelled without smali modification");
+  }catch(Exception e){
+   Log.w("nicoid-return","Cannot evaluate stale retained-return request",e);
+  }
+ }
+
  private static final java.util.WeakHashMap<Object,Long> RETURN_REQUESTS=new java.util.WeakHashMap<>();
  /** A pending return is not success unless its target has been adopted. */
  public static synchronized boolean keepPending(Object pending){

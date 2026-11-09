@@ -11,7 +11,7 @@ import re
 ROOT=pathlib.Path(__file__).resolve().parents[3]
 REV=pathlib.Path(__file__).resolve().parent
 HELPERS=REV/"java/e/e/a"
-VERSION="1.10.7-dev.5"
+VERSION="1.10.7-dev.6"
 checks=0
 
 def verify(ok:bool,reason:str)->None:
@@ -160,6 +160,10 @@ verify("Dev136" in sources and "completeWhenAudible" in sources["Dev136"],
 verify("appStarted(Activity" in sources["Dev111"] and "appStopped(Activity" in sources["Dev111"],
        "App-wide foreground tracking missing")
 verify("keepPending" in sources["Dev136"], "Stale normal-return handoff guard missing")
+verify('method("PopupReturn244.smali"' not in patches,
+       "Do not patch PopupReturn244 smali: Android ART VerifyError regression")
+verify("releaseStaleReturn" in sources["Dev136"] and "Dev136.releaseStaleReturn" in sources["Dev115"],
+       "Stale pending-return handling must stay in typed Java")
 # Confirm official release is a separate manual action.
 workflow=(ROOT/".github/workflows/private-build.yml").read_text(encoding="utf-8")
 verify("Check ranking in-place sort and tab-bar button descriptions" in workflow,

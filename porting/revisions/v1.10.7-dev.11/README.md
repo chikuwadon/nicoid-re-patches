@@ -1,11 +1,29 @@
-# v1.10.7-dev.10 — playback return, ranking chooser and drawer gestures
+# v1.10.7-dev.11 — seamless background / notification return
 
-Development-only candidate built on v1.10.7-dev.9. No stable release, tag, or issue-state changes.
+Development-only successor of v1.10.7-dev.10. Stable release v1.10.6,
+main, public release tags and issue states remain unchanged.
 
-- Serialize legacy PlaybackReturn and the direct-background PopupReturn path so a notification-to-normal playback return cannot independently launch two VideoViews.
-- Keep the original retained VideoView through ordinary app switches, including the previous metadata and foreground keeper safeguards.
-- In Add Tab, place Ranking immediately under Search. Selecting it opens the native ranking genre/period chooser; choosing a ranking opens the usual list, allowing the existing tab manager to capture the specific genre/period.
-- Add fourteen opt-in gesture assignments for the native left drawer: ranking, Shorts, video ID dialog, device history, device playlists, cache, My Page, account history, mylists, Watch Later, following, Nico Reports, settings and restart.
-- Keep the original gesture mappings, installed tab labels, menu dispatch handlers and tab cap unchanged.
+## Targeted change
 
-CI checks source mapping, smali hooks, helper DEX and packaged MPP identity. The supplied Android 16 reproduction additionally requires device verification; a green CI is not evidence the video surface bug is resolved.
+- Capture the **original** normal-playback TextureView SurfaceTexture on app
+  switch. Preserve the existing ExoPlayer, stream, position, speed and audio
+  while a notification-only foreground Service keeps the process active.
+- Restore the retained SurfaceTexture when the original Activity regains focus.
+  Remove its interception listener when the normal Activity is stable or the
+  session ends, including exceptional exit.
+- Before returning from the lower background bar / notification, record the
+  Service's prepared decoder output. Idempotent VideoOutput binding skips
+  `setSurface` when the destination SurfaceTexture and underlying Surface
+  have not changed; a truly new or invalid surface still receives a bind.
+- Do not initiate a new HLS request, seek, create a decoder, pause playback or
+  hide the UI spinner as a substitute for keeping the real output.
+
+Existing ranking chooser, 14 drawer gesture actions, notification media
+metadata, player controls, tab management, and previous fixes are retained.
+
+## Verification
+
+CI tests include the precise smali/Dex hooks, packaged MPP identity,
+security/feature continuity and the no-reload/no-seek policy. Android 16
+device verification is still required for transition smoothness, codec
+compatibility, and notification/normal playback handoff.

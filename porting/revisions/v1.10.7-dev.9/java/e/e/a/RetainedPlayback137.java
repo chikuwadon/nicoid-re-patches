@@ -10,9 +10,11 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.MediaMetadata;
 import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
@@ -42,7 +44,7 @@ public final class RetainedPlayback137 {
   final String id;
   final int taskId;
   final long initialPosition;
-  boolean committed,closing,foreground;
+  boolean committed,closing,foreground,returnSettling;
   Service service;
   MediaSession media;
   Session(Activity a,Object fragment,Object player,String id) {
@@ -119,7 +121,10 @@ public final class RetainedPlayback137 {
  public static synchronized void started(Activity a){}
  public static synchronized void stopped(Activity a){
   Session s=current;
-  if(usable(s)&&s.source==a)log(s,"Original player Activity stopped");
+  if(usable(s)&&s.source==a) {
+   s.returnSettling=false; // Cancel pending foreground cleanup if leaving again.
+   log(s,"Original player Activity stopped");
+  }
  }
  public static synchronized void destroyed(Activity a){
   Session s=current;if(s!=null&&s.source==a)finish(s,false);
@@ -132,8 +137,12 @@ public final class RetainedPlayback137 {
   Dev111.suppressAutoReturn();
   if(!usable(s)){finish(s,false);return;}
   if(a==s.source) {
-   log(s,"Normal player Activity resumed without new ExoPlayer");
-   finish(s,false);return;
+   log(s,"Normal player Activity resumed; keep keeper until focused/audio stable");
+   if(!s.returnSettling) {
+    s.returnSettling=true;
+    settleNormalReturn(s,position(s.player),0);
+   }
+   return;
   }
   if(!s.committed){finish(s,false);return;}
   if(!returnNormal(s.source))return;
@@ -153,6 +162,71 @@ public final class RetainedPlayback137 {
     log(s,"Existing player Activity reordered; no HLS reload");
    }catch(Exception e){Log.w(TAG,"Existing player Activity unavailable",e);}
   },90);
+ }
+ /**
+  * Keep the decoder and MediaSession through the initial Surface reattachment.
+  * Retire the notification keeper only after the original Activity has focus
+  * and the original playback clock is advancing. Never pause, seek or release
+  * the player's decoder during return.
+  */
+ private static void settleNormalReturn(final Session s,final long initial,final int attempt) {
+  MAIN.postDelayed(()->{
+   if(!usable(s)||!s.returnSettling)return;
+   boolean focused=false;
+   try{
+    android.view.View decor=s.source.getWindow().getDecorView();
+    focused=s.source.hasWindowFocus()&&decor!=null&&decor.getWindowToken()!=null&&decor.isShown();
+   }catch(Exception ignored){}
+   long now=position(s.player);
+   boolean stable=focused&&(!playing(s.player)||initial>=0&&now>=initial+120);
+   if(stable){
+    s.returnSettling=false;
+    log(s,"Original screen focused and playback advancing; retiring notification keeper");
+    finish(s,false);
+   }else if(attempt<30){
+    settleNormalReturn(s,initial,attempt+1);
+   }else{
+    s.returnSettling=false;
+    log(s,"Normal screen not yet stable; preserving keeper and decoder");
+   }
+  },70L);
+ }
+ private static String nonempty(String str,String fallback){
+  return str==null||str.trim().isEmpty()||"null".equals(str)?fallback:str;
+ }
+ private static final class VideoMetadata {
+  final String title,artist;
+  VideoMetadata(String title,String artist){this.title=title;this.artist=artist;}
+ }
+ private static VideoMetadata syncMetadata(Session s){
+  String title=s.id,artist="";
+  Bundle info=null;
+  try{info=FeedbackMedia.bundle(s.fragment);}
+  catch(Exception e){Log.w(TAG,"No video metadata bundle",e);}
+  if(info!=null){
+   try{title=nonempty(FeedbackFixes.bundleTitle(info),title);}catch(Exception ignored){}
+   artist=nonempty(info.getString("author"),nonempty(info.getString("uploaderName"),""));
+  }
+  try{
+   Object media=PlaybackBar221.media();
+   if(media!=null&&get(media,"owner")==s.fragment)
+    title=nonempty(String.valueOf(get(media,"title")),title);
+  }catch(Exception ignored){}
+  if(s.media!=null)try{
+   MediaMetadata.Builder builder=new MediaMetadata.Builder()
+    .putString(MediaMetadata.METADATA_KEY_MEDIA_ID,s.id)
+    .putString(MediaMetadata.METADATA_KEY_TITLE,title)
+    .putString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE,title)
+    .putString(MediaMetadata.METADATA_KEY_ARTIST,artist)
+    .putString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE,artist);
+   long duration=((Number)call(s.player,"getDuration")).longValue();
+   if(duration>0)builder.putLong(MediaMetadata.METADATA_KEY_DURATION,duration);
+   MediaMetadata base=builder.build();
+   s.media.setMetadata(base);
+   // Reuse the existing Nicoid artwork cache and asynchronous thumbnail loader.
+   FeedbackMedia.apply(s.media,base,s.fragment);
+  }catch(Exception e){Log.w(TAG,"Metadata publish failed",e);}
+  return new VideoMetadata(title,artist);
  }
  /** Existing Service must bypass its native decoder initialization. */
  public static boolean serviceStart(Service service,Intent intent) {
@@ -220,6 +294,7 @@ public final class RetainedPlayback137 {
    });
    s.media.setActive(true);
   }
+  VideoMetadata info=syncMetadata(s);
   boolean running=playing(s.player);
   s.media.setPlaybackState(new PlaybackState.Builder()
     .setActions(PlaybackState.ACTION_PLAY|PlaybackState.ACTION_PAUSE|PlaybackState.ACTION_STOP)
@@ -227,7 +302,7 @@ public final class RetainedPlayback137 {
        Math.max(0,position(s.player)),running?1f:0f,SystemClock.elapsedRealtime()).build());
   Notification.Builder n=Build.VERSION.SDK_INT>=26?
      new Notification.Builder(service,CHANNEL):new Notification.Builder(service);
-  n.setContentTitle("nicoid Re").setContentText("Playback continues in the original player")
+  n.setContentTitle(info.title).setContentText(info.artist)
    .setSmallIcon(android.R.drawable.ic_media_play).setOnlyAlertOnce(true).setOngoing(true)
    .setContentIntent(action(service,s,"show",4))
    .addAction(new Notification.Action.Builder(running?android.R.drawable.ic_media_pause:
@@ -239,7 +314,7 @@ public final class RetainedPlayback137 {
        .setShowActionsInCompactView(0,1));
   if(!s.foreground){service.startForeground(NOTIFICATION,n.build());s.foreground=true;}
   else nm.notify(NOTIFICATION,n.build());
-  log(s,"Foreground notification tracks ORIGINAL decoder");
+  log(s,"Notification metadata title="+info.title+" artist="+info.artist+" (original decoder)");
  }
  private static synchronized void finish(Session s,boolean stop) {
   if(s==null||s.closing)return;

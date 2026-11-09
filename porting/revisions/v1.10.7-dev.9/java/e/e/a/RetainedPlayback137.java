@@ -198,17 +198,23 @@ public final class RetainedPlayback137 {
   final String title,artist;
   VideoMetadata(String title,String artist){this.title=title;this.artist=artist;}
  }
+ private static Object legacy(String className,String name,Class<?>[] types,Object... values)throws Exception {
+  Class<?> c=Class.forName("e.e.a."+className);
+  Method m=c.getDeclaredMethod(name,types);
+  m.setAccessible(true);
+  return m.invoke(null,values);
+ }
  private static VideoMetadata syncMetadata(Session s){
   String title=s.id,artist="";
   Bundle info=null;
-  try{info=FeedbackMedia.bundle(s.fragment);}
+  try{info=(Bundle)legacy("FeedbackMedia","bundle",new Class<?>[]{Object.class},s.fragment);}
   catch(Exception e){Log.w(TAG,"No video metadata bundle",e);}
   if(info!=null){
-   try{title=nonempty(FeedbackFixes.bundleTitle(info),title);}catch(Exception ignored){}
+   try{title=nonempty((String)legacy("FeedbackFixes","bundleTitle",new Class<?>[]{Bundle.class},info),title);}catch(Exception ignored){}
    artist=nonempty(info.getString("author"),nonempty(info.getString("uploaderName"),""));
   }
   try{
-   Object media=PlaybackBar221.media();
+   Object media=legacy("PlaybackBar221","media",new Class<?>[0]);
    if(media!=null&&get(media,"owner")==s.fragment)
     title=nonempty(String.valueOf(get(media,"title")),title);
   }catch(Exception ignored){}
@@ -224,7 +230,7 @@ public final class RetainedPlayback137 {
    MediaMetadata base=builder.build();
    s.media.setMetadata(base);
    // Reuse the existing Nicoid artwork cache and asynchronous thumbnail loader.
-   FeedbackMedia.apply(s.media,base,s.fragment);
+   legacy("FeedbackMedia","apply",new Class<?>[]{MediaSession.class,MediaMetadata.class,Object.class},s.media,base,s.fragment);
   }catch(Exception e){Log.w(TAG,"Metadata publish failed",e);}
   return new VideoMetadata(title,artist);
  }

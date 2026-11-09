@@ -11,7 +11,7 @@ import re
 ROOT=pathlib.Path(__file__).resolve().parents[3]
 REV=pathlib.Path(__file__).resolve().parent
 HELPERS=REV/"java/e/e/a"
-VERSION="1.10.7-dev.10"
+VERSION="1.10.7-dev.11"
 checks=0
 
 def verify(ok:bool,reason:str)->None:
@@ -131,7 +131,7 @@ verify("Set<String> shown=buttons(activity)" in tabs,
 # Add-tab ranking must be second, preserve native item mapping and share the
 # ordinary saved-tab lifecycle; version asserts must match the actual build.
 patch_text=(REV/"patch-payloads.py").read_text(encoding="utf-8")
-verify('assert version == "1.10.7-dev.10"' in patch_text,
+verify('assert version == "1.10.7-dev.11"' in patch_text,
        "Development patch version mismatches Gradle version")
 verify('result[0]=existing[0]' in tabs and 'result[1]=tr(activity,"ランキング"' in tabs and
        'System.arraycopy(existing,1,result,2,existing.length-1)' in tabs,
@@ -234,6 +234,29 @@ verify('setContentTitle(info.title).setContentText(info.artist)' in retained,
        "Notification still uses generic placeholder strings")
 verify('seekTo(' not in retained and 'PlaybackTransfer221.popup(' not in retained,
        "Original VideoView must not be recreated or seeked during app return")
+# Android 16 seamless return must keep the ORIGINAL SurfaceTexture and
+# avoid duplicate MediaCodec.setOutputSurface calls for the same output.
+surface=sources["Dev139"]
+for token in ("onSurfaceTextureDestroyed(SurfaceTexture texture)",
+              "saved=texture;return false",
+              "before.texture.get()==surfaceTexture",
+              "before.output.get()==existing",
+              "existing.isValid()",
+              "new Surface(surfaceTexture)",
+              "getSurfaceTextureListener()==this"):
+    verify(token in surface, "Retained texture or duplicate output guard missing: "+token)
+for forbidden in ('seekTo(', 'setVideoURI(', 'prepareAsync(', 'new ExoPlayer', 'pause()'):
+    verify(forbidden not in surface, "Surface bridge must not start another player: "+forbidden)
+verify('Dev139.hold(p)' in retained and
+       's.retainedSurface.restore()' in retained and
+       's.retainedSurface.close()' in retained,
+       "App-switch output retention must restore and release on all exit paths")
+verify('Dev139.remember(video.get(service))' in sources["Dev115"] and
+       'Dev136.releaseStaleReturn' in sources["Dev115"],
+       "Notification return must snapshot its already prepared decoder first")
+verify('replace_method("VideoOutput227.smali"' in patches and
+       'Le/e/a/Dev139;->connect(Landroid/view/View;Landroid/view/TextureView;)V' in patches,
+       "VideoOutput must use idempotent binding rather than reassigning every Surface")
 # Confirm official release is a separate manual action.
 workflow=(ROOT/".github/workflows/private-build.yml").read_text(encoding="utf-8")
 verify("Check ranking in-place sort and tab-bar button descriptions" in workflow,

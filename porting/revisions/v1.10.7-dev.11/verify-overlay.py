@@ -26,6 +26,9 @@ expected = {
     "Dev130.smali": ["styleSensitivity", "stripFinalStop"],
     "Dev131.smali": ["nicoid_audio_focus_enabled", "installSettings", "applyToPlayer", "requestServiceFocus"],
     "Dev138.smali": ["menu_ranking", "menu_restart", "dispatchNativeMenu", "dispatchKnownRoute"],
+    "Dev139.smali": ["Original SurfaceTexture retained", "connect", "remember", "hold"],
+    "VideoOutput227.smali": ["Dev139;->connect(Landroid/view/View;Landroid/view/TextureView;)V"],
+    "RetainedPlayback137.smali": ["Dev139;->hold", "Dev139$Retention;->restore", "Dev139$Retention;->close"],
     "Dev132.smali": ["nicoid_tab_bar_buttons", "addRankingLabel", "addRankingTab", "decorateBar", "show", "rememberClosed", "sameRanking", "showAddTab", "addActionName"],
     "Dev135.smali": ["roundSettings", "DialogPreference", "UiDialogs"],
     "RankingTabIdentity133.smali": ["key", "same", "/ranking/genre/"],
@@ -59,8 +62,8 @@ expected = {
     "TabPagingRules233.smali": ["0x3e3851ec", "0x43fa0000"],
     "Following190$Gestures.smali": ["0x3e19999a"],
     "PlaylistUrlParser.smali": ["canonicalUrl", "nicovideo.jp"],
-    "PatchVersion237.smali": ["1.10.7-dev.10"],
-    "ModernShorts.smali": ["v1.10.7-dev.10 @chikuwadon"],
+    "PatchVersion237.smali": ["1.10.7-dev.11"],
+    "ModernShorts.smali": ["v1.10.7-dev.11 @chikuwadon"],
     "TabRoutes228.smali": [
         "Dev132;->addRankingLabel(Landroid/app/Activity;[Ljava/lang/String;)[Ljava/lang/String;",
         "Dev111;->capturePage(Landroid/app/Activity;)V",
@@ -195,7 +198,7 @@ def dex_classes(data):
     return {types[u32(class_off + 32*i)] for i in range(class_size)}
 
 helper_defs = dex_classes((output / "helpers.mpe").read_bytes())
-needed = ("Dev138", "Dev128", "GestureTurnPolicy128", "Dev130", "Dev131", "Dev132", "RankingTabIdentity133", "Dev134", "TabHistory127", "Dev111", "Dev112", "Dev113", "Dev114", "Dev115", "Dev116", "Dev117", "Dev118", "Dev119", "Dev120", "Dev121", "CommentBatchPolicy121", "Dev122", "PostingPolicy122", "PostEcho123", "PlaylistUrlParser", "LegacyCacheCleanup113", "StorageDiagnostics112")
+needed = ("Dev139", "Dev138", "Dev128", "GestureTurnPolicy128", "Dev130", "Dev131", "Dev132", "RankingTabIdentity133", "Dev134", "TabHistory127", "Dev111", "Dev112", "Dev113", "Dev114", "Dev115", "Dev116", "Dev117", "Dev118", "Dev119", "Dev120", "Dev121", "CommentBatchPolicy121", "Dev122", "PostingPolicy122", "PostEcho123", "PlaylistUrlParser", "LegacyCacheCleanup113", "StorageDiagnostics112")
 missing = [name for name in needed if "Le/e/a/" + name + ";" not in helper_defs]
 print("Assembled helper DEX class definitions:", len(helper_defs))
 print("Required development classes:", len(needed) - len(missing), "/", len(needed))
@@ -213,7 +216,7 @@ print("Verified development DEX assembly and class coverage: PASS")
 
 # Verify the precise version in the *assembled* helper DEX, not only in staged smali.
 version = sys.argv[3]
-assert version == "1.10.7-dev.10"
+assert version == "1.10.7-dev.11"
 dex_data = (output / "helpers.mpe").read_bytes()
 def dex_strings(data):
     strings_size, strings_off = struct.unpack_from("<II", data, 0x38)

@@ -156,9 +156,9 @@ assert stopped.index("RetainedPlayback137;->stopped") < stopped.index("move-resu
 retained=(helper/"RetainedPlayback137.smali").read_text(encoding="utf-8")
 assert "RetainedPlayback137;->settleNormalReturn" in retained
 assert "MediaSession;->setMetadata" in retained
-assert "FeedbackMedia;->apply" in retained, "Nicoid cached thumbnail handler must be reused"
-assert "PlaybackBar221;->media" in retained, "Original title fallback missing"
-assert "FeedbackFixes;->bundleTitle" in retained, "Video bundle title missing"
+assert '"FeedbackMedia"' in retained and '"apply"' in retained, "Nicoid cached thumbnail handler must be reused"
+assert '"PlaybackBar221"' in retained and '"media"' in retained, "Original title fallback missing"
+assert '"FeedbackFixes"' in retained and '"bundleTitle"' in retained, "Video bundle title missing"
 assert "Activity;->hasWindowFocus" in retained, "Return teardown must wait until original Activity is focused"
 assert "Playback continues in the original player" not in retained, "Generic placeholder media notification remained"
 assert "PlaybackTransfer221;->popup" not in retained, "No second Service decoder may be created"

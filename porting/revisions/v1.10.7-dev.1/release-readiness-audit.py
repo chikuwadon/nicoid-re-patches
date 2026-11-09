@@ -118,7 +118,7 @@ verify("case 11:" in tabs and "new Glyph(c,11,true)" in tabs,
        "Tab list dismiss must be distinct from per-tab close")
 verify("title.setPadding(dp(c,16)" in tabs,
        "Tab list title spacing missing")
-verify("roundSettings" in sources["Dev135"] and "UiDialogs.style" in sources["Dev135"],
+verify("roundSettings" in sources["Dev135"] and '"UiDialogs", "style"' in sources["Dev135"],
        "Native preference dialogs lack unified corner styling")
 verify("Dev135.roundSettings" in sources["Dev111"],
        "Preference dialog styling installer is missing")

@@ -1,16 +1,18 @@
-# v1.10.7-dev.8 — single-player app-switch prototype
+# v1.10.7-dev.9 — notification metadata / return audio stability
 
-Developer test build, not a regular release. Preserve the original normal
-VideoView and its playback timeline while leaving the app. The foreground
-Service only provides a notification and process keeper; native HLS startup
-is bypassed. Avoid the native Fragment stop/pause for that player. On re-entry
-with "通常再生に戻る", bring the existing normal VideoActivity to the front
-instead of starting a new decoder or seeking. Notification Play/Pause/Stop
-act on the original player.
+Developer-only regression candidate based on Galaxy S23 Ultra Android 16
+video and 23:47 bugreport.
 
-The legacy alternate Service-starting fallback is removed from app-switch
-callbacks. Explicit Back and popup retain their separate existing semantics.
-Logs use tag "nicoid-retained" to trace token, task, time and playing state.
+- Keep the original player and its timeline across both app-switch directions.
+- On return to the same NicoidVideoActivity, keep the notification/Foreground
+  Service alive until the original window has regained focus and the retained
+  player's playback clock is progressing. Do not seek, pause or recreate HLS.
+- Build MediaSession metadata from Nicoid's existing title/author bundle and
+  PlaybackBar metadata, with asynchronous cached thumbnail artwork via
+  FeedbackMedia and CachedMediaArtwork.
+- Replace the generic "nicoid Re / Playback continues ..." notification.
+- Preserve Play/Pause/Stop notification controls and the distinct Back/Popup routes.
 
-Android 9/14/16 device checks are mandatory. Build and static checks cannot
-guarantee uninterrupted audio across device-specific Activity/window lifecycle.
+Static/DEX tests validate code paths, not Android audio output. Device testing
+is needed to establish whether the observed brief audible dropout is resolved.
+No regular release or main update.

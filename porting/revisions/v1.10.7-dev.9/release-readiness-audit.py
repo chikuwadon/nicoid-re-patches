@@ -11,7 +11,7 @@ import re
 ROOT=pathlib.Path(__file__).resolve().parents[3]
 REV=pathlib.Path(__file__).resolve().parent
 HELPERS=REV/"java/e/e/a"
-VERSION="1.10.7-dev.8"
+VERSION="1.10.7-dev.9"
 checks=0
 
 def verify(ok:bool,reason:str)->None:
@@ -189,6 +189,16 @@ verify("RetainedPlayback137;->serviceStart" in patches and
 check=patches.split('replace_method("AppSwitchGuard$1.smali"',1)[1].split('# Run the optional return',1)[0]
 verify("PlaybackSession;->leave" not in check,
        "A second Service decoder can still be started on app switch")
+verify("settleNormalReturn(s,position(s.player),0)" in retained and
+       "hasWindowFocus()" in retained,
+       "Do not retire foreground keeper during the first Activity resume callback")
+verify('FeedbackMedia.apply(s.media,base,s.fragment)' in retained and
+       'FeedbackFixes.bundleTitle(info)' in retained,
+       "MediaSession must expose original Nicoid video metadata and artwork")
+verify('setContentTitle(info.title).setContentText(info.artist)' in retained,
+       "Notification still uses generic placeholder strings")
+verify('seekTo(' not in retained and 'PlaybackTransfer221.popup(' not in retained,
+       "Original VideoView must not be recreated or seeked during app return")
 # Confirm official release is a separate manual action.
 workflow=(ROOT/".github/workflows/private-build.yml").read_text(encoding="utf-8")
 verify("Check ranking in-place sort and tab-bar button descriptions" in workflow,

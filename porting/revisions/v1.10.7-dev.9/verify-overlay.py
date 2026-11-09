@@ -58,8 +58,8 @@ expected = {
     "TabPagingRules233.smali": ["0x3e3851ec", "0x43fa0000"],
     "Following190$Gestures.smali": ["0x3e19999a"],
     "PlaylistUrlParser.smali": ["canonicalUrl", "nicovideo.jp"],
-    "PatchVersion237.smali": ["1.10.7-dev.8"],
-    "ModernShorts.smali": ["v1.10.7-dev.8 @chikuwadon"],
+    "PatchVersion237.smali": ["1.10.7-dev.9"],
+    "ModernShorts.smali": ["v1.10.7-dev.9 @chikuwadon"],
     "TabRoutes228.smali": [
         "Dev111;->capturePage(Landroid/app/Activity;)V",
         "Dev111;->preparePlaylist(Landroid/app/Activity;)V",
@@ -152,6 +152,17 @@ assert "RetainedPlayback137;->destroyed" in callback
 assert "RetainedPlayback137;->resumed" in callback
 assert started.index("RetainedPlayback137;->started") < started.index("move-result-object v0")
 assert stopped.index("RetainedPlayback137;->stopped") < stopped.index("move-result-object p1")
+# Preserve same-player handoff; only change notification metadata and return cleanup.
+retained=(helper/"RetainedPlayback137.smali").read_text(encoding="utf-8")
+assert "RetainedPlayback137;->settleNormalReturn" in retained
+assert "MediaSession;->setMetadata" in retained
+assert "FeedbackMedia;->apply" in retained, "Nicoid cached thumbnail handler must be reused"
+assert "PlaybackBar221;->media" in retained, "Original title fallback missing"
+assert "FeedbackFixes;->bundleTitle" in retained, "Video bundle title missing"
+assert "Activity;->hasWindowFocus" in retained, "Return teardown must wait until original Activity is focused"
+assert "Playback continues in the original player" not in retained, "Generic placeholder media notification remained"
+assert "PlaybackTransfer221;->popup" not in retained, "No second Service decoder may be created"
+print("Video title/uploader/artwork and stable return teardown: PASS")
 print("Single original VideoView and notification-only Service: PASS")
 print("Lifecycle Activity register alias and baseline playback transfer: PASS")
 print("Single playback handoff / notification lifecycle regression: PASS")
@@ -199,7 +210,7 @@ print("Verified development DEX assembly and class coverage: PASS")
 
 # Verify the precise version in the *assembled* helper DEX, not only in staged smali.
 version = sys.argv[3]
-assert version == "1.10.7-dev.8"
+assert version == "1.10.7-dev.9"
 dex_data = (output / "helpers.mpe").read_bytes()
 def dex_strings(data):
     strings_size, strings_off = struct.unpack_from("<II", data, 0x38)

@@ -364,8 +364,8 @@ native.write_text(text,encoding="utf-8")
 
 # The published recovered payload hardcoded v1.10.1 in two classes. Replace
 # both values on the staged copy, using the selected Gradle development version.
-version=sys.argv[2] if len(sys.argv)>2 else "1.10.7-dev.10"
-assert version == "1.10.7-dev.10"
+version=sys.argv[2] if len(sys.argv)>2 else "1.10.7-dev.11"
+assert version == "1.10.7-dev.11"
 method("PatchVersion237.smali", ".method public static value()Ljava/lang/String;",
        'const-string v0, "1.10.1"', 'const-string v0, "'+version+'"')
 versionFile=HELPERS/"ModernShorts.smali"
@@ -386,7 +386,7 @@ code=code.replace('    nop\n\n    nop\n\n    nop\n\n    invoke-static {p1}, Land
                   '    invoke-static {p1}, Landroid/view/MotionEvent;->obtain')
 gesture.write_text(code,encoding="utf-8")
 
-print("Applied v1.10.7-dev.10 overlay to", ROOT)
+print("Applied v1.10.7-dev.11 overlay to", ROOT)
 
 # Missing stored image URLs follow the native thumbnail fallback already used by CacheListing.
 method("LocalPlaylists$Page.smali", ".method render()V",
@@ -1310,3 +1310,15 @@ method("GestureControls110.smali",
        '    return-void\n'
        '    :nicoid_menu_138_original_action\n'
        '    const-string v0, "addtab"')
+
+
+# v1.10.7-dev.11: keep the existing decoded output when a TextureView is
+# detached and reattached to the normal screen.  VideoOutput227.bind still
+# serializes all UI requests; its final connector is now idempotent.
+replace_method("VideoOutput227.smali",
+    ".method static connect(Landroid/view/View;Landroid/view/TextureView;)V",
+    """.method static connect(Landroid/view/View;Landroid/view/TextureView;)V
+    .registers 2
+    invoke-static {p0, p1}, Le/e/a/Dev139;->connect(Landroid/view/View;Landroid/view/TextureView;)V
+    return-void
+.end method""")

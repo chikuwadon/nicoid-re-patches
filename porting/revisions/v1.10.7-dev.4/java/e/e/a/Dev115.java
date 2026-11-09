@@ -104,18 +104,51 @@ public final class Dev115 {
   if(image.startsWith("http://"))image="https://"+image.substring(7);
   return image.startsWith("https://")?image:video.optString("videoId","");
  }
- /** No fallback that starts a second HLS session. */
+ /** Mark the direct background mini-session as restoring BEFORE launching a
+  * normal Activity. Otherwise onActivityResumed closes its Service and decoder. */
  public static boolean seamlessReturn(Object service){
   if(!(service instanceof Service))return false;
+  Object state=null;java.lang.reflect.Field restoring=null;boolean accepted=false;
   try{
+   Class<?> direct=Class.forName("e.e.a.DirectBackground235");
+   java.lang.reflect.Field active=direct.getDeclaredField("active");
+   active.setAccessible(true);
+   state=active.get(null);
+   if(state!=null){
+    java.lang.reflect.Field owner=state.getClass().getDeclaredField("service");
+    owner.setAccessible(true);
+    if(owner.get(state)==service){
+     restoring=state.getClass().getDeclaredField("restoring");
+     restoring.setAccessible(true);
+     restoring.setBoolean(state,true);
+    }
+   }
    Object started=Class.forName("e.e.a.PopupReturn244").getMethod("start",Service.class).invoke(null,service);
-   boolean accepted=Boolean.TRUE.equals(started);
-   if(accepted)android.util.Log.i("nicoid-return","Retained decoder return accepted");
+   accepted=Boolean.TRUE.equals(started);
+   if(accepted)android.util.Log.i("nicoid-return","Retained decoder return accepted without Service replacement");
    return accepted;
   }catch(Exception e){
-   android.util.Log.w("nicoid-return","Retained return unavailable; background session preserved",e);
+   android.util.Log.w("nicoid-return","Retained decoder return not ready; current session preserved",e);
    return false;
+  }finally{
+   if(!accepted&&restoring!=null&&state!=null)
+    try{restoring.setBoolean(state,false);}catch(Exception ignored){}
   }
+ }
+ /** Finish the source only AFTER the prepared target has started.
+  * Pausing the old AudioTrack first produces a measurable dropout. */
+ public static void stopSourceAfterTargetStarts(Object transfer){
+  if(transfer==null)return;
+  try{
+   java.lang.reflect.Field old=transfer.getClass().getDeclaredField("sourcePlayer");
+   java.lang.reflect.Field next=transfer.getClass().getDeclaredField("targetPlayer");
+   old.setAccessible(true);next.setAccessible(true);
+   Object source=old.get(transfer),target=next.get(transfer);
+   if(source==null||source==target)return;
+   // The transfer controller only calls complete after the target starts.
+   java.lang.reflect.Method pause=source.getClass().getMethod("pause");
+   pause.invoke(source);
+  }catch(Exception e){android.util.Log.w("nicoid-transfer","Cannot retire old AudioTrack after handoff",e);}
  }
  public static void afterFullscreenRestore(View root){
   if(root==null)return;

@@ -140,6 +140,25 @@ public final class Dev111 {
         }
         resumeCheck(new java.lang.ref.WeakReference<>(activity));
     }
+    private static Service activeBackgroundService() {
+        try {
+            Class<?> cls=Class.forName("e.e.a.DirectBackground235");
+            Field current=field(cls,"active");
+            Object state=current.get(null);
+            if(state!=null) {
+                Object owner=get(state,"service");
+                if(owner instanceof Service)return (Service)owner;
+            }
+        } catch(Exception error) {
+            android.util.Log.w("nicoid-return","Cannot inspect retained background session",error);
+        }
+        // Popup-only session (not the normal direct background route).
+        try {
+            Reference<?> ref=(Reference<?>)field(Class.forName("e.e.a.PlaybackReturn"),"active").get(null);
+            Object owner=ref==null?null:ref.get();
+            return owner instanceof Service?(Service)owner:null;
+        }catch(Exception ignored){return null;}
+    }
     private static void resumeCheck(java.lang.ref.WeakReference<Activity> target) {
         Activity activity=target.get();
         if(activity==null || activity.isDestroyed() || activity.isFinishing()) {
@@ -158,10 +177,8 @@ public final class Dev111 {
             return;
         }
         try {
-            Reference<?> reference=(Reference<?>)field(
-                Class.forName("e.e.a.PlaybackReturn"),"active").get(null);
-            Object service=reference==null?null:reference.get();
-            boolean ready=service instanceof Service;
+            Service service=activeBackgroundService();
+            boolean ready=service!=null;
             if(ready) {
                 Object id=get(service,"f"),player=get(service,"e");
                 boolean background=field(service.getClass(),"p0").getBoolean(null);
@@ -189,7 +206,10 @@ public final class Dev111 {
             count=++resumeAttempt;
         }
         if(count<40)MAIN.postDelayed(()->resumeCheck(target),150);
-        else resetReturn();
+        else {
+            android.util.Log.w("nicoid-return","Retained background service was not ready after resume");
+            resetReturn();
+        }
     }
 
     public static void settings(PreferenceActivity activity) {

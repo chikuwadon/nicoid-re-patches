@@ -10,7 +10,7 @@ output = pathlib.Path(sys.argv[2])
 helper = root / "helpers/e/e/a"
 expected = {
     "AppSwitchGuard$1.smali": ["RetainedPlayback137;->left()V"],
-    "AppSwitchGuard$2.smali": ["RetainedPlayback137;->resumed(Landroid/app/Activity;)V"],
+    "AppSwitchGuard$2.smali": ["RetainedPlayback137;->resumed(Landroid/app/Activity;)V", "Dev111;->singleReturnOwner(Landroid/app/Activity;)Z"],
     "SettingsPlacement233.smali": ["Dev111;->settings(Landroid/preference/PreferenceActivity;)V", "Dev114;->installSettings(Landroid/preference/PreferenceActivity;)V"],
     "SettingsTools.smali": ["Dev111;->settings(Landroid/preference/PreferenceActivity;)V", "Dev114;->installSettings(Landroid/preference/PreferenceActivity;)V"],
     "MultiTabs227.smali": ["Dev111;->loadedTabs(Ljava/lang/Object;Landroid/content/Context;)V", "TabHistory127;->url(ILjava/lang/String;)Ljava/lang/String;", "Dev132;->sameRanking(Ljava/lang/Object;Ljava/lang/Object;)Z"],
@@ -20,11 +20,12 @@ expected = {
     "MultiTabs227$Host.smali": ["Dev132;->addRankingTab(Ljava/lang/Object;)V", "TabPager233;->destroy(Landroid/app/Activity;)V", "Dev111;->initialTab(Ljava/lang/Object;)V", "Dev111;->pageResumed(Landroid/app/Activity;)V", "Dev132;->decorateBar(Ljava/lang/Object;Landroid/widget/LinearLayout;)V", "Dev132;->rememberClosed(Ljava/lang/Object;Ljava/lang/Object;)V"],
     "MultiTabs227$1.smali": ["Dev111;->capturePage(Landroid/app/Activity;)V"],
     "MultiTabs227$Host$1.smali": ["Dev112;->restoreList(Landroid/widget/ListView;II)V"],
-    "GestureControls110.smali": ["Dev132;->actionName(Landroid/content/Context;)Ljava/lang/String;", "Dev132;->show(Landroid/app/Activity;)V", "Dev132;->showAddTab(Landroid/app/Activity;)V", "Dev132;->addActionName(Landroid/content/Context;)Ljava/lang/String;", "Dev130;->styleSensitivity(Landroid/widget/TextView;)V", "Dev130;->stripFinalStop(Landroid/widget/TextView;)V", "Dev112;->verticalTurnReady(Ljava/lang/Object;Landroid/view/MotionEvent;F)Z", "Dev118;->myPageTouch(Landroid/app/Activity;Landroid/view/MotionEvent;)Z", "Dev128;->allowClaim(Landroid/content/Context;Ljava/lang/String;)Z", "Dev128;->install(Landroid/app/Activity;Landroid/widget/LinearLayout;)V", "Dev128;->reset(Landroid/content/Context;)V"],
+    "GestureControls110.smali": ["Dev138;->extend", "Dev138;->actionName", "Dev138;->perform", "Dev132;->actionName(Landroid/content/Context;)Ljava/lang/String;", "Dev132;->show(Landroid/app/Activity;)V", "Dev132;->showAddTab(Landroid/app/Activity;)V", "Dev132;->addActionName(Landroid/content/Context;)Ljava/lang/String;", "Dev130;->styleSensitivity(Landroid/widget/TextView;)V", "Dev130;->stripFinalStop(Landroid/widget/TextView;)V", "Dev112;->verticalTurnReady(Ljava/lang/Object;Landroid/view/MotionEvent;F)Z", "Dev118;->myPageTouch(Landroid/app/Activity;Landroid/view/MotionEvent;)Z", "Dev128;->allowClaim(Landroid/content/Context;Ljava/lang/String;)Z", "Dev128;->install(Landroid/app/Activity;Landroid/widget/LinearLayout;)V", "Dev128;->reset(Landroid/content/Context;)V"],
     "Dev128.smali": ["gesture_vertical_reversal_enabled", "Recognize vertical-only gestures", "When off, vertical-only gestures"],
     "GestureTurnPolicy128.smali": ["verticalOnly", "allowClaim"],
     "Dev130.smali": ["styleSensitivity", "stripFinalStop"],
     "Dev131.smali": ["nicoid_audio_focus_enabled", "installSettings", "applyToPlayer", "requestServiceFocus"],
+    "Dev138.smali": ["menu_ranking", "menu_restart", "dispatchNativeMenu", "dispatchKnownRoute"],
     "Dev132.smali": ["nicoid_tab_bar_buttons", "addRankingLabel", "addRankingTab", "decorateBar", "show", "rememberClosed", "sameRanking", "showAddTab", "addActionName"],
     "Dev135.smali": ["roundSettings", "DialogPreference", "UiDialogs"],
     "RankingTabIdentity133.smali": ["key", "same", "/ranking/genre/"],
@@ -58,8 +59,8 @@ expected = {
     "TabPagingRules233.smali": ["0x3e3851ec", "0x43fa0000"],
     "Following190$Gestures.smali": ["0x3e19999a"],
     "PlaylistUrlParser.smali": ["canonicalUrl", "nicovideo.jp"],
-    "PatchVersion237.smali": ["1.10.7-dev.9"],
-    "ModernShorts.smali": ["v1.10.7-dev.9 @chikuwadon"],
+    "PatchVersion237.smali": ["1.10.7-dev.10"],
+    "ModernShorts.smali": ["v1.10.7-dev.10 @chikuwadon"],
     "TabRoutes228.smali": [
         "Dev132;->addRankingLabel(Landroid/app/Activity;[Ljava/lang/String;)[Ljava/lang/String;",
         "Dev111;->capturePage(Landroid/app/Activity;)V",
@@ -193,7 +194,7 @@ def dex_classes(data):
     return {types[u32(class_off + 32*i)] for i in range(class_size)}
 
 helper_defs = dex_classes((output / "helpers.mpe").read_bytes())
-needed = ("Dev128", "GestureTurnPolicy128", "Dev130", "Dev131", "Dev132", "RankingTabIdentity133", "Dev134", "TabHistory127", "Dev111", "Dev112", "Dev113", "Dev114", "Dev115", "Dev116", "Dev117", "Dev118", "Dev119", "Dev120", "Dev121", "CommentBatchPolicy121", "Dev122", "PostingPolicy122", "PostEcho123", "PlaylistUrlParser", "LegacyCacheCleanup113", "StorageDiagnostics112")
+needed = ("Dev138", "Dev128", "GestureTurnPolicy128", "Dev130", "Dev131", "Dev132", "RankingTabIdentity133", "Dev134", "TabHistory127", "Dev111", "Dev112", "Dev113", "Dev114", "Dev115", "Dev116", "Dev117", "Dev118", "Dev119", "Dev120", "Dev121", "CommentBatchPolicy121", "Dev122", "PostingPolicy122", "PostEcho123", "PlaylistUrlParser", "LegacyCacheCleanup113", "StorageDiagnostics112")
 missing = [name for name in needed if "Le/e/a/" + name + ";" not in helper_defs]
 print("Assembled helper DEX class definitions:", len(helper_defs))
 print("Required development classes:", len(needed) - len(missing), "/", len(needed))
@@ -211,7 +212,7 @@ print("Verified development DEX assembly and class coverage: PASS")
 
 # Verify the precise version in the *assembled* helper DEX, not only in staged smali.
 version = sys.argv[3]
-assert version == "1.10.7-dev.9"
+assert version == "1.10.7-dev.10"
 dex_data = (output / "helpers.mpe").read_bytes()
 def dex_strings(data):
     strings_size, strings_off = struct.unpack_from("<II", data, 0x38)

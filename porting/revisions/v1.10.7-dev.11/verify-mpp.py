@@ -46,12 +46,16 @@ with ZipFile(bundle) as z:
     assert " v1.4.3" in strings or "v1.4.3" in strings, "Validated runtime version missing"
     for name in ("SCROLL_RESTORES", "DIRTY_ADAPTERS", "REFRESH_ARTWORK", "updateSummaries"):
         assert name in strings, "Shipped helper DEX is missing optimized member " + name
-    for name in ("Le/e/a/Dev128;","Le/e/a/GestureTurnPolicy128;","Le/e/a/Dev130;","Le/e/a/Dev131;","Le/e/a/Dev132;","Le/e/a/RankingTabIdentity133;","Le/e/a/Dev134;","Le/e/a/Dev111;","Le/e/a/Dev112;","Le/e/a/Dev113;","Le/e/a/Dev114;","Le/e/a/Dev115;","Le/e/a/Dev116;","Le/e/a/Dev117;","Le/e/a/Dev118;","Le/e/a/Dev119;","Le/e/a/Dev120;","Le/e/a/PlaylistUrlParser;"):
+    for name in ("Le/e/a/Dev139;","Le/e/a/Dev139$Retention;","Le/e/a/Dev128;","Le/e/a/GestureTurnPolicy128;","Le/e/a/Dev130;","Le/e/a/Dev131;","Le/e/a/Dev132;","Le/e/a/RankingTabIdentity133;","Le/e/a/Dev134;","Le/e/a/Dev111;","Le/e/a/Dev112;","Le/e/a/Dev113;","Le/e/a/Dev114;","Le/e/a/Dev115;","Le/e/a/Dev116;","Le/e/a/Dev117;","Le/e/a/Dev118;","Le/e/a/Dev119;","Le/e/a/Dev120;","Le/e/a/PlaylistUrlParser;"):
         assert name in strings, "Shipped helper DEX missing "+name
     assert "gesture_vertical_reversal_enabled" in strings, "Shipped MPP missing issue #113 preference key"
     assert "nicoid_audio_focus_enabled" in strings, "Shipped MPP missing audio focus preference key"
     for option in ("addRankingLabel","addRankingTab","menu_ranking","menu_restart","menu_video_id"):
         assert option in strings, "Shipped MPP missing ranking add-tab route: "+option
+    for option in ("nicoid-surface","Original SurfaceTexture retained across app switch",
+                   "Preserved existing output; duplicate setSurface skipped",
+                   "Decoder output changed because SurfaceTexture changed"):
+        assert option in strings, "Shipped MPP missing seamless output bridge: "+option
     for option in ("addtab","タブを追加","nicoid_app_resume_playback","roundSettings"):
         assert option in strings, "Shipped MPP missing v1.10.7 feature: "+option
     for option in ("nicoid_tab_bar_buttons", "tablist", "タブバーのボタン表示", "直前に閉じたタブを復元"):

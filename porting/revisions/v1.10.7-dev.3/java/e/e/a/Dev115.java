@@ -104,17 +104,18 @@ public final class Dev115 {
   if(image.startsWith("http://"))image="https://"+image.substring(7);
   return image.startsWith("https://")?image:video.optString("videoId","");
  }
- public static void seamlessReturn(Object service){
-  if(!(service instanceof Service))return;
+ /** No fallback that starts a second HLS session. */
+ public static boolean seamlessReturn(Object service){
+  if(!(service instanceof Service))return false;
   try{
    Object started=Class.forName("e.e.a.PopupReturn244").getMethod("start",Service.class).invoke(null,service);
-   if(Boolean.TRUE.equals(started)){
-    android.util.Log.i("nicoid-return","Seamless return via retained popup decoder");
-    return;
-   }
-  }catch(Exception e){android.util.Log.w("nicoid-return","Retained playback unavailable, using fallback",e);}
-  try{Class.forName("e.e.a.PlaybackReturn").getMethod("open",Object.class).invoke(null,service);}
-  catch(Exception e){android.util.Log.w("nicoid-return","Playback return failed",e);}
+   boolean accepted=Boolean.TRUE.equals(started);
+   if(accepted)android.util.Log.i("nicoid-return","Retained decoder return accepted");
+   return accepted;
+  }catch(Exception e){
+   android.util.Log.w("nicoid-return","Retained return unavailable; background session preserved",e);
+   return false;
+  }
  }
  public static void afterFullscreenRestore(View root){
   if(root==null)return;

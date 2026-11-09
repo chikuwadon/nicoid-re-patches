@@ -81,24 +81,41 @@ public final class Dev111 {
         if (!transferring()) leftApp = true;
     }
     private static int resumeAttempt;
-    private static boolean armed() {
-        try {
-            Object value=field(Class.forName("e.e.a.PlaybackReturn"),"automaticVideo").get(null);
-            return value instanceof String && !((String)value).isEmpty();
-        } catch(Exception ignored) { return false; }
-    }
-    private static void clearArmed() {
-        try { field(Class.forName("e.e.a.PlaybackReturn"),"automaticVideo").set(null,null); }
-        catch(Exception ignored) {}
-    }
     private static void resetReturn() {
         synchronized(Dev111.class) {
-            leftApp=false;
-            resumeAttempt=0;
-            resumeScheduled=false;
-            returnInFlight=false;
+            leftApp=false; resumeAttempt=0; resumeScheduled=false; returnInFlight=false;
         }
-        clearArmed();
+    }
+    /** Back cancels an unfinished retained return instead of swallowing the key. */
+    public static boolean cancelPendingReturn(Activity activity) {
+        if(activity==null)return false;
+        try {
+            Class<?> cls=Class.forName("e.e.a.PopupReturn244");
+            Method matches=cls.getDeclaredMethod("matches",Activity.class);
+            matches.setAccessible(true);
+            if(!Boolean.TRUE.equals(matches.invoke(null,activity)))return false;
+            Field pending=cls.getDeclaredField("pending");
+            pending.setAccessible(true);
+            Object handoff=pending.get(null);
+            if(handoff==null)return false;
+            Method cancel=cls.getDeclaredMethod("cancel",handoff.getClass());
+            cancel.setAccessible(true);
+            cancel.invoke(null,handoff);
+            resetReturn();
+            if(!activity.isFinishing())activity.finish();
+            return true;
+        } catch(Exception error) {
+            android.util.Log.w("nicoid-return","Cannot cancel retained return",error);
+            return false;
+        }
+    }
+    private static boolean normalAlreadyPlaying(Activity activity) {
+        if(!"com.sauzask.nicoid.NicoidVideoActivity".equals(activity.getClass().getName()))return false;
+        try {
+            Object fragment=get(activity,"v");
+            Object player=fragment==null?null:get(fragment,"a0");
+            return player!=null&&Boolean.TRUE.equals(player.getClass().getMethod("isPlaying").invoke(player));
+        } catch(Exception ignored) { return false; }
     }
     public static void resumed(Activity activity) {
         if(activity==null || activity.isFinishing() || activity.isDestroyed())return;
@@ -107,7 +124,8 @@ public final class Dev111 {
             if (transferring() || resumeScheduled) return;
             pending = leftApp;
         }
-        if (!pending && !armed()) return;
+        if (!pending) return;
+        if (normalAlreadyPlaying(activity)) { resetReturn(); return; }
         SharedPreferences settings=prefs(activity);
         if(!"background".equals(settings.getString("app_switch_playback","none"))
            || !"normal".equals(settings.getString(RESUME,"background"))) {
@@ -135,7 +153,7 @@ public final class Dev111 {
         }
         boolean pending;
         synchronized(Dev111.class){pending=leftApp;}
-        if(!pending && !armed()) {
+        if(!pending) {
             synchronized(Dev111.class) { resumeScheduled = false; }
             return;
         }
@@ -147,23 +165,20 @@ public final class Dev111 {
             if(ready) {
                 Object id=get(service,"f"),player=get(service,"e");
                 boolean background=field(service.getClass(),"p0").getBoolean(null);
-                boolean initialized=field(service.getClass(),"o0").getBoolean(null);
+                // An initialized Service is not a prepared decoder.
                 boolean playing=player!=null && Boolean.TRUE.equals(
                     player.getClass().getMethod("isPlaying").invoke(player));
+                long duration=player==null?0:((Number)player.getClass()
+                    .getMethod("getDuration").invoke(player)).longValue();
                 ready=id instanceof String && ((String)id).matches("(?:sm|nm|so|ss)?[0-9]+")
-                    && background && (initialized || playing);
+                    && background && playing && duration>0;
             }
-            if(ready) {
+            if(ready && Dev115.seamlessReturn(service)) {
                 synchronized(Dev111.class) {
-                    if (transferring()) return;
-                    leftApp = false;
-                    resumeScheduled = false;
-                    resumeAttempt = 0;
+                    leftApp = false; resumeScheduled = false; resumeAttempt = 0;
                     returnInFlight = true;
                     returnStartedAt = android.os.SystemClock.uptimeMillis();
                 }
-                clearArmed();
-                Dev115.seamlessReturn(service);
                 return;
             }
         } catch(Exception error) {

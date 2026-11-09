@@ -34,6 +34,31 @@ public final class Dev111 {
     private static final Map<Activity, Map<String, Position>> VIEWS = new WeakHashMap<>();
     private static final Map<PreferenceActivity, SharedPreferences.OnSharedPreferenceChangeListener> SETTINGS_LISTENERS = new WeakHashMap<>();
     private static boolean leftApp;
+    // Observe the whole application's foreground transition, not just a
+    // video Activity's onStop. A browse Activity can be active while the
+    // background Service owns playback.
+    private static final WeakHashMap<Activity, Boolean> STARTED = new WeakHashMap<>();
+    private static boolean wasBackground;
+    private static long backgroundAt;
+    public static synchronized void appStarted(Activity activity) {
+        if(activity==null)return;
+        boolean wasEmpty=STARTED.isEmpty();
+        STARTED.put(activity,Boolean.TRUE);
+        if(wasEmpty && wasBackground
+           && android.os.SystemClock.uptimeMillis()-backgroundAt >= 180L) {
+            leftApp=true;
+            android.util.Log.i("nicoid-return","Application re-entered foreground");
+        }
+        wasBackground=false;
+    }
+    public static synchronized void appStopped(Activity activity) {
+        if(activity==null)return;
+        STARTED.remove(activity);
+        if(STARTED.isEmpty()) {
+            wasBackground=true;
+            backgroundAt=android.os.SystemClock.uptimeMillis();
+        }
+    }
     // Multiple Activity resumes may race for the same background session.
     private static boolean resumeScheduled;
     private static boolean returnInFlight;
@@ -196,6 +221,7 @@ public final class Dev111 {
                     returnInFlight = true;
                     returnStartedAt = android.os.SystemClock.uptimeMillis();
                 }
+                android.util.Log.i("nicoid-return","Retained return requested from active Service");
                 return;
             }
         } catch(Exception error) {

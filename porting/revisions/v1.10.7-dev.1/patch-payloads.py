@@ -28,17 +28,29 @@ def method(name, signature, old, new):
 
 
 
-# A stopped notification must release its MediaSession and remove the notification,
-# for both normal and Service playback. Merely pausing keeps Android 16's media
-# control permanently visible and retains a stale MediaSession.
-method("MediaControls.smali",
-       ".method static command(Le/e/a/MediaControls$State;Ljava/lang/String;)V",
-       "    if-eqz p1, :cond_5d\n\n"
-       "    iget-boolean p1, p0, Le/e/a/MediaControls$State;->popup:Z",
-       "    if-eqz p1, :cond_5d\n\n"
-       "    iget-object v0, p0, Le/e/a/MediaControls$State;->owner:Ljava/lang/Object;\n\n"
-       "    invoke-static {v0}, Le/e/a/MediaControls;->detach(Ljava/lang/Object;)V\n\n"
-       "    iget-boolean p1, p0, Le/e/a/MediaControls$State;->popup:Z")
+# MediaControls delegates the stop action to MediaStop240 in this baseline.
+# Close the foreground notification even when playback uses the retained mini player.
+method("MediaStop240.smali",
+       ".method public static stop(Ljava/lang/Object;Ljava/lang/Object;Z)V",
+       "    invoke-static {}, Le/e/a/MiniSession225;->closeCurrent()V\n\n"
+       "    return-void",
+       "    invoke-static {}, Le/e/a/MiniSession225;->closeCurrent()V\n\n"
+       "    instance-of v0, p0, Landroid/app/Service;\n"
+       "    if-eqz v0, :nicoid_media_stop_done\n"
+       "    check-cast p0, Landroid/app/Service;\n"
+       "    const/4 p1, 0x1\n"
+       "    invoke-virtual {p0, p1}, Landroid/app/Service;->stopForeground(Z)V\n"
+       "    invoke-virtual {p0}, Landroid/app/Service;->stopSelf()V\n"
+       "    :nicoid_media_stop_done\n"
+       "    return-void")
+method("MediaStop240.smali",
+       ".method public static stop(Ljava/lang/Object;Ljava/lang/Object;Z)V",
+       "    check-cast p0, Landroid/app/Service;\n\n"
+       "    invoke-virtual {p0}, Landroid/app/Service;->stopSelf()V",
+       "    check-cast p0, Landroid/app/Service;\n\n"
+       "    const/4 v0, 0x1\n"
+       "    invoke-virtual {p0, v0}, Landroid/app/Service;->stopForeground(Z)V\n\n"
+       "    invoke-virtual {p0}, Landroid/app/Service;->stopSelf()V")
 
 # Back-to-background is an asynchronous navigation. The caller must consume
 # Back once the native mode transition has been accepted, rather than checking

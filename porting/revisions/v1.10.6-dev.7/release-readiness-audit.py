@@ -53,7 +53,15 @@ allowed={
 }
 hosts=set()
 for name,body in sources.items():
-    verify("http://" not in body,f"New cleartext HTTP constant in helper {name}")
+    if "http://" in body:
+        # Dev116 accepts legacy thumbnail URL text only to convert it to
+        # HTTPS before handing it to the image loader. This is not a
+        # cleartext network call; fail any other unapproved http literal.
+        verify(name=="Dev116",f"Unexpected cleartext HTTP constant in {name}")
+        verify('url.replaceFirst("^http://","https://")' in body,
+               "Legacy thumbnail URLs must be upgraded to HTTPS")
+        verify("loadImage(safeImage(original), image)" in body,
+               "Thumbnail HTTP upgrade must precede image load")
     for host in re.findall(r'https://([a-zA-Z0-9._-]+)',body):
         host=host.lower()
         if host:

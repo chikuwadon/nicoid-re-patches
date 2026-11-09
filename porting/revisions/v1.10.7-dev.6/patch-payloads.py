@@ -130,41 +130,10 @@ method("AppSwitchGuard$2.smali",
        "    invoke-static {p1}, Le/e/a/Dev111;->appStopped(Landroid/app/Activity;)V\n\n"
        "    return-void")
 
-# PopupReturn244 previously returned true for an old Pending object even when
-# no target Activity had adopted the decoder. Reap the stale Pending after
-# a bounded grace period, then create a new attempt.
-method("PopupReturn244.smali",
-       ".method public static start(Landroid/app/Service;)Z",
-       "    if-ne v0, p0, :cond_11\n\n"
-       "    return v3",
-       "    if-ne v0, p0, :cond_11\n\n"
-       "    invoke-static {v2}, Le/e/a/Dev136;->keepPending(Ljava/lang/Object;)Z\n"
-       "    move-result v0\n"
-       "    if-eqz v0, :nicoid_restart_retained_return\n"
-       "    return v3\n"
-       "    :nicoid_restart_retained_return\n"
-       "    invoke-static {v2}, Le/e/a/PopupReturn244;->cancel(Le/e/a/PopupReturn244$Pending;)V\n"
-       "    goto :cond_12")
-
-# Lightweight transition diagnostics for distinguishing accepted and completed.
-method("PopupReturn244.smali",
-       ".method public static created(Ljava/lang/Object;)V",
-       "    iput-object v1, v0, Le/e/a/PopupReturn244$Pending;->target:Landroid/app/Activity;",
-       "    iput-object v1, v0, Le/e/a/PopupReturn244$Pending;->target:Landroid/app/Activity;\n"
-       "    const-string v2, \"Normal-return target Activity created\"\n"
-       "    invoke-static {v2}, Le/e/a/Dev136;->returnStage(Ljava/lang/String;)V")
-method("PopupReturn244.smali",
-       ".method public static adopt(Ljava/lang/Object;)Z",
-       "    iput-boolean v4, v1, Le/e/a/PopupReturn244$Pending;->adopted:Z",
-       "    iput-boolean v4, v1, Le/e/a/PopupReturn244$Pending;->adopted:Z\n"
-       "    const-string v3, \"Existing decoder adopted by normal view\"\n"
-       "    invoke-static {v3}, Le/e/a/Dev136;->returnStage(Ljava/lang/String;)V")
-method("PopupReturn244.smali",
-       ".method public static ready(Ljava/lang/Object;)V",
-       "    iput-boolean v1, v0, Le/e/a/PopupReturn244$Pending;->finishing:Z",
-       "    iput-boolean v1, v0, Le/e/a/PopupReturn244$Pending;->finishing:Z\n"
-       "    const-string v1, \"Normal-return decoder ready callback received\"\n"
-       "    invoke-static {v1}, Le/e/a/Dev136;->returnStage(Ljava/lang/String;)V")
+# Do not mutate PopupReturn244's register allocation in an assembled smali
+# method: v0 holds a String across nested exception handler edges. A previous
+# injected move-result v0 caused Android ART VerifyError at class loading.
+# Pending-return recovery is handled through Java reflection, not this smali.
 
 # Use one retained decoder handoff and never fall back to PlaybackTransfer.capture.
 method("AppSwitchGuard.smali",
@@ -339,8 +308,8 @@ native.write_text(text,encoding="utf-8")
 
 # The published recovered payload hardcoded v1.10.1 in two classes. Replace
 # both values on the staged copy, using the selected Gradle development version.
-version=sys.argv[2] if len(sys.argv)>2 else "1.10.7-dev.5"
-assert version == "1.10.7-dev.5"
+version=sys.argv[2] if len(sys.argv)>2 else "1.10.7-dev.6"
+assert version == "1.10.7-dev.6"
 method("PatchVersion237.smali", ".method public static value()Ljava/lang/String;",
        'const-string v0, "1.10.1"', 'const-string v0, "'+version+'"')
 versionFile=HELPERS/"ModernShorts.smali"
@@ -361,7 +330,7 @@ code=code.replace('    nop\n\n    nop\n\n    nop\n\n    invoke-static {p1}, Land
                   '    invoke-static {p1}, Landroid/view/MotionEvent;->obtain')
 gesture.write_text(code,encoding="utf-8")
 
-print("Applied v1.10.7-dev.5 overlay to", ROOT)
+print("Applied v1.10.7-dev.6 overlay to", ROOT)
 
 # Missing stored image URLs follow the native thumbnail fallback already used by CacheListing.
 method("LocalPlaylists$Page.smali", ".method render()V",
@@ -754,7 +723,7 @@ method("CommentHistory$Job.smali", ".method public run()V",
        "    if-lez v23, :cond_361")
 
 
-# v1.10.7-dev.5-dev.1: Fix comment posting without changing the published v1.10.4.
+# v1.10.7-dev.6-dev.1: Fix comment posting without changing the published v1.10.4.
 # The same-video parsed watch snapshot is authoritative and avoids an extra
 # authenticated GET while video playback already has valid nvComment metadata.
 method("ModernPosting.smali",
@@ -815,7 +784,7 @@ method("CommentHistory$Job.smali",
        "    invoke-static/range {v27 .. v28}, Ljava/lang/Thread;->sleep(J)V")
 
 
-# v1.10.7-dev.5 — require a server-assigned post ID and number before success.
+# v1.10.7-dev.6 — require a server-assigned post ID and number before success.
 # The POST remains non-retried even if its outcome is ambiguous. On success,
 # publish a same-session local echo via the existing CommentUi pipeline.
 method("ModernPosting.smali",
@@ -844,7 +813,7 @@ method("CommentUi.smali",
        "    invoke-static {p0, p1}, Le/e/a/CastControls218;->publish(Ljava/lang/Object;Ljava/util/ArrayList;)V")
 
 
-# v1.10.7-dev.5 — popup tap, double-tap, drag and pinch arbitration.
+# v1.10.7-dev.6 — popup tap, double-tap, drag and pinch arbitration.
 # Native edge-resize and the existing hold-to-speed detector run first.
 # Non-control video streams are then routed to native window dragging, while
 # video controls are toggled only on a confirmed, unmoved ACTION_UP.
@@ -944,7 +913,7 @@ native_edit("NicoidPopupViewService.smali",
     "    return v1")
 
 
-# v1.10.7-dev.5: Android 16 rejected onTouch's branch to :cond_12
+# v1.10.7-dev.6: Android 16 rejected onTouch's branch to :cond_12
 # because v1 was read before initialization in the drag-suppression path.
 # Initialize the register before *either* control-flow edge can reach it.
 native_edit("NicoidPopupViewService.smali",
@@ -963,7 +932,7 @@ method("TabChrome228.smali",
        "    invoke-static {p2}, Le/e/a/TabChrome228;->current(Ljava/lang/Object;)Z")
 
 
-# v1.10.7-dev.5 — fix blank account history URL in saved tabs.
+# v1.10.7-dev.6 — fix blank account history URL in saved tabs.
 # MultiTabs.describe uses Intent.getDataString(), which may be null at startup.
 # The previous code persisted "" for an account-history tab and the next
 # fragment treated it as an explicit URL. e0.a() then attempted an HTTP
@@ -1044,7 +1013,7 @@ method("GestureControls110.smali",
        "    const/4 p1, 0x0")
 
 
-# v1.10.7-dev.5: gesture sensitivity's secondary line is small and grey.
+# v1.10.7-dev.6: gesture sensitivity's secondary line is small and grey.
 # Apply after every slider change, rather than only when opening the dialog.
 method("GestureControls110.smali",
        ".method static synthetic lambda$4(Landroid/widget/TextView;Landroid/content/Context;Landroid/widget/SeekBar;)V",
@@ -1099,7 +1068,7 @@ native_edit("NicoidPopupViewService.smali",
             "    invoke-static {p0, v1, v4, v3, p3}, Le/e/a/Dev131;->requestServiceFocus(Landroid/content/Context;Landroid/media/AudioManager;Landroid/media/AudioManager$OnAudioFocusChangeListener;II)I")
 
 
-# v1.10.7-dev.5: native vertical tab manager, preserving existing tab routes.
+# v1.10.7-dev.6: native vertical tab manager, preserving existing tab routes.
 # The gesture action is opt-in; no existing gesture bindings are changed.
 method("GestureControls110.smali", ".method static constructor <clinit>()V",
        "    .registers 9", "    .registers 11")
@@ -1155,7 +1124,7 @@ method("MultiTabs227$Host.smali", ".method bar()V",
        "    invoke-static {v0, v7}, Le/e/a/Dev132;->decorateBar(Ljava/lang/Object;Landroid/widget/LinearLayout;)V")
 
 
-# v1.10.7-dev.5: distinguish identical rankings opened via the old startup
+# v1.10.7-dev.6: distinguish identical rankings opened via the old startup
 # URL and the public ranking menu, without conflating distinct genres/periods.
 method("MultiTabs227.smali",
        ".method static match(Le/e/a/SavedTabs227$Tab;)Le/e/a/SavedTabs227$Tab;",
@@ -1175,7 +1144,7 @@ method("MultiTabs227$Host.smali",
        "    invoke-virtual {p0}, Le/e/a/MultiTabs227$Host;->capture()V")
 
 
-# v1.10.7-dev.5: a ranking period change is a data/navigation
+# v1.10.7-dev.6: a ranking period change is a data/navigation
 # operation, not a swipe gesture. The original spinner listener starts a
 # replacement Activity and finishes the previous one with OS slide effects.
 # Skip both the enter and exit activity animations; actual swipes retain
@@ -1204,7 +1173,7 @@ method("MultiTabs227$Host.smali",
        "    invoke-static {v0}, Le/e/a/TabPager233;->destroy(Landroid/app/Activity;)V")
 
 
-# v1.10.7-dev.5: update ranking period IN PLACE.
+# v1.10.7-dev.6: update ranking period IN PLACE.
 # Retain the Activity, current tab ID, Fragment and list view; only the
 # selected tab's URL/subtitle and normal refresh data source change.
 # The previous startActivity/finish path is now an exceptional fallback.

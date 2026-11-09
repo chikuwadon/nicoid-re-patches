@@ -364,8 +364,8 @@ native.write_text(text,encoding="utf-8")
 
 # The published recovered payload hardcoded v1.10.1 in two classes. Replace
 # both values on the staged copy, using the selected Gradle development version.
-version=sys.argv[2] if len(sys.argv)>2 else "1.10.7-dev.8"
-assert version == "1.10.7-dev.8"
+version=sys.argv[2] if len(sys.argv)>2 else "1.10.7-dev.9"
+assert version == "1.10.7-dev.9"
 method("PatchVersion237.smali", ".method public static value()Ljava/lang/String;",
        'const-string v0, "1.10.1"', 'const-string v0, "'+version+'"')
 versionFile=HELPERS/"ModernShorts.smali"
@@ -386,7 +386,7 @@ code=code.replace('    nop\n\n    nop\n\n    nop\n\n    invoke-static {p1}, Land
                   '    invoke-static {p1}, Landroid/view/MotionEvent;->obtain')
 gesture.write_text(code,encoding="utf-8")
 
-print("Applied v1.10.7-dev.8 overlay to", ROOT)
+print("Applied v1.10.7-dev.9 overlay to", ROOT)
 
 # Missing stored image URLs follow the native thumbnail fallback already used by CacheListing.
 method("LocalPlaylists$Page.smali", ".method render()V",
@@ -1242,3 +1242,40 @@ method("RankingPeriod$1.smali",
        "    if-eqz v0, :nicoid134_legacy_fallback\n"
        "    return-void\n"
        "    :nicoid134_legacy_fallback")
+
+
+# Add Ranking immediately below Search in the shared + button/gesture menu.
+# The original native choice numbers stay unchanged for existing tab routes.
+method("TabRoutes228.smali",
+       ".method static addLabels(Landroid/app/Activity;)[Ljava/lang/String;",
+       "    filled-new-array/range {v3 .. v11}, [Ljava/lang/String;\n\n"
+       "    move-result-object p0\n\n"
+       "    return-object p0",
+       "    filled-new-array/range {v3 .. v11}, [Ljava/lang/String;\n\n"
+       "    move-result-object v3\n\n"
+       "    invoke-static {p0, v3}, Le/e/a/Dev132;->addRankingLabel(Landroid/app/Activity;[Ljava/lang/String;)[Ljava/lang/String;\n\n"
+       "    move-result-object p0\n\n"
+       "    return-object p0")
+# Existing native tab labels are indexed by their old menu positions. Account
+# for the single new item without changing the names of saved/restored tabs.
+method("TabRoutes228.smali",
+       ".method static label(Landroid/app/Activity;Le/e/a/SavedTabs227$Tab;)V",
+       "    aget-object p0, p0, v0",
+       "    add-int/lit8 v0, v0, 0x1\n\n"
+       "    aget-object p0, p0, v0")
+# The native add-tab click callback keeps its old Query/Choice implementations.
+# Only selection 1 opens the ranking list; later selections use index-1.
+method("MultiTabs227$Host.smali",
+       ".method synthetic lambda$4$e-e-a-MultiTabs227$Host([Ljava/lang/String;Landroid/content/DialogInterface;I)V",
+       "    :cond_7\n    iget-object p2, p0, Le/e/a/MultiTabs227$Host;->a:Landroid/app/Activity;",
+       "    :cond_7\n    const/4 p2, 0x1\n"
+       "    if-ne p3, p2, :nicoid_ranking_other_choice\n"
+       "    invoke-static {p0}, Le/e/a/Dev132;->addRankingTab(Ljava/lang/Object;)V\n"
+       "    goto :goto_12\n"
+       "    :nicoid_ranking_other_choice\n"
+       "    iget-object p2, p0, Le/e/a/MultiTabs227$Host;->a:Landroid/app/Activity;")
+method("MultiTabs227$Host.smali",
+       ".method synthetic lambda$4$e-e-a-MultiTabs227$Host([Ljava/lang/String;Landroid/content/DialogInterface;I)V",
+       "    invoke-static {p2, p3, p1}, Le/e/a/TabRoutes228;->choice(Landroid/app/Activity;ILjava/lang/String;)Le/e/a/SavedTabs227$Tab;",
+       "    add-int/lit8 p3, p3, -0x1\n"
+       "    invoke-static {p2, p3, p1}, Le/e/a/TabRoutes228;->choice(Landroid/app/Activity;ILjava/lang/String;)Le/e/a/SavedTabs227$Tab;")

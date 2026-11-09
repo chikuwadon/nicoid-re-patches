@@ -128,6 +128,23 @@ verify("if(count<40)MAIN.postDelayed" in sources["Dev111"] and
 verify("Set<String> shown=buttons(activity)" in tabs,
        "Tab button visibility selection not reflected in bar")
 
+# Add-tab ranking must be second, preserve native item mapping and share the
+# ordinary saved-tab lifecycle; version asserts must match the actual build.
+patch_text=(REV/"patch-payloads.py").read_text(encoding="utf-8")
+verify('assert version == "1.10.7-dev.9"' in patch_text,
+       "Development patch version mismatches Gradle version")
+verify('result[0]=existing[0]' in tabs and 'result[1]=tr(activity,"ランキング"' in tabs and
+       'System.arraycopy(existing,1,result,2,existing.length-1)' in tabs,
+       "Ranking is not directly below Search in add-tab list")
+verify('field(type,"type").setInt(tab,6)' in tabs and
+       'field(type,"screen").set(tab,"list")' in tabs and
+       'call(host,"addTab",new Class<?>[]{type},tab)' in tabs,
+       "Ranking add-tab must reuse normal native list and dedup lifecycle")
+for symbol in ('Dev132;->addRankingLabel', 'Dev132;->addRankingTab',
+               'add-int/lit8 p3, p3, -0x1',
+               'add-int/lit8 v0, v0, 0x1'):
+    verify(symbol in patch_text, "Ranking menu mapping regression: "+symbol)
+
 # Ranking data update must retain Activity/Fragment and eliminate tab churn.
 ranking=sources["Dev134"]
 for item in ('applyPeriod(Activity activity,Intent next)',

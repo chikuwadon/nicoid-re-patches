@@ -58,8 +58,8 @@ expected = {
     "TabPagingRules233.smali": ["0x3e3851ec", "0x43fa0000"],
     "Following190$Gestures.smali": ["0x3e19999a"],
     "PlaylistUrlParser.smali": ["canonicalUrl", "nicovideo.jp"],
-    "PatchVersion237.smali": ["1.10.7-dev.3"],
-    "ModernShorts.smali": ["v1.10.7-dev.3 @chikuwadon"],
+    "PatchVersion237.smali": ["1.10.7-dev.4"],
+    "ModernShorts.smali": ["v1.10.7-dev.4 @chikuwadon"],
     "TabRoutes228.smali": [
         "Dev111;->capturePage(Landroid/app/Activity;)V",
         "Dev111;->preparePlaylist(Landroid/app/Activity;)V",
@@ -117,6 +117,13 @@ assert "MediaClose248;->action" not in action, "Stop still launches the Service"
 assert "MediaAction240;->sign" in action, "Signed in-process Stop route missing"
 navigation=(helper/"PlaybackNavigation114.smali").read_text(encoding="utf-8")
 assert "Dev111;->cancelPendingReturn" in navigation, "Back ignored during retained return"
+# No early pause of the original player before the target audio starts.
+handoff=(helper/"PlaybackTransfer221.smali").read_text(encoding="utf-8")
+prepared=handoff.split(".method public static prepared(",1)[1].split(".end method",1)[0]
+complete=handoff.split(".method static complete(",1)[1].split(".end method",1)[0]
+assert "Dev115;->stopSourceAfterTargetStarts" in complete
+assert "invoke-static {v3, v0, v4, v5}, Le/e/a/PlaybackTransfer221;->call" not in prepared, "Old source pauses before target starts"
+print("Deferred source AudioTrack retirement: PASS")
 print("Single playback handoff / notification lifecycle regression: PASS")
 print("Development overlay hooks, settings, playlist refresh and DEX output: PASS")
 
@@ -162,7 +169,7 @@ print("Verified development DEX assembly and class coverage: PASS")
 
 # Verify the precise version in the *assembled* helper DEX, not only in staged smali.
 version = sys.argv[3]
-assert version == "1.10.7-dev.3"
+assert version == "1.10.7-dev.4"
 dex_data = (output / "helpers.mpe").read_bytes()
 def dex_strings(data):
     strings_size, strings_off = struct.unpack_from("<II", data, 0x38)

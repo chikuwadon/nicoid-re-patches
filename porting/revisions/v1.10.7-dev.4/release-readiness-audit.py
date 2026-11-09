@@ -11,7 +11,7 @@ import re
 ROOT=pathlib.Path(__file__).resolve().parents[3]
 REV=pathlib.Path(__file__).resolve().parent
 HELPERS=REV/"java/e/e/a"
-VERSION="1.10.7-dev.3"
+VERSION="1.10.7-dev.4"
 checks=0
 
 def verify(ok:bool,reason:str)->None:
@@ -148,6 +148,13 @@ verify('getMethod("open",Object.class)' not in sources["Dev115"],
        "PlaybackReturn.open legacy reload fallback is forbidden")
 verify("duration>0" in sources["Dev111"] and "cancelPendingReturn" in sources["Dev111"],
        "Prepared decoder or pending Back cancellation check missing")
+# Returning to the app must locate DirectBackground235, not just popup bindings.
+verify("activeBackgroundService()" in sources["Dev111"] and
+       'Class.forName("e.e.a.DirectBackground235")' in sources["Dev111"],
+       "Background service locator missing from normal return path")
+verify('getDeclaredField("restoring")' in sources["Dev115"] and
+       'stopSourceAfterTargetStarts' in sources["Dev115"],
+       "Retained decoder guard or overlap audio handoff missing")
 # Confirm official release is a separate manual action.
 workflow=(ROOT/".github/workflows/private-build.yml").read_text(encoding="utf-8")
 verify("Check ranking in-place sort and tab-bar button descriptions" in workflow,

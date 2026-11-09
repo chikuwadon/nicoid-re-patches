@@ -108,6 +108,9 @@ grep -Fq 'Dev132;->decorateBar(Ljava/lang/Object;Landroid/widget/LinearLayout;)V
 grep -Fq 'Dev132;->show(Landroid/app/Activity;)V' "$work/merged-smali/e/e/a/GestureControls110.smali"
 grep -Fq 'Dev132;->installSettings(Landroid/preference/PreferenceActivity;)V' "$work/merged-smali/e/e/a/Dev111.smali"
 grep -Fq 'Dev132;->sameRanking(Ljava/lang/Object;Ljava/lang/Object;)Z' "$work/merged-smali/e/e/a/MultiTabs227.smali"
+grep -Fq '0x10000' "$work/merged-smali/e/e/a/RankingPeriod\$1.smali"
+grep -Fq 'overridePendingTransition(II)V' "$work/merged-smali/e/e/a/RankingPeriod\$1.smali"
+grep -Fq 'TabPager233;->destroy(Landroid/app/Activity;)V' "$work/merged-smali/e/e/a/MultiTabs227\$Host.smali"
 grep -Fq 'Dev132;->rememberClosed(Ljava/lang/Object;Ljava/lang/Object;)V' "$work/merged-smali/e/e/a/MultiTabs227\$Host.smali"
 grep -Fq 'nicoid_tab_bar_buttons' "$work/merged-smali/e/e/a/Dev132.smali"
 grep -Fq 'RankingTabIdentity133;->same(ILjava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;)Z' "$work/merged-smali/e/e/a/Dev132.smali" || { echo "Ranking canonical matching missing" >&2; exit 1; }

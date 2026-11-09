@@ -9,3 +9,5 @@ Development only; official release requires separate approval.
 - Treat ranking category+period+filters as tab identity across legacy startup and ranking-menu URL formats; different rankings remain separate; existing duplicate tabs are not deleted automatically
 - Preserve dev.4's central modal, icon mapping, drag reorder, popup control/seekbar fix and all existing features
 - CI regression tests for ranking identity and distributed MPP checks
+
+- Ranking period sorting uses no Activity enter/exit slide animation; programmatic tab restore clears stale swipe state while finger-driven tab paging retains its animation

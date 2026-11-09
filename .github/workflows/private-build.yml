@@ -241,6 +241,21 @@ jobs:
           assert 'Dev132;->rememberClosed' in overlay
           print('PASS: combined tab button settings, accent, in-place delete/restore, ranking hooks')
           PY
+      - name: Verify programmatic navigation has no slide animations
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          rev=Path("porting/revisions/v1.10.6-dev.5")
+          overlay=(rev/"patch-payloads.py").read_text()
+          assert 'RankingPeriod$1.smali' in overlay
+          assert 'const p4, 0x10000' in overlay
+          assert overlay.count('overridePendingTransition(II)V') >= 2
+          assert 'TabPager233;->destroy(Landroid/app/Activity;)V' in overlay
+          assert '.method select(Ljava/lang/String;)V' in overlay
+          # The native user-driven TabPager animation remains untouched.
+          assert 'method("TabPager233.smali"' not in overlay
+          print("PASS: no slide for ranking sort/programmatic restore; real swipe preserved")
+          PY
       - name: Build Morphe bundle
         run: ./gradlew :patches:buildAndroid --no-daemon
         env:

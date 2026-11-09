@@ -1001,3 +1001,32 @@ method("MultiTabs227$Host.smali",
        "    invoke-virtual {p0}, Le/e/a/MultiTabs227$Host;->capture()V",
        "    invoke-static {p0, p1}, Le/e/a/Dev132;->rememberClosed(Ljava/lang/Object;Ljava/lang/Object;)V\n\n"
        "    invoke-virtual {p0}, Le/e/a/MultiTabs227$Host;->capture()V")
+
+
+# v1.10.6-dev.5: a ranking period change is a data/navigation
+# operation, not a swipe gesture. The original spinner listener starts a
+# replacement Activity and finishes the previous one with OS slide effects.
+# Skip both the enter and exit activity animations; actual swipes retain
+# TabPager233's user-driven animation.
+method("RankingPeriod$1.smali",
+       ".method public onItemSelected(Landroid/widget/AdapterView;Landroid/view/View;IJ)V",
+       "    invoke-virtual {p2, p1}, Landroid/app/Activity;->startActivity(Landroid/content/Intent;)V",
+       "    const p4, 0x10000  # Intent.FLAG_ACTIVITY_NO_ANIMATION\n"
+       "    invoke-virtual {p1, p4}, Landroid/content/Intent;->addFlags(I)Landroid/content/Intent;\n\n"
+       "    invoke-virtual {p2, p1}, Landroid/app/Activity;->startActivity(Landroid/content/Intent;)V\n\n"
+       "    const/4 p3, 0x0\n"
+       "    invoke-virtual {p2, p3, p3}, Landroid/app/Activity;->overridePendingTransition(II)V")
+method("RankingPeriod$1.smali",
+       ".method public onItemSelected(Landroid/widget/AdapterView;Landroid/view/View;IJ)V",
+       "    invoke-virtual {p1}, Landroid/app/Activity;->finish()V",
+       "    invoke-virtual {p1}, Landroid/app/Activity;->finish()V\n\n"
+       "    invoke-virtual {p1, p3, p3}, Landroid/app/Activity;->overridePendingTransition(II)V")
+
+# A restored or programmatically selected tab must not inherit a partially
+# claimed finger swipe from an earlier page. It should appear immediately.
+method("MultiTabs227$Host.smali",
+       ".method select(Ljava/lang/String;)V",
+       "    .line 53",
+       "    .line 53\n"
+       "    iget-object v0, p0, Le/e/a/MultiTabs227$Host;->a:Landroid/app/Activity;\n"
+       "    invoke-static {v0}, Le/e/a/TabPager233;->destroy(Landroid/app/Activity;)V")

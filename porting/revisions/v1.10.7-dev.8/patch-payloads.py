@@ -28,6 +28,52 @@ def method(name, signature, old, new):
 
 
 
+# One original VideoView spans foreground/background; the native Service
+# only posts a media notification and never initializes another HLS decoder.
+def native_method(name,signature,old,new):
+    path=ROOT/"method-delta/com/sauzask/nicoid"/name
+    src=path.read_text(encoding="utf-8")
+    start=src.find(signature)
+    end=src.find("\n.end method",start)
+    if start<0 or end<0:raise RuntimeError("Missing native method "+name)
+    block=src[start:end]
+    if block.count(old)!=1:raise RuntimeError("Native overlay baseline mismatch "+name)
+    path.write_text(src[:start]+block.replace(old,new)+src[end:],encoding="utf-8")
+
+native_method("NicoidPopupViewService.smali",
+  ".method public onStartCommand(Landroid/content/Intent;II)I",
+  "    invoke-static/range {p0 .. p1}, Le/e/a/MediaClose248;->consume(Landroid/app/Service;Landroid/content/Intent;)Z",
+  "    invoke-static/range {p0 .. p1}, Le/e/a/RetainedPlayback137;->serviceStart(Landroid/app/Service;Landroid/content/Intent;)Z\n"
+  "    move-result v0\n"
+  "    if-eqz v0, :nicoid_native_service_137\n"
+  "    const/4 v0, 0x2\n"
+  "    return v0\n"
+  "    :nicoid_native_service_137\n"
+  "    invoke-static/range {p0 .. p1}, Le/e/a/MediaClose248;->consume(Landroid/app/Service;Landroid/content/Intent;)Z")
+native_method("NicoidPopupViewService.smali",
+  ".method public onDestroy()V",
+  "    invoke-static {p0}, Le/e/a/DirectBackground235;->terminated(Ljava/lang/Object;)V",
+  "    invoke-static {p0}, Le/e/a/RetainedPlayback137;->serviceDestroyed(Landroid/app/Service;)V\n\n"
+  "    invoke-static {p0}, Le/e/a/DirectBackground235;->terminated(Ljava/lang/Object;)V")
+
+# Prevent Android onStop from pausing the retained ORIGINAL VideoView.
+method("PlaybackLifecycle219.smali",
+  ".method public static retain(Ljava/lang/Object;)Z",
+  "    const/4 v0, 0x0\n\n    .line 13",
+  "    invoke-static {p0}, Le/e/a/RetainedPlayback137;->retains(Ljava/lang/Object;)Z\n"
+  "    move-result v0\n"
+  "    if-eqz v0, :nicoid_not_retained_137\n"
+  "    return v0\n"
+  "    :nicoid_not_retained_137\n"
+  "    const/4 v0, 0x0\n\n    .line 13")
+
+# Explicit normal-player destruction invalidates the retained session.
+method("AppSwitchGuard$2.smali",
+  ".method public onActivityDestroyed(Landroid/app/Activity;)V",
+  "    .line 87",
+  "    invoke-static {p1}, Le/e/a/RetainedPlayback137;->destroyed(Landroid/app/Activity;)V\n\n"
+  "    .line 87")
+
 # Legacy Service-based notification Stop is eliminated. Signed broadcast
 # uses the already-active MediaControls.receiver and never resurrects Service.
 media_path=HELPERS/"MediaControls.smali"
@@ -99,12 +145,14 @@ replace_method("PlaybackSession.smali",
 method("AppSwitchGuard$2.smali",
        ".method public onActivityStarted(Landroid/app/Activity;)V",
        "    .line 69",
-       "    invoke-static {p1}, Le/e/a/Dev111;->appStarted(Landroid/app/Activity;)V\n\n"
+       "    invoke-static {p1}, Le/e/a/Dev111;->appStarted(Landroid/app/Activity;)V\n"
+       "    invoke-static {p1}, Le/e/a/RetainedPlayback137;->started(Landroid/app/Activity;)V\n\n"
        "    .line 69")
 method("AppSwitchGuard$2.smali",
        ".method public onActivityStopped(Landroid/app/Activity;)V",
        "    .line 81",
-       "    invoke-static {p1}, Le/e/a/Dev111;->appStopped(Landroid/app/Activity;)V\n\n"
+       "    invoke-static {p1}, Le/e/a/Dev111;->appStopped(Landroid/app/Activity;)V\n"
+       "    invoke-static {p1}, Le/e/a/RetainedPlayback137;->stopped(Landroid/app/Activity;)V\n\n"
        "    .line 81")
 
 # Never modify PopupReturn244 smali registers. Retained state is handled in Java.
@@ -114,7 +162,7 @@ method("AppSwitchGuard.smali",
        ".method public static intercept(Ljava/lang/Object;Z)Z",
        "    invoke-static {p0}, Le/e/a/PlaybackTransfer;->capture(Landroid/app/Activity;)Ljava/lang/Runnable;\n\n"
        "    move-result-object p1",
-       "    invoke-static {p0}, Le/e/a/PlaybackHandoff110;->capture(Landroid/app/Activity;)Ljava/lang/Runnable;\n\n"
+       "    invoke-static {p0}, Le/e/a/RetainedPlayback137;->capture(Landroid/app/Activity;)Ljava/lang/Runnable;\n\n"
        "    move-result-object p1")
 
 # Pending retained returns must be cancellable with Back, not silently ignored.
@@ -128,16 +176,50 @@ method("PlaybackNavigation114.smali",
        "    if-eqz v1, :cond_18\n"
        "    return v2")
 
-# The switch guard fires only after onStop, not during in-app navigation.
-method("AppSwitchGuard$1.smali", ".method public run()V",
-       "    :cond_3b\n    iget-object v1, p0, Le/e/a/AppSwitchGuard$1;->val$transfer:Ljava/lang/Runnable;",
-       "    :cond_3b\n    invoke-static {}, Le/e/a/Dev111;->left()V\n\n"
-       "    iget-object v1, p0, Le/e/a/AppSwitchGuard$1;->val$transfer:Ljava/lang/Runnable;")
+# Only the previously captured Runnable can run after an external onStop.
+# The legacy reflection retry that created a new Service decoder is removed.
+replace_method("AppSwitchGuard$1.smali", ".method public run()V",
+    """.method public run()V
+    .registers 5
+    iget-object v0, p0, Le/e/a/AppSwitchGuard$1;->val$reference:Ljava/lang/ref/WeakReference;
+    invoke-virtual {v0}, Ljava/lang/ref/WeakReference;->get()Ljava/lang/Object;
+    move-result-object v0
+    check-cast v0, Landroid/app/Activity;
+    if-eqz v0, :nicoid137_done
+    invoke-virtual {v0}, Landroid/app/Activity;->isFinishing()Z
+    move-result v1
+    if-nez v1, :nicoid137_done
+    invoke-virtual {v0}, Landroid/app/Activity;->isChangingConfigurations()Z
+    move-result v1
+    if-nez v1, :nicoid137_done
+    invoke-static {}, Le/e/a/AppSwitchGuard;->access$0()Ljava/util/WeakHashMap;
+    move-result-object v1
+    invoke-virtual {v1, v0}, Ljava/util/WeakHashMap;->get(Ljava/lang/Object;)Ljava/lang/Object;
+    move-result-object v1
+    sget-object v2, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
+    invoke-virtual {v2, v1}, Ljava/lang/Boolean;->equals(Ljava/lang/Object;)Z
+    move-result v1
+    if-eqz v1, :nicoid137_done
+    invoke-static {}, Le/e/a/AppSwitchGuard;->access$2()Ljava/lang/ref/WeakReference;
+    move-result-object v1
+    invoke-virtual {v1}, Ljava/lang/ref/WeakReference;->get()Ljava/lang/Object;
+    move-result-object v1
+    if-nez v1, :nicoid137_done
+    invoke-static {}, Le/e/a/AppSwitchGuard;->access$1()Ljava/util/WeakHashMap;
+    move-result-object v1
+    invoke-virtual {v1, v0}, Ljava/util/WeakHashMap;->remove(Ljava/lang/Object;)Ljava/lang/Object;
+    iget-object v1, p0, Le/e/a/AppSwitchGuard$1;->val$transfer:Ljava/lang/Runnable;
+    if-eqz v1, :nicoid137_done
+    invoke-static {}, Le/e/a/RetainedPlayback137;->left()V
+    invoke-interface {v1}, Ljava/lang/Runnable;->run()V
+    :nicoid137_done
+    return-void
+.end method""")
 
 # Run the optional return decision after the existing return controller.
 method("AppSwitchGuard$2.smali", ".method public onActivityResumed(Landroid/app/Activity;)V",
        "    invoke-static {p1}, Le/e/a/PlaybackReturn;->foreground(Landroid/app/Activity;)V",
-       "    invoke-static {p1}, Le/e/a/Dev111;->resumed(Landroid/app/Activity;)V")
+       "    invoke-static {p1}, Le/e/a/RetainedPlayback137;->resumed(Landroid/app/Activity;)V")
 
 # Install preferences and sort only after all legacy preference installers have run.
 method("SettingsPlacement233.smali", ".method public static finish(Landroid/preference/PreferenceActivity;)V",
@@ -282,8 +364,8 @@ native.write_text(text,encoding="utf-8")
 
 # The published recovered payload hardcoded v1.10.1 in two classes. Replace
 # both values on the staged copy, using the selected Gradle development version.
-version=sys.argv[2] if len(sys.argv)>2 else "1.10.7-dev.7"
-assert version == "1.10.7-dev.7"
+version=sys.argv[2] if len(sys.argv)>2 else "1.10.7-dev.8"
+assert version == "1.10.7-dev.8"
 method("PatchVersion237.smali", ".method public static value()Ljava/lang/String;",
        'const-string v0, "1.10.1"', 'const-string v0, "'+version+'"')
 versionFile=HELPERS/"ModernShorts.smali"
@@ -304,7 +386,7 @@ code=code.replace('    nop\n\n    nop\n\n    nop\n\n    invoke-static {p1}, Land
                   '    invoke-static {p1}, Landroid/view/MotionEvent;->obtain')
 gesture.write_text(code,encoding="utf-8")
 
-print("Applied v1.10.7-dev.7 overlay to", ROOT)
+print("Applied v1.10.7-dev.8 overlay to", ROOT)
 
 # Missing stored image URLs follow the native thumbnail fallback already used by CacheListing.
 method("LocalPlaylists$Page.smali", ".method render()V",
@@ -473,8 +555,8 @@ method("CachedPlayback.smali",
 # enabled and playing. Other lifecycle paths remain unchanged.
 method("PlaybackLifecycle219.smali",
        ".method public static retain(Ljava/lang/Object;)Z",
-       "    .registers 10\n\n    const/4 v0, 0x0",
-       "    .registers 10\n\n"
+       "    :nicoid_not_retained_137\n    const/4 v0, 0x0",
+       "    :nicoid_not_retained_137\n"
        "    invoke-static {p0}, Le/e/a/Dev119;->retainWhenScreenOff(Ljava/lang/Object;)Z\n\n"
        "    move-result v0\n\n"
        "    if-eqz v0, :nicoid119_default_retain\n\n"
@@ -697,7 +779,7 @@ method("CommentHistory$Job.smali", ".method public run()V",
        "    if-lez v23, :cond_361")
 
 
-# v1.10.7-dev.7-dev.1: Fix comment posting without changing the published v1.10.4.
+# v1.10.7-dev.8-dev.1: Fix comment posting without changing the published v1.10.4.
 # The same-video parsed watch snapshot is authoritative and avoids an extra
 # authenticated GET while video playback already has valid nvComment metadata.
 method("ModernPosting.smali",
@@ -758,7 +840,7 @@ method("CommentHistory$Job.smali",
        "    invoke-static/range {v27 .. v28}, Ljava/lang/Thread;->sleep(J)V")
 
 
-# v1.10.7-dev.7 — require a server-assigned post ID and number before success.
+# v1.10.7-dev.8 — require a server-assigned post ID and number before success.
 # The POST remains non-retried even if its outcome is ambiguous. On success,
 # publish a same-session local echo via the existing CommentUi pipeline.
 method("ModernPosting.smali",
@@ -787,7 +869,7 @@ method("CommentUi.smali",
        "    invoke-static {p0, p1}, Le/e/a/CastControls218;->publish(Ljava/lang/Object;Ljava/util/ArrayList;)V")
 
 
-# v1.10.7-dev.7 — popup tap, double-tap, drag and pinch arbitration.
+# v1.10.7-dev.8 — popup tap, double-tap, drag and pinch arbitration.
 # Native edge-resize and the existing hold-to-speed detector run first.
 # Non-control video streams are then routed to native window dragging, while
 # video controls are toggled only on a confirmed, unmoved ACTION_UP.
@@ -887,7 +969,7 @@ native_edit("NicoidPopupViewService.smali",
     "    return v1")
 
 
-# v1.10.7-dev.7: Android 16 rejected onTouch's branch to :cond_12
+# v1.10.7-dev.8: Android 16 rejected onTouch's branch to :cond_12
 # because v1 was read before initialization in the drag-suppression path.
 # Initialize the register before *either* control-flow edge can reach it.
 native_edit("NicoidPopupViewService.smali",
@@ -906,7 +988,7 @@ method("TabChrome228.smali",
        "    invoke-static {p2}, Le/e/a/TabChrome228;->current(Ljava/lang/Object;)Z")
 
 
-# v1.10.7-dev.7 — fix blank account history URL in saved tabs.
+# v1.10.7-dev.8 — fix blank account history URL in saved tabs.
 # MultiTabs.describe uses Intent.getDataString(), which may be null at startup.
 # The previous code persisted "" for an account-history tab and the next
 # fragment treated it as an explicit URL. e0.a() then attempted an HTTP
@@ -987,7 +1069,7 @@ method("GestureControls110.smali",
        "    const/4 p1, 0x0")
 
 
-# v1.10.7-dev.7: gesture sensitivity's secondary line is small and grey.
+# v1.10.7-dev.8: gesture sensitivity's secondary line is small and grey.
 # Apply after every slider change, rather than only when opening the dialog.
 method("GestureControls110.smali",
        ".method static synthetic lambda$4(Landroid/widget/TextView;Landroid/content/Context;Landroid/widget/SeekBar;)V",
@@ -1042,7 +1124,7 @@ native_edit("NicoidPopupViewService.smali",
             "    invoke-static {p0, v1, v4, v3, p3}, Le/e/a/Dev131;->requestServiceFocus(Landroid/content/Context;Landroid/media/AudioManager;Landroid/media/AudioManager$OnAudioFocusChangeListener;II)I")
 
 
-# v1.10.7-dev.7: native vertical tab manager, preserving existing tab routes.
+# v1.10.7-dev.8: native vertical tab manager, preserving existing tab routes.
 # The gesture action is opt-in; no existing gesture bindings are changed.
 method("GestureControls110.smali", ".method static constructor <clinit>()V",
        "    .registers 9", "    .registers 11")
@@ -1098,7 +1180,7 @@ method("MultiTabs227$Host.smali", ".method bar()V",
        "    invoke-static {v0, v7}, Le/e/a/Dev132;->decorateBar(Ljava/lang/Object;Landroid/widget/LinearLayout;)V")
 
 
-# v1.10.7-dev.7: distinguish identical rankings opened via the old startup
+# v1.10.7-dev.8: distinguish identical rankings opened via the old startup
 # URL and the public ranking menu, without conflating distinct genres/periods.
 method("MultiTabs227.smali",
        ".method static match(Le/e/a/SavedTabs227$Tab;)Le/e/a/SavedTabs227$Tab;",
@@ -1118,7 +1200,7 @@ method("MultiTabs227$Host.smali",
        "    invoke-virtual {p0}, Le/e/a/MultiTabs227$Host;->capture()V")
 
 
-# v1.10.7-dev.7: a ranking period change is a data/navigation
+# v1.10.7-dev.8: a ranking period change is a data/navigation
 # operation, not a swipe gesture. The original spinner listener starts a
 # replacement Activity and finishes the previous one with OS slide effects.
 # Skip both the enter and exit activity animations; actual swipes retain
@@ -1147,7 +1229,7 @@ method("MultiTabs227$Host.smali",
        "    invoke-static {v0}, Le/e/a/TabPager233;->destroy(Landroid/app/Activity;)V")
 
 
-# v1.10.7-dev.7: update ranking period IN PLACE.
+# v1.10.7-dev.8: update ranking period IN PLACE.
 # Retain the Activity, current tab ID, Fragment and list view; only the
 # selected tab's URL/subtitle and normal refresh data source change.
 # The previous startActivity/finish path is now an exceptional fallback.

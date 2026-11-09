@@ -84,7 +84,7 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          source = Path("porting/revisions/v1.10.6-dev.1/java/e/e/a/Dev119.java").read_text()
+          source = Path("porting/revisions/v1.10.6-dev.2/java/e/e/a/Dev119.java").read_text()
           assert "option.setDefaultValue(Boolean.TRUE)" in source
           assert ".getBoolean(KEY, true)" in source
           assert "option.setDefaultValue(Boolean.FALSE)" not in source
@@ -97,7 +97,7 @@ jobs:
       - name: Test secure comment posting endpoint policy
         run: |
           mkdir -p /tmp/nicoid-post122
-          javac -d /tmp/nicoid-post122 porting/revisions/v1.10.6-dev.1/java/e/e/a/PostingPolicy122.java porting/revisions/v1.10.6-dev.1/PostingPolicy122Test.java
+          javac -d /tmp/nicoid-post122 porting/revisions/v1.10.6-dev.2/java/e/e/a/PostingPolicy122.java porting/revisions/v1.10.6-dev.2/PostingPolicy122Test.java
           java -cp /tmp/nicoid-post122 e.e.a.PostingPolicy122Test
       - name: Use the official Gradle GitHub release for CI
         run: |
@@ -109,23 +109,23 @@ jobs:
       - name: Test confirmed comment posting and adapter deduplication
         run: |
           mkdir -p /tmp/nicoid-post123
-          javac -d /tmp/nicoid-post123 porting/revisions/v1.10.6-dev.1/java/e/e/a/PostEcho123.java $(find porting/revisions/v1.10.6-dev.1/post-test -name '*.java' | sort)
+          javac -d /tmp/nicoid-post123 porting/revisions/v1.10.6-dev.2/java/e/e/a/PostEcho123.java $(find porting/revisions/v1.10.6-dev.2/post-test -name '*.java' | sort)
           java -cp /tmp/nicoid-post123 e.e.a.PostEcho123Test
       - name: Test popup tap, drag, double-tap and pinch policy
         run: |
           mkdir -p /tmp/nicoid-popup125
-          javac -d /tmp/nicoid-popup125 porting/revisions/v1.10.6-dev.1/java/e/e/a/PopupTouchPolicy125.java porting/revisions/v1.10.6-dev.1/PopupTouchPolicy125Test.java
+          javac -d /tmp/nicoid-popup125 porting/revisions/v1.10.6-dev.2/java/e/e/a/PopupTouchPolicy125.java porting/revisions/v1.10.6-dev.2/PopupTouchPolicy125Test.java
           java -cp /tmp/nicoid-popup125 e.e.a.PopupTouchPolicy125Test
       - name: Test public mylist title synchronization rules
         run: |
           mkdir -p /tmp/nicoid-mylists126
-          javac -d /tmp/nicoid-mylists126 porting/revisions/v1.10.6-dev.1/java/e/e/a/TabTitleRules126.java porting/revisions/v1.10.6-dev.1/TabTitleRules126Test.java
+          javac -d /tmp/nicoid-mylists126 porting/revisions/v1.10.6-dev.2/java/e/e/a/TabTitleRules126.java porting/revisions/v1.10.6-dev.2/TabTitleRules126Test.java
           java -cp /tmp/nicoid-mylists126 e.e.a.TabTitleRules126Test
       - name: Verify popup double tap bridge regression
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          root = Path("porting/revisions/v1.10.6-dev.1")
+          root = Path("porting/revisions/v1.10.6-dev.2")
           bridge = (root / "java/e/e/a/PopupTouch125.java").read_text()
           policy = (root / "java/e/e/a/PopupTouchPolicy125.java").read_text()
           assert 'getMethod("isVisible")' not in bridge
@@ -140,16 +140,38 @@ jobs:
       - name: Test account watch-history tab URL restoration
         run: |
           mkdir -p /tmp/nicoid-history127
-          javac --release 8 -d /tmp/nicoid-history127 porting/revisions/v1.10.6-dev.1/java/e/e/a/TabHistory127.java porting/revisions/v1.10.6-dev.1/TabHistory127Test.java
+          javac --release 8 -d /tmp/nicoid-history127 porting/revisions/v1.10.6-dev.2/java/e/e/a/TabHistory127.java porting/revisions/v1.10.6-dev.2/TabHistory127Test.java
           java -cp /tmp/nicoid-history127 e.e.a.TabHistory127Test
           python3 - <<'PY'
           from pathlib import Path
-          r=Path("porting/revisions/v1.10.6-dev.1")
+          r=Path("porting/revisions/v1.10.6-dev.2")
           p=(r/"patch-payloads.py").read_text()
           for name in ('SavedTabs227$Tab.smali','MultiTabs227.smali','TabRoutes228.smali'):
               assert 'method("'+name+'"' in p
           assert "TabHistory127;->url(ILjava/lang/String;)" in p
           print("PASS: all three account-history restoration hooks staged")
+          PY
+      - name: Test vertical reversal gesture policy (Issue #113)
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/nicoid-turn128
+          javac --release 8 -d /tmp/nicoid-turn128 porting/revisions/v1.10.6-dev.2/java/e/e/a/GestureTurnPolicy128.java porting/revisions/v1.10.6-dev.2/GestureTurnPolicy128Test.java
+          java -cp /tmp/nicoid-turn128 e.e.a.GestureTurnPolicy128Test
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("porting/revisions/v1.10.6-dev.2")
+          ui=(root/"java/e/e/a/Dev128.java").read_text(encoding="utf-8")
+          smali=(root/"patch-payloads.py").read_text(encoding="utf-8")
+          profile=(root/"java/e/e/a/Dev118.java").read_text(encoding="utf-8")
+          assert "上下の折り返し（↑↓・↓↑）を認識" in ui
+          assert "OFFの場合、上下スクロール中の方向転換をジェスチャーとして認識しません" in ui
+          assert "prefs.getBoolean(KEY, false)" in ui
+          assert "remove(KEY).apply()" in ui
+          assert "Dev128;->allowClaim" in smali
+          assert "Dev128;->install" in smali
+          assert "Dev128;->reset" in smali
+          assert "Dev128.allowClaim(a,pattern(s))" in profile
+          print("PASS: Issue #113 user copy, default OFF, reset and touch routing")
           PY
       - name: Build Morphe bundle
         run: ./gradlew :patches:buildAndroid --no-daemon
@@ -157,7 +179,7 @@ jobs:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Verify final distributed MPP, payload and patch version
-        run: python3 porting/revisions/v1.10.6-dev.1/verify-mpp.py 1.10.6-dev.1
+        run: python3 porting/revisions/v1.10.6-dev.2/verify-mpp.py 1.10.6-dev.2
       - name: Verify stable resources and feature continuity
         env:
           GH_TOKEN: ${{ github.token }}
@@ -165,10 +187,10 @@ jobs:
           set -euo pipefail
           mkdir -p /tmp/nicoid-baseline /tmp/nicoid-stage
           gh release download v1.10.5 --repo chikuwadon/nicoid-re-patches --pattern patches-1.10.5.mpp --dir /tmp/nicoid-baseline
-          python3 porting/tests/VerifyResourceIdentity191.py /tmp/nicoid-baseline/patches-1.10.5.mpp patches/build/libs/patches-1.10.6-dev.1.mpp
-          python3 porting/tests/VerifyLegacyImageFormats191.py /tmp/nicoid-baseline/patches-1.10.5.mpp patches/build/libs/patches-1.10.6-dev.1.mpp
+          python3 porting/tests/VerifyResourceIdentity191.py /tmp/nicoid-baseline/patches-1.10.5.mpp patches/build/libs/patches-1.10.6-dev.2.mpp
+          python3 porting/tests/VerifyLegacyImageFormats191.py /tmp/nicoid-baseline/patches-1.10.5.mpp patches/build/libs/patches-1.10.6-dev.2.mpp
           cp -a porting/revisions/v1.10.1/helpers porting/revisions/v1.10.1/method-delta /tmp/nicoid-stage/
-          python3 porting/revisions/v1.10.6-dev.1/patch-payloads.py /tmp/nicoid-stage 1.10.6-dev.1
+          python3 porting/revisions/v1.10.6-dev.2/patch-payloads.py /tmp/nicoid-stage 1.10.6-dev.2
           python3 porting/tests/VerifyReleaseContinuity.py porting/revisions/v1.10.1/helpers /tmp/nicoid-stage/helpers /tmp/nicoid-stage/method-delta
           python3 porting/tests/VerifyQualityRegisters195.py /tmp/nicoid-stage
       - name: Prepare development sources and verification report
@@ -176,12 +198,12 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p patches/build/dev-delivery
-          version=1.10.6-dev.1
+          version=1.10.6-dev.2
           git archive --format=zip --prefix="nicoid-re-$version/" \
             --output="patches/build/dev-delivery/nicoid-re-$version-source.zip" HEAD
           git archive --format=tar.gz --prefix="nicoid-re-$version/" \
             --output="patches/build/dev-delivery/nicoid-re-$version-source.tar.gz" HEAD
-          python3 porting/revisions/v1.10.6-dev.1/sync-source-payloads.py "$version"
+          python3 porting/revisions/v1.10.6-dev.2/sync-source-payloads.py "$version"
           {
             echo "nicoid Re $version / development verification"
             echo "Commit: $GITHUB_SHA"
@@ -204,13 +226,13 @@ jobs:
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: nicoid-re-v1.10.6-dev.1-mpp
+          name: nicoid-re-v1.10.6-dev.2-mpp
           path: patches/build/libs/*.mpp
           if-no-files-found: error
           retention-days: 2
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: nicoid-re-v1.10.6-dev.1-source-verification
+          name: nicoid-re-v1.10.6-dev.2-source-verification
           path: patches/build/dev-delivery/
           if-no-files-found: error
           retention-days: 2
@@ -229,18 +251,21 @@ jobs:
         with:
           node-version: '24'
           package-manager-cache: false
-      - name: Validate npm lockfile and release dependencies
+      - name: Regenerate npm v11.21.2 lockfile candidate (Issue #110)
         run: |
           set -euo pipefail
-          npm ci --ignore-scripts
-          node .github/scripts/patch-bundled-undici.cjs
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          node .github/scripts/verify-release-npm.cjs
+          npm ci --ignore-scripts --no-audit --no-fund
+          node .github/scripts/verify-release-npm.cjs
           node --input-type=module <<'NODE'
-          import {readFileSync} from 'node:fs';
           import semanticRelease from 'semantic-release';
-          const releaseConfig=JSON.parse(readFileSync('.releaserc','utf8'));
-          const packageJson=JSON.parse(readFileSync('package.json','utf8'));
-          if (!semanticRelease || typeof semanticRelease !== 'function') throw Error('semantic-release CLI invalid');
-          if (releaseConfig.plugins.some(x=>String(Array.isArray(x)?x[0]:x).includes('backmerge'))) throw Error('Legacy backmerge remains');
-          if (Object.keys(packageJson.devDependencies).some(x=>x.includes('backmerge'))) throw Error('Legacy dependency remains');
-          console.log('PASS: Node 24, npm --ignore-scripts, patched build-tool dependency, standalone release CLI');
+          if (typeof semanticRelease !== 'function') throw Error('semantic-release CLI invalid');
+          console.log('PASS: npm 11.21.2 / undici 6.29.1 / Node 24 release tooling');
           NODE
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: nicoid-npm11-21-2-lockfile-candidate
+          path: package-lock.json
+          if-no-files-found: error
+          retention-days: 2

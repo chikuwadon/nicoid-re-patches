@@ -141,8 +141,8 @@ jobs:
       - name: Install lockfile-pinned release dependencies without lifecycle scripts
         run: npm ci --ignore-scripts
 
-      - name: Patch bundled npm dependency
-        run: node .github/scripts/patch-bundled-undici.cjs
+      - name: Verify fixed npm release dependency
+        run: node .github/scripts/verify-release-npm.cjs
 
       # A manual approval must not accidentally publish v1.11.0 if development
       # commits contain minor-release types. Preview the exact next tag first.

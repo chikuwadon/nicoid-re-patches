@@ -32,6 +32,18 @@ for path in sorted(WORKFLOWS.glob("*.yml")):
     assert "pull_request_target:" not in text, f"{path.name}: privileged PR target trigger needs manual review"
 
 assert refs >= 12, "Action references unexpectedly disappeared"
+# The official generated lockfile must cover every direct action reference and
+# its transitive provenance; the authoritative network check runs in CI via
+# `gh actions-lock --verify`.
+lock = (WORKFLOWS / "actions.lock").read_text(encoding="utf-8")
+assert "version: 'v0.0.3'" in lock
+assert "workflows:" in lock and "dependencies:" in lock
+for name, source in workflows.items():
+    assert f"'.github/workflows/{name}':" in lock, f"Workflow not onboarded: {name}"
+    for match in USES.finditer(source):
+        assert "'" + match.group(1) + "'" in lock, f"Action missing from lockfile: {match.group(1)}"
+assert "actions/attest@" in lock, "Missing locked transitive attestation dependency"
+
 private = workflows["private-build.yml"]
 main = workflows["verify-main.yml"]
 release = workflows["release.yml"]

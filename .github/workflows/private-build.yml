@@ -84,7 +84,7 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          source = Path("porting/revisions/v1.10.6-dev.2/java/e/e/a/Dev119.java").read_text()
+          source = Path("porting/revisions/v1.10.6-dev.3/java/e/e/a/Dev119.java").read_text()
           assert "option.setDefaultValue(Boolean.TRUE)" in source
           assert ".getBoolean(KEY, true)" in source
           assert "option.setDefaultValue(Boolean.FALSE)" not in source
@@ -97,7 +97,7 @@ jobs:
       - name: Test secure comment posting endpoint policy
         run: |
           mkdir -p /tmp/nicoid-post122
-          javac -d /tmp/nicoid-post122 porting/revisions/v1.10.6-dev.2/java/e/e/a/PostingPolicy122.java porting/revisions/v1.10.6-dev.2/PostingPolicy122Test.java
+          javac -d /tmp/nicoid-post122 porting/revisions/v1.10.6-dev.3/java/e/e/a/PostingPolicy122.java porting/revisions/v1.10.6-dev.3/PostingPolicy122Test.java
           java -cp /tmp/nicoid-post122 e.e.a.PostingPolicy122Test
       - name: Use the official Gradle GitHub release for CI
         run: |
@@ -109,23 +109,23 @@ jobs:
       - name: Test confirmed comment posting and adapter deduplication
         run: |
           mkdir -p /tmp/nicoid-post123
-          javac -d /tmp/nicoid-post123 porting/revisions/v1.10.6-dev.2/java/e/e/a/PostEcho123.java $(find porting/revisions/v1.10.6-dev.2/post-test -name '*.java' | sort)
+          javac -d /tmp/nicoid-post123 porting/revisions/v1.10.6-dev.3/java/e/e/a/PostEcho123.java $(find porting/revisions/v1.10.6-dev.3/post-test -name '*.java' | sort)
           java -cp /tmp/nicoid-post123 e.e.a.PostEcho123Test
       - name: Test popup tap, drag, double-tap and pinch policy
         run: |
           mkdir -p /tmp/nicoid-popup125
-          javac -d /tmp/nicoid-popup125 porting/revisions/v1.10.6-dev.2/java/e/e/a/PopupTouchPolicy125.java porting/revisions/v1.10.6-dev.2/PopupTouchPolicy125Test.java
+          javac -d /tmp/nicoid-popup125 porting/revisions/v1.10.6-dev.3/java/e/e/a/PopupTouchPolicy125.java porting/revisions/v1.10.6-dev.3/PopupTouchPolicy125Test.java
           java -cp /tmp/nicoid-popup125 e.e.a.PopupTouchPolicy125Test
       - name: Test public mylist title synchronization rules
         run: |
           mkdir -p /tmp/nicoid-mylists126
-          javac -d /tmp/nicoid-mylists126 porting/revisions/v1.10.6-dev.2/java/e/e/a/TabTitleRules126.java porting/revisions/v1.10.6-dev.2/TabTitleRules126Test.java
+          javac -d /tmp/nicoid-mylists126 porting/revisions/v1.10.6-dev.3/java/e/e/a/TabTitleRules126.java porting/revisions/v1.10.6-dev.3/TabTitleRules126Test.java
           java -cp /tmp/nicoid-mylists126 e.e.a.TabTitleRules126Test
       - name: Verify popup double tap bridge regression
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          root = Path("porting/revisions/v1.10.6-dev.2")
+          root = Path("porting/revisions/v1.10.6-dev.3")
           bridge = (root / "java/e/e/a/PopupTouch125.java").read_text()
           policy = (root / "java/e/e/a/PopupTouchPolicy125.java").read_text()
           assert 'getMethod("isVisible")' not in bridge
@@ -140,11 +140,11 @@ jobs:
       - name: Test account watch-history tab URL restoration
         run: |
           mkdir -p /tmp/nicoid-history127
-          javac --release 8 -d /tmp/nicoid-history127 porting/revisions/v1.10.6-dev.2/java/e/e/a/TabHistory127.java porting/revisions/v1.10.6-dev.2/TabHistory127Test.java
+          javac --release 8 -d /tmp/nicoid-history127 porting/revisions/v1.10.6-dev.3/java/e/e/a/TabHistory127.java porting/revisions/v1.10.6-dev.3/TabHistory127Test.java
           java -cp /tmp/nicoid-history127 e.e.a.TabHistory127Test
           python3 - <<'PY'
           from pathlib import Path
-          r=Path("porting/revisions/v1.10.6-dev.2")
+          r=Path("porting/revisions/v1.10.6-dev.3")
           p=(r/"patch-payloads.py").read_text()
           for name in ('SavedTabs227$Tab.smali','MultiTabs227.smali','TabRoutes228.smali'):
               assert 'method("'+name+'"' in p
@@ -155,16 +155,16 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/nicoid-turn128
-          javac --release 8 -d /tmp/nicoid-turn128 porting/revisions/v1.10.6-dev.2/java/e/e/a/GestureTurnPolicy128.java porting/revisions/v1.10.6-dev.2/GestureTurnPolicy128Test.java
+          javac --release 8 -d /tmp/nicoid-turn128 porting/revisions/v1.10.6-dev.3/java/e/e/a/GestureTurnPolicy128.java porting/revisions/v1.10.6-dev.3/GestureTurnPolicy128Test.java
           java -cp /tmp/nicoid-turn128 e.e.a.GestureTurnPolicy128Test
           python3 - <<'PY'
           from pathlib import Path
-          root=Path("porting/revisions/v1.10.6-dev.2")
+          root=Path("porting/revisions/v1.10.6-dev.3")
           ui=(root/"java/e/e/a/Dev128.java").read_text(encoding="utf-8")
           smali=(root/"patch-payloads.py").read_text(encoding="utf-8")
           profile=(root/"java/e/e/a/Dev118.java").read_text(encoding="utf-8")
-          assert "上下の折り返し（↑↓・↓↑）を認識" in ui
-          assert "OFFの場合、上下スクロール中の方向転換をジェスチャーとして認識しません" in ui
+          assert "上下方向のみのジェスチャーを認識" in ui
+          assert "OFFの場合、上下方向のみの操作をジェスチャーとして認識せず、スクロールを継続します" in ui
           assert "prefs.getBoolean(KEY, false)" in ui
           assert "remove(KEY).apply()" in ui
           assert "Dev128;->allowClaim" in smali
@@ -173,13 +173,36 @@ jobs:
           assert "Dev128.allowClaim(a,pattern(s))" in profile
           print("PASS: Issue #113 user copy, default OFF, reset and touch routing")
           PY
+      - name: Check audio focus preferences and gesture formatting
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('porting/revisions/v1.10.6-dev.3')
+          audio=(root/'java/e/e/a/Dev131.java').read_text(encoding='utf-8')
+          style=(root/'java/e/e/a/Dev130.java').read_text(encoding='utf-8')
+          overlay=(root/'patch-payloads.py').read_text(encoding='utf-8')
+          assert 'nicoid_content_filter' in audio
+          assert 'オーディオフォーカス' in audio
+          assert 'ONの場合、動画再生時に他のアプリとの音声再生を調整します' in audio
+          assert 'getBoolean(KEY, false)' in audio
+          assert 'setDefaultValue(Boolean.FALSE)' in audio
+          assert 'requestAudioFocus(listener, streamType, duration)' in audio
+          assert 'applyToPlayer' in audio
+          assert 'RelativeSizeSpan(0.86f)' in style
+          assert 'ForegroundColorSpan(grey)' in style
+          for member in ('Dev130;->styleSensitivity', 'Dev130;->stripFinalStop',
+                         'Dev131;->applyToPlayer', 'Dev131;->requestServiceFocus',
+                         'Dev131;->installSettings'):
+              assert member in overlay, 'Missing patch hook '+member
+          print('PASS: audio focus OFF by default, normal/service focus guards, gesture copy/style')
+          PY
       - name: Build Morphe bundle
         run: ./gradlew :patches:buildAndroid --no-daemon
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Verify final distributed MPP, payload and patch version
-        run: python3 porting/revisions/v1.10.6-dev.2/verify-mpp.py 1.10.6-dev.2
+        run: python3 porting/revisions/v1.10.6-dev.3/verify-mpp.py 1.10.6-dev.3
       - name: Verify stable resources and feature continuity
         env:
           GH_TOKEN: ${{ github.token }}
@@ -187,10 +210,10 @@ jobs:
           set -euo pipefail
           mkdir -p /tmp/nicoid-baseline /tmp/nicoid-stage
           gh release download v1.10.5 --repo chikuwadon/nicoid-re-patches --pattern patches-1.10.5.mpp --dir /tmp/nicoid-baseline
-          python3 porting/tests/VerifyResourceIdentity191.py /tmp/nicoid-baseline/patches-1.10.5.mpp patches/build/libs/patches-1.10.6-dev.2.mpp
-          python3 porting/tests/VerifyLegacyImageFormats191.py /tmp/nicoid-baseline/patches-1.10.5.mpp patches/build/libs/patches-1.10.6-dev.2.mpp
+          python3 porting/tests/VerifyResourceIdentity191.py /tmp/nicoid-baseline/patches-1.10.5.mpp patches/build/libs/patches-1.10.6-dev.3.mpp
+          python3 porting/tests/VerifyLegacyImageFormats191.py /tmp/nicoid-baseline/patches-1.10.5.mpp patches/build/libs/patches-1.10.6-dev.3.mpp
           cp -a porting/revisions/v1.10.1/helpers porting/revisions/v1.10.1/method-delta /tmp/nicoid-stage/
-          python3 porting/revisions/v1.10.6-dev.2/patch-payloads.py /tmp/nicoid-stage 1.10.6-dev.2
+          python3 porting/revisions/v1.10.6-dev.3/patch-payloads.py /tmp/nicoid-stage 1.10.6-dev.3
           python3 porting/tests/VerifyReleaseContinuity.py porting/revisions/v1.10.1/helpers /tmp/nicoid-stage/helpers /tmp/nicoid-stage/method-delta
           python3 porting/tests/VerifyQualityRegisters195.py /tmp/nicoid-stage
       - name: Prepare development sources and verification report
@@ -198,12 +221,12 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p patches/build/dev-delivery
-          version=1.10.6-dev.2
+          version=1.10.6-dev.3
           git archive --format=zip --prefix="nicoid-re-$version/" \
             --output="patches/build/dev-delivery/nicoid-re-$version-source.zip" HEAD
           git archive --format=tar.gz --prefix="nicoid-re-$version/" \
             --output="patches/build/dev-delivery/nicoid-re-$version-source.tar.gz" HEAD
-          python3 porting/revisions/v1.10.6-dev.2/sync-source-payloads.py "$version"
+          python3 porting/revisions/v1.10.6-dev.3/sync-source-payloads.py "$version"
           {
             echo "nicoid Re $version / development verification"
             echo "Commit: $GITHUB_SHA"
@@ -216,10 +239,10 @@ jobs:
             echo "Stable v1.10.5 resource and feature continuity: PASS"
             echo "Android device/emulator runtime testing: NOT PERFORMED"
             echo "Official release/tag update: NOT PERFORMED"
-            echo "Changes: Issue #113 default-OFF vertical reversal gesture control; Issue #110 npm 11.21.2 bundled undici fix; retained account-history restoration"
+            echo "Changes: vertical-only scroll guard, smaller grey sensitivity explanation, default-off audio focus, official workflow lockfiles"
             echo "Comment lifecycle and controls boundary tests: PASS (JVM doubles; Android runtime not covered)"
             echo "Popup bridge event-stream regressions: PASS (Android boundary doubles; device runtime not covered)"
-            echo "Issue #113 directional recognition policy and verified final DEX hooks: PASS"
+            echo "Issue #113 full vertical-only gesture regression and DEX hooks: PASS"
             echo
             echo "Files (SHA-256):"
             sha256sum patches/build/libs/*.mpp patches/build/dev-delivery/*source.*
@@ -227,13 +250,13 @@ jobs:
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: nicoid-re-v1.10.6-dev.2-mpp
+          name: nicoid-re-v1.10.6-dev.3-mpp
           path: patches/build/libs/*.mpp
           if-no-files-found: error
           retention-days: 2
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: nicoid-re-v1.10.6-dev.2-source-verification
+          name: nicoid-re-v1.10.6-dev.3-source-verification
           path: patches/build/dev-delivery/
           if-no-files-found: error
           retention-days: 2
@@ -263,8 +286,8 @@ jobs:
           console.log('PASS: npm 11.21.2, bundled undici 6.29.1, Node 24, semantic-release import');
           NODE
 
-  actions-lock-bootstrap:
-    name: Generate official workflow dependency lockfile
+  actions-lock-verify:
+    name: Verify GitHub official workflow lockfile
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -273,18 +296,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Generate and validate lockfile (gh-actions-lock v0.4.1)
+      - name: Verify action provenance and transitive dependencies
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           gh extension install github/gh-actions-lock --pin v0.4.1
-          gh actions-lock --no-narrow
           gh actions-lock --verify
-          test -s .github/workflows/actions.lock
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: official-actions-lock-bootstrap
-          path: .github/workflows/actions.lock
-          if-no-files-found: error
-          retention-days: 2
+          gh actions-lock --verify-local

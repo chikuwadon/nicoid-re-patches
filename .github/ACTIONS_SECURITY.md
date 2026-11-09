@@ -48,3 +48,20 @@ build version, MPP payload, historical tags, or published releases.
   multi-job artifact-promotion design could separate unprivileged build work
   from the minimal-privilege publishing job. Avoid rewriting this complex
   publication path without release approval and end-to-end testing.
+
+## Workflow dependency lockfiles (2026-11-09)
+
+- Onboard all four production workflows using GitHub's official
+  `gh-actions-lock` extension **v0.4.1**, generated with `--no-narrow`
+  to preserve existing 40-character SHA-pinned Action references.
+- `.github/workflows/actions.lock` records immutable commits, repository
+  IDs and transitive dependencies, including `actions/attest` used by the
+  provenance attestation Action.
+- A read-only CI job runs `gh actions-lock --verify` and
+  `gh actions-lock --verify-local`. The existing static SHA verifier also
+  checks the lockfile covers all declared dependencies.
+- Dependabot's weekly Actions update schedule remains unchanged; after any
+  workflow `uses:` edits, regenerate with `gh actions-lock` (or
+  `gh actions-lock --relock` when intentionally advancing upstream refs).
+- A lockfile is not a vulnerability scanner. Audit third-party actions and
+  npm/Gradle dependencies separately. Never hand-edit a generated lockfile.

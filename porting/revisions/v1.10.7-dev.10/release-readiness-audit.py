@@ -11,7 +11,7 @@ import re
 ROOT=pathlib.Path(__file__).resolve().parents[3]
 REV=pathlib.Path(__file__).resolve().parent
 HELPERS=REV/"java/e/e/a"
-VERSION="1.10.7-dev.9"
+VERSION="1.10.7-dev.10"
 checks=0
 
 def verify(ok:bool,reason:str)->None:
@@ -131,19 +131,36 @@ verify("Set<String> shown=buttons(activity)" in tabs,
 # Add-tab ranking must be second, preserve native item mapping and share the
 # ordinary saved-tab lifecycle; version asserts must match the actual build.
 patch_text=(REV/"patch-payloads.py").read_text(encoding="utf-8")
-verify('assert version == "1.10.7-dev.9"' in patch_text,
+verify('assert version == "1.10.7-dev.10"' in patch_text,
        "Development patch version mismatches Gradle version")
 verify('result[0]=existing[0]' in tabs and 'result[1]=tr(activity,"ランキング"' in tabs and
        'System.arraycopy(existing,1,result,2,existing.length-1)' in tabs,
        "Ranking is not directly below Search in add-tab list")
-verify('field(type,"type").setInt(tab,6)' in tabs and
-       'field(type,"screen").set(tab,"list")' in tabs and
-       'call(host,"addTab",new Class<?>[]{type},tab)' in tabs,
-       "Ranking add-tab must reuse normal native list and dedup lifecycle")
+verify('Dev138.perform(activity,"menu_ranking")' in tabs and
+       'addRankingTab(Object host)' in tabs,
+       "Ranking add-tab must open the native ranking genre chooser")
 for symbol in ('Dev132;->addRankingLabel', 'Dev132;->addRankingTab',
                'add-int/lit8 p3, p3, -0x1',
                'add-int/lit8 v0, v0, 0x1'):
     verify(symbol in patch_text, "Ranking menu mapping regression: "+symbol)
+
+# Preserve the fourteen user-requested drawer destinations as opt-in actions.
+gestures=sources["Dev138"]
+keys=("menu_ranking","menu_shorts","menu_video_id","menu_local_history",
+      "menu_local_playlists","menu_cache","menu_mypage","menu_account_history",
+      "menu_mylists","menu_watch_later","menu_following","menu_nicorepo",
+      "menu_settings","menu_restart")
+for key in keys:
+    verify('"'+key+'"' in gestures, "Missing requested gesture action "+key)
+for method in ("extend(String[] existing)", "actionName(Context context,String key)",
+               "perform(Activity activity,String key)", "dispatchNativeMenu(Activity activity,String key)"):
+    verify(method in gestures, "Drawer routing helper missing "+method)
+for hook in ("Dev138;->extend", "Dev138;->actionName", "Dev138;->perform",
+             "Dev111;->singleReturnOwner"):
+    verify(hook in patch_text, "Gesture/return integration missing "+hook)
+verify('singleReturnOwner(Activity activity)' in sources["Dev111"] and
+       'armed.set(null,null)' in sources["Dev111"],
+       "Legacy and retained playback must not open parallel normal players")
 
 # Ranking data update must retain Activity/Fragment and eliminate tab churn.
 ranking=sources["Dev134"]

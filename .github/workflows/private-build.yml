@@ -216,9 +216,10 @@ jobs:
             echo "Stable v1.10.5 resource and feature continuity: PASS"
             echo "Android device/emulator runtime testing: NOT PERFORMED"
             echo "Official release/tag update: NOT PERFORMED"
-            echo "Changes: secure confirmed comment posting, same-session local echo, popup touch arbitration and public mylist tab title synchronization"
+            echo "Changes: Issue #113 default-OFF vertical reversal gesture control; Issue #110 npm 11.21.2 bundled undici fix; retained account-history restoration"
             echo "Comment lifecycle and controls boundary tests: PASS (JVM doubles; Android runtime not covered)"
             echo "Popup bridge event-stream regressions: PASS (Android boundary doubles; device runtime not covered)"
+            echo "Issue #113 directional recognition policy and verified final DEX hooks: PASS"
             echo
             echo "Files (SHA-256):"
             sha256sum patches/build/libs/*.mpp patches/build/dev-delivery/*source.*
@@ -251,21 +252,13 @@ jobs:
         with:
           node-version: '24'
           package-manager-cache: false
-      - name: Regenerate npm v11.21.2 lockfile candidate (Issue #110)
+      - name: Validate updated npm lockfile and release tooling (Issue #110)
         run: |
           set -euo pipefail
-          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-          node .github/scripts/verify-release-npm.cjs
           npm ci --ignore-scripts --no-audit --no-fund
           node .github/scripts/verify-release-npm.cjs
           node --input-type=module <<'NODE'
           import semanticRelease from 'semantic-release';
           if (typeof semanticRelease !== 'function') throw Error('semantic-release CLI invalid');
-          console.log('PASS: npm 11.21.2 / undici 6.29.1 / Node 24 release tooling');
+          console.log('PASS: npm 11.21.2, bundled undici 6.29.1, Node 24, semantic-release import');
           NODE
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: nicoid-npm11-21-2-lockfile-candidate
-          path: package-lock.json
-          if-no-files-found: error
-          retention-days: 2

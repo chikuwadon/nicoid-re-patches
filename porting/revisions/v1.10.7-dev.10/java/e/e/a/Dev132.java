@@ -345,24 +345,15 @@ public final class Dev132 {
         System.arraycopy(existing,1,result,2,existing.length-1);
         return result;
     }
-    /** Open the ordinary ranking list, retaining native save/restore and deduplication. */
+    /** Open the native ranking genre chooser, then save the selected category via the normal tab lifecycle. */
     public static void addRankingTab(Object host) {
         if(host==null)return;
         try {
             Activity activity=(Activity)get(host,"a");
             if(activity==null || activity.isFinishing() || activity.isDestroyed())return;
-            Class<?> type=tabType();
-            java.lang.reflect.Constructor<?> ctor=type.getDeclaredConstructor();
-            ctor.setAccessible(true);
-            Object tab=ctor.newInstance();
-            field(type,"label").set(tab,tr(activity,"ランキング","Ranking","排行榜"));
-            field(type,"screen").set(tab,"list");
-            field(type,"kind").setInt(tab,3);
-            field(type,"type").setInt(tab,6);
-            field(type,"url").set(tab,"https://www.nicovideo.jp/ranking/genre/all?term=hour");
-            call(host,"addTab",new Class<?>[]{type},tab);
+            Dev138.perform(activity,"menu_ranking");
         }catch(Exception error){
-            android.util.Log.w("nicoid-tabs","Unable to add ranking tab",error);
+            android.util.Log.w("nicoid-tabs","Unable to open ranking chooser",error);
         }
     }
     /** Use the very same action as the right-side + button, even if it is hidden. */

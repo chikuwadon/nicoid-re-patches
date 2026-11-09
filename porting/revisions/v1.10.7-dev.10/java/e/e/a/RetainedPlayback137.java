@@ -133,7 +133,7 @@ public final class RetainedPlayback137 {
  public static void resumed(Activity a) {
   Session s;
   synchronized(RetainedPlayback137.class){s=current;}
-  if(s==null){Dev111.resumed(a);return;}
+  if(s==null){Dev111.singleReturnOwner(a);Dev111.resumed(a);return;}
   Dev111.suppressAutoReturn();
   if(!usable(s)){finish(s,false);return;}
   if(a==s.source) {

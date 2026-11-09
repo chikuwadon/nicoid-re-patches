@@ -1310,15 +1310,3 @@ method("GestureControls110.smali",
        '    return-void\n'
        '    :nicoid_menu_138_original_action\n'
        '    const-string v0, "addtab"')
-
-# A single controller owns the direct-background notification->normal return.
-# The previous dual callbacks reopened a VideoView concurrently and could leave
-# a released decoder/surface (black frame and 0:00) after the next Back.
-method("AppSwitchGuard$2.smali",
-       ".method public onActivityResumed(Landroid/app/Activity;)V",
-       "    invoke-static {p1}, Le/e/a/PlaybackReturn;->foreground(Landroid/app/Activity;)V",
-       "    invoke-static {p1}, Le/e/a/Dev111;->singleReturnOwner(Landroid/app/Activity;)Z\n"
-       "    move-result v0\n"
-       "    if-nez v0, :nicoid_138_single_return\n"
-       "    invoke-static {p1}, Le/e/a/PlaybackReturn;->foreground(Landroid/app/Activity;)V\n"
-       "    :nicoid_138_single_return")

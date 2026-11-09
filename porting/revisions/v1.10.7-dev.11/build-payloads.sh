@@ -24,8 +24,8 @@ mkdir -p "$version_classes"
 for file in PatchVersion237.smali ModernShorts.smali; do
     cp "$work/payloads/helpers/e/e/a/$file" "$version_classes/$file"
 done
-grep -Fq "1.10.7-dev.10" "$version_classes/PatchVersion237.smali"
-grep -Fq "v1.10.7-dev.10 @chikuwadon" "$version_classes/ModernShorts.smali"
+grep -Fq "1.10.7-dev.11" "$version_classes/PatchVersion237.smali"
+grep -Fq "v1.10.7-dev.11 @chikuwadon" "$version_classes/ModernShorts.smali"
 
 test -f "$java_smali/e/e/a/Dev111.smali"
 test -f "$java_smali/e/e/a/Dev116.smali"
@@ -107,6 +107,8 @@ grep -Fq 'Dev131;->installSettings(Landroid/preference/PreferenceActivity;)V' "$
 grep -Fq 'Dev132;->decorateBar(Ljava/lang/Object;Landroid/widget/LinearLayout;)V' "$work/merged-smali/e/e/a/MultiTabs227\$Host.smali"
 grep -Fq 'Dev132;->show(Landroid/app/Activity;)V' "$work/merged-smali/e/e/a/GestureControls110.smali"
 grep -Fq 'Dev132;->installSettings(Landroid/preference/PreferenceActivity;)V' "$work/merged-smali/e/e/a/Dev111.smali"
+grep -Fq 'Dev139;->connect(Landroid/view/View;Landroid/view/TextureView;)V' "$work/merged-smali/e/e/a/VideoOutput227.smali"
+grep -Fq 'Dev139;->hold(Ljava/lang/Object;)Le/e/a/Dev139\\$Retention;' "$work/merged-smali/e/e/a/RetainedPlayback137.smali"
 grep -Fq 'Dev138;->perform(Landroid/app/Activity;Ljava/lang/String;)Z' "$work/merged-smali/e/e/a/GestureControls110.smali"
 grep -Fq 'Dev138;->extend([Ljava/lang/String;)[Ljava/lang/String;' "$work/merged-smali/e/e/a/GestureControls110.smali"
 grep -Fq 'Dev111;->singleReturnOwner(Landroid/app/Activity;)Z' "$work/merged-smali/e/e/a/RetainedPlayback137.smali"

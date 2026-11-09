@@ -12,6 +12,7 @@ public class Intent {
  private Map<String,Object> extras=new HashMap<>();
  private String data;
  public boolean hasExtra(String key){return extras.containsKey(key);}
+ public void removeExtra(String key){extras.remove(key);}
  public String getStringExtra(String key){return (String)extras.get(key);}
  public Intent putExtra(String key,String value){extras.put(key,value);return this;}
  public Intent replaceExtras(Intent value){extras=new HashMap<>(value.extras);return this;}
@@ -94,6 +95,13 @@ public class BridgeTest {
   PopupReturn244.target=target;
   check(Dev140.abortFailedReturn(new Fragment(target))&&target.isFinishing(),"failed adoption cancels the target");
   check(!Dev140.consumeLaunch((Service)state.owner,new Intent().putExtra(TOKEN,"2")),"mini-bar launch preserved");
+  Activity completed=new Activity();completed.intent.putExtra(TOKEN,"complete");
+  PopupReturn244.target=completed;
+  Dev140.retireReturnToken(completed);
+  check(completed.intent.hasExtra(TOKEN),"pending return token stays valid");
+  PopupReturn244.target=null;Dev140.retireReturnToken(completed);
+  check(!completed.intent.hasExtra(TOKEN)&&Dev140.prepare(completed),"completed Activity may be recreated");
+
   System.out.println("Retained notification bridge: "+checks+" assertions passed");
  }
 }""",

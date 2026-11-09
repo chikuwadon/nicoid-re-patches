@@ -1369,3 +1369,11 @@ method("DirectBackground235.smali", ".method public static prepared(Ljava/lang/O
        "    if-eqz v3, :cond_65\n\n"
        "    invoke-static {p0, v3}, Le/e/a/Dev139;->rememberOutput(Landroid/view/View;Landroid/view/TextureView;)V\n\n"
        "    new-instance v3, Le/e/a/MiniSession225$SurfaceKeeper;")
+
+# PopupReturn244 retires its pending request before restoring portrait.
+# Clear the consumed Intent token at that existing lifecycle checkpoint.
+method("PlayerGestures219.smali", ".method public static fullscreen(Landroid/app/Activity;Ljava/lang/Object;Z)V",
+       "    .line 72\n    invoke-virtual {p1}, Ljava/lang/Object;->getClass()Ljava/lang/Class;",
+       "    .line 72\n"
+       "    invoke-static {p0}, Le/e/a/Dev140;->retireReturnToken(Landroid/app/Activity;)V\n\n"
+       "    invoke-virtual {p1}, Ljava/lang/Object;->getClass()Ljava/lang/Class;")

@@ -108,6 +108,15 @@ public final class Dev140 {
         return true;
     }
 
+    /** The existing return completes before restoring the portrait layout. */
+    public static void retireReturnToken(Activity activity) {
+        if (activity == null || activity.isFinishing()) return;
+        Intent intent = activity.getIntent();
+        if (intent != null && intent.hasExtra(RETURN) && !matches(activity)) {
+            intent.removeExtra(RETURN);
+        }
+    }
+
     /** A retained-return Activity must never fall through to a fresh load. */
     public static boolean abortFailedReturn(Object fragment) {
         try {

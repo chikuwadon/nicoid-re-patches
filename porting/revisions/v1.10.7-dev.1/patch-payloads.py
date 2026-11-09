@@ -66,6 +66,20 @@ method("PlaybackSession.smali",
        "    :try_start_d4\n"
        "    return v6")
 
+# Prefer the validated retained decoder handoff for normal -> background.
+# Legacy PlaybackTransfer starts another Service player and reloads HLS; use
+# it only if the retained handoff cannot capture the playing video.
+method("AppSwitchGuard.smali",
+       ".method public static intercept(Ljava/lang/Object;Z)Z",
+       "    invoke-static {p0}, Le/e/a/PlaybackTransfer;->capture(Landroid/app/Activity;)Ljava/lang/Runnable;\n\n"
+       "    move-result-object p1",
+       "    invoke-static {p0}, Le/e/a/PlaybackHandoff110;->capture(Landroid/app/Activity;)Ljava/lang/Runnable;\n\n"
+       "    move-result-object p1\n\n"
+       "    if-nez p1, :nicoid_retained_handoff\n\n"
+       "    invoke-static {p0}, Le/e/a/PlaybackTransfer;->capture(Landroid/app/Activity;)Ljava/lang/Runnable;\n\n"
+       "    move-result-object p1\n\n"
+       "    :nicoid_retained_handoff")
+
 # The switch guard fires only after onStop, not during in-app navigation.
 method("AppSwitchGuard$1.smali", ".method public run()V",
        "    :cond_3b\n    iget-object v1, p0, Le/e/a/AppSwitchGuard$1;->val$transfer:Ljava/lang/Runnable;",

@@ -27,6 +27,33 @@ def method(name, signature, old, new):
     path.write_text(source[:start] + patched + source[end:], encoding="utf-8")
 
 
+
+# A stopped notification must release its MediaSession and remove the notification,
+# for both normal and Service playback. Merely pausing keeps Android 16's media
+# control permanently visible and retains a stale MediaSession.
+method("MediaControls.smali",
+       ".method static command(Le/e/a/MediaControls$State;Ljava/lang/String;)V",
+       "    if-eqz p1, :cond_5d\n\n"
+       "    iget-boolean p1, p0, Le/e/a/MediaControls$State;->popup:Z",
+       "    if-eqz p1, :cond_5d\n\n"
+       "    iget-object v0, p0, Le/e/a/MediaControls$State;->owner:Ljava/lang/Object;\n\n"
+       "    invoke-static {v0}, Le/e/a/MediaControls;->detach(Ljava/lang/Object;)V\n\n"
+       "    iget-boolean p1, p0, Le/e/a/MediaControls$State;->popup:Z")
+
+# Back-to-background is an asynchronous navigation. The caller must consume
+# Back once the native mode transition has been accepted, rather than checking
+# isFinishing() immediately while the handoff is still in progress.
+method("PlaybackSession.smali",
+       ".method public static leave(Ljava/lang/Object;Z)Z",
+       "    .line 191\n"
+       "    :try_start_d4\n"
+       "    invoke-virtual {v3}, Landroid/app/Activity;->isFinishing()Z\n\n"
+       "    move-result p0\n\n"
+       "    return p0",
+       "    .line 191\n"
+       "    :try_start_d4\n"
+       "    return v6")
+
 # The switch guard fires only after onStop, not during in-app navigation.
 method("AppSwitchGuard$1.smali", ".method public run()V",
        "    :cond_3b\n    iget-object v1, p0, Le/e/a/AppSwitchGuard$1;->val$transfer:Ljava/lang/Runnable;",

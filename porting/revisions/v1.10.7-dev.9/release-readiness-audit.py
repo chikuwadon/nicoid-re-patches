@@ -192,8 +192,8 @@ verify("PlaybackSession;->leave" not in check,
 verify("settleNormalReturn(s,position(s.player),0)" in retained and
        "hasWindowFocus()" in retained,
        "Do not retire foreground keeper during the first Activity resume callback")
-verify('FeedbackMedia.apply(s.media,base,s.fragment)' in retained and
-       'FeedbackFixes.bundleTitle(info)' in retained,
+verify('legacy("FeedbackMedia","apply",new Class<?>[]{MediaSession.class,MediaMetadata.class,Object.class}' in retained and
+       'legacy("FeedbackFixes","bundleTitle",new Class<?>[]{Bundle.class},info)' in retained,
        "MediaSession must expose original Nicoid video metadata and artwork")
 verify('setContentTitle(info.title).setContentText(info.artist)' in retained,
        "Notification still uses generic placeholder strings")

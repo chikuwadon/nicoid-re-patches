@@ -11,7 +11,7 @@ import re
 ROOT=pathlib.Path(__file__).resolve().parents[3]
 REV=pathlib.Path(__file__).resolve().parent
 HELPERS=REV/"java/e/e/a"
-VERSION="1.10.7-dev.4"
+VERSION="1.10.7-dev.5"
 checks=0
 
 def verify(ok:bool,reason:str)->None:
@@ -155,6 +155,11 @@ verify("activeBackgroundService()" in sources["Dev111"] and
 verify('getDeclaredField("restoring")' in sources["Dev115"] and
        'stopSourceAfterTargetStarts' in sources["Dev115"],
        "Retained decoder guard or overlap audio handoff missing")
+verify("Dev136" in sources and "completeWhenAudible" in sources["Dev136"],
+       "Target progress confirmation helper missing")
+verify("appStarted(Activity" in sources["Dev111"] and "appStopped(Activity" in sources["Dev111"],
+       "App-wide foreground tracking missing")
+verify("keepPending" in sources["Dev136"], "Stale normal-return handoff guard missing")
 # Confirm official release is a separate manual action.
 workflow=(ROOT/".github/workflows/private-build.yml").read_text(encoding="utf-8")
 verify("Check ranking in-place sort and tab-bar button descriptions" in workflow,

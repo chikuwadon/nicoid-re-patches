@@ -58,8 +58,8 @@ expected = {
     "TabPagingRules233.smali": ["0x3e3851ec", "0x43fa0000"],
     "Following190$Gestures.smali": ["0x3e19999a"],
     "PlaylistUrlParser.smali": ["canonicalUrl", "nicovideo.jp"],
-    "PatchVersion237.smali": ["1.10.7-dev.4"],
-    "ModernShorts.smali": ["v1.10.7-dev.4 @chikuwadon"],
+    "PatchVersion237.smali": ["1.10.7-dev.5"],
+    "ModernShorts.smali": ["v1.10.7-dev.5 @chikuwadon"],
     "TabRoutes228.smali": [
         "Dev111;->capturePage(Landroid/app/Activity;)V",
         "Dev111;->preparePlaylist(Landroid/app/Activity;)V",
@@ -121,8 +121,16 @@ assert "Dev111;->cancelPendingReturn" in navigation, "Back ignored during retain
 handoff=(helper/"PlaybackTransfer221.smali").read_text(encoding="utf-8")
 prepared=handoff.split(".method public static prepared(",1)[1].split(".end method",1)[0]
 complete=handoff.split(".method static complete(",1)[1].split(".end method",1)[0]
-assert "Dev115;->stopSourceAfterTargetStarts" in complete
+complete_now=handoff.split(".method static completeNow(",1)[1].split(".end method",1)[0]
+assert "Dev136;->completeWhenAudible(Ljava/lang/Object;)V" in complete
+assert "Dev115;->stopSourceAfterTargetStarts" in complete_now
 assert "invoke-static {v3, v0, v4, v5}, Le/e/a/PlaybackTransfer221;->call" not in prepared, "Old source pauses before target starts"
+callback=(helper/"AppSwitchGuard$2.smali").read_text(encoding="utf-8")
+assert "Dev111;->appStarted" in callback and "Dev111;->appStopped" in callback
+popup=(helper/"PopupReturn244.smali").read_text(encoding="utf-8")
+assert "Dev136;->keepPending" in popup
+assert "Existing decoder adopted by normal view" in popup
+print("App-wide foreground detection and return adoption instrumentation: PASS")
 print("Deferred source AudioTrack retirement: PASS")
 print("Single playback handoff / notification lifecycle regression: PASS")
 print("Development overlay hooks, settings, playlist refresh and DEX output: PASS")
@@ -169,7 +177,7 @@ print("Verified development DEX assembly and class coverage: PASS")
 
 # Verify the precise version in the *assembled* helper DEX, not only in staged smali.
 version = sys.argv[3]
-assert version == "1.10.7-dev.4"
+assert version == "1.10.7-dev.5"
 dex_data = (output / "helpers.mpe").read_bytes()
 def dex_strings(data):
     strings_size, strings_off = struct.unpack_from("<II", data, 0x38)

@@ -101,11 +101,11 @@ grep -Fq 'Dev128;->reset(Landroid/content/Context;)V' "$work/merged-smali/e/e/a/
 grep -Fq 'Dev128;->allowClaim(Landroid/content/Context;Ljava/lang/String;)Z' "$work/merged-smali/e/e/a/GestureControls110.smali"
 grep -Fq 'Dev128;->allowClaim(Landroid/content/Context;Ljava/lang/String;)Z' "$work/merged-smali/e/e/a/Dev118.smali"
 grep -Fq 'gesture_vertical_reversal_enabled' "$work/merged-smali/e/e/a/Dev128.smali"
-grep -Fq 'Dev130;->styleSensitivity(Landroid/widget/TextView;)V' "$work/merged-smali/e/e/a/GestureControls110.smali"
-grep -Fq 'Dev130;->stripFinalStop(Landroid/widget/TextView;)V' "$work/merged-smali/e/e/a/GestureControls110.smali"
-grep -Fq 'Dev131;->installSettings(Landroid/preference/PreferenceActivity;)V' "$work/merged-smali/e/e/a/SettingsTools.smali"
-grep -Fq 'Dev131;->applyToPlayer(Landroid/view/View;)V' "$work/native-smali/com/devbrackets/android/exomedia/ui/widget/VideoView.smali"
-grep -Fq 'Dev131;->requestServiceFocus(Landroid/content/Context;Landroid/media/AudioManager;Landroid/media/AudioManager\$OnAudioFocusChangeListener;II)I' "$work/native-smali/com/sauzask/nicoid/NicoidPopupViewService.smali"
+grep -Fq 'Dev130;->styleSensitivity(Landroid/widget/TextView;)V' "$work/merged-smali/e/e/a/GestureControls110.smali" || { echo "Missing finalized Dev130 hook: step 104" >&2; exit 1; }
+grep -Fq 'Dev130;->stripFinalStop(Landroid/widget/TextView;)V' "$work/merged-smali/e/e/a/GestureControls110.smali" || { echo "Missing finalized Dev130 hook: step 105" >&2; exit 1; }
+grep -Fq 'Dev131;->installSettings(Landroid/preference/PreferenceActivity;)V' "$work/merged-smali/e/e/a/SettingsTools.smali" || { echo "Missing finalized Dev131 hook: step 106" >&2; exit 1; }
+grep -Fq 'Dev131;->applyToPlayer(Landroid/view/View;)V' "$work/native-smali/com/devbrackets/android/exomedia/ui/widget/VideoView.smali" || { echo "Missing finalized Dev131 hook: step 107" >&2; exit 1; }
+grep -Fq 'Dev131;->requestServiceFocus(Landroid/content/Context;Landroid/media/AudioManager;Landroid/media/AudioManager$OnAudioFocusChangeListener;II)I' "$work/native-smali/com/sauzask/nicoid/NicoidPopupViewService.smali" || { echo "Missing finalized Dev131 hook: step 108" >&2; exit 1; }
 
 grep -Fq 'When off, vertical-only gestures' "$work/merged-smali/e/e/a/Dev128.smali"
 

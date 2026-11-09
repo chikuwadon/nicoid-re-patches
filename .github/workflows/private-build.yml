@@ -279,6 +279,8 @@ jobs:
       - name: Audit release candidate source, security and lifecycle guards
         run: |
           python3 porting/revisions/v1.10.7-dev.11/release-readiness-audit.py
+      - name: Test retained notification return
+        run: python3 porting/tests/retained-notification-regression.py
       - name: Build Morphe bundle
         run: ./gradlew :patches:buildAndroid --no-daemon
         env:

@@ -62,8 +62,13 @@ public final class Dev139 {
  public static void remember(Object playerView){
   if(!(playerView instanceof View))return;
   View video=(View)playerView;
-  TextureView texture=texture(video);
-  if(texture==null||!texture.isAvailable())return;
+  rememberOutput(video,texture(video));
+ }
+
+ /** Called before the native keeper reparents a previously bound view. */
+ public static void rememberOutput(View video,TextureView texture){
+  if(video==null||texture==null||!texture.isAvailable())return;
+  synchronized(BOUND){if(BOUND.containsKey(video))return;}
   try{
    Surface current=currentSurface(exoplayer(video));
    SurfaceTexture image=texture.getSurfaceTexture();
@@ -82,7 +87,7 @@ public final class Dev139 {
    MAIN.post(()->{View v=view.get();TextureView t=target.get();if(v!=null&&t!=null)connect(v,t);});
    return;
   }
-  if(!texture.isAttachedToWindow()||!texture.isAvailable())return;
+  if(texture(video)!=texture||!texture.isAttachedToWindow()||!texture.isAvailable())return;
   SurfaceTexture surfaceTexture=texture.getSurfaceTexture();
   if(surfaceTexture==null)return;
   try{

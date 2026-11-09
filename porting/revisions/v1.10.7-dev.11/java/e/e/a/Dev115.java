@@ -133,7 +133,7 @@ public final class Dev115 {
    }catch(Exception error){
     android.util.Log.d("nicoid-surface","Service output snapshot unavailable");
    }
-   Dev136.releaseStaleReturn((Service)service);
+   if(!Dev140.isNotificationDispatch())Dev136.releaseStaleReturn((Service)service);
    Object started=Class.forName("e.e.a.PopupReturn244").getMethod("start",Service.class).invoke(null,service);
    accepted=Boolean.TRUE.equals(started);
    if(accepted)android.util.Log.i("nicoid-return","Retained decoder return accepted without Service replacement");

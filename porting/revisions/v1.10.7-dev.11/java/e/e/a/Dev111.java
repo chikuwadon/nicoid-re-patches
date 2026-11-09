@@ -133,6 +133,11 @@ public final class Dev111 {
             leftApp=false; resumeAttempt=0; resumeScheduled=false; returnInFlight=false;
         }
     }
+    public static synchronized void notificationReturnOpened() {
+        resetReturn();
+        returnInFlight = true;
+        returnStartedAt = android.os.SystemClock.uptimeMillis();
+    }
     /** Back cancels an unfinished retained return instead of swallowing the key. */
     public static boolean cancelPendingReturn(Activity activity) {
         if(activity==null)return false;

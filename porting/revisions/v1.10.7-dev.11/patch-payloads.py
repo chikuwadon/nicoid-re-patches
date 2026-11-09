@@ -1322,3 +1322,50 @@ replace_method("VideoOutput227.smali",
     invoke-static {p0, p1}, Le/e/a/Dev139;->connect(Landroid/view/View;Landroid/view/TextureView;)V
     return-void
 .end method""")
+
+# The notification's existing Activity is the return target. Do not launch a
+# second watch Activity while the first is still creating its normal player.
+method("MediaControls.smali", ".method static open(Le/e/a/MediaControls$State;)Landroid/app/PendingIntent;",
+       "    iget-object p0, p0, Le/e/a/MediaControls$State;->context:Landroid/content/Context;",
+       "    invoke-static {p0, v0}, Le/e/a/Dev140;->markNotification(Ljava/lang/Object;Landroid/content/Intent;)V\n\n"
+       "    iget-object p0, p0, Le/e/a/MediaControls$State;->context:Landroid/content/Context;")
+native_method("NicoidVideoActivity.smali", ".method public onCreate(Landroid/os/Bundle;)V",
+       "    invoke-super {p0, p1}, Landroidx/appcompat/app/AppCompatActivity;->onCreate(Landroid/os/Bundle;)V",
+       "    invoke-super {p0, p1}, Landroidx/appcompat/app/AppCompatActivity;->onCreate(Landroid/os/Bundle;)V\n\n"
+       "    invoke-static {p0}, Le/e/a/Dev140;->prepare(Landroid/app/Activity;)Z\n"
+       "    move-result v0\n"
+       "    if-nez v0, :nicoid_notification_prepared\n"
+       "    return-void\n"
+       "    :nicoid_notification_prepared")
+method("PlaybackNavigation114.smali", ".method static launch(Landroid/app/Service;Landroid/content/Intent;)V",
+       "    invoke-static {p1}, Le/e/a/PlaybackNavigation114;->mark(Landroid/content/Intent;)V",
+       "    invoke-static {p1}, Le/e/a/PlaybackNavigation114;->mark(Landroid/content/Intent;)V\n\n"
+       "    invoke-static {p0, p1}, Le/e/a/Dev140;->consumeLaunch(Landroid/app/Service;Landroid/content/Intent;)Z\n"
+       "    move-result v0\n"
+       "    if-eqz v0, :nicoid_launch_normally\n"
+       "    return-void\n"
+       "    :nicoid_launch_normally")
+native_method("NicoidVideoFragment.smali", ".method public final b(Ljava/lang/String;)V",
+       "    if-nez v0, :cond_99\n\n    :try_start_6",
+       "    if-nez v0, :cond_99\n\n"
+       "    invoke-static {p0}, Le/e/a/Dev140;->abortFailedReturn(Ljava/lang/Object;)Z\n"
+       "    move-result v0\n"
+       "    if-eqz v0, :try_start_6\n"
+       "    return-void\n\n    :try_start_6")
+native_method("NicoidVideoFragment.smali", ".method public a(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;)Landroid/view/View;",
+       "    if-nez v5, :cond_544\n\n    new-instance v5, Le/e/a/d0;",
+       "    if-nez v5, :cond_544\n\n"
+       "    invoke-static {v0}, Le/e/a/Dev140;->abortFailedReturn(Ljava/lang/Object;)Z\n"
+       "    move-result v5\n"
+       "    if-eqz v5, :nicoid_create_native_loader\n"
+       "    iget-object v5, v0, Lcom/sauzask/nicoid/NicoidVideoFragment;->x1:Landroid/view/View;\n"
+       "    return-object v5\n"
+       "    :nicoid_create_native_loader\n"
+       "    new-instance v5, Le/e/a/d0;")
+
+# Record the actual native output before the first mini/return reparent.
+method("DirectBackground235.smali", ".method public static prepared(Ljava/lang/Object;)V",
+       "    if-eqz v3, :cond_65\n\n    new-instance v3, Le/e/a/MiniSession225$SurfaceKeeper;",
+       "    if-eqz v3, :cond_65\n\n"
+       "    invoke-static {p0, v3}, Le/e/a/Dev139;->rememberOutput(Landroid/view/View;Landroid/view/TextureView;)V\n\n"
+       "    new-instance v3, Le/e/a/MiniSession225$SurfaceKeeper;")

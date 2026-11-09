@@ -1,4 +1,4 @@
-# v1.10.7-dev.1 — Development source
+# v1.10.7-dev.2 — Development source
 
 Based on the verified v1.10.6 production release; no changes are made to the published version.
 
@@ -9,4 +9,4 @@ Based on the verified v1.10.6 production release; no changes are made to the pub
 - Incorporate Gradle 10 deprecation fixes from the audited two-file commit (AGP 9.5.0, Gradle wrapper 9.8.2, Java 8 output unchanged)
 - Retain existing behavior, multilingual labels, and v1.10.6 production baseline
 
-Developer testing build only; **not** an official release.
+Additional v1.10.7-dev.2 playback fixes:\n\n- Prefer the retained decoder when switching from normal to background playback; fallback remains available\n- Coalesce duplicate resume requests while the background Service is settling\n- Properly stop foreground Service/media notifications, including retained mini-player playback\n- Consume Back when the asynchronous playback mode transition has been accepted\n\nDeveloper testing build only; **not** an official release.

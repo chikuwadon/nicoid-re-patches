@@ -155,9 +155,10 @@ for key in keys:
 for method in ("extend(String[] existing)", "actionName(Context context,String key)",
                "perform(Activity activity,String key)", "dispatchNativeMenu(Activity activity,String key)"):
     verify(method in gestures, "Drawer routing helper missing "+method)
-for hook in ("Dev138;->extend", "Dev138;->actionName", "Dev138;->perform",
-             "Dev111;->singleReturnOwner"):
-    verify(hook in patch_text, "Gesture/return integration missing "+hook)
+for hook in ("Dev138;->extend", "Dev138;->actionName", "Dev138;->perform"):
+    verify(hook in patch_text, "Gesture action integration missing "+hook)
+verify("Dev111.singleReturnOwner(a)" in sources["RetainedPlayback137"],
+       "Direct-background callback must serialize legacy and retained returns")
 verify('singleReturnOwner(Activity activity)' in sources["Dev111"] and
        'armed.set(null,null)' in sources["Dev111"],
        "Legacy and retained playback must not open parallel normal players")

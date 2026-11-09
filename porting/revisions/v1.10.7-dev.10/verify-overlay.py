@@ -10,7 +10,7 @@ output = pathlib.Path(sys.argv[2])
 helper = root / "helpers/e/e/a"
 expected = {
     "AppSwitchGuard$1.smali": ["RetainedPlayback137;->left()V"],
-    "AppSwitchGuard$2.smali": ["RetainedPlayback137;->resumed(Landroid/app/Activity;)V", "Dev111;->singleReturnOwner(Landroid/app/Activity;)Z"],
+    "AppSwitchGuard$2.smali": ["RetainedPlayback137;->resumed(Landroid/app/Activity;)V"],
     "SettingsPlacement233.smali": ["Dev111;->settings(Landroid/preference/PreferenceActivity;)V", "Dev114;->installSettings(Landroid/preference/PreferenceActivity;)V"],
     "SettingsTools.smali": ["Dev111;->settings(Landroid/preference/PreferenceActivity;)V", "Dev114;->installSettings(Landroid/preference/PreferenceActivity;)V"],
     "MultiTabs227.smali": ["Dev111;->loadedTabs(Ljava/lang/Object;Landroid/content/Context;)V", "TabHistory127;->url(ILjava/lang/String;)Ljava/lang/String;", "Dev132;->sameRanking(Ljava/lang/Object;Ljava/lang/Object;)Z"],
@@ -157,6 +157,7 @@ assert stopped.index("RetainedPlayback137;->stopped") < stopped.index("move-resu
 # Preserve same-player handoff; only change notification metadata and return cleanup.
 retained=(helper/"RetainedPlayback137.smali").read_text(encoding="utf-8")
 assert "RetainedPlayback137;->settleNormalReturn" in retained
+assert "Dev111;->singleReturnOwner(Landroid/app/Activity;)Z" in retained
 assert "MediaSession;->setMetadata" in retained
 assert '"FeedbackMedia"' in retained and '"apply"' in retained, "Nicoid cached thumbnail handler must be reused"
 assert '"PlaybackBar221"' in retained and '"media"' in retained, "Original title fallback missing"

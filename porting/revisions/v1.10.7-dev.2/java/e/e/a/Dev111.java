@@ -135,7 +135,10 @@ public final class Dev111 {
         }
         boolean pending;
         synchronized(Dev111.class){pending=leftApp;}
-        if(!pending && !armed())return;
+        if(!pending && !armed()) {
+            synchronized(Dev111.class) { resumeScheduled = false; }
+            return;
+        }
         try {
             Reference<?> reference=(Reference<?>)field(
                 Class.forName("e.e.a.PlaybackReturn"),"active").get(null);

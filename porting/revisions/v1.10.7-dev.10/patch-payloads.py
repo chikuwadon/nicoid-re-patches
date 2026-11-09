@@ -364,8 +364,8 @@ native.write_text(text,encoding="utf-8")
 
 # The published recovered payload hardcoded v1.10.1 in two classes. Replace
 # both values on the staged copy, using the selected Gradle development version.
-version=sys.argv[2] if len(sys.argv)>2 else "1.10.7-dev.9"
-assert version == "1.10.7-dev.9"
+version=sys.argv[2] if len(sys.argv)>2 else "1.10.7-dev.10"
+assert version == "1.10.7-dev.10"
 method("PatchVersion237.smali", ".method public static value()Ljava/lang/String;",
        'const-string v0, "1.10.1"', 'const-string v0, "'+version+'"')
 versionFile=HELPERS/"ModernShorts.smali"
@@ -386,7 +386,7 @@ code=code.replace('    nop\n\n    nop\n\n    nop\n\n    invoke-static {p1}, Land
                   '    invoke-static {p1}, Landroid/view/MotionEvent;->obtain')
 gesture.write_text(code,encoding="utf-8")
 
-print("Applied v1.10.7-dev.9 overlay to", ROOT)
+print("Applied v1.10.7-dev.10 overlay to", ROOT)
 
 # Missing stored image URLs follow the native thumbnail fallback already used by CacheListing.
 method("LocalPlaylists$Page.smali", ".method render()V",
@@ -1279,3 +1279,46 @@ method("MultiTabs227$Host.smali",
        "    invoke-static {p2, p3, p1}, Le/e/a/TabRoutes228;->choice(Landroid/app/Activity;ILjava/lang/String;)Le/e/a/SavedTabs227$Tab;",
        "    add-int/lit8 p3, p3, -0x1\n"
        "    invoke-static {p2, p3, p1}, Le/e/a/TabRoutes228;->choice(Landroid/app/Activity;ILjava/lang/String;)Le/e/a/SavedTabs227$Tab;")
+
+
+# v1.10.7-dev.10: dispatch additional gestures to native left-drawer actions.
+# Extend after the existing tab-list/add-tab choices; preserve their IDs and
+# existing user gesture mappings.
+method("GestureControls110.smali",
+       ".method static constructor <clinit>()V",
+       "    sput-object v0, Le/e/a/GestureControls110;->ACTIONS:[Ljava/lang/String;",
+       "    invoke-static {v0}, Le/e/a/Dev138;->extend([Ljava/lang/String;)[Ljava/lang/String;\n"
+       "    move-result-object v0\n\n"
+       "    sput-object v0, Le/e/a/GestureControls110;->ACTIONS:[Ljava/lang/String;")
+method("GestureControls110.smali",
+       ".method static name(Landroid/content/Context;Ljava/lang/String;)Ljava/lang/String;",
+       '    .registers 12\n\n    const-string v0, "addtab"',
+       '    .registers 12\n\n'
+       '    invoke-static {p0, p1}, Le/e/a/Dev138;->actionName(Landroid/content/Context;Ljava/lang/String;)Ljava/lang/String;\n'
+       '    move-result-object v0\n'
+       '    if-eqz v0, :nicoid_menu_138_original_name\n'
+       '    return-object v0\n'
+       '    :nicoid_menu_138_original_name\n'
+       '    const-string v0, "addtab"')
+method("GestureControls110.smali",
+       ".method static perform(Landroid/app/Activity;Ljava/lang/String;)V",
+       '    .registers 7\n\n    const-string v0, "addtab"',
+       '    .registers 7\n\n'
+       '    invoke-static {p0, p1}, Le/e/a/Dev138;->perform(Landroid/app/Activity;Ljava/lang/String;)Z\n'
+       '    move-result v0\n'
+       '    if-eqz v0, :nicoid_menu_138_original_action\n'
+       '    return-void\n'
+       '    :nicoid_menu_138_original_action\n'
+       '    const-string v0, "addtab"')
+
+# A single controller owns the direct-background notification->normal return.
+# The previous dual callbacks reopened a VideoView concurrently and could leave
+# a released decoder/surface (black frame and 0:00) after the next Back.
+method("AppSwitchGuard$2.smali",
+       ".method public onActivityResumed(Landroid/app/Activity;)V",
+       "    invoke-static {p1}, Le/e/a/PlaybackReturn;->foreground(Landroid/app/Activity;)V",
+       "    invoke-static {p1}, Le/e/a/Dev111;->singleReturnOwner(Landroid/app/Activity;)Z\n"
+       "    move-result v0\n"
+       "    if-nez v0, :nicoid_138_single_return\n"
+       "    invoke-static {p1}, Le/e/a/PlaybackReturn;->foreground(Landroid/app/Activity;)V\n"
+       "    :nicoid_138_single_return")

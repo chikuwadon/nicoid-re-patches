@@ -136,21 +136,6 @@ public final class Dev115 {
     try{restoring.setBoolean(state,false);}catch(Exception ignored){}
   }
  }
- /** Finish the source only AFTER the prepared target has started.
-  * Pausing the old AudioTrack first produces a measurable dropout. */
- public static void stopSourceAfterTargetStarts(Object transfer){
-  if(transfer==null)return;
-  try{
-   java.lang.reflect.Field old=transfer.getClass().getDeclaredField("sourcePlayer");
-   java.lang.reflect.Field next=transfer.getClass().getDeclaredField("targetPlayer");
-   old.setAccessible(true);next.setAccessible(true);
-   Object source=old.get(transfer),target=next.get(transfer);
-   if(source==null||source==target)return;
-   // The transfer controller only calls complete after the target starts.
-   java.lang.reflect.Method pause=source.getClass().getMethod("pause");
-   pause.invoke(source);
-  }catch(Exception e){android.util.Log.w("nicoid-transfer","Cannot retire old AudioTrack after handoff",e);}
- }
  public static void afterFullscreenRestore(View root){
   if(root==null)return;
   Runnable fix=()->{

@@ -58,8 +58,8 @@ expected = {
     "TabPagingRules233.smali": ["0x3e3851ec", "0x43fa0000"],
     "Following190$Gestures.smali": ["0x3e19999a"],
     "PlaylistUrlParser.smali": ["canonicalUrl", "nicovideo.jp"],
-    "PatchVersion237.smali": ["1.10.7-dev.6"],
-    "ModernShorts.smali": ["v1.10.7-dev.6 @chikuwadon"],
+    "PatchVersion237.smali": ["1.10.7-dev.7"],
+    "ModernShorts.smali": ["v1.10.7-dev.7 @chikuwadon"],
     "TabRoutes228.smali": [
         "Dev111;->capturePage(Landroid/app/Activity;)V",
         "Dev111;->preparePlaylist(Landroid/app/Activity;)V",
@@ -117,22 +117,24 @@ assert "MediaClose248;->action" not in action, "Stop still launches the Service"
 assert "MediaAction240;->sign" in action, "Signed in-process Stop route missing"
 navigation=(helper/"PlaybackNavigation114.smali").read_text(encoding="utf-8")
 assert "Dev111;->cancelPendingReturn" in navigation, "Back ignored during retained return"
-# No early pause of the original player before the target audio starts.
-handoff=(helper/"PlaybackTransfer221.smali").read_text(encoding="utf-8")
-prepared=handoff.split(".method public static prepared(",1)[1].split(".end method",1)[0]
-complete=handoff.split(".method static complete(",1)[1].split(".end method",1)[0]
-complete_now=handoff.split(".method static completeNow(",1)[1].split(".end method",1)[0]
-assert "Dev136;->completeWhenAudible(Ljava/lang/Object;)V" in complete
-assert "Dev115;->stopSourceAfterTargetStarts" in complete_now
-assert "invoke-static {v3, v0, v4, v5}, Le/e/a/PlaybackTransfer221;->call" not in prepared, "Old source pauses before target starts"
+# PlaybackTransfer221's audio transition must exactly match the
+# pre-regression v1.10.2 baseline. No concurrent AudioTrack overlap.
+baseline_root=pathlib.Path(__file__).resolve().parents[2]/"revisions/v1.10.1/helpers/e/e/a"
+handoff=(helper/"PlaybackTransfer221.smali").read_bytes()
+reference=(baseline_root/"PlaybackTransfer221.smali").read_bytes()
+assert handoff==reference, "PlaybackTransfer221 differs from pre-regression baseline"
+assert b"Dev136;->completeWhenAudible" not in handoff
 callback=(helper/"AppSwitchGuard$2.smali").read_text(encoding="utf-8")
-assert "Dev111;->appStarted" in callback and "Dev111;->appStopped" in callback
+started=callback.split(".method public onActivityStarted(",1)[1].split(".end method",1)[0]
+stopped=callback.split(".method public onActivityStopped(",1)[1].split(".end method",1)[0]
+assert started.index("Dev111;->appStarted")<started.index("move-result-object v0")
+assert stopped.index("Dev111;->appStopped")<stopped.index("move-result-object p1"), "Activity p1 overwritten by Runnable before callback"
+assert "Dev111;->appStopped(Landroid/app/Activity;)V" in stopped
+assert stopped.count("Dev111;->appStopped") == 1
 popup=(helper/"PopupReturn244.smali").read_bytes()
-baseline=(pathlib.Path(__file__).resolve().parents[2]/"revisions/v1.10.1/helpers/e/e/a/PopupReturn244.smali").read_bytes()
-assert popup == baseline, "Critical ART VerifyError regression: PopupReturn244 smali must stay byte-identical to verified baseline"
+assert popup==(baseline_root/"PopupReturn244.smali").read_bytes(), "PopupReturn244 must remain byte-identical for ART verification"
 assert "Dev136;->releaseStaleReturn" in (helper/"Dev115.smali").read_text(encoding="utf-8")
-print("PopupReturn244 ART register-layout safety and app-wide foreground tracking: PASS")
-print("Deferred source AudioTrack retirement: PASS")
+print("Lifecycle Activity register alias and baseline playback transfer: PASS")
 print("Single playback handoff / notification lifecycle regression: PASS")
 print("Development overlay hooks, settings, playlist refresh and DEX output: PASS")
 
@@ -178,7 +180,7 @@ print("Verified development DEX assembly and class coverage: PASS")
 
 # Verify the precise version in the *assembled* helper DEX, not only in staged smali.
 version = sys.argv[3]
-assert version == "1.10.7-dev.6"
+assert version == "1.10.7-dev.7"
 dex_data = (output / "helpers.mpe").read_bytes()
 def dex_strings(data):
     strings_size, strings_off = struct.unpack_from("<II", data, 0x38)

@@ -11,7 +11,7 @@ import re
 ROOT=pathlib.Path(__file__).resolve().parents[3]
 REV=pathlib.Path(__file__).resolve().parent
 HELPERS=REV/"java/e/e/a"
-VERSION="1.10.7-dev.6"
+VERSION="1.10.7-dev.7"
 checks=0
 
 def verify(ok:bool,reason:str)->None:
@@ -152,11 +152,10 @@ verify("duration>0" in sources["Dev111"] and "cancelPendingReturn" in sources["D
 verify("activeBackgroundService()" in sources["Dev111"] and
        'Class.forName("e.e.a.DirectBackground235")' in sources["Dev111"],
        "Background service locator missing from normal return path")
-verify('getDeclaredField("restoring")' in sources["Dev115"] and
-       'stopSourceAfterTargetStarts' in sources["Dev115"],
-       "Retained decoder guard or overlap audio handoff missing")
-verify("Dev136" in sources and "completeWhenAudible" in sources["Dev136"],
-       "Target progress confirmation helper missing")
+verify('getDeclaredField("restoring")' in sources["Dev115"],
+       "Retained decoder restoration guard missing")
+verify("Dev136" in sources and "completeWhenAudible" not in sources["Dev136"],
+       "Concurrent two-player progress gate must stay removed")
 verify("appStarted(Activity" in sources["Dev111"] and "appStopped(Activity" in sources["Dev111"],
        "App-wide foreground tracking missing")
 verify("keepPending" in sources["Dev136"], "Stale normal-return handoff guard missing")
@@ -165,6 +164,12 @@ verify('method("PopupReturn244.smali"' not in patches,
        "Do not patch PopupReturn244 smali: Android ART VerifyError regression")
 verify("releaseStaleReturn" in sources["Dev136"] and "Dev136.releaseStaleReturn" in sources["Dev115"],
        "Stale pending-return handling must stay in typed Java")
+verify('Dev111;->appStopped(Landroid/app/Activity;)V' in patches,
+       "Foreground transition callback missing")
+verify('    .line 81' in patches,
+       "Lifecycle stopped callback must be injected before the Activity register is retyped")
+verify('completeWhenAudible' not in patches and 'completeNow' not in patches,
+       "Experimental overlapping audio handoff must not be reinstated")
 # Confirm official release is a separate manual action.
 workflow=(ROOT/".github/workflows/private-build.yml").read_text(encoding="utf-8")
 verify("Check ranking in-place sort and tab-bar button descriptions" in workflow,

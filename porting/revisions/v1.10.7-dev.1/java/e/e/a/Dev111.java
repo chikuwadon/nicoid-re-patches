@@ -34,6 +34,15 @@ public final class Dev111 {
     private static final Map<Activity, Map<String, Position>> VIEWS = new WeakHashMap<>();
     private static final Map<PreferenceActivity, SharedPreferences.OnSharedPreferenceChangeListener> SETTINGS_LISTENERS = new WeakHashMap<>();
     private static boolean leftApp;
+    // Multiple Activity resumes may race for the same background session.
+    private static boolean resumeScheduled;
+    private static boolean returnInFlight;
+    private static long returnStartedAt;
+    private static synchronized boolean transferring() {
+        if (returnInFlight && android.os.SystemClock.uptimeMillis() - returnStartedAt >= 8000L)
+            returnInFlight = false;
+        return returnInFlight;
+    }
 
     private Dev111() { }
 
@@ -67,7 +76,10 @@ public final class Dev111 {
     }
 
     /** The pending return belongs to the foreground transition, not service start. */
-    public static synchronized void left() { leftApp = true; }
+    public static synchronized void left() {
+        // Finishing a source Activity during a retained handoff is not another app switch.
+        if (!transferring()) leftApp = true;
+    }
     private static int resumeAttempt;
     private static boolean armed() {
         try {
@@ -80,27 +92,42 @@ public final class Dev111 {
         catch(Exception ignored) {}
     }
     private static void resetReturn() {
-        synchronized(Dev111.class) { leftApp=false; resumeAttempt=0; }
+        synchronized(Dev111.class) {
+            leftApp=false;
+            resumeAttempt=0;
+            resumeScheduled=false;
+            returnInFlight=false;
+        }
         clearArmed();
     }
     public static void resumed(Activity activity) {
         if(activity==null || activity.isFinishing() || activity.isDestroyed())return;
         boolean pending;
-        synchronized(Dev111.class){pending=leftApp;}
-        if(!pending && !armed())return;
+        synchronized(Dev111.class) {
+            if (transferring() || resumeScheduled) return;
+            pending = leftApp;
+        }
+        if (!pending && !armed()) return;
         SharedPreferences settings=prefs(activity);
         if(!"background".equals(settings.getString("app_switch_playback","none"))
            || !"normal".equals(settings.getString(RESUME,"background"))) {
             resetReturn();
             return;
         }
-        // Do not skip NicoidVideoActivity: it may be the Activity brought back
-        // while the retained background service still owns playback.
+        // Only one delayed transfer attempt for this foreground transition.
+        synchronized(Dev111.class) {
+            if (transferring() || resumeScheduled) return;
+            resumeScheduled = true;
+            resumeAttempt = 0;
+        }
         resumeCheck(new java.lang.ref.WeakReference<>(activity));
     }
     private static void resumeCheck(java.lang.ref.WeakReference<Activity> target) {
         Activity activity=target.get();
-        if(activity==null || activity.isDestroyed() || activity.isFinishing())return;
+        if(activity==null || activity.isDestroyed() || activity.isFinishing()) {
+            synchronized(Dev111.class) { resumeScheduled = false; }
+            return;
+        }
         SharedPreferences settings=prefs(activity);
         if(!"background".equals(settings.getString("app_switch_playback","none"))
            || !"normal".equals(settings.getString(RESUME,"background"))) {
@@ -124,7 +151,15 @@ public final class Dev111 {
                     && background && (initialized || playing);
             }
             if(ready) {
-                resetReturn();
+                synchronized(Dev111.class) {
+                    if (transferring()) return;
+                    leftApp = false;
+                    resumeScheduled = false;
+                    resumeAttempt = 0;
+                    returnInFlight = true;
+                    returnStartedAt = android.os.SystemClock.uptimeMillis();
+                }
+                clearArmed();
                 Dev115.seamlessReturn(service);
                 return;
             }

@@ -1,29 +1,27 @@
-# v1.10.7-dev.11 — seamless background / notification return
+# nicoid Re v1.10.7-dev.14 — single-tap area editor UI polish
 
-Development-only successor of v1.10.7-dev.10. Stable release v1.10.6,
-main, public release tags and issue states remain unchanged.
+Development-only successor of the user-verified v1.10.7-dev.13
+(`59d155c1a8cd7ac4c757238a100d0bdb8e0e27d8`).
 
-## Targeted change
+## UI-only improvements
 
-- Capture the **original** normal-playback TextureView SurfaceTexture on app
-  switch. Preserve the existing ExoPlayer, stream, position, speed and audio
-  while a notification-only foreground Service keeps the process active.
-- Restore the retained SurfaceTexture when the original Activity regains focus.
-  Remove its interception listener when the normal Activity is stable or the
-  session ends, including exceptional exit.
-- Before returning from the lower background bar / notification, record the
-  Service's prepared decoder output. Idempotent VideoOutput binding skips
-  `setSurface` when the destination SurfaceTexture and underlying Surface
-  have not changed; a truly new or invalid surface still receives a bind.
-- Do not initiate a new HLS request, seek, create a decoder, pause playback or
-  hide the UI spinner as a substitute for keeping the real output.
+- Preset order: Entire video / Custom (first row); Top-bottom / Center / Side
+  edges (second row), preserving the existing stored mode IDs.
+- Add comfortable gaps between preset chips, controls and the area selector.
+- Use mildly rounded rectangles (12 dp) for selected chips and rounded
+  selection highlights; avoid fully capsule-shaped preset backgrounds.
+- Show both the main area editor (28 dp corner radius) and the area-choice
+  dialog (24 dp) with the shared Nicoid dialog theme.
+- Render +/- controls as genuinely circular 38x38 dp buttons, keeping
+  1-percent-per-press adjustment unchanged.
+- Remove the redundant divider between the two quick-adjustment rows.
+- Keep the live region preview and its existing drag, resize, custom
+  region editing, and normal/fullscreen/popup touch-routing semantics.
 
-Existing ranking chooser, 14 drawer gesture actions, notification media
-metadata, player controls, tab management, and previous fixes are retained.
+## Verification and release policy
 
-## Verification
+The existing area gesture model tests run unchanged alongside a new layout
+regression. Android device review remains necessary for visual fit and
+touch-target comfort, especially in narrow popup/portrait layouts.
 
-CI tests include the precise smali/Dex hooks, packaged MPP identity,
-security/feature continuity and the no-reload/no-seek policy. Android 16
-device verification is still required for transition smoothness, codec
-compatibility, and notification/normal playback handoff.
+No main merge, official release, tag or issue close is authorized.

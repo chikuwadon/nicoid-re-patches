@@ -832,6 +832,19 @@ public final class AmbientLight {
                 int x1 = p[2] < 0 ? p[0] : Math.min(boundsRight, p[0] + radius);
                 int y0 = p[3] < 0 ? Math.max(0, p[1] - radius) : p[1];
                 int y1 = p[3] < 0 ? p[1] : Math.min(boundsBottom, p[1] + radius);
+                // On landscape tablets the video can touch the player
+                // column's left/right edge. There is then no horizontal
+                // exterior quadrant to draw. Blend each side color into the
+                // TOP/BOTTOM margin instead, without painting inside video.
+                if (x1 <= x0 && y1 > y0) {
+                    if (p[2] < 0) {
+                        x0 = Math.max(0, p[0]);
+                        x1 = Math.min(boundsRight, p[0] + radius);
+                    } else {
+                        x0 = Math.max(0, p[0] - radius);
+                        x1 = Math.min(boundsRight, p[0]);
+                    }
+                }
                 if (x1 <= x0 || y1 <= y0) continue;
                 paint.setShader(new RadialGradient(p[0], p[1], radius * 1.4f,
                         new int[]{(Math.min(255, alpha) << 24) | rgb,

@@ -26,7 +26,7 @@ for token in ('"videoLayout"', "View videoChild = childUnder(container, video)",
               "container.indexOfChild(videoChild) >= container.indexOfChild(commentsChild)",
               "container.addView(view, container.indexOfChild(commentsChild)",
               "normalGlowView.invalidate()", "perimeterGlow.corners = true;",
-              "void drawCorners(Canvas c)", "new RadialGradient(",
+              "void drawCorners(Canvas c)", "new RadialGradient(", "if (x1 <= x0 && y1 > y0)",
               "final boolean next = !isSelected()", "current.scheduleRefresh()",
               "MAIN.post(queuedRefresh)", "MAIN.removeCallbacks(queuedRefresh)"):
  assert token in ambient, token

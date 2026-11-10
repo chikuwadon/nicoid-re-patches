@@ -5,7 +5,7 @@ import subprocess
 import tempfile
 
 repo = Path(__file__).resolve().parents[2]
-revision = repo / "porting/revisions/v1.10.7-dev.12"
+revision = repo / "porting/revisions/v1.10.7-dev.13"
 old = ast.parse((repo / "porting/tests/regression155.py").read_text())
 fixtures = ast.literal_eval(next(n.value for n in old.body if isinstance(n, ast.Assign)
                                 and n.targets[0].id == "fixtures"))
@@ -19,14 +19,15 @@ fixtures.update({
         public interface OnSharedPreferenceChangeListener {
             void onSharedPreferenceChanged(SharedPreferences prefs,String key);
         }
-        public boolean seek;
-        public boolean getBoolean(String key,boolean fallback){return seek;}
+        public boolean seek, opening;
+        public boolean getBoolean(String key,boolean fallback){return key.equals("popup_double_tap_seek")?seek:opening;}
         public String getString(String key,String fallback){return value;}
         public void registerOnSharedPreferenceChangeListener(OnSharedPreferenceChangeListener l){listener=l;}
         public Editor edit(){return new Editor();}
         public class Editor {
             String key,next;
             public Editor putString(String k,String v){key=k;next=v;return this;}
+            public Editor putBoolean(String k,boolean v){opening=v;return this;}
             public void apply(){value=next;if(listener!=null)listener.onSharedPreferenceChanged(SharedPreferences.this,key);}
         }
     }""",
@@ -110,14 +111,31 @@ fixtures.update({
             public boolean onTouch(View view,MotionEvent event){forwards++;return false;}
         }
         public static class Host extends android.app.Activity {
-            public final Fragment v=new Fragment();
+            public final Fragment v=new Fragment(this);
+            public final LocalFragment w=new LocalFragment(this);
+            boolean local;
         }
         public static class Fragment {
+            public final Host A1;
             public Player a0=new Player();
+            public boolean x0,Q1;
+            Fragment(Host host){A1=host;}
+            public void j(int command){Q1=command==2;a0.controls.shown=Q1;}
+        }
+        public static class LocalFragment {
+            public final Host A1;
+            public View Z=new SurfaceView();
+            public boolean A0,T1;
+            LocalFragment(Host host){A1=host;}
+            public void i(int command){T1=command==2;}
         }
         static void dispatch(Host host,MotionEvent event,boolean consumed){
             TapControls141.activityInput(host,event);
-            if(!consumed)TapControls141.activityTouch(host,event);
+            if(consumed)return;
+            TapControls141.activityTouch(host,event);
+            if(event.getActionMasked()==0&&!Dev112.directControl) {
+                TapControls141.nativeDown(host.local?host.w:host.v,event);
+            }
         }
         static MotionEvent event(int action,long down,long at,float x){
             MotionEvent e=new MotionEvent(action,at,x,100);
@@ -228,15 +246,36 @@ fixtures.update({
             check(view.controls.shown,"rotation before confirmation discards old tap");
             view.w=300;
             mode("custom:0-5,45-55,90-100");
-            check(TapControls141.allows(view,200,100,false),"saved custom region active");
+            check(TapControls141.allows(view,200,100,false,false),"saved custom region active");
             mode("rects:30-70-60-80");
             view.y=100;view.h=200;
-            check(TapControls141.allows(view,200,240,false)
-                    &&!TapControls141.allows(view,200,160,false),"normal uses video-relative Y");
+            check(TapControls141.allows(view,200,240,false,false)
+                    &&!TapControls141.allows(view,200,160,false,false),"normal uses video-relative Y");
             Owner shifted=new Owner();shifted.e.x=100;shifted.e.y=200;shifted.e.w=300;shifted.e.h=200;
-            check(TapControls141.allows(shifted.e,250,340,true)
-                    &&!TapControls141.allows(shifted.e,250,240,true),"popup uses shifted video-relative Y");
-            TapControls141.save(view.getContext(),TapRegions141.preset(TapRegions141.ALL));
+            check(TapControls141.allows(shifted.e,250,340,true,false)
+                    &&!TapControls141.allows(shifted.e,250,240,true,false),"popup uses shifted video-relative Y");
+            TapControls141.save(view.getContext(),TapRegions141.preset(TapRegions141.EDGES),true);
+            check(TapControls141.openOnly(view.getContext()),"opening-only setting persists");
+            view.x=0;view.y=0;view.w=1000;
+            normal(host,13000,500);Handler.advance(13341);
+            check(!host.v.Q1,"foreground outside closes in opening-only mode");
+            normal(host,13500,500);Handler.advance(13841);
+            check(!host.v.Q1,"foreground outside cannot open in opening-only mode");
+            normal(host,14000,100);Handler.advance(14341);
+            check(host.v.Q1,"foreground inside opens in opening-only mode");
+            Host local=new Host();local.local=true;
+            normal(local,14500,100);Handler.advance(14841);
+            check(local.w.T1,"alternate local overlay opens with its native command");
+            normal(local,15000,500);Handler.advance(15341);
+            check(!local.w.T1,"alternate local overlay closes outside");
+            Owner openOnlyPopup=new Owner();
+            stream(root,openOnlyPopup,15500,500);Handler.advance(15841);
+            check(!openOnlyPopup.chromeShown&&!openOnlyPopup.e.controls.shown,"popup outside does not open");
+            stream(root,openOnlyPopup,16000,100);Handler.advance(16341);
+            check(openOnlyPopup.chromeShown&&openOnlyPopup.e.controls.shown,"popup inside opens");
+            stream(root,openOnlyPopup,16500,500);Handler.advance(16841);
+            check(!openOnlyPopup.chromeShown&&!openOnlyPopup.e.controls.shown,"popup outside closes");
+            TapControls141.save(view.getContext(),TapRegions141.preset(TapRegions141.ALL),false);
             check(TapControls141.settings(view.getContext()).mode==TapRegions141.ALL,"restore default persists");
             System.out.println("Single-tap regions and production bridges: "+checks+" assertions passed");
         }

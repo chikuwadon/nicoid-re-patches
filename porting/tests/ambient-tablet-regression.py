@@ -7,7 +7,7 @@ viewport=(r/"extensions/extension/src/main/java/e/e/a/FullscreenViewport209.java
 dev=(r/"porting/revisions/v1.11.1-dev.1/java/e/e/a/Dev115.java").read_text()
 assert "host.getOverlay().add(glow)" not in ambient
 assert "installed.getOverlay().remove(glow)" not in ambient
-for token in ("commentlay","LayerDrawable","target.setBackground(background)","target.setPadding","void remove()"):
+for token in ("commentlay","LayerDrawable","target.setBackground(background)","target.setPadding","void remove()","perimeterGlow","installPerimeter(target)","removePerimeter()"):
  assert token in ambient,token
 for token in ("restoreNormalViewport","viewportSessions.remove(root)","int desired=original+Math.max(0,status-origin)"):
  assert token in viewport,token

@@ -246,6 +246,9 @@ public final class AmbientLight {
         final View root, video;
         final SharedPreferences prefs;
         final Glow glow = new Glow();
+        // A separate perimeter glow reaches the uncovered fullscreen strips
+        // outside the native video parent, but remains behind all controls.
+        final Glow perimeterGlow = new Glow();
         final Rect frame = new Rect(), content = new Rect(), window = new Rect();
         final Point windowOrigin = new Point();
         final int[] origin = new int[2], position = new int[2];
@@ -253,6 +256,9 @@ public final class AmbientLight {
         View host, installed, lastSource;
         Drawable previousBackground, installedBackground;
         final int[] previousPadding = new int[4];
+        View perimeterInstalled;
+        Drawable perimeterPrevious, perimeterBackground;
+        final int[] perimeterPadding = new int[4];
         int mode, generation, failures;
         Method isPlaying;
         long nextPlaybackCheck;
@@ -290,6 +296,7 @@ public final class AmbientLight {
             remove();
             config = values(prefs);
             glow.sides = prefs.getInt(PREFIX + "sides", 15);
+            perimeterGlow.sides = glow.sides;
             sampling = AmbientSampling148.shouldSample(enabled(prefs),
                     appliesTo(prefs, mode), config[0], glow.sides);
             if (attached && sampling) MAIN.post(this);
@@ -314,10 +321,25 @@ public final class AmbientLight {
             installed = null;
             installedBackground = null;
             previousBackground = null;
+            removePerimeter();
+        }
+
+        void removePerimeter() {
+            if (perimeterInstalled != null && perimeterInstalled.getBackground() == perimeterBackground) {
+                perimeterInstalled.setBackground(perimeterPrevious);
+                perimeterInstalled.setPadding(perimeterPadding[0], perimeterPadding[1],
+                        perimeterPadding[2], perimeterPadding[3]);
+            }
+            perimeterInstalled = null;
+            perimeterPrevious = null;
+            perimeterBackground = null;
         }
 
         void install(View target) {
-            if (installed == target && target.getBackground() == installedBackground) return;
+            if (installed == target && target.getBackground() == installedBackground) {
+                installPerimeter(target);
+                return;
+            }
             remove();
             previousBackground = target.getBackground();
             previousPadding[0] = target.getPaddingLeft();
@@ -332,6 +354,44 @@ public final class AmbientLight {
                     previousPadding[2], previousPadding[3]);
             installed = target;
             installedBackground = background;
+            installPerimeter(target);
+        }
+
+        // On fullscreen devices the player parent can be narrower than the
+        // decor width. Fill only the remaining perimeter from behind the UI.
+        void installPerimeter(View target) {
+            if (mode != FULL || host == target || host.getWidth() < 2 || host.getHeight() < 2) {
+                removePerimeter();
+                return;
+            }
+            perimeterGlow.colors = glow.colors;
+            perimeterGlow.sides = glow.sides;
+            perimeterGlow.inner = false;
+            perimeterGlow.spread = glow.spread;
+            perimeterGlow.softness = glow.softness;
+            perimeterGlow.alpha = glow.alpha;
+            perimeterGlow.video.set(glow.video);
+            host.getLocationOnScreen(origin);
+            target.getLocationOnScreen(position);
+            perimeterGlow.video.offset(position[0] - origin[0], position[1] - origin[1]);
+            perimeterGlow.setBounds(0, 0, host.getWidth(), host.getHeight());
+            if (perimeterInstalled != host || host.getBackground() != perimeterBackground) {
+                removePerimeter();
+                perimeterPrevious = host.getBackground();
+                perimeterPadding[0] = host.getPaddingLeft();
+                perimeterPadding[1] = host.getPaddingTop();
+                perimeterPadding[2] = host.getPaddingRight();
+                perimeterPadding[3] = host.getPaddingBottom();
+                Drawable base = perimeterPrevious == null
+                        ? new ColorDrawable(Color.TRANSPARENT) : perimeterPrevious;
+                LayerDrawable background = new LayerDrawable(new Drawable[]{base, perimeterGlow});
+                host.setBackground(background);
+                host.setPadding(perimeterPadding[0], perimeterPadding[1],
+                        perimeterPadding[2], perimeterPadding[3]);
+                perimeterInstalled = host;
+                perimeterBackground = background;
+            }
+            perimeterGlow.invalidateSelf();
         }
 
         void dispose() {

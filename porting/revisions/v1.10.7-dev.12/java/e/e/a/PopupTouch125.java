@@ -47,9 +47,9 @@ public final class PopupTouch125 {
             try {
                 if (video(current) != target) return;
                 Object controls = controls(target);
-                if (controls != null && TapControls141.allows(target, x, y, true)) {
-                    toggle(target, controls, startedVisible);
-                }
+                if (!TapControls141.allows(target, x, y, true)) return;
+                toggleChrome(current);
+                if (controls != null) toggle(target, controls, startedVisible);
             } catch (Exception ignored) { }
         };
         PENDING.put(owner, callback);
@@ -113,6 +113,15 @@ public final class PopupTouch125 {
 
     private static void forward(Object owner, View root, MotionEvent event) {
         ((View.OnTouchListener) owner).onTouch(root, event);
+    }
+
+    private static void toggleChrome(Object owner) {
+        try {
+            // Same visibility query and actions as the original popup single-tap callback.
+            Method visibility = owner.getClass().getMethod("a", int.class);
+            boolean visible = Boolean.TRUE.equals(visibility.invoke(owner, 3));
+            visibility.invoke(owner, visible ? 1 : 2);
+        } catch (ReflectiveOperationException ignored) { }
     }
 
     private static void toggle(Object player, Object controls, boolean startedVisible) {

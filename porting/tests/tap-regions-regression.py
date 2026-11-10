@@ -78,13 +78,21 @@ fixtures.update({
         }
         public static class Owner extends Service implements View.OnTouchListener {
             public Player e=new Player();
-            public int forwards;
+            public int forwards, chromeChanges;
+            public boolean chromeShown;
+            public boolean a(int command){
+                if(command==3)return chromeShown;
+                chromeShown=command==2;
+                chromeChanges++;
+                return chromeShown;
+            }
             public boolean onTouch(View view,MotionEvent event){forwards++;return false;}
         }
         public static class Listener {
             int toggles;
+            View player;
             public boolean onSingleTapConfirmed(MotionEvent e){
-                if(TapControls141.nativeAllowed(this,e))toggles++;
+                if(TapControls141.nativeAllowed(this,e,player))toggles++;
                 return true;
             }
         }
@@ -134,15 +142,15 @@ fixtures.update({
             ViewGroup root=new ViewGroup();Owner owner=new Owner();
             mode("edges");
             stream(root,owner,1000,500); Handler.advance(1341);
-            check(!owner.e.controls.shown,"popup center blocked");
+            check(!owner.e.controls.shown && owner.chromeChanges==0,"popup center blocks both control layers");
             stream(root,owner,1500,100); Handler.advance(1800);
             check(!owner.e.controls.shown,"popup single waits after first up");
             Handler.advance(1841);
-            check(owner.e.controls.shown,"popup confirmed edge opens");
+            check(owner.e.controls.shown && owner.chromeShown,"popup confirmed edge opens both control layers");
             stream(root,owner,2000,500);Handler.advance(2341);
-            check(owner.e.controls.shown,"popup visible controls stay open for invalid tap");
+            check(owner.e.controls.shown && owner.chromeShown,"popup visible controls stay open for invalid tap");
             stream(root,owner,2500,100);Handler.advance(2841);
-            check(!owner.e.controls.shown,"popup confirmed edge closes");
+            check(!owner.e.controls.shown && !owner.chromeShown,"popup confirmed edge closes both control layers");
             PreferenceManager.PREFS.seek=true;
             stream(root,owner,3000,500);stream(root,owner,3160,502);Handler.advance(3600);
             check(PopupGestures.calls==1&&!owner.e.controls.shown,"popup center double seek unaffected");
@@ -156,24 +164,36 @@ fixtures.update({
             check(!owner.e.controls.shown,"popup replacement never gets stale tap");
             ButtonStub.hit(root,owner);
 
-            Listener listener=new Listener();View view=new View();
-            view.x=200;view.w=600;
-            normal(listener,view,6000,500);Handler.advance(6341);
+            Listener listener=new Listener();ViewGroup view=new ViewGroup();
+            view.x=200;view.w=600;listener.player=view;
+            TextureView render=new TextureView();render.x=250;render.w=500;
+            view.children.add(render);
+            // ExoMedia may deliver touch from a differently sized receiving view.
+            View receiver=new View();receiver.parent=view;receiver.x=0;receiver.w=1000;
+            normal(listener,receiver,6000,500);Handler.advance(6341);
             check(listener.toggles==0,"normal center blocked against video bounds");
-            normal(listener,view,6500,230);
+            normal(listener,receiver,6500,270);
             check(listener.toggles==0,"native single waits for remaining seek interval");
             Handler.advance(6841);
             check(listener.toggles==1,"native confirmed edge toggles");
-            normal(listener,view,7000,230);
+            normal(listener,receiver,7000,270);
             TapControls141.cancelFor(view);Handler.advance(7341);
             check(listener.toggles==1,"native second tap consumed by app cancels deferred toggle");
             mode("center");view.x=50;view.w=300;
-            normal(listener,view,7500,200);Handler.advance(7841);
+            view.children.clear();
+            normal(listener,receiver,7500,200);Handler.advance(7841);
             check(listener.toggles==2,"resized normal video and updated preset");
             Dev112.always=true;
-            normal(listener,view,8000,200);Handler.advance(8341);
+            normal(listener,receiver,8000,200);Handler.advance(8341);
             check(listener.toggles==2,"always-visible controls are not toggled");
             Dev112.always=false;
+            mode("edges");
+            MotionEvent down=event(0,8500,8500,200);
+            TapControls141.nativeTouch(listener,receiver,down);
+            TapControls141.nativeTouch(listener,receiver,event(1,8500,8540,200));
+            Handler.advance(8841);
+            listener.onSingleTapConfirmed(event(0,8500,8500,53));
+            check(listener.toggles==2,"confirmation uses the original screen coordinate, not callback coordinates");
             mode("custom:0-5,45-55,90-100");
             check(TapControls141.allows(view,200,100,false),"saved custom region active");
             mode("rects:30-70-60-80");
@@ -201,7 +221,7 @@ fixtures.update({
 })
 fixtures["android/view/View.java"] = fixtures["android/view/View.java"].replace(
     "public class View{", "public class View implements ViewParent{public boolean isAttachedToWindow(){return true;}"
-    "public boolean hasWindowFocus(){return true;}public ViewParent getParent(){return null;}"
+    "public boolean hasWindowFocus(){return true;}public ViewParent parent;public ViewParent getParent(){return parent;}"
     "public android.content.res.Resources getResources(){return new android.content.res.Resources();}"
     "public boolean isClickable(){return clickable;}")
 fixtures["android/view/MotionEvent.java"] = fixtures["android/view/MotionEvent.java"].replace(

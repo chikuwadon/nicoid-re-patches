@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
@@ -13,6 +14,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import java.util.ArrayList;
@@ -77,10 +79,10 @@ public final class TapRegionSettings141 {
             AlertDialog.Builder builder = (AlertDialog.Builder) Dev112.staticCall("e.e.a.UiDialogs", "builder",
                     new Class<?>[]{Context.class}, activity);
             Editor editor = new Editor(builder.getContext(), TapControls141.settings(activity));
-            builder.setTitle(title(activity)).setView(editor.scroll)
+            Dev112.show(builder.setTitle(title(activity)).setView(editor.scroll)
                     .setNegativeButton(android.R.string.cancel, null)
                     .setPositiveButton(android.R.string.ok, (dialog, which) ->
-                            TapControls141.save(activity, editor.value())).show();
+                            TapControls141.save(activity, editor.value())).create());
         } catch (Exception failure) {
             android.util.Log.w("nicoid-controls", "Cannot open single-tap area editor", failure);
         }
@@ -91,12 +93,11 @@ public final class TapRegionSettings141 {
         final ScrollView scroll;
         final Preview preview;
         final LinearLayout custom;
-        final int accent, foreground;
+        final int accent, foreground, secondary;
         final Button[] presets = new Button[5];
-        final Button[] selectors = new Button[TapRegions141.LIMIT];
         final Button[] edges = new Button[4];
-        final Button add, remove;
-        final TextView stepValue;
+        final Button areaSelector, add, remove, minus, plus;
+        final TextView previewHeading, previewHint, stepValue;
         final String[] edgeNames;
         final ArrayList<int[]> ranges = new ArrayList<>();
         int mode, selected, boundary;
@@ -104,43 +105,38 @@ public final class TapRegionSettings141 {
         Editor(Context context, TapRegions141 current) throws Exception {
             this.context = context;
             accent = (Integer) Dev112.staticCall("e.e.a.UiDialogs", "accent", new Class<?>[]{Context.class}, context);
-            foreground = new TextView(context).getCurrentTextColor();
+            TextView sample = new TextView(context);
+            foreground = sample.getTextColors().getDefaultColor();
+            secondary = tint(foreground, 185);
             edgeNames = new String[]{tr("左", "Left", "左"), tr("右", "Right", "右"),
                     tr("上", "Top", "上"), tr("下", "Bottom", "下")};
             LinearLayout body = column();
-            body.setPadding(dp(16), 0, dp(16), dp(8));
+            body.setPadding(dp(18), dp(2), dp(18), dp(8));
             scroll = new ScrollView(context);
+            scroll.setClipToPadding(false);
             scroll.addView(body);
+            body.addView(note(description(context)));
 
+            section(body, "▦", tr("領域プリセット", "Presets", "區域預設"));
             String[] labels = names(context);
+            String[] symbols = {"⛶", "↔", "↕", "⊙", "▣"};
             for (int start = 0; start < presets.length; start += 3) {
                 LinearLayout row = row(body);
                 for (int i = start; i < Math.min(start + 3, presets.length); i++) {
                     final int option = i;
-                    presets[i] = button(row, labels[i], () -> choose(option));
+                    presets[i] = button(row, symbols[i] + "  " + labels[i], () -> choose(option));
+                    presets[i].setContentDescription(labels[i]);
                 }
             }
-            TextView legend = new TextView(context);
-            legend.setText(tr("色付きの領域をタップすると操作部を開閉",
-                    "Tap a colored area to toggle controls", "點擊著色區域可開關控制項"));
-            legend.setPadding(dp(4), dp(8), dp(4), 0);
-            body.addView(legend);
+            previewHeading = section(body, "▱", "");
+            previewHint = note("");
+            body.addView(previewHint);
             preview = new Preview(this);
-            body.addView(preview, new LinearLayout.LayoutParams(-1, dp(155)));
+            body.addView(preview, new LinearLayout.LayoutParams(-1, dp(148)));
 
             custom = column();
             body.addView(custom);
-            TextView hint = new TextView(context);
-            hint.setText(tr("領域をドラッグで移動、枠をドラッグで調整",
-                    "Drag an area to move it, or drag its border to resize it",
-                    "拖曳區域以移動，拖曳邊框以調整大小"));
-            hint.setPadding(dp(4), 0, dp(4), dp(4));
-            custom.addView(hint);
-            LinearLayout selection = row(custom);
-            for (int i = 0; i < selectors.length; i++) {
-                final int index = i;
-                selectors[i] = button(selection, tr("領域", "Area", "區域") + " " + (i + 1), () -> select(index));
-            }
+            section(custom, "≡", tr("クイック調整", "Fine adjustment", "微調"));
             for (int i = 0; i < edges.length; i += 2) {
                 LinearLayout dimensions = row(custom);
                 for (int j = i; j < i + 2; j++) {
@@ -152,18 +148,32 @@ public final class TapRegionSettings141 {
                 }
             }
             LinearLayout steps = row(custom);
-            Button minus = button(steps, "−", () -> step(-1));
-            minus.setContentDescription(tr("選択した境界を1%減らす", "Decrease selected edge by 1%", "所選邊界減少1%"));
+            minus = button(steps, "−", () -> step(-1));
             stepValue = new TextView(context);
+            stepValue.setTextColor(foreground);
+            stepValue.setTypeface(null, Typeface.BOLD);
             stepValue.setGravity(Gravity.CENTER);
-            steps.addView(stepValue, new LinearLayout.LayoutParams(0, dp(44), 2));
-            Button plus = button(steps, "+", () -> step(1));
-            plus.setContentDescription(tr("選択した境界を1%増やす", "Increase selected edge by 1%", "所選邊界增加1%"));
+            steps.addView(stepValue, new LinearLayout.LayoutParams(0, dp(44), 3));
+            plus = button(steps, "+", () -> step(1));
+            for (Button step : new Button[]{minus, plus}) {
+                step.setTextSize(20);
+                style(step, false);
+                step.setTextColor(accent);
+            }
+
+            section(custom, "▤", tr("領域", "Areas", "區域"));
+            areaSelector = button(row(custom), "", this::showAreas);
+            areaSelector.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
+            areaSelector.setPadding(dp(14), dp(4), dp(14), dp(4));
+            style(areaSelector, false);
             LinearLayout actions = row(custom);
             remove = button(actions, tr("領域を削除", "Delete area", "刪除區域"), this::removeArea);
-            add = button(actions, tr("領域を追加", "Add area", "新增區域"), this::addArea);
-            button(row(custom), tr("初期値に戻す", "Restore default", "恢復預設"),
+            add = button(actions, tr("＋ 領域を追加", "+ Add area", "＋ 新增區域"), this::addArea);
+            style(remove, false);
+            style(add, false);
+            Button reset = button(row(body), tr("↺  初期値に戻す", "↺  Restore default", "↺  恢復預設"),
                     () -> set(TapRegions141.preset(TapRegions141.ALL)));
+            reset.setTextColor(accent);
             set(current);
         }
 
@@ -183,6 +193,57 @@ public final class TapRegionSettings141 {
         int dp(float value) { return Math.round(value * context.getResources().getDisplayMetrics().density); }
         String tr(String ja, String en, String zh) { return Dev112.tr(context, ja, en, zh); }
 
+        private static int tint(int color, int alpha) {
+            return (color & 0x00ffffff) | (alpha << 24);
+        }
+
+        private TextView note(String text) {
+            TextView label = new TextView(context);
+            label.setText(text);
+            label.setTextSize(13);
+            label.setTextColor(secondary);
+            label.setPadding(dp(2), 0, dp(2), dp(4));
+            return label;
+        }
+
+        private TextView section(LinearLayout parent, String symbol, String title) {
+            View divider = new View(context);
+            divider.setBackgroundColor(tint(foreground, 42));
+            LinearLayout.LayoutParams line = new LinearLayout.LayoutParams(-1, dp(1));
+            line.setMargins(0, dp(10), 0, dp(8));
+            parent.addView(divider, line);
+            LinearLayout heading = row(parent);
+            TextView icon = new TextView(context);
+            icon.setText(symbol);
+            icon.setTextColor(accent);
+            icon.setTextSize(17);
+            icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+            icon.setPadding(dp(2), 0, dp(8), dp(4));
+            heading.addView(icon);
+            TextView text = new TextView(context);
+            text.setText(title);
+            text.setTextSize(15);
+            text.setTextColor(foreground);
+            text.setTypeface(null, Typeface.BOLD);
+            text.setPadding(0, 0, 0, dp(4));
+            if (android.os.Build.VERSION.SDK_INT >= 28) text.setAccessibilityHeading(true);
+            heading.addView(text);
+            return text;
+        }
+
+        private String areaName(int index) {
+            return tr("領域", "Area", "區域") + " " + (index + 1);
+        }
+
+        private void showAreas() {
+            PopupMenu menu = new PopupMenu(context, areaSelector);
+            for (int i = 0; i < ranges.size(); i++) menu.getMenu().add(0, i, i, areaName(i));
+            menu.getMenu().setGroupCheckable(0, true, true);
+            menu.getMenu().findItem(selected).setChecked(true);
+            menu.setOnMenuItemClickListener(item -> { select(item.getItemId()); return true; });
+            menu.show();
+        }
+
         Button button(LinearLayout row, String text, Runnable action) {
             Button button = new Button(context, null, android.R.attr.borderlessButtonStyle);
             button.setText(text);
@@ -191,6 +252,7 @@ public final class TapRegionSettings141 {
             button.setMinWidth(0);
             button.setMinimumWidth(0);
             button.setMinHeight(dp(44));
+            button.setMinimumHeight(0);
             button.setPadding(dp(4), dp(3), dp(4), dp(3));
             button.setStateListAnimator(null);
             button.setOnClickListener(v -> action.run());
@@ -202,10 +264,14 @@ public final class TapRegionSettings141 {
 
         private void style(Button button, boolean active) {
             GradientDrawable background = new GradientDrawable();
-            background.setCornerRadius(dp(12));
-            background.setColor(active ? (accent & 0x00ffffff) | 0x28000000 : 0);
-            background.setStroke(dp(1), active ? accent : (foreground & 0x00ffffff) | 0x33000000);
-            button.setBackground(background);
+            background.setCornerRadius(dp(20));
+            background.setColor(active ? tint(accent, 53) : tint(foreground, 12));
+            background.setStroke(dp(1), active ? accent : tint(foreground, 52));
+            button.setBackground(new android.graphics.drawable.RippleDrawable(
+                    android.content.res.ColorStateList.valueOf(tint(accent, 40)), background, null));
+            button.setBackgroundTintList(null);
+            button.setTextColor(foreground);
+            button.setTypeface(null, active ? Typeface.BOLD : Typeface.NORMAL);
             button.setSelected(active);
         }
 
@@ -286,23 +352,43 @@ public final class TapRegionSettings141 {
 
         private void updateCoordinates() {
             int[] range = ranges.get(selected);
-            for (int i = 0; i < edges.length; i++) edges[i].setText(coordinate(i, range[i]));
+            String[] arrows = {"←", "→", "↑", "↓"};
+            for (int i = 0; i < edges.length; i++) {
+                String value = coordinate(i, range[i]);
+                edges[i].setText(arrows[i] + "  " + value);
+                edges[i].setContentDescription(value);
+            }
             stepValue.setText(coordinate(boundary, range[boundary]));
+            minus.setContentDescription(edgeNames[boundary] + " −1%");
+            plus.setContentDescription(edgeNames[boundary] + " +1%");
+            minus.setEnabled((boundary & 1) == 0 ? range[boundary] > 0
+                    : range[boundary] > range[boundary - 1] + 1);
+            plus.setEnabled((boundary & 1) == 0 ? range[boundary] < range[boundary + 1] - 1
+                    : range[boundary] < 100);
+            minus.setAlpha(minus.isEnabled() ? 1 : .42f);
+            plus.setAlpha(plus.isEnabled() ? 1 : .42f);
             preview.invalidate();
         }
 
         void refresh() {
             for (int i = 0; i < presets.length; i++) style(presets[i], i == mode);
             boolean editing = mode == TapRegions141.CUSTOM;
+            previewHeading.setText(editing ? tr("カスタム領域", "Custom area", "自訂區域")
+                    : tr("領域プレビュー", "Area preview", "區域預覽"));
+            previewHint.setText(editing ? tr("領域をドラッグで移動、枠をドラッグで調整",
+                    "Drag an area to move it, or its border to resize it", "拖曳區域以移動，拖曳邊框以調整大小")
+                    : tr("色付きの範囲で操作部を開閉。枠をドラッグしてカスタマイズ",
+                            "Colored areas toggle controls. Drag a border to customize.",
+                            "著色範圍可開關控制項。拖曳邊框以自訂。"));
             custom.setVisibility(editing ? View.VISIBLE : View.GONE);
             if (editing) {
-                for (int i = 0; i < selectors.length; i++) {
-                    selectors[i].setVisibility(i < ranges.size() ? View.VISIBLE : View.GONE);
-                    style(selectors[i], i == selected);
-                }
+                areaSelector.setText(areaName(selected) + "  ▾");
                 for (int i = 0; i < edges.length; i++) style(edges[i], i == boundary);
                 add.setEnabled(ranges.size() < TapRegions141.LIMIT);
                 remove.setEnabled(ranges.size() > 1);
+                add.setTextColor(add.isEnabled() ? accent : secondary);
+                add.setAlpha(add.isEnabled() ? 1 : .42f);
+                remove.setAlpha(remove.isEnabled() ? 1 : .42f);
                 updateCoordinates();
             } else preview.invalidate();
         }
@@ -353,6 +439,7 @@ public final class TapRegionSettings141 {
                 canvas.drawLine(x(mark), frame.top, x(mark), frame.bottom, paint);
                 canvas.drawLine(frame.left, y(mark), frame.right, y(mark), paint);
             }
+            if (editor.mode != TapRegions141.CUSTOM) return;
             int[] r = editor.ranges.get(editor.selected);
             paint.setColor(editor.accent);
             paint.setStyle(Paint.Style.STROKE);

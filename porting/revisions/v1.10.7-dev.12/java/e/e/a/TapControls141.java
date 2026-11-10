@@ -84,6 +84,7 @@ public final class TapControls141 {
 
     private static final class NativeTap {
         WeakReference<View> view;
+        float x, y;
         long down = -1, up = -1;
         int generation;
         boolean replaying;
@@ -99,6 +100,8 @@ public final class TapControls141 {
                 NATIVE.put(listener, state);
             }
             state.view = new WeakReference<>(view);
+            state.x = event.getRawX();
+            state.y = event.getRawY();
             state.down = event.getDownTime();
             state.up = -1;
             state.generation++;
@@ -129,12 +132,12 @@ public final class TapControls141 {
 
     /** The library already confirms single taps. Cover the remaining interval
      * when the app's seek recognizer measures its timeout from finger-up. */
-    public static boolean nativeAllowed(Object listener, MotionEvent event) {
+    public static boolean nativeAllowed(Object listener, MotionEvent event, View player) {
         NativeTap state = NATIVE.get(listener);
         if (state == null) return false;
         View view = state.view.get();
-        if (view == null || !view.hasWindowFocus() || state.down != event.getDownTime()
-                || state.up < 0 || !allows(view, event.getRawX(), event.getRawY(), false)) return false;
+        if (view == null || !player.hasWindowFocus() || state.down != event.getDownTime()
+                || state.up < 0 || !allows(player, state.x, state.y, false)) return false;
         if (state.replaying) return true;
         long due = state.up + ViewConfiguration.getDoubleTapTimeout() + 1L;
         if (SystemClock.uptimeMillis() >= due) return true;

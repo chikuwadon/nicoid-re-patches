@@ -936,6 +936,20 @@ native_replace_method("NicoidPopupViewService$k.smali",
     "    move-result v0\n"
     "    return v0")
 
+# The native listener also receives forwarded popup events. Only the root
+# bridge may toggle the popup chrome after a confirmed, in-region single tap.
+path = ROOT / "method-delta/com/sauzask/nicoid/NicoidPopupViewService$k.smali"
+source = path.read_text(encoding="utf-8")
+assert "onSingleTapConfirmed" not in source
+path.write_text(source + """
+.method public onSingleTapConfirmed(Landroid/view/MotionEvent;)Z
+    .registers 3
+
+    const/4 v0, 0x0
+    return v0
+.end method
+""", encoding="utf-8")
+
 # Skip GestureDetector after a drag has been established, so it cannot consume
 # native window MOVE events. Also allow the native ACTION_DOWN initialization
 # even if GestureDetector recognized a second tap at DOWN.

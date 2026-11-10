@@ -492,9 +492,13 @@ val nicoidModPatch = bytecodePatch(
             it.name == "onSingleTapConfirmed" && it.parameterTypes == listOf("Landroid/view/MotionEvent;")
         }
         val singleThis = checkNotNull(nativeSingle.implementation).registerCount - 2
-        check(singleThis > 0) { "The native single tap callback has no scratch register" }
+        check(singleThis in 1..14) { "Unexpected native single-tap registers" }
+        val videoOwner = videoTap.fields.single {
+            it.type == "Lcom/devbrackets/android/exomedia/ui/widget/VideoView;"
+        }
         nativeSingle.addInstructions(0, """
-            invoke-static/range {v$singleThis .. v${singleThis + 1}}, Le/e/a/TapControls141;->nativeAllowed(Ljava/lang/Object;Landroid/view/MotionEvent;)Z
+            iget-object v0, v$singleThis, ${videoOwner.definingClass}->${videoOwner.name}:${videoOwner.type}
+            invoke-static {v$singleThis, v${singleThis + 1}, v0}, Le/e/a/TapControls141;->nativeAllowed(Ljava/lang/Object;Landroid/view/MotionEvent;Landroid/view/View;)Z
             move-result v0
             if-nez v0, :nicoid_single_tap_allowed
             const/4 v0, 0x1

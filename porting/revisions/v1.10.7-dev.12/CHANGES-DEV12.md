@@ -4,3 +4,7 @@
 - Provide entire-video, side edges, top and bottom edges, center, and up to three custom rectangles.
 - Confirm single taps before toggling controls so double-tap seek does not briefly show them.
 - Show the selected startup screen in its settings summary.
+
+
+- Group the tap-area editor into presets, preview, fine adjustment and area management.
+- Resolve taps against the native video owner, and route popup single-tap chrome changes through the same area policy.

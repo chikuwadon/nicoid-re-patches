@@ -7,7 +7,7 @@ Here we guard presentation layout, popup positioning, and stable mode IDs.
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[2]
-revision = root / "porting/revisions/v1.10.7-dev.18/java/e/e/a"
+revision = root / "porting/revisions/v1.10.7-dev.19/java/e/e/a"
 source = (revision / "TapRegionSettings141.java").read_text(encoding="utf-8")
 regions = (revision / "TapRegions141.java").read_text(encoding="utf-8")
 touch = (revision / "TapControls141.java").read_text(encoding="utf-8")

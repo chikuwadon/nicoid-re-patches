@@ -87,6 +87,7 @@ if grep -Fq '"isVisible"' "$work/merged-smali/e/e/a/PopupTouch125.smali"; then
 fi
 grep -Fq 'isShown()Z' "$work/merged-smali/e/e/a/PopupTouch125.smali"
 grep -Fq '.method public end(JJ)I' "$work/merged-smali/e/e/a/PopupTouchPolicy125\$State.smali"
+grep -Fq 'TapControls141;->activityTouch(Landroid/app/Activity;Landroid/view/MotionEvent;)V' "$work/native-smali/com/sauzask/nicoid/NicoidVideoActivity.smali"
 # The popup's stock single callback must be replaced in the delivered delta.
 grep -Fq '.method public onSingleTapConfirmed(Landroid/view/MotionEvent;)Z' "$work/native-smali/com/sauzask/nicoid/NicoidPopupViewService\$k.smali"
 grep -Fq 'PopupTouch125;->doubleTap(Ljava/lang/Object;Landroid/view/MotionEvent;)Z' "$work/native-smali/com/sauzask/nicoid/NicoidPopupViewService\$k.smali"

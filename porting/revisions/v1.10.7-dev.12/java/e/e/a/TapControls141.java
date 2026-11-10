@@ -1,10 +1,10 @@
 package e.e.a;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
@@ -19,7 +19,7 @@ import java.util.WeakHashMap;
 public final class TapControls141 {
     static final String KEY = "nicoid_single_tap_control_region";
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
-    private static final WeakHashMap<Object, NativeTap> NATIVE = new WeakHashMap<>();
+    private static final WeakHashMap<Activity, Tap> TAPS = new WeakHashMap<>();
     private static SharedPreferences preferences;
     private static volatile TapRegions141 regions = TapRegions141.preset(TapRegions141.ALL);
     private static final SharedPreferences.OnSharedPreferenceChangeListener LISTENER =
@@ -82,85 +82,111 @@ public final class TapControls141 {
                 && !alwaysVisible(context, popup);
     }
 
-    private static final class NativeTap {
-        WeakReference<View> view;
+    private static final class Tap {
+        WeakReference<View> player;
         float x, y;
-        long down = -1, up = -1;
-        int generation;
-        boolean replaying;
+        int slop, width, height;
+        long down;
+        boolean candidate;
+        Runnable pending;
+
+        void cancel() {
+            candidate = false;
+            if (pending != null) MAIN.removeCallbacks(pending);
+            pending = null;
+        }
+
+        boolean moved(MotionEvent event) {
+            float dx = event.getRawX() - x, dy = event.getRawY() - y;
+            return dx * dx + dy * dy > (float) slop * slop;
+        }
     }
 
-    /** Observe the real stream before the native GestureDetector receives it. */
-    public static void nativeTouch(Object listener, View view, MotionEvent event) {
+    private static View player(Activity activity) throws Exception {
+        Object fragment = Dev112.get(activity, "v");
+        return fragment == null ? null : (View) Dev112.get(fragment, "a0");
+    }
+
+    /** Observe cancellations even when the seek or gesture recognizer consumes the event. */
+    public static void activityInput(Activity activity, MotionEvent event) {
+        Tap tap = TAPS.get(activity);
+        if (tap == null) return;
         int action = event.getActionMasked();
-        NativeTap state = NATIVE.get(listener);
+        if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_CANCEL
+                || action == MotionEvent.ACTION_POINTER_DOWN || action == MotionEvent.ACTION_POINTER_UP
+                || (action == MotionEvent.ACTION_MOVE && tap.candidate && tap.moved(event))) {
+            tap.cancel();
+        }
+    }
+
+    /** Observe only the stream the Activity is about to pass to Android's normal view dispatch. */
+    public static void activityTouch(Activity activity, MotionEvent event) {
+        int action = event.getActionMasked();
         if (action == MotionEvent.ACTION_DOWN) {
-            if (state == null) {
-                state = new NativeTap();
-                NATIVE.put(listener, state);
-            }
-            state.view = new WeakReference<>(view);
-            state.x = event.getRawX();
-            state.y = event.getRawY();
-            state.down = event.getDownTime();
-            state.up = -1;
-            state.generation++;
-        } else if (state != null && action == MotionEvent.ACTION_UP && state.down == event.getDownTime()) {
-            state.up = event.getEventTime();
-        } else if (state != null && (action == MotionEvent.ACTION_CANCEL ||
-                action == MotionEvent.ACTION_POINTER_DOWN)) {
-            state.generation++;
-            state.down = state.up = -1;
-        }
-    }
-
-    /** A seek consumed upstream of the native listener also cancels its tap. */
-    public static void cancelFor(Object player) {
-        for (NativeTap state : NATIVE.values()) {
-            View view = state.view.get();
-            while (view != null) {
-                if (view == player) {
-                    state.generation++;
-                    state.down = state.up = -1;
-                    break;
-                }
-                android.view.ViewParent parent = view.getParent();
-                view = parent instanceof View ? (View) parent : null;
-            }
-        }
-    }
-
-    /** The library already confirms single taps. Cover the remaining interval
-     * when the app's seek recognizer measures its timeout from finger-up. */
-    public static boolean nativeAllowed(Object listener, MotionEvent event, View player) {
-        NativeTap state = NATIVE.get(listener);
-        if (state == null) return false;
-        View view = state.view.get();
-        if (view == null || !player.hasWindowFocus() || state.down != event.getDownTime()
-                || state.up < 0 || !allows(player, state.x, state.y, false)) return false;
-        if (state.replaying) return true;
-        long due = state.up + ViewConfiguration.getDoubleTapTimeout() + 1L;
-        if (SystemClock.uptimeMillis() >= due) return true;
-        int generation = state.generation;
-        WeakReference<Object> owner = new WeakReference<>(listener);
-        MotionEvent saved = MotionEvent.obtain(event);
-        if (!MAIN.postAtTime(() -> {
             try {
-                Object current = owner.get();
-                if (current != null && state.generation == generation) {
-                    state.replaying = true;
-                    java.lang.reflect.Method callback = current.getClass()
-                            .getDeclaredMethod("onSingleTapConfirmed", MotionEvent.class);
-                    callback.setAccessible(true);
-                    callback.invoke(current, saved);
+                View video = player(activity);
+                float x = event.getRawX(), y = event.getRawY();
+                if (!allows(video, x, y, false)) {
+                    if (video != null && video.isShown()) trace(video, false);
+                    return;
                 }
-            } catch (ReflectiveOperationException ignored) {
-                // A stale callback cannot toggle a replacement player's controls.
-            } finally {
-                state.replaying = false;
-                saved.recycle();
+                // Direct controls still receive every original event.
+                if (Boolean.TRUE.equals(Dev112.staticCall("e.e.a.Review181", "control",
+                        new Class<?>[]{View.class, float.class, float.class, View.class},
+                        activity.getWindow().getDecorView(), x, y, video))) return;
+                Tap tap = TAPS.get(activity);
+                if (tap == null) {
+                    tap = new Tap();
+                    TAPS.put(activity, tap);
+                }
+                tap.player = new WeakReference<>(video);
+                tap.x = x;
+                tap.y = y;
+                tap.width = video.getWidth();
+                tap.height = video.getHeight();
+                tap.slop = ViewConfiguration.get(activity).getScaledTouchSlop();
+                tap.down = event.getDownTime();
+                tap.candidate = true;
+            } catch (Exception failure) {
+                android.util.Log.w("nicoid-tap-area", "Unable to track player tap", failure);
             }
-        }, due)) saved.recycle();
-        return false;
+            return;
+        }
+        if (action != MotionEvent.ACTION_UP) return;
+        Tap tap = TAPS.get(activity);
+        if (tap == null || !tap.candidate || tap.down != event.getDownTime()) return;
+        tap.candidate = false;
+        long up = event.getEventTime();
+        if (tap.moved(event) || up - tap.down >= ViewConfiguration.getLongPressTimeout()) return;
+        WeakReference<Activity> owner = new WeakReference<>(activity);
+        tap.pending = () -> confirm(owner.get(), tap);
+        MAIN.postAtTime(tap.pending, up + ViewConfiguration.getDoubleTapTimeout() + 1L);
+    }
+
+    private static void confirm(Activity activity, Tap tap) {
+        tap.pending = null;
+        View video = tap.player.get();
+        if (activity == null || activity.isFinishing() || video == null || !video.hasWindowFocus()
+                || video.getWidth() != tap.width || video.getHeight() != tap.height) return;
+        try {
+            if (video != player(activity) || !allows(video, tap.x, tap.y, false)) return;
+            Object controls = video.getClass().getMethod("getVideoControlsCore").invoke(video);
+            if (controls == null) return;
+            if (Boolean.TRUE.equals(controls.getClass().getMethod("isVisible").invoke(controls))) {
+                controls.getClass().getMethod("hide", boolean.class).invoke(controls, false);
+            } else {
+                video.getClass().getMethod("showControls").invoke(video);
+            }
+            trace(video, true);
+        } catch (Exception failure) {
+            android.util.Log.w("nicoid-tap-area", "Unable to toggle player controls", failure);
+        }
+    }
+
+    private static void trace(View video, boolean allowed) {
+        if (regions.mode != TapRegions141.ALL && android.util.Log.isLoggable("nicoid-tap-area", android.util.Log.DEBUG)) {
+            android.util.Log.d("nicoid-tap-area", "Normal player mode=" + regions.mode + " allowed=" + allowed
+                    + " video=" + video.getWidth() + "x" + video.getHeight());
+        }
     }
 }

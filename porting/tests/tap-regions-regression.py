@@ -57,9 +57,27 @@ fixtures.update({
     "android/util/DisplayMetrics.java": "package android.util; public class DisplayMetrics {public float density=1;}",
     "android/content/res/Resources.java": """package android.content.res;
     public class Resources {public android.util.DisplayMetrics getDisplayMetrics(){return new android.util.DisplayMetrics();}}""",
+    "android/app/Activity.java": """package android.app; public class Activity extends android.content.Context {
+      public boolean isFinishing(){return false;}
+      public android.view.Window getWindow(){return new android.view.Window();}
+    }""",
+    "android/view/Window.java": """package android.view; public class Window {
+      public View getDecorView(){return new View();}
+    }""",
+    "android/util/Log.java": """package android.util; public class Log {
+      public static final int DEBUG=3;
+      public static boolean isLoggable(String tag,int priority){return false;}
+      public static int i(String tag,String msg){return 0;}
+      public static int d(String tag,String msg){return 0;}
+      public static int w(String tag,String msg){return 0;}
+      public static int w(String tag,String msg,Throwable error){throw new AssertionError(msg,error);}
+    }""",
     "e/e/a/Dev112.java": """package e.e.a;
-    class Dev112 {static boolean always;
-      static Object staticCall(String type,String method,Class<?>[] arguments,Object... values){return always;}
+    class Dev112 {static boolean always, directControl;
+      static Object staticCall(String type,String method,Class<?>[] arguments,Object... values){
+        return method.equals("control")?directControl:always;
+      }
+      static Object get(Object value,String field)throws Exception{return value.getClass().getField(field).get(value);}
     }""",
     "e/e/a/Tap141Test.java": """package e.e.a;
     import android.app.Service;
@@ -69,11 +87,14 @@ fixtures.update({
     public class Tap141Test {
         static int checks;
         static void check(boolean ok,String name){checks++;if(!ok)throw new AssertionError(name);}
-        public static class Controls extends View {public void hide(){shown=false;}}
+        public static class Controls extends View {public void hide(){shown=false;}
+            public void hide(boolean delayed){if(delayed)throw new AssertionError();hide();}
+            public boolean isVisible(){return shown;}}
         public static class Player extends ViewGroup {
             public final Controls controls=new Controls();
             public Player(){controls.shown=false;}
             public Controls getVideoControls(){return controls;}
+            public Controls getVideoControlsCore(){return controls;}
             public void showControls(){controls.shown=true;}
         }
         public static class Owner extends Service implements View.OnTouchListener {
@@ -88,13 +109,15 @@ fixtures.update({
             }
             public boolean onTouch(View view,MotionEvent event){forwards++;return false;}
         }
-        public static class Listener {
-            int toggles;
-            View player;
-            public boolean onSingleTapConfirmed(MotionEvent e){
-                if(TapControls141.nativeAllowed(this,e,player))toggles++;
-                return true;
-            }
+        public static class Host extends android.app.Activity {
+            public final Fragment v=new Fragment();
+        }
+        public static class Fragment {
+            public Player a0=new Player();
+        }
+        static void dispatch(Host host,MotionEvent event,boolean consumed){
+            TapControls141.activityInput(host,event);
+            if(!consumed)TapControls141.activityTouch(host,event);
         }
         static MotionEvent event(int action,long down,long at,float x){
             MotionEvent e=new MotionEvent(action,at,x,100);
@@ -104,12 +127,9 @@ fixtures.update({
             PopupTouch125.dispatch(root,owner,event(0,time,time,x));
             PopupTouch125.dispatch(root,owner,event(1,time,time+40,x));
         }
-        static void normal(Listener listener,View view,long time,float x){
-            MotionEvent d=event(0,time,time,x);
-            TapControls141.nativeTouch(listener,view,d);
-            TapControls141.nativeTouch(listener,view,event(1,time,time+40,x));
-            Handler.advance(time+300);
-            listener.onSingleTapConfirmed(d);
+        static void normal(Host host,long time,float x){
+            dispatch(host,event(0,time,time,x),false);
+            dispatch(host,event(1,time,time+40,x),false);
         }
         static void mode(String value){
             PreferenceManager.PREFS.edit().putString(TapControls141.KEY,value).apply();
@@ -164,36 +184,49 @@ fixtures.update({
             check(!owner.e.controls.shown,"popup replacement never gets stale tap");
             ButtonStub.hit(root,owner);
 
-            Listener listener=new Listener();ViewGroup view=new ViewGroup();
-            view.x=200;view.w=600;listener.player=view;
+            Host host=new Host();Player view=host.v.a0;
+            view.x=200;view.w=600;
             TextureView render=new TextureView();render.x=250;render.w=500;
             view.children.add(render);
-            // ExoMedia may deliver touch from a differently sized receiving view.
-            View receiver=new View();receiver.parent=view;receiver.x=0;receiver.w=1000;
-            normal(listener,receiver,6000,500);Handler.advance(6341);
-            check(listener.toggles==0,"normal center blocked against video bounds");
-            normal(listener,receiver,6500,270);
-            check(listener.toggles==0,"native single waits for remaining seek interval");
+            normal(host,6000,500);Handler.advance(6341);
+            check(!view.controls.shown,"normal center blocked against rendered video bounds");
+            normal(host,6500,270);
+            check(!view.controls.shown,"normal waits for seek timeout");
             Handler.advance(6841);
-            check(listener.toggles==1,"native confirmed edge toggles");
-            normal(listener,receiver,7000,270);
-            TapControls141.cancelFor(view);Handler.advance(7341);
-            check(listener.toggles==1,"native second tap consumed by app cancels deferred toggle");
-            mode("center");view.x=50;view.w=300;
-            view.children.clear();
-            normal(listener,receiver,7500,200);Handler.advance(7841);
-            check(listener.toggles==2,"resized normal video and updated preset");
+            check(view.controls.shown,"normal confirmed edge opens native controls");
+            normal(host,7000,500);Handler.advance(7341);
+            check(view.controls.shown,"normal outside tap cannot close visible controls");
+            normal(host,7500,270);
+            dispatch(host,event(0,7680,7680,270),true);
+            dispatch(host,event(1,7680,7730,270),true);Handler.advance(7900);
+            check(view.controls.shown,"upstream double tap cancels the first toggle");
+            normal(host,8000,270);Handler.advance(8341);
+            check(!view.controls.shown,"normal confirmed edge closes native controls");
+            mode("center");view.x=50;view.w=300;view.children.clear();
+            normal(host,8500,200);Handler.advance(8841);
+            check(view.controls.shown,"rotated/resized video uses current area and dimensions");
             Dev112.always=true;
-            normal(listener,receiver,8000,200);Handler.advance(8341);
-            check(listener.toggles==2,"always-visible controls are not toggled");
+            normal(host,9000,200);Handler.advance(9341);
+            check(view.controls.shown,"always-visible controls are not toggled");
             Dev112.always=false;
-            mode("edges");
-            MotionEvent down=event(0,8500,8500,200);
-            TapControls141.nativeTouch(listener,receiver,down);
-            TapControls141.nativeTouch(listener,receiver,event(1,8500,8540,200));
-            Handler.advance(8841);
-            listener.onSingleTapConfirmed(event(0,8500,8500,53));
-            check(listener.toggles==2,"confirmation uses the original screen coordinate, not callback coordinates");
+            Dev112.directControl=true;
+            normal(host,9500,200);Handler.advance(9841);
+            check(view.controls.shown,"play/pause and seek controls retain their events");
+            Dev112.directControl=false;
+            dispatch(host,event(0,10000,10000,200),false);
+            dispatch(host,event(2,10000,10020,240),true);
+            dispatch(host,event(1,10000,10040,200),false);Handler.advance(10341);
+            check(view.controls.shown,"upstream swipe cancels candidate even if finger returns");
+            dispatch(host,event(0,10500,10500,200),false);
+            dispatch(host,event(5,10500,10520,200),true);
+            dispatch(host,event(1,10500,10540,200),false);Handler.advance(10841);
+            check(view.controls.shown,"second pointer cancels candidate");
+            dispatch(host,event(0,11000,11000,200),false);
+            dispatch(host,event(1,11000,11510,200),false);Handler.advance(11841);
+            check(view.controls.shown,"hold does not toggle controls");
+            normal(host,12000,200);view.w=400;Handler.advance(12341);
+            check(view.controls.shown,"rotation before confirmation discards old tap");
+            view.w=300;
             mode("custom:0-5,45-55,90-100");
             check(TapControls141.allows(view,200,100,false),"saved custom region active");
             mode("rects:30-70-60-80");

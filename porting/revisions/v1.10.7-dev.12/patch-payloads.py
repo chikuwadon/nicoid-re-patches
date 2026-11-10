@@ -1398,14 +1398,9 @@ method("Review181.smali", ".method public static settings(Landroid/preference/Pr
        "    :cond_cc\n    invoke-static {p0}, Le/e/a/TapRegionSettings141;->install(Landroid/preference/PreferenceActivity;)V\n"
        "    return-void")
 
-# Preserve upstream double-tap seek even when it consumes the second down
-# before the native GestureDetector can cancel a deferred single toggle.
-method("PlayerGestures219.smali", ".method static seek(Landroid/app/Activity;Ljava/lang/Object;I)Z",
-       "    :cond_19\n    invoke-virtual {p1}, Ljava/lang/Object;->getClass()Ljava/lang/Class;",
-       "    :cond_19\n    invoke-static {p1}, Le/e/a/TapControls141;->cancelFor(Ljava/lang/Object;)V\n\n"
-       "    invoke-virtual {p1}, Ljava/lang/Object;->getClass()Ljava/lang/Class;")
-method("Review181.smali", ".method public static seekTouchLegacy(Landroid/app/Activity;Landroid/view/MotionEvent;)Z",
-       "    iget-boolean v8, v1, Le/e/a/Review181$Taps;->second:Z\n\n    if-eqz v8, :cond_187",
-       "    iget-boolean v8, v1, Le/e/a/Review181$Taps;->second:Z\n\n"
-       "    if-eqz v8, :cond_187\n\n"
-       "    invoke-static {v2}, Le/e/a/TapControls141;->cancelFor(Ljava/lang/Object;)V")
+# Observe the single-tap candidate after the app's gesture and seek handlers.
+native_method("NicoidVideoActivity.smali", ".method public dispatchTouchEvent(Landroid/view/MotionEvent;)Z",
+              "    :cond_8\n    invoke-super {p0, p1}, Landroid/app/Activity;->dispatchTouchEvent(Landroid/view/MotionEvent;)Z",
+              "    :cond_8\n"
+              "    invoke-static {p0, p1}, Le/e/a/TapControls141;->activityTouch(Landroid/app/Activity;Landroid/view/MotionEvent;)V\n"
+              "    invoke-super {p0, p1}, Landroid/app/Activity;->dispatchTouchEvent(Landroid/view/MotionEvent;)Z")

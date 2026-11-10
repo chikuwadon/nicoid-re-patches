@@ -8,3 +8,6 @@
 
 - Group the tap-area editor into presets, preview, fine adjustment and area management.
 - Resolve taps against the native video owner, and route popup single-tap chrome changes through the same area policy.
+
+- Apply the saved area in the foreground player touch dispatch, independently of the library listener.
+- Keep area management and the two-row quick adjustment visible for every preset.

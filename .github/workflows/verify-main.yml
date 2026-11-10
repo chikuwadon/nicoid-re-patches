@@ -109,7 +109,9 @@ jobs:
 
   cleanup-v111:
     name: Remove obsolete v1.11.0 development refs and artifacts
-    if: github.event_name == 'push' && github.event.head_commit.message == 'chore(maintenance): cleanup obsolete v1.11.0 development refs and artifacts'
+    if: >-
+      github.event_name == 'push' &&
+      github.event.head_commit.message == 'chore(maintenance): cleanup obsolete v1.11.0 development refs and artifacts'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:

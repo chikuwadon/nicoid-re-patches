@@ -16,13 +16,13 @@ assert "glow.inner = mode == POPUP;" in ambient
 assert "glow.spread = dp(host, mode == POPUP ?" in ambient
 assert "if (mode == POPUP) return root" not in ambient
 assert "if (mode == NORMAL && frame.left <= 0" not in ambient
-assert "if (mode == POPUP) {" in ambient
+assert "if (mode != FULL || host == target" in ambient
 assert "perimeterGlow.foregroundRoot = decor;" in ambient
 assert "int id = root.getResources().getIdentifier(\"commentlay\"" in ambient
 # Native player backgrounds must remain unaffected as layers; the
 # normal halo is drawn over backgrounds but excludes only glyph outlines
 # rather than entire TextView/button rectangles.
-for token in ("installNormalExterior(target)", "decor.getOverlay().add(perimeterGlow)", "normalOverlayHost.getOverlay().remove(perimeterGlow)", "perimeterGlow.foregroundRoot = decor", "text.getPaint().getTextPath", "c.clipPath(glyphPath, Region.Op.DIFFERENCE)", "getSystemWindowInsetTop()", "final boolean next = !isSelected()", "current.scheduleRefresh()", "MAIN.post(queuedRefresh)", "MAIN.removeCallbacks(queuedRefresh)"):
+for token in ("video.contains(textBounds)", "installNormalExterior(target)", "decor.getOverlay().add(perimeterGlow)", "normalOverlayHost.getOverlay().remove(perimeterGlow)", "perimeterGlow.foregroundRoot = decor", "text.getPaint().getTextPath", "c.clipPath(glyphPath, Region.Op.DIFFERENCE)", "getSystemWindowInsetTop()", "final boolean next = !isSelected()", "current.scheduleRefresh()", "MAIN.post(queuedRefresh)", "MAIN.removeCallbacks(queuedRefresh)"):
  assert token in ambient, token
 for forbidden in ("normalBackdropHost(", "backgroundHost.setBackground(background)", "canvas.clipRect(shieldRect", "glow.inner = mode != FULL;"):
  assert forbidden not in ambient, forbidden

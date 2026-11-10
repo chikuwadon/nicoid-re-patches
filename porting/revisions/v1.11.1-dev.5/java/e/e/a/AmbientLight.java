@@ -771,7 +771,10 @@ public final class AmbientLight {
             if (depth > 18 || protectedViews++ > 350 || !v.isShown()
                     || !v.getGlobalVisibleRect(textBounds)) return;
             textBounds.offset(-foregroundOrigin[0], -foregroundOrigin[1]);
-            if (!Rect.intersects(textBounds, lightBounds)) return;
+            // Everything fully inside the video cannot be reached by an
+            // OUTWARD glow, so skip comment trees and in-video controls.
+            if (!Rect.intersects(textBounds, lightBounds)
+                    || video.contains(textBounds)) return;
             v.getLocationOnScreen(textOrigin);
             int x = textOrigin[0] - foregroundOrigin[0];
             int y = textOrigin[1] - foregroundOrigin[1];

@@ -62,8 +62,8 @@ expected = {
     "TabPagingRules233.smali": ["0x3e3851ec", "0x43fa0000"],
     "Following190$Gestures.smali": ["0x3e19999a"],
     "PlaylistUrlParser.smali": ["canonicalUrl", "nicovideo.jp"],
-    "PatchVersion237.smali": ["1.10.7-dev.13"],
-    "ModernShorts.smali": ["v1.10.7-dev.13 @chikuwadon"],
+    "PatchVersion237.smali": ["1.10.7-dev.14"],
+    "ModernShorts.smali": ["v1.10.7-dev.14 @chikuwadon"],
     "TabRoutes228.smali": [
         "Dev132;->addRankingLabel(Landroid/app/Activity;[Ljava/lang/String;)[Ljava/lang/String;",
         "Dev111;->capturePage(Landroid/app/Activity;)V",
@@ -216,7 +216,7 @@ print("Verified development DEX assembly and class coverage: PASS")
 
 # Verify the precise version in the *assembled* helper DEX, not only in staged smali.
 version = sys.argv[3]
-assert version == "1.10.7-dev.13"
+assert version == "1.10.7-dev.14"
 dex_data = (output / "helpers.mpe").read_bytes()
 def dex_strings(data):
     strings_size, strings_off = struct.unpack_from("<II", data, 0x38)

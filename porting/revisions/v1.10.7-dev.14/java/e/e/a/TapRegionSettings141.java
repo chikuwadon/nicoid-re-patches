@@ -15,7 +15,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
-import android.widget.PopupMenu;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import java.util.ArrayList;
@@ -81,12 +80,29 @@ public final class TapRegionSettings141 {
                     new Class<?>[]{Context.class}, activity);
             Editor editor = new Editor(builder.getContext(), TapControls141.settings(activity),
                     TapControls141.openOnly(activity));
-            Dev112.show(builder.setTitle(title(activity)).setView(editor.scroll)
+            AlertDialog dialog = builder.setTitle(title(activity)).setView(editor.scroll)
                     .setNegativeButton(android.R.string.cancel, null)
-                    .setPositiveButton(android.R.string.ok, (dialog, which) ->
-                            TapControls141.save(activity, editor.value(), editor.openOnly.isChecked())).create());
+                    .setPositiveButton(android.R.string.ok, (closed, which) ->
+                            TapControls141.save(activity, editor.value(), editor.openOnly.isChecked())).create();
+            Dev112.show(dialog);
+            roundDialog(dialog, 28);
         } catch (Exception failure) {
             android.util.Log.w("nicoid-controls", "Cannot open single-tap area editor", failure);
+        }
+    }
+
+    /** Apply the same softly rounded surface to both the editor and its area picker. */
+    private static void roundDialog(AlertDialog dialog, int radiusDp) {
+        if (dialog.getWindow() == null) return;
+        try {
+            int surface = (Integer) Dev112.staticCall("e.e.a.UiDialogs", "surface",
+                    new Class<?>[]{Context.class}, dialog.getContext());
+            GradientDrawable background = new GradientDrawable();
+            background.setColor(surface);
+            background.setCornerRadius(radiusDp * dialog.getContext().getResources().getDisplayMetrics().density);
+            dialog.getWindow().setBackgroundDrawable(background);
+        } catch (Exception error) {
+            android.util.Log.w("nicoid-controls", "Could not round tap-area dialog", error);
         }
     }
 
@@ -115,7 +131,7 @@ public final class TapRegionSettings141 {
             edgeNames = new String[]{tr("左", "Left", "左"), tr("右", "Right", "右"),
                     tr("上", "Top", "上"), tr("下", "Bottom", "下")};
             LinearLayout body = column();
-            body.setPadding(dp(18), dp(2), dp(18), dp(8));
+            body.setPadding(dp(18), dp(6), dp(18), dp(14));
             scroll = new ScrollView(context);
             scroll.setClipToPadding(false);
             scroll.addView(body);
@@ -123,19 +139,36 @@ public final class TapRegionSettings141 {
             section(body, "▦", tr("領域プリセット", "Presets", "區域預設"));
             String[] labels = names(context);
             String[] symbols = {"⛶", "↔", "↕", "⊙", "▣"};
-            for (int start = 0; start < presets.length; start += 3) {
-                LinearLayout row = row(body);
-                for (int i = start; i < Math.min(start + 3, presets.length); i++) {
-                    final int option = i;
-                    presets[i] = button(row, symbols[i] + "  " + labels[i], () -> choose(option));
-                    presets[i].setContentDescription(labels[i]);
+            // Presentation order only: never change the persisted mode IDs.
+            // Row 1: Entire video / Custom; row 2: Top-bottom / Center / Side edges.
+            int[] order = {TapRegions141.ALL, TapRegions141.CUSTOM,
+                    TapRegions141.VERTICAL_EDGES, TapRegions141.CENTER, TapRegions141.EDGES};
+            for (int line = 0; line < 2; line++) {
+                LinearLayout presetRow = row(body);
+                LinearLayout.LayoutParams rowSize = (LinearLayout.LayoutParams) presetRow.getLayoutParams();
+                rowSize.topMargin = dp(line == 0 ? 3 : 7);
+                rowSize.bottomMargin = dp(3);
+                presetRow.setLayoutParams(rowSize);
+                int from = line == 0 ? 0 : 2;
+                int until = line == 0 ? 2 : order.length;
+                for (int i = from; i < until; i++) {
+                    final int option = order[i];
+                    Button preset = button(presetRow, symbols[option] + "  " + labels[option],
+                            () -> choose(option));
+                    preset.setMinHeight(dp(38));
+                    preset.setContentDescription(labels[option]);
+                    LinearLayout.LayoutParams buttonSize = (LinearLayout.LayoutParams) preset.getLayoutParams();
+                    buttonSize.leftMargin = buttonSize.rightMargin = dp(4);
+                    preset.setLayoutParams(buttonSize);
+                    presets[option] = preset;
                 }
             }
             openOnly = new CheckBox(context);
             openOnly.setText(tr("操作部を開くときだけ領域を制限", "Limit area only when opening controls", "只在開啟控制項時限制區域"));
             openOnly.setTextSize(13);
             openOnly.setChecked(openingOnly);
-            openOnly.setMinHeight(dp(36));
+            openOnly.setMinHeight(dp(42));
+            openOnly.setPadding(0, dp(3), 0, dp(3));
             openOnly.setButtonTintList(new android.content.res.ColorStateList(
                     new int[][]{new int[]{android.R.attr.state_checked}, new int[0]},
                     new int[]{accent, secondary}));
@@ -149,18 +182,21 @@ public final class TapRegionSettings141 {
 
             section(body, "≡", tr("クイック調整", "Fine adjustment", "微調"));
             for (int i = 0; i < adjustments.length; i += 2) {
-                if (i > 0) divider(body, 1, 1);
                 LinearLayout pair = row(body);
+                pair.setPadding(0, dp(i == 0 ? 3 : 7), 0, dp(3));
                 addAdjustment(pair, i);
                 addAdjustment(pair, i + 1);
             }
 
             section(body, "▤", tr("領域", "Areas", "區域"));
             android.widget.FrameLayout selector = new android.widget.FrameLayout(context);
-            body.addView(selector, new LinearLayout.LayoutParams(-1, -2));
+            LinearLayout.LayoutParams selectorSize = new LinearLayout.LayoutParams(-1, -2);
+            selectorSize.setMargins(dp(2), dp(7), dp(2), dp(8));
+            body.addView(selector, selectorSize);
             areaSelector = createButton("", this::showAreas);
             areaSelector.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
-            areaSelector.setPadding(dp(14), dp(4), dp(32), dp(4));
+            areaSelector.setPadding(dp(14), dp(6), dp(32), dp(6));
+            areaSelector.setMinHeight(dp(42));
             style(areaSelector, false);
             selector.addView(areaSelector, new android.widget.FrameLayout.LayoutParams(-1, -2));
             areaChevron = new TextView(context);
@@ -172,11 +208,14 @@ public final class TapRegionSettings141 {
             chevron.setMarginEnd(dp(14));
             selector.addView(areaChevron, chevron);
             LinearLayout actions = row(body);
+            actions.setPadding(0, dp(3), 0, dp(6));
             remove = button(actions, tr("領域を削除", "Delete area", "刪除區域"), this::removeArea);
             add = button(actions, tr("＋ 領域を追加", "+ Add area", "＋ 新增區域"), this::addArea);
             style(remove, false);
             style(add, false);
-            Button reset = button(row(body), tr("初期値に戻す", "Restore default", "恢復預設"),
+            LinearLayout resetRow = row(body);
+            resetRow.setPadding(0, dp(7), 0, dp(7));
+            Button reset = button(resetRow, tr("初期値に戻す", "Restore default", "恢復預設"),
                     () -> {
                         openOnly.setChecked(false);
                         set(TapRegions141.preset(TapRegions141.ALL));
@@ -224,7 +263,7 @@ public final class TapRegionSettings141 {
         }
 
         private TextView section(LinearLayout parent, String symbol, String title) {
-            divider(parent, 6, 5);
+            divider(parent, 9, 7);
             LinearLayout heading = row(parent);
             TextView icon = new TextView(context);
             icon.setText(symbol);
@@ -249,12 +288,22 @@ public final class TapRegionSettings141 {
         }
 
         private void showAreas() {
-            PopupMenu menu = new PopupMenu(context, areaSelector);
-            for (int i = 0; i < ranges.size(); i++) menu.getMenu().add(0, i, i, areaName(i));
-            menu.getMenu().setGroupCheckable(0, true, true);
-            menu.getMenu().findItem(selected).setChecked(true);
-            menu.setOnMenuItemClickListener(item -> { select(item.getItemId()); return true; });
-            menu.show();
+            String[] items = new String[ranges.size()];
+            for (int i = 0; i < items.length; i++) items[i] = areaName(i);
+            try {
+                AlertDialog.Builder builder = (AlertDialog.Builder) Dev112.staticCall(
+                        "e.e.a.UiDialogs", "builder", new Class<?>[]{Context.class}, context);
+                AlertDialog picker = builder.setTitle(tr("領域を選択", "Choose area", "選擇區域"))
+                        .setSingleChoiceItems(items, selected, (dialog, which) -> {
+                            select(which);
+                            dialog.dismiss();
+                        })
+                        .setNegativeButton(android.R.string.cancel, null).create();
+                Dev112.show(picker);
+                roundDialog(picker, 24);
+            } catch (Exception error) {
+                android.util.Log.w("nicoid-controls", "Cannot open rounded area selector", error);
+            }
         }
 
         private Button createButton(String text, Runnable action) {
@@ -275,7 +324,7 @@ public final class TapRegionSettings141 {
         private Button button(LinearLayout row, String text, Runnable action) {
             Button button = createButton(text, action);
             LinearLayout.LayoutParams size = new LinearLayout.LayoutParams(0, -2, 1);
-            size.setMargins(dp(2), dp(1), dp(2), dp(1));
+            size.setMargins(dp(4), dp(3), dp(4), dp(3));
             row.addView(button, size);
             return button;
         }
@@ -284,7 +333,7 @@ public final class TapRegionSettings141 {
             LinearLayout setting = new LinearLayout(context);
             setting.setGravity(Gravity.CENTER_VERTICAL);
             LinearLayout.LayoutParams size = new LinearLayout.LayoutParams(0, -2, 1);
-            size.setMargins(dp(2), dp(1), dp(2), dp(1));
+            size.setMargins(dp(3), dp(2), dp(3), dp(2));
             pair.addView(setting, size);
             adjustments[edge] = setting;
             minus[edge] = stepButton(setting, "−", edge, -1);
@@ -300,14 +349,24 @@ public final class TapRegionSettings141 {
             Button button = createButton(symbol, () -> step(edge, delta));
             button.setContentDescription(edgeNames[edge] + " " + symbol + "1%");
             button.setTextSize(18);
-            style(button, false);
-            row.addView(button, new LinearLayout.LayoutParams(dp(44), -2));
+            button.setGravity(Gravity.CENTER);
+            button.setIncludeFontPadding(false);
+            button.setPadding(0, 0, 0, 0);
+            button.setMinHeight(dp(38));
+            button.setMinimumHeight(dp(38));
+            GradientDrawable circle = new GradientDrawable();
+            circle.setShape(GradientDrawable.OVAL);
+            circle.setColor(tint(foreground, 14));
+            button.setBackground(new android.graphics.drawable.RippleDrawable(
+                    android.content.res.ColorStateList.valueOf(tint(accent, 40)), circle, null));
+            button.setTextColor(foreground);
+            row.addView(button, new LinearLayout.LayoutParams(dp(38), dp(38)));
             return button;
         }
 
         private void style(Button button, boolean active) {
             GradientDrawable background = new GradientDrawable();
-            background.setCornerRadius(dp(20));
+            background.setCornerRadius(dp(12));
             background.setColor(active ? tint(accent, 62) : tint(foreground, 14));
             button.setBackground(new android.graphics.drawable.RippleDrawable(
                     android.content.res.ColorStateList.valueOf(tint(accent, 40)), background, null));
@@ -395,7 +454,12 @@ public final class TapRegionSettings141 {
             for (int i = 0; i < coordinates.length; i++) {
                 coordinates[i].setText(edgeNames[i] + " " + range[i] + "%");
                 coordinates[i].setTextColor(i == boundary ? accent : foreground);
-                adjustments[i].setBackgroundColor(i == boundary ? tint(accent, 25) : 0);
+                if (i == boundary) {
+                    GradientDrawable selection = new GradientDrawable();
+                    selection.setColor(tint(accent, 25));
+                    selection.setCornerRadius(dp(10));
+                    adjustments[i].setBackground(selection);
+                } else adjustments[i].setBackground(null);
                 adjustEnabled(minus[i], (i & 1) == 0 ? range[i] > 0 : range[i] > range[i - 1] + 1);
                 adjustEnabled(plus[i], (i & 1) == 0 ? range[i] < range[i + 1] - 1 : range[i] < 100);
             }

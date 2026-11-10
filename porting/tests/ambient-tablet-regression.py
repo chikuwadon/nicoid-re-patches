@@ -2,9 +2,9 @@
 """Guards against foreground ambient compositing and stale tablet insets."""
 from pathlib import Path
 r=Path(__file__).resolve().parents[2]
-ambient=(r/"porting/revisions/v1.11.1-dev.4/java/e/e/a/AmbientLight.java").read_text()
+ambient=(r/"porting/revisions/v1.11.1-dev.5/java/e/e/a/AmbientLight.java").read_text()
 viewport=(r/"extensions/extension/src/main/java/e/e/a/FullscreenViewport209.java").read_text()
-dev=(r/"porting/revisions/v1.11.1-dev.4/java/e/e/a/Dev115.java").read_text()
+dev=(r/"porting/revisions/v1.11.1-dev.5/java/e/e/a/Dev115.java").read_text()
 assert "host.getOverlay().add(glow)" not in ambient
 assert "installed.getOverlay().remove(glow)" not in ambient
 for token in ("commentlay","LayerDrawable","target.setBackground(background)","target.setPadding","void remove()","perimeterGlow","installPerimeter(target)","removePerimeter()"):
@@ -17,13 +17,14 @@ assert "glow.spread = dp(host, mode == POPUP ?" in ambient
 assert "if (mode == POPUP) return root" not in ambient
 assert "if (mode == NORMAL && frame.left <= 0" not in ambient
 assert "if (mode == POPUP) {" in ambient
-assert "View backgroundHost = mode == NORMAL ? normalBackdropHost(target) : host;" in ambient
+assert "perimeterGlow.foregroundRoot = decor;" in ambient
 assert "int id = root.getResources().getIdentifier(\"commentlay\"" in ambient
-# Background underlay must never paint over a status bar, a control panel,
-# or the tablet landscape side information pane.
-for token in ("normalBackdropHost(target)", '"videoLayout"', "backgroundHost.setBackground(background)", "new Drawable[]{underlay, perimeterGlow}", "backgroundHost.getLocationOnScreen(origin)", "target.getLocationOnScreen(position)", "perimeterInstalled != backgroundHost", "final boolean next = !isSelected()", "current.scheduleRefresh()", "MAIN.post(queuedRefresh)", "MAIN.removeCallbacks(queuedRefresh)"):
+# Native player backgrounds must remain unaffected as layers; the
+# normal halo is drawn over backgrounds but excludes only glyph outlines
+# rather than entire TextView/button rectangles.
+for token in ("installNormalExterior(target)", "decor.getOverlay().add(perimeterGlow)", "normalOverlayHost.getOverlay().remove(perimeterGlow)", "perimeterGlow.foregroundRoot = decor", "text.getPaint().getTextPath", "c.clipPath(glyphPath, Region.Op.DIFFERENCE)", "getSystemWindowInsetTop()", "final boolean next = !isSelected()", "current.scheduleRefresh()", "MAIN.post(queuedRefresh)", "MAIN.removeCallbacks(queuedRefresh)"):
  assert token in ambient, token
-for forbidden in ("getOverlay().add(perimeterGlow)", "getOverlay().remove(perimeterGlow)", "normalOverlayHost", "perimeterGlow.protectUi", "canvas.clipRect(shieldRect", "glow.inner = mode != FULL;"):
+for forbidden in ("normalBackdropHost(", "backgroundHost.setBackground(background)", "canvas.clipRect(shieldRect", "glow.inner = mode != FULL;"):
  assert forbidden not in ambient, forbidden
 assert 'getMethod("restoreNormalViewport",View.class)' in dev
 print("PASS: ambient comment/control layering and tablet status bar recovery")

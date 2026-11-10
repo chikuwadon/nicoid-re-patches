@@ -38,7 +38,7 @@ jobs:
           sed -i 's/^retries=.*/retries=2/' gradle/wrapper/gradle-wrapper.properties
           printf '\nsystemProp.org.gradle.internal.http.connectionTimeout=180000\nsystemProp.org.gradle.internal.http.socketTimeout=180000\n' >> gradle.properties
       - name: Audit release candidate source and lifecycle guards
-        run: python3 porting/revisions/v1.10.6/release-readiness-audit.py
+        run: python3 porting/revisions/v1.11.0/release-readiness-audit.py
       - name: Build and run Gradle verification
         env:
           GITHUB_ACTOR: ${{ github.actor }}
@@ -46,10 +46,13 @@ jobs:
         run: ./gradlew clean :patches:buildAndroid :patches:generatePatchesList --no-daemon
       - name: Verify release candidate MPP and regressions
         run: |
-          python3 porting/revisions/v1.10.6/verify-mpp.py 1.10.6
+          python3 porting/revisions/v1.11.0/verify-mpp.py 1.11.0
           python3 porting/tests/regression136.py
           python3 porting/tests/regression141.py
           python3 porting/tests/regression155.py
+          python3 porting/tests/retained-notification-regression.py
+          python3 porting/tests/tap-regions-regression.py
+          python3 porting/tests/tap-region-ui-regression.py
       - name: Verify MPP was produced
         shell: bash
         run: |

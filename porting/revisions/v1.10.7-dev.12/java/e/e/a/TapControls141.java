@@ -75,10 +75,10 @@ public final class TapControls141 {
         if (display == null) display = video;
         int[] at = new int[2];
         display.getLocationOnScreen(at);
-        if (y < at[1] || y > at[1] + display.getHeight()) return false;
         float minimum = popup ? 24 * video.getResources().getDisplayMetrics().density : 0;
         Context context = video.getContext();
-        return settings(context).contains(x - at[0], display.getWidth(), minimum)
+        return settings(context).contains(x - at[0], y - at[1],
+                display.getWidth(), display.getHeight(), minimum)
                 && !alwaysVisible(context, popup);
     }
 

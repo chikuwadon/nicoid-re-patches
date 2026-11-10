@@ -310,7 +310,7 @@ public final class Dev111 {
         if (previous != null) shared.unregisterOnSharedPreferenceChangeListener(previous);
         java.lang.ref.WeakReference<PreferenceActivity> weak = new java.lang.ref.WeakReference<>(activity);
         SharedPreferences.OnSharedPreferenceChangeListener listener = (preferences, key) -> {
-            if (!RESUME.equals(key) && !"app_switch_playback".equals(key) && !"custom_palette_enabled".equals(key)) return;
+            if (!RESUME.equals(key) && !"startup_screen".equals(key) && !"app_switch_playback".equals(key) && !"custom_palette_enabled".equals(key)) return;
             MAIN.post(() -> {
                 PreferenceActivity current = weak.get();
                 if (current != null && !current.isFinishing() && !current.isDestroyed()) {
@@ -351,6 +351,16 @@ public final class Dev111 {
             int index = list.findIndexOfValue(shared.getString(RESUME, "background"));
             if (index >= 0) list.setSummary(list.getEntries()[index]);
             list.setEnabled("background".equals(shared.getString("app_switch_playback", "none")));
+        }
+        Preference startup = activity.findPreference("startup_screen");
+        if (startup instanceof ListPreference) {
+            ListPreference list = (ListPreference) startup;
+            CharSequence entry = list.getEntry();
+            if (entry == null && list.getEntries() != null) {
+                int home = list.findIndexOfValue("home");
+                if (home >= 0) entry = list.getEntries()[home];
+            }
+            list.setSummary(entry);
         }
         Preference customPreference = activity.findPreference("custom_palette");
         if (customPreference != null) {

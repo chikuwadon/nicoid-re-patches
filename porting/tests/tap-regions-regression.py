@@ -107,20 +107,29 @@ fixtures.update({
             PreferenceManager.PREFS.edit().putString(TapControls141.KEY,value).apply();
         }
         public static void main(String[] args){
-            check(TapRegions141.parse(null).contains(50,100,0),"missing default");
-            check(TapRegions141.parse("all").contains(0,100,0),"entire video");
+            check(TapRegions141.parse(null).contains(50,50,100,100,0),"missing default");
+            check(TapRegions141.parse("all").contains(0,50,100,100,0),"entire video");
             TapRegions141 edges=TapRegions141.parse("edges");
-            check(edges.contains(15,100,0)&&edges.contains(85,100,0)&&!edges.contains(50,100,0),"edge boundaries");
+            check(edges.contains(15,50,100,100,0)&&edges.contains(85,50,100,100,0)&&!edges.contains(50,50,100,100,0),"edge boundaries");
             TapRegions141 center=TapRegions141.parse("center");
-            check(center.contains(30,100,0)&&center.contains(70,100,0)&&!center.contains(71,100,0),"center boundaries");
+            check(center.contains(30,50,100,100,0)&&center.contains(70,50,100,100,0)&&!center.contains(71,50,100,100,0),"center boundaries");
             TapRegions141 custom=TapRegions141.parse("custom:0-12,34-52,48-75");
-            check(custom.contains(50,100,0)&&custom.contains(70,100,0)&&!custom.contains(20,100,0),"overlapping union");
-            check(custom.encode().equals("custom:0-12,34-52,48-75"),"round trip preserves three areas");
+            check(custom.contains(50,50,100,100,0)&&custom.contains(70,50,100,100,0)&&!custom.contains(20,50,100,100,0),"overlapping union");
+            check(custom.encode().equals("rects:0-12-0-100,34-52-0-100,48-75-0-100"),"round trip preserves three areas");
             for(String bad:new String[]{"", "bad", "custom:0-101","custom:45-45","custom:40-10","custom:0-1,2-3,4-5,6-7"})
                 check(TapRegions141.parse(bad).mode==TapRegions141.ALL,"safe fallback "+bad);
+            TapRegions141 vertical=TapRegions141.parse("top-bottom");
+            check(vertical.contains(50,15,100,100,0)&&vertical.contains(50,85,100,100,0)
+                    &&!vertical.contains(50,50,100,100,0),"top and bottom bands");
+            TapRegions141 rects=TapRegions141.parse("rects:8-20-10-30,65-94-70-95,15-32-24-45");
+            check(rects.contains(18,29,100,100,0)&&rects.contains(26,40,100,100,0)
+                    &&!rects.contains(26,18,100,100,0),"rectangular union leaves intervening spaces");
+            check(rects.encode().equals("rects:8-20-10-30,65-94-70-95,15-32-24-45"),"four coordinates round trip");
+            check(TapRegions141.parse("rects:10-20-80-30").mode==TapRegions141.ALL,"reversed vertical bounds fallback");
+            check(TapRegions141.parse("rects:0-1-0-1").contains(8,8,40,40,24),"popup minimum applies to both axes");
             TapRegions141 tiny=TapRegions141.parse("custom:0-1,85-86");
-            check(tiny.contains(8,40,24)&&!tiny.contains(20,40,24),"minimum popup hit width stays local");
-            check(!tiny.contains(8,40,0),"normal playback keeps exact percentages");
+            check(tiny.contains(8,50,40,100,24)&&!tiny.contains(20,50,40,100,24),"minimum popup hit width stays local");
+            check(!tiny.contains(8,50,40,100,0),"normal playback keeps exact percentages");
 
             ViewGroup root=new ViewGroup();Owner owner=new Owner();
             mode("edges");
@@ -167,6 +176,13 @@ fixtures.update({
             Dev112.always=false;
             mode("custom:0-5,45-55,90-100");
             check(TapControls141.allows(view,200,100,false),"saved custom region active");
+            mode("rects:30-70-60-80");
+            view.y=100;view.h=200;
+            check(TapControls141.allows(view,200,240,false)
+                    &&!TapControls141.allows(view,200,160,false),"normal uses video-relative Y");
+            Owner shifted=new Owner();shifted.e.x=100;shifted.e.y=200;shifted.e.w=300;shifted.e.h=200;
+            check(TapControls141.allows(shifted.e,250,340,true)
+                    &&!TapControls141.allows(shifted.e,250,240,true),"popup uses shifted video-relative Y");
             TapControls141.save(view.getContext(),TapRegions141.preset(TapRegions141.ALL));
             check(TapControls141.settings(view.getContext()).mode==TapRegions141.ALL,"restore default persists");
             System.out.println("Single-tap regions and production bridges: "+checks+" assertions passed");

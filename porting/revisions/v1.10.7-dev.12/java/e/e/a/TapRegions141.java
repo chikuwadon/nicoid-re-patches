@@ -1,10 +1,11 @@
 package e.e.a;
 
-/** Percent ranges for the control toggle. Overlap is evaluated as a union. */
+/** Video-relative percent rectangles; overlapping rectangles form a union. */
 public final class TapRegions141 {
-    static final int ALL = 0, EDGES = 1, CENTER = 2, CUSTOM = 3;
+    static final int ALL = 0, EDGES = 1, VERTICAL_EDGES = 2, CENTER = 3, CUSTOM = 4;
+    static final int LEFT = 0, RIGHT = 1, TOP = 2, BOTTOM = 3;
     static final int LIMIT = 3;
-    private static final String[] MODES = {"all", "edges", "center", "custom"};
+    private static final String[] MODES = {"all", "edges", "top-bottom", "center"};
 
     final int mode;
     final int[][] ranges;
@@ -15,65 +16,73 @@ public final class TapRegions141 {
     }
 
     static TapRegions141 preset(int mode) {
-        if (mode == EDGES) return new TapRegions141(EDGES, new int[][]{{0, 15}, {85, 100}});
-        if (mode == CENTER) return new TapRegions141(CENTER, new int[][]{{30, 70}});
-        return new TapRegions141(ALL, new int[][]{{0, 100}});
+        if (mode == EDGES) return new TapRegions141(mode, new int[][]{{0, 15, 0, 100}, {85, 100, 0, 100}});
+        if (mode == VERTICAL_EDGES) return new TapRegions141(mode, new int[][]{{0, 100, 0, 15}, {0, 100, 85, 100}});
+        if (mode == CENTER) return new TapRegions141(mode, new int[][]{{30, 70, 0, 100}});
+        return new TapRegions141(ALL, new int[][]{{0, 100, 0, 100}});
     }
 
     static TapRegions141 custom(int[][] ranges) {
         if (ranges.length < 1 || ranges.length > LIMIT) return preset(ALL);
-        int[][] copy = new int[ranges.length][2];
+        int[][] copy = new int[ranges.length][];
         for (int i = 0; i < ranges.length; i++) {
-            int start = ranges[i][0], end = ranges[i][1];
-            if (start < 0 || end > 100 || start >= end) return preset(ALL);
-            copy[i][0] = start;
-            copy[i][1] = end;
+            int[] r = ranges[i];
+            if (r.length != 4 || r[LEFT] < 0 || r[RIGHT] > 100 || r[LEFT] >= r[RIGHT]
+                    || r[TOP] < 0 || r[BOTTOM] > 100 || r[TOP] >= r[BOTTOM]) return preset(ALL);
+            copy[i] = r.clone();
         }
         return new TapRegions141(CUSTOM, copy);
     }
 
     static TapRegions141 parse(String value) {
-        if (value == null || value.length() > 48) return preset(ALL);
-        for (int i = 0; i < CUSTOM; i++) if (MODES[i].equals(value)) return preset(i);
-        if (!value.startsWith("custom:")) return preset(ALL);
-        try {
-            String[] items = value.substring(7).split(",", -1);
-            if (items.length > LIMIT) return preset(ALL);
-            int[][] result = new int[items.length][2];
-            for (int i = 0; i < items.length; i++) {
-                if (!items[i].matches("[0-9]{1,3}-[0-9]{1,3}")) return preset(ALL);
-                int split = items[i].indexOf('-');
-                result[i][0] = Integer.parseInt(items[i].substring(0, split));
-                result[i][1] = Integer.parseInt(items[i].substring(split + 1));
+        if (value == null || value.length() > 56) return preset(ALL);
+        for (int i = 0; i < MODES.length; i++) if (MODES[i].equals(value)) return preset(i);
+        boolean legacy = value.startsWith("custom:");
+        if (!legacy && !value.startsWith("rects:")) return preset(ALL);
+        String[] items = value.substring(legacy ? 7 : 6).split(",", -1);
+        if (items.length > LIMIT) return preset(ALL);
+        int[][] result = new int[items.length][4];
+        for (int i = 0; i < items.length; i++) {
+            String[] parts = items[i].split("-", -1);
+            if (parts.length != (legacy ? 2 : 4)) return preset(ALL);
+            for (int j = 0; j < parts.length; j++) {
+                if (!parts[j].matches("[0-9]{1,3}")) return preset(ALL);
+                result[i][j] = Integer.parseInt(parts[j]);
             }
-            return custom(result);
-        } catch (NumberFormatException ignored) {
-            return preset(ALL);
+            if (legacy) result[i][BOTTOM] = 100;
         }
+        return custom(result);
     }
 
     String encode() {
         if (mode != CUSTOM) return MODES[mode];
-        StringBuilder value = new StringBuilder("custom:");
+        StringBuilder value = new StringBuilder("rects:");
         for (int i = 0; i < ranges.length; i++) {
             if (i > 0) value.append(',');
-            value.append(ranges[i][0]).append('-').append(ranges[i][1]);
+            int[] r = ranges[i];
+            value.append(r[LEFT]).append('-').append(r[RIGHT]).append('-')
+                    .append(r[TOP]).append('-').append(r[BOTTOM]);
         }
         return value.toString();
     }
 
-    boolean contains(float x, float width, float minimumWidth) {
-        if (!(width > 0 && x >= 0 && x <= width)) return false;
-        float minimum = Math.min(minimumWidth, width * .25f);
-        for (int[] range : ranges) {
-            float start = width * range[0] / 100f;
-            float end = width * range[1] / 100f;
-            if (end - start < minimum) {
-                start = Math.max(0, Math.min(width - minimum, (start + end - minimum) / 2));
-                end = start + minimum;
-            }
-            if (x >= start && x <= end) return true;
+    boolean contains(float x, float y, float width, float height, float minimumSize) {
+        if (!(width > 0 && height > 0 && x >= 0 && x <= width && y >= 0 && y <= height)) return false;
+        for (int[] r : ranges) {
+            if (within(x, width, r[LEFT], r[RIGHT], minimumSize)
+                    && within(y, height, r[TOP], r[BOTTOM], minimumSize)) return true;
         }
         return false;
+    }
+
+    private static boolean within(float value, float span, int from, int to, float minSize) {
+        float min = Math.min(minSize, span * .25f);
+        float start = span * from / 100f;
+        float end = span * to / 100f;
+        if (end - start < min) {
+            start = Math.max(0, Math.min(span - min, (start + end - min) / 2));
+            end = start + min;
+        }
+        return value >= start && value <= end;
     }
 }

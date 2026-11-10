@@ -1,37 +1,54 @@
 #!/usr/bin/env python3
-"""Regression tests for ambient normal glow visibility and UI stacking."""
+"""Guard ambient page backgrounds and longer preset fade, preserving UI layering."""
 from pathlib import Path
 r=Path(__file__).resolve().parents[2]
-a=(r/"porting/revisions/v1.11.1-dev.8/java/e/e/a/AmbientLight.java").read_text()
+code=(r/"porting/revisions/v1.11.1-dev.9/java/e/e/a/AmbientLight.java").read_text()
+dev=(r/"porting/revisions/v1.11.1-dev.9/java/e/e/a/Dev115.java").read_text()
 viewport=(r/"extensions/extension/src/main/java/e/e/a/FullscreenViewport209.java").read_text()
-dev=(r/"porting/revisions/v1.11.1-dev.8/java/e/e/a/Dev115.java").read_text()
 for token in (
- "new LayerDrawable(new Drawable[]{base, tabGlow})",
- 'com.astuetz.PagerSlidingTabStrip',
- "normalTabView.setBackground(normalTabOriginal)",
- "tab.setPadding(normalTabPadding[0]",
- "tabGlow.sides = 2;",
- "tabGlow.alpha = Math.min(255, Math.round(glow.alpha * 1.10f));",
- "boolean tabGlowActive = !split && installTabGlow(decor, target);",
+ "pageGlow.sides = split ? 8 : 2;",
+ "pageGlow.corners = split;",
+ "pageGlow.normalFade = true;",
+ "pageGlow.setBounds(0, 0, matched.getWidth(), matched.getHeight());",
+ "new LayerDrawable(new Drawable[]{base, pageGlow})",
+ "matched.setBackground(layer);",
+ "removePageGlow();",
+ "normalPageView.setBackground(normalPageOriginal);",
+ "detailPageAdjoinsVideo(page, decor, split)",
+ "pageBackgroundSurface(page)",
+ 'com.sauzask.nicoid.NicoidViewPager',
+ "normalEdgeLimits[3] = pageGlowActive && split ? 0",
  "normalEdgeLimits[1] = tabGlowActive ? 0",
- "Math.min(72f, config[1] * .62f)",
- "Math.min(64f, config[1] * .52f)",
- "normalEdgeLimits[3]",
- "int depthLimit = edgeLimits == null ? spread : Math.min(spread, edgeLimits[edge]);",
- "showState(next)",
+ "tabGlow.normalFade = true;",
+ "perimeterGlow.normalFade = true;",
+ "perimeterGlow.normalFade = false;",
+ "float middleAt = normalFade ? .72f",
+ "Math.round(alpha * .76f)",
+ "Math.round(alpha * (normalFade ? .82f : .5f))",
+ "final boolean next = !isSelected()",
  "current.scheduleRefresh()",
  "glow.inner = mode == POPUP;",
 ):
- assert token in a,token
-for forbidden in ("new GlowSurface", "normalGlowView", "protectGlyphs(",
-                 "Region.Op.DIFFERENCE", "getTextPath("):
- assert forbidden not in a,forbidden
+    assert token in code,token
+for forbidden in ("normalGlowView", "protectGlyphs(", "Region.Op.DIFFERENCE",
+                  "getTextPath(", "new GlowSurface"):
+    assert forbidden not in code,forbidden
 assert 'getMethod("restoreNormalViewport",View.class)' in dev
 assert "viewportSessions.remove(root)" in viewport
-# Vivid is a 108dp spread preset; fixed 9dp limits were visually imperceptible.
-assert "int bottomSafe = dp(root, split ? 20 : 9);" not in a
-# A portrait 48dp tab bar is enough to show a noticeable Vivid halo without
-# putting a foreground glow over tab glyphs.
-assert min(108,48)>4*9
-assert min(108*.52,64)>20
-print("PASS: vivid spread, tab background behind text, landscape caps, toggle")
+
+# Background placement translates the same video coordinates into each page.
+def shift_video(video, decor_origin, page_origin):
+    return tuple(v + decor_origin[i % 2] - page_origin[i % 2]
+                 for i, v in enumerate(video))
+assert shift_video((0,0,760,428),(0,0),(0,488))==(0,-488,760,-60)
+assert shift_video((0,134,658,504),(0,0),(658,0))==(-658,134,0,504)
+# The selected Vivid preset keeps most of its 108dp reach, unlike dev.7
+# where the normal portrait halo was clipped to 9dp.
+def normal_fade(distance,spread,alpha):
+    t=distance/spread
+    if t>=1: return 0
+    if t<=.72: return alpha*(1-.24*t/.72)
+    return alpha*.76*(1-t)/.28
+assert normal_fade(70,108,162)>110
+assert normal_fade(108,108,162)==0
+print("PASS: Vivid normal halo depth, landscape side corners, and background stacking")

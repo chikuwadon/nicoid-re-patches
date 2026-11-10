@@ -257,6 +257,40 @@ verify('Dev139.remember(video.get(service))' in sources["Dev115"] and
 verify('replace_method("VideoOutput227.smali"' in patches and
        'Le/e/a/Dev139;->connect(Landroid/view/View;Landroid/view/TextureView;)V' in patches,
        "VideoOutput must use idempotent binding rather than reassigning every Surface")
+# Direct-write preferences have no conventional Preference entry that
+# guarantees backup registration.  Both the Java source and shipped Smali
+# must have all keys and matching stable types.
+backup_source=(ROOT/"extensions/extension/src/main/java/e/e/a/SettingsBackupData.java").read_text(encoding="utf-8")
+for key,kind in (
+    ("nicoid_single_tap_control_region","string"),
+    ("nicoid_single_tap_region_open_only","boolean"),
+    ("nicoid_ambient_enabled","boolean"),
+    ("nicoid_ambient_sides","int"),
+):
+    verify(('TYPES.put("'+key+'","'+kind+'")') in backup_source,
+           "Typed direct setting missing from source backup: "+key)
+    verify(key in patches, "Typed direct setting missing from shipped Smali overlay: "+key)
+for index in range(3):
+    key="nicoid_ambient_mode_"+str(index)
+    verify(key in patches, "Ambient mode missing from Smali backup: "+key)
+for name in ("intensity","spread","softness","brightness","contrast",
+             "saturation","vibrance","response","rate","resolution"):
+    verify("nicoid_ambient_"+name in patches, "Ambient numeric setting missing from backup: "+name)
+verify('method("SettingsBackupData.smali", ".method static constructor <clinit>()V"' in patches,
+       "Portable setting types must be inserted into shipped SettingsBackupData Smali")
+ambient=sources["AmbientLight"]
+for required in (
+    "AmbientSampling148.shouldSample(",
+    "if (attached && sampling) MAIN.post(this);",
+    "if (!attached || !sampling) return;",
+    "if (ticket != generation || !attached || !sampling)",
+    "if (!attached || !sampling) sample = null;",
+):
+    verify(required in ambient, "Ambient zero-light capture guard missing: "+required)
+policy=sources["AmbientSampling148"]
+verify("(directionMask & 15) != 0" in policy and "intensity > 0" in policy,
+       "Non-emitting ambient settings must never schedule frame captures")
+
 # Confirm official release is a separate manual action.
 workflow=(ROOT/".github/workflows/private-build.yml").read_text(encoding="utf-8")
 verify("Check ranking in-place sort and tab-bar button descriptions" in workflow,

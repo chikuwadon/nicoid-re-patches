@@ -1,38 +1,48 @@
 #!/usr/bin/env python3
-"""Guards against foreground ambient compositing and stale tablet insets."""
+"""Source guards for ambient layering, safe gutter fade and tablet recovery."""
 from pathlib import Path
-r=Path(__file__).resolve().parents[2]
-ambient=(r/"porting/revisions/v1.11.1-dev.6/java/e/e/a/AmbientLight.java").read_text()
-viewport=(r/"extensions/extension/src/main/java/e/e/a/FullscreenViewport209.java").read_text()
-dev=(r/"porting/revisions/v1.11.1-dev.6/java/e/e/a/Dev115.java").read_text()
-assert "host.getOverlay().add(glow)" not in ambient
-assert "installed.getOverlay().remove(glow)" not in ambient
-for token in ("commentlay","LayerDrawable","target.setBackground(background)","target.setPadding","void remove()","perimeterGlow","installPerimeter(target)","removePerimeter()"):
- assert token in ambient,token
-for token in ("restoreNormalViewport","viewportSessions.remove(root)","int desired=original+Math.max(0,status-origin)"):
- assert token in viewport,token
-# A full-sized normal video must not suppress the visible inner glow.
-assert "glow.inner = mode == POPUP;" in ambient
-assert "glow.spread = dp(host, mode == POPUP ?" in ambient
-assert "if (mode == POPUP) return root" not in ambient
-assert "if (mode == NORMAL && frame.left <= 0" not in ambient
-assert "if (mode != FULL || host == target" in ambient
-assert "perimeterGlow.corners = true;" in ambient
-assert "int id = root.getResources().getIdentifier(\"commentlay\"" in ambient
-# The normal halo must be a native player child between video and comments:
-# no foreground window overlays, no glyph-rectangle cutouts, no right side panel.
-for token in ('"videoLayout"', "View videoChild = childUnder(container, video)",
-              "View commentsChild = childUnder(container, target)",
-              "container.indexOfChild(videoChild) >= container.indexOfChild(commentsChild)",
-              "container.addView(view, container.indexOfChild(commentsChild)",
-              "normalGlowView.invalidate()", "perimeterGlow.corners = true;",
-              "void drawCorners(Canvas c)", "new RadialGradient(", "if (x1 <= x0 && y1 > y0)",
+root=Path(__file__).resolve().parents[2]
+ambient=(root/"porting/revisions/v1.11.1-dev.7/java/e/e/a/AmbientLight.java").read_text()
+viewport=(root/"extensions/extension/src/main/java/e/e/a/FullscreenViewport209.java").read_text()
+dev=(root/"porting/revisions/v1.11.1-dev.7/java/e/e/a/Dev115.java").read_text()
+
+for token in ('"commentlay"', "LayerDrawable", "glow.inner = mode == POPUP;",
+              "installNormalExterior(target)", "decor.getOverlay().add(perimeterGlow)",
+              "normalOverlayHost.getOverlay().remove(perimeterGlow)",
+              "normalEdgeLimits[0]", "normalEdgeLimits[1]",
+              "normalEdgeLimits[2]", "normalEdgeLimits[3]",
+              "perimeterGlow.edgeLimits = normalEdgeLimits;",
+              "perimeterGlow.edgeLimits = null;",
+              "int depthLimit = edgeLimits == null ? spread : Math.min(spread, edgeLimits[edge]);",
+              "new RadialGradient(0, 0, 1f,", "c.scale(xRadius, yRadius)",
               "final boolean next = !isSelected()", "current.scheduleRefresh()",
               "MAIN.post(queuedRefresh)", "MAIN.removeCallbacks(queuedRefresh)"):
- assert token in ambient, token
-for forbidden in ("decor.getOverlay().add(perimeterGlow)",
-                  "normalOverlayHost", "protectGlyphs(", "foregroundRoot",
-                  "Region.Op.DIFFERENCE", "glow.inner = mode != FULL;"):
- assert forbidden not in ambient, forbidden
+    assert token in ambient, token
+for forbidden in ("normalGlowView", "normalGlowHost", "protectGlyphs(",
+                  "getTextPath(", "Region.Op.DIFFERENCE", "new GlowSurface"):
+    assert forbidden not in ambient, forbidden
+for token in ("restoreNormalViewport", "viewportSessions.remove(root)",
+              "int desired=original+Math.max(0,status-origin)"):
+    assert token in viewport, token
 assert 'getMethod("restoreNormalViewport",View.class)' in dev
-print("PASS: ambient comment/control layering and tablet status bar recovery")
+
+# The coordinate cap can only draw in available exterior space.
+# In split landscape, top/bottom and the right-side gutter all emit light;
+# in portrait, an edge touching the device border cannot spill outside it.
+def caps(w,h,video,density,split, insets=(0,0,0,0)):
+    left,top,right,bottom=video
+    il,it,ir,ib=insets
+    top_limit=round((24 if split else 12)*density)
+    bottom_limit=round((20 if split else 9)*density)
+    side_limit=round((8 if split else 10)*density)
+    return [max(0,min(top_limit,top-it)),
+            max(0,min(bottom_limit,h-ib-bottom)),
+            max(0,min(side_limit,left-il)),
+            max(0,min(side_limit,w-ir-right))]
+landscape=caps(1536,704,(0,134,658,504),2.0,True)
+assert landscape[0]>0 and landscape[1]>0 and landscape[3]>0
+assert landscape[2]==0
+portrait=caps(760,1470,(0,0,760,428),2.0,False)
+assert portrait[0]==0 and portrait[3]==0 and portrait[1]>0
+assert all(n>=0 for n in caps(760,1470,(0,0,760,428),2.0,False))
+print("PASS: normal ambient safe exterior gutters, fade caps, and tablet recovery")

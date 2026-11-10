@@ -26,8 +26,20 @@ with ZipFile(bundle) as z:
         strings.add(data[pos:end].decode("utf-8","replace"))
     assert version in strings, "Shipped helper dex has stale PatchVersion value"
     assert "v"+version+" @chikuwadon" in strings, "Shipped helper dex has stale ModernShorts version"
-    for helper in ("Le/e/a/AmbientLight;", "Le/e/a/AmbientSettings;"):
+    for helper in ("Le/e/a/AmbientLight;", "Le/e/a/AmbientSettings;",
+                   "Le/e/a/AmbientSampling148;"):
         assert helper in strings, f"Missing ambient helper: {helper}"
+    for name in (
+        "nicoid_single_tap_control_region", "nicoid_single_tap_region_open_only",
+        "nicoid_ambient_enabled", "nicoid_ambient_mode_0",
+        "nicoid_ambient_mode_1", "nicoid_ambient_mode_2",
+        "nicoid_ambient_sides", "nicoid_ambient_intensity",
+        "nicoid_ambient_spread", "nicoid_ambient_softness",
+        "nicoid_ambient_brightness", "nicoid_ambient_contrast",
+        "nicoid_ambient_saturation", "nicoid_ambient_vibrance",
+        "nicoid_ambient_response", "nicoid_ambient_rate",
+        "nicoid_ambient_resolution"):
+        assert name in strings, f"Shipped MPP lost portable preference: {name}"
     class_size,class_offset=struct.unpack_from("<II",data,0x60)
     type_size,type_offset=struct.unpack_from("<II",data,0x40)
     string_count,string_offset=struct.unpack_from("<II",data,0x38)

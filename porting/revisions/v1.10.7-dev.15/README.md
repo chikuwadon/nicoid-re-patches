@@ -1,27 +1,31 @@
-# nicoid Re v1.10.7-dev.14 — single-tap area editor UI polish
+# nicoid Re v1.10.7-dev.15 — compact single-tap region editor
 
-Development-only successor of the user-verified v1.10.7-dev.13
-(`59d155c1a8cd7ac4c757238a100d0bdb8e0e27d8`).
+Development-only successor to the dev.14 UI preview, using the fully
+validated dev.13 native tap routing and later revisions without altering
+region values, player playback logic, touch event classification or settings.
 
-## UI-only improvements
+## UI changes
 
-- Preset order: Entire video / Custom (first row); Top-bottom / Center / Side
-  edges (second row), preserving the existing stored mode IDs.
-- Add comfortable gaps between preset chips, controls and the area selector.
-- Use mildly rounded rectangles (12 dp) for selected chips and rounded
-  selection highlights; avoid fully capsule-shaped preset backgrounds.
-- Show both the main area editor (28 dp corner radius) and the area-choice
-  dialog (24 dp) with the shared Nicoid dialog theme.
-- Render +/- controls as genuinely circular 38x38 dp buttons, keeping
-  1-percent-per-press adjustment unchanged.
-- Remove the redundant divider between the two quick-adjustment rows.
-- Keep the live region preview and its existing drag, resize, custom
-  region editing, and normal/fullscreen/popup touch-routing semantics.
+- Preserve the chosen preset order: Entire / Custom on the first row,
+  Top-bottom / Center / Side edges on the second row.
+- Reduce the **excessive vertical spacing** added by dev.14: body padding,
+  row gaps, the opening-only checkbox, section separators, quick adjustments,
+  area selector, add/remove actions and reset. The 184dp interactive preview
+  retains its existing size, functionality and touch handles.
+- Preserve the circular 38dp +/- buttons and mild 12dp chip corners.
+- Restore the dev.13 style **anchored area picker**. Instead of a separate
+  dimming AlertDialog, show a small PopupWindow positioned below the
+  selector, with two or three native-looking radio options, a subtle 10dp
+  corner radius, and selection/dismissal on tap.
+- Preserve the main editor's 28dp rounded dialog.
 
-## Verification and release policy
+## Verification
 
-The existing area gesture model tests run unchanged alongside a new layout
-regression. Android device review remains necessary for visual fit and
-touch-target comfort, especially in narrow popup/portrait layouts.
+Existing 55 tap-region behavior assertions and notification/return tests
+remain active; UI-specific checks confirm compact margins, the anchored
+non-modal picker, unchanged stored mode IDs and native touch callbacks.
+Actual fit on different phones/font sizes still requires on-device checks.
 
-No main merge, official release, tag or issue close is authorized.
+The commit is on audit/v1.10.7-dev.15-ui-compact for review.
+Do not merge main, publish a release, tag or close Issue #114 without
+explicit authorization. Local MPP must be distributed inside a ZIP.

@@ -481,6 +481,27 @@ val nicoidModPatch = bytecodePatch(
             invoke-static/range {v$pageThis .. v$pageThis}, Le/e/a/LocalPlaylists;->loadOrFeed(Landroid/app/Activity;)V
             return-void
         """.trimIndent())
+        val videoTap = mutableClassDefBy("Lcom/devbrackets/android/exomedia/ui/widget/VideoView\$TouchListener;")
+        val nativeVideoTouch = videoTap.methods.single {
+            it.name == "onTouch" && it.parameterTypes == listOf("Landroid/view/View;", "Landroid/view/MotionEvent;")
+        }
+        val nativeTouchThis = checkNotNull(nativeVideoTouch.implementation).registerCount - 3
+        nativeVideoTouch.addInstructions(0,
+            "invoke-static/range {v$nativeTouchThis .. v${nativeTouchThis + 2}}, Le/e/a/TapControls141;->nativeTouch(Ljava/lang/Object;Landroid/view/View;Landroid/view/MotionEvent;)V")
+        val nativeSingle = videoTap.methods.single {
+            it.name == "onSingleTapConfirmed" && it.parameterTypes == listOf("Landroid/view/MotionEvent;")
+        }
+        val singleThis = checkNotNull(nativeSingle.implementation).registerCount - 2
+        check(singleThis > 0) { "The native single tap callback has no scratch register" }
+        nativeSingle.addInstructions(0, """
+            invoke-static/range {v$singleThis .. v${singleThis + 1}}, Le/e/a/TapControls141;->nativeAllowed(Ljava/lang/Object;Landroid/view/MotionEvent;)Z
+            move-result v0
+            if-nez v0, :nicoid_single_tap_allowed
+            const/4 v0, 0x1
+            return v0
+            :nicoid_single_tap_allowed
+            nop
+        """.trimIndent())
         val touch = mutableClassDefBy("Lcom/sauzask/nicoid/NicoidVideoActivity;").methods.single { it.name == "dispatchTouchEvent" }
         touch.addInstructions(0, """
             invoke-static {v1, v2}, Le/e/a/Review181;->seekTouch(Landroid/app/Activity;Landroid/view/MotionEvent;)Z

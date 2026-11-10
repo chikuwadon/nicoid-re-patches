@@ -16,7 +16,8 @@ assert "glow.inner = mode == POPUP;" in ambient
 assert "glow.spread = dp(host, mode == POPUP ?" in ambient
 assert "if (mode == POPUP) return root" not in ambient
 assert "if (mode == NORMAL && frame.left <= 0" not in ambient
-assert "if (mode != FULL || host == target" in ambient
+assert "if (mode == POPUP) {" in ambient
+assert "View backgroundHost = mode == NORMAL ? normalBackdropHost(target) : host;" in ambient
 assert "int id = root.getResources().getIdentifier(\"commentlay\"" in ambient
 # Background underlay must never paint over a status bar, a control panel,
 # or the tablet landscape side information pane.

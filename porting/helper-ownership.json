@@ -680,7 +680,7 @@
   },
   "SettingsBackupData": {
     "owner": "snapshot",
-    "java_sha256": "0d8bfdf626be3aa83d076abf924de28a93b1057b444707677b64c4d3070955ec",
+    "java_sha256": "1c15533fe5cd1ad13ff8a8d6ac82875b5638b877bcaa0c970174f22ae11179c7",
     "smali_sha256": "e7a476b36ac4b05c44ab6bf7ea5f0903ca18d4e146208e46ef0c25a396919cc2"
   },
   "SettingsIntegrity": {

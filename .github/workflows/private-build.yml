@@ -283,6 +283,8 @@ jobs:
         run: python3 porting/tests/retained-notification-regression.py
       - name: Test configurable single-tap control areas
         run: python3 porting/tests/tap-regions-regression.py
+      - name: Check single-tap area editor UI layout
+        run: python3 porting/tests/tap-region-ui-regression.py
       - name: Build Morphe bundle
         run: ./gradlew :patches:buildAndroid --no-daemon
         env:

@@ -137,10 +137,10 @@ public final class AmbientSettings {
             String[] modeNames = {tr("通常再生", "Normal", "一般"), tr("全画面", "Fullscreen", "全螢幕"),
                     tr("ポップアップ", "Popup", "彈出視窗")};
             LinearLayout mainModes = row(column);
-            modes[0] = option(mainModes, modeNames[0], p.getBoolean(AmbientLight.PREFIX + "mode_0", true));
-            modes[1] = option(mainModes, modeNames[1], p.getBoolean(AmbientLight.PREFIX + "mode_1", true));
+            modes[0] = option(mainModes, modeNames[0], AmbientLight.appliesTo(p, AmbientLight.NORMAL));
+            modes[1] = option(mainModes, modeNames[1], AmbientLight.appliesTo(p, AmbientLight.FULL));
             LinearLayout popupMode = row(column);
-            modes[2] = check(popupMode, modeNames[2], p.getBoolean(AmbientLight.PREFIX + "mode_2", true));
+            modes[2] = check(popupMode, modeNames[2], AmbientLight.appliesTo(p, AmbientLight.POPUP));
             TextView note = new TextView(c);
             note.setText("ⓘ");
             note.setTextSize(18);

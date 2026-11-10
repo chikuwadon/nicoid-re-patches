@@ -69,8 +69,12 @@ public final class AmbientLight {
         return p.getBoolean(ENABLED, true);
     }
 
+    static boolean appliesTo(SharedPreferences p, int mode) {
+        return p.getBoolean(PREFIX + "mode_" + mode, mode != POPUP);
+    }
+
     static int[] values(SharedPreferences p) {
-        int[] v = PRESETS[1].clone();
+        int[] v = PRESETS[0].clone();
         for (int i = 0; i < v.length; i++) {
             v[i] = Math.max(MIN[i], Math.min(MAX[i], p.getInt(PREFIX + KEYS[i], v[i])));
         }
@@ -282,8 +286,7 @@ public final class AmbientLight {
             remove();
             config = values(prefs);
             glow.sides = prefs.getInt(PREFIX + "sides", 15);
-            if (attached && enabled(prefs)
-                    && prefs.getBoolean(PREFIX + "mode_" + mode, true)) MAIN.post(this);
+            if (attached && enabled(prefs) && appliesTo(prefs, mode)) MAIN.post(this);
         }
 
         void remove() {

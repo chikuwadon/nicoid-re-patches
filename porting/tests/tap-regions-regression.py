@@ -5,7 +5,7 @@ import subprocess
 import tempfile
 
 repo = Path(__file__).resolve().parents[2]
-revision = repo / "porting/revisions/v1.10.7-dev.17"
+revision = repo / "porting/revisions/v1.10.7-dev.18"
 old = ast.parse((repo / "porting/tests/regression155.py").read_text())
 fixtures = ast.literal_eval(next(n.value for n in old.body if isinstance(n, ast.Assign)
                                 and n.targets[0].id == "fixtures"))

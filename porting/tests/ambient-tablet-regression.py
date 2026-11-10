@@ -2,8 +2,8 @@
 """Guard ambient page backgrounds and longer preset fade, preserving UI layering."""
 from pathlib import Path
 r=Path(__file__).resolve().parents[2]
-code=(r/"porting/revisions/v1.11.1-dev.13/java/e/e/a/AmbientLight.java").read_text()
-dev=(r/"porting/revisions/v1.11.1-dev.13/java/e/e/a/Dev115.java").read_text()
+code=(r/"porting/revisions/v1.11.1-dev.14/java/e/e/a/AmbientLight.java").read_text()
+dev=(r/"porting/revisions/v1.11.1-dev.14/java/e/e/a/Dev115.java").read_text()
 viewport=(r/"extensions/extension/src/main/java/e/e/a/FullscreenViewport209.java").read_text()
 for token in (
  "pageGlow.sides = split ? 8 : 2;",
@@ -25,8 +25,8 @@ for token in (
  "float middleAt = normalFade ? .72f",
  "Math.round(alpha * .76f)",
  "Math.round(alpha * (normalFade ? .82f : .5f))",
- "final boolean next = !isSelected()",
- "current.scheduleRefresh()",
+ "final boolean next = !enabled(p)",
+ "scheduleRefresh();",
  "glow.inner = mode == POPUP;",
 ):
     assert token in code,token
@@ -60,7 +60,7 @@ assert "tabGlow.sharedFade = true;" in code and "pageGlow.sharedFade = true;" in
 assert "if ((glow.sides & (split ? 8 : 2)) == 0)" in code
 assert "if ((glow.sides & (split ? 8 : 2)) == 0)" in code
 assert 'perimeterGlow.tracePlane = null;' in code
-diag=(r/"porting/revisions/v1.11.1-dev.13/java/e/e/a/AmbientGeometryTrace.java").read_text()
+diag=(r/"porting/revisions/v1.11.1-dev.14/java/e/e/a/AmbientGeometryTrace.java").read_text()
 assert 'getGlobalVisibleRect' in diag and 'getClipChildren' in diag
 assert '"e.e.a.ModernDebug", "record"' in diag
 assert "getText(" not in diag and "getContentDescription(" not in diag
@@ -96,3 +96,12 @@ assert 'if (seamWidth > 0) drawSplitSeam(c);' in code
 assert code.index('drawSplitSeam(c);') < code.index('drawEdge(c, edge);')
 assert 'c.drawRect(left, Math.min(from, to), right, Math.max(from, to), paint);' in code
 print("PASS split background feather stays under ambient and outside video")
+
+for name in ("PlayerGestures", "PlayerGestures219"):
+    guard=(r/f"porting/revisions/v1.10.1/helpers/e/e/a/{name}.smali").read_text()
+    assert 'Landroid/widget/ImageButton;' in guard
+assert 'class Toggle extends ImageButton implements' in code
+assert 'toggleSerial' not in code
+click=code[code.index('setOnClickListener(v -> {'):code.index('private void rebind()')]
+assert click.index('p.edit().putBoolean(ENABLED, next).apply();') < click.index('MAIN.post(')
+print("PASS ambient button uses native gesture exclusion and one shared toggle state")

@@ -69,6 +69,21 @@ cp -a "$java_smali/." "$work/payloads/helpers/"
 python3 "$source_dir/verify-overlay.py" "$work/payloads" "$output" "$version"
 # Confirm that the actual merged runtime DEX contains the critical menu hook.
 java -cp "$tools_dir/*" org.jf.baksmali.Main disassemble "$output/helpers.mpe" -o "$work/merged-smali" >/dev/null
+# Verify the actual shipped SettingsBackupData class, not the Java-only
+# source mirror: otherwise direct-write settings silently disappear in backups.
+for backup_key in \
+  nicoid_single_tap_control_region nicoid_single_tap_region_open_only \
+  nicoid_ambient_enabled nicoid_ambient_mode_0 nicoid_ambient_mode_1 nicoid_ambient_mode_2 \
+  nicoid_ambient_sides nicoid_ambient_intensity nicoid_ambient_spread \
+  nicoid_ambient_softness nicoid_ambient_brightness nicoid_ambient_contrast \
+  nicoid_ambient_saturation nicoid_ambient_vibrance nicoid_ambient_response \
+  nicoid_ambient_rate nicoid_ambient_resolution; do
+  grep -Fq "\"$backup_key\"" "$work/merged-smali/e/e/a/SettingsBackupData.smali" || {
+    echo "Missing SettingsBackupData key in assembled DEX: $backup_key" >&2
+    exit 1
+  }
+done
+grep -Fq 'AmbientSampling148;->shouldSample(' "$work/merged-smali/e/e/a/AmbientLight\$Layer.smali"
 grep -Fq 'AmbientLight;->foreground(' "$work/merged-smali/e/e/a/PlayerControls194.smali"
 grep -Fq 'AmbientLight;->fullscreen(' "$work/merged-smali/e/e/a/FullscreenViewport209.smali"
 grep -Fq 'AmbientLight;->popup(' "$work/merged-smali/e/e/a/PopupControls193.smali"

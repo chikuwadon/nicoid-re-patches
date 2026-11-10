@@ -40,7 +40,7 @@ public final class AmbientLight {
     static final int NORMAL = 0, FULL = 1, POPUP = 2;
     static final String[] KEYS = {"intensity", "spread", "softness", "brightness", "contrast",
             "saturation", "vibrance", "response", "rate", "resolution"};
-    static final int[] MAX = {100, 120, 100, 150, 150, 150, 100, 100, 24, 48};
+    static final int[] MAX = {140, 160, 100, 180, 180, 180, 100, 100, 24, 48};
     static final int[] MIN = {0, 4, 0, 0, 50, 0, 0, 5, 2, 12};
     static final int[][] PRESETS = {
             {34, 37, 82, 90, 95, 95, 4, 28, 4, 16},
@@ -416,7 +416,7 @@ public final class AmbientLight {
             updateGlowFrame();
             glow.colors = palette;
             glow.inner = mode == POPUP;
-            glow.spread = dp(host, glow.inner ? Math.min(24, config[1] * .24f) : config[1]);
+            glow.spread = dp(host, glow.inner ? Math.min(32, config[1] * .24f) : config[1]);
             glow.softness = config[2];
             glow.alpha = config[0] * (mode == POPUP ? 120 : 180) / 100;
             glow.setBounds(0, 0, host.getWidth(), host.getHeight());

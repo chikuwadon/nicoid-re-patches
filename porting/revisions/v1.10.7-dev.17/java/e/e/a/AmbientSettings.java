@@ -282,7 +282,14 @@ public final class AmbientSettings {
             @Override protected void onDraw(Canvas canvas) {
                 int inset = getWidth() / 5;
                 glow.video.set(inset, getHeight() / 5, getWidth() - inset, getHeight() * 4 / 5);
-                for (int i = 0; i < glow.colors.length; i++) glow.colors[i] = AmbientLight.adjust(sample[i % sample.length], values);
+                glow.setBounds(0, 0, getWidth(), getHeight());
+                for (int i = 0; i < sample.length; i++) {
+                    int color = AmbientLight.adjust(sample[i], values);
+                    glow.colors[i] = color;
+                    glow.colors[4 + i] = color;
+                    glow.colors[8 + i] = AmbientLight.adjust(sample[0], values);
+                    glow.colors[12 + i] = AmbientLight.adjust(sample[3], values);
+                }
                 glow.sides = mask();
                 glow.spread = dp(values[1]);
                 glow.softness = values[2];

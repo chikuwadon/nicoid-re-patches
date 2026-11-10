@@ -74,7 +74,7 @@ public final class AmbientLight {
     }
 
     static int[] values(SharedPreferences p) {
-        int[] v = PRESETS[0].clone();
+        int[] v = PRESETS[1].clone();
         for (int i = 0; i < v.length; i++) {
             v[i] = Math.max(MIN[i], Math.min(MAX[i], p.getInt(PREFIX + KEYS[i], v[i])));
         }

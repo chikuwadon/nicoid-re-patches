@@ -130,7 +130,11 @@ jobs:
           gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v1.11.0" --jq '.ref' | grep -qx 'refs/tags/v1.11.0'
           main_sha=$(gh api "repos/$GITHUB_REPOSITORY/branches/main" --jq '.commit.sha')
           dev_sha=$(gh api "repos/$GITHUB_REPOSITORY/branches/dev" --jq '.commit.sha')
-          test -n "$main_sha" && test "$main_sha" = "$dev_sha"
+          test -n "$main_sha" && test -n "$dev_sha"
+          # Cleanup staging commits move main ahead of the published dev tag.
+          # Protect against divergence without requiring both heads to match.
+          compare_status=$(gh api "repos/$GITHUB_REPOSITORY/compare/$dev_sha...$main_sha" --jq '.status')
+          case "$compare_status" in ahead|identical) ;; *) echo "dev diverged from main: $compare_status" >&2; exit 1;; esac
           gh api "repos/$GITHUB_REPOSITORY/releases/tags/v1.11.0" --jq '.assets[].name' | grep -qx 'patches-1.11.0.mpp'
           echo "Verified v1.11.0 official release and synchronized main/dev: $main_sha"
       - name: Delete only approved obsolete audit and release branches

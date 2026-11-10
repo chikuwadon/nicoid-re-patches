@@ -2,8 +2,8 @@
 """Guard ambient page backgrounds and longer preset fade, preserving UI layering."""
 from pathlib import Path
 r=Path(__file__).resolve().parents[2]
-code=(r/"porting/revisions/v1.11.1-dev.10/java/e/e/a/AmbientLight.java").read_text()
-dev=(r/"porting/revisions/v1.11.1-dev.10/java/e/e/a/Dev115.java").read_text()
+code=(r/"porting/revisions/v1.11.1-dev.11/java/e/e/a/AmbientLight.java").read_text()
+dev=(r/"porting/revisions/v1.11.1-dev.11/java/e/e/a/Dev115.java").read_text()
 viewport=(r/"extensions/extension/src/main/java/e/e/a/FullscreenViewport209.java").read_text()
 for token in (
  "pageGlow.sides = split ? 8 : 2;",
@@ -15,7 +15,7 @@ for token in (
  "removePageGlow();",
  "normalPageView.setBackground(normalPageOriginal);",
  "detailPageAdjoinsVideo(page, decor, split)",
- "pageBackgroundSurface(page)",
+ "installDetailPlanes(matched)",
  'com.sauzask.nicoid.NicoidViewPager',
  "normalEdgeLimits[3] = pageGlowActive && split ? 0",
  "normalEdgeLimits[1] = tabGlowActive ? 0",
@@ -60,8 +60,24 @@ assert "tabGlow.sharedFade = true;" in code and "pageGlow.sharedFade = true;" in
 assert "if ((glow.sides & 2) == 0)" in code
 assert "if ((glow.sides & (split ? 8 : 2)) == 0)" in code
 assert 'perimeterGlow.tracePlane = null;' in code
-diag=(r/"porting/revisions/v1.11.1-dev.10/java/e/e/a/AmbientGeometryTrace.java").read_text()
+diag=(r/"porting/revisions/v1.11.1-dev.11/java/e/e/a/AmbientGeometryTrace.java").read_text()
 assert 'getGlobalVisibleRect' in diag and 'getClipChildren' in diag
 assert '"e.e.a.ModernDebug", "record"' in diag
 assert "getText(" not in diag and "getContentDescription(" not in diag
 print("PASS shared gradient profile, direction gates and geometry diagnostics")
+
+# Confirm the actual packaged layout has the ScrollView and the nested header
+# used by the background-only continuation. The packaged binary XML string pools use UTF-8.
+from zipfile import ZipFile
+with ZipFile(r/"patches/src/main/resources/nicoid/resources.zip") as resources:
+    fragment=resources.read("res/layout/videoinfo_fragment.xml")
+    header=resources.read("res/layout/videoinfo_fragment_title.xml")
+    assert b"ScrollView" in fragment
+    assert b"LinearLayout" in header
+assert 'findId(page, "infoscroll")' in code
+assert 'findId(content, "buttonlay")' in code
+assert 'installed = new LayerDrawable(new Drawable[]{original, detail});' in code
+assert 'if (view != null && view.getBackground() == installed)' in code
+assert 'Arrays.fill(normalEdgeLimits, 0);' in code
+assert 'glow.normalFade = glow.sharedFade = mode == NORMAL;' in code
+print("PASS native detail background targets, owned restoration and split underlay")

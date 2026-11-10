@@ -14,6 +14,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.PopupWindow;
+import android.widget.RadioButton;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -131,7 +133,7 @@ public final class TapRegionSettings141 {
             edgeNames = new String[]{tr("左", "Left", "左"), tr("右", "Right", "右"),
                     tr("上", "Top", "上"), tr("下", "Bottom", "下")};
             LinearLayout body = column();
-            body.setPadding(dp(18), dp(6), dp(18), dp(14));
+            body.setPadding(dp(18), dp(2), dp(18), dp(8));
             scroll = new ScrollView(context);
             scroll.setClipToPadding(false);
             scroll.addView(body);
@@ -146,8 +148,8 @@ public final class TapRegionSettings141 {
             for (int line = 0; line < 2; line++) {
                 LinearLayout presetRow = row(body);
                 LinearLayout.LayoutParams rowSize = (LinearLayout.LayoutParams) presetRow.getLayoutParams();
-                rowSize.topMargin = dp(line == 0 ? 3 : 7);
-                rowSize.bottomMargin = dp(3);
+                rowSize.topMargin = dp(line == 0 ? 0 : 2);
+                rowSize.bottomMargin = 0;
                 presetRow.setLayoutParams(rowSize);
                 int from = line == 0 ? 0 : 2;
                 int until = line == 0 ? 2 : order.length;
@@ -155,10 +157,10 @@ public final class TapRegionSettings141 {
                     final int option = order[i];
                     Button preset = button(presetRow, symbols[option] + "  " + labels[option],
                             () -> choose(option));
-                    preset.setMinHeight(dp(38));
+                    preset.setMinHeight(dp(36));
                     preset.setContentDescription(labels[option]);
                     LinearLayout.LayoutParams buttonSize = (LinearLayout.LayoutParams) preset.getLayoutParams();
-                    buttonSize.leftMargin = buttonSize.rightMargin = dp(4);
+                    buttonSize.leftMargin = buttonSize.rightMargin = dp(3);
                     preset.setLayoutParams(buttonSize);
                     presets[option] = preset;
                 }
@@ -167,8 +169,8 @@ public final class TapRegionSettings141 {
             openOnly.setText(tr("操作部を開くときだけ領域を制限", "Limit area only when opening controls", "只在開啟控制項時限制區域"));
             openOnly.setTextSize(13);
             openOnly.setChecked(openingOnly);
-            openOnly.setMinHeight(dp(42));
-            openOnly.setPadding(0, dp(3), 0, dp(3));
+            openOnly.setMinHeight(dp(36));
+            openOnly.setPadding(0, 0, 0, 0);
             openOnly.setButtonTintList(new android.content.res.ColorStateList(
                     new int[][]{new int[]{android.R.attr.state_checked}, new int[0]},
                     new int[]{accent, secondary}));
@@ -183,7 +185,7 @@ public final class TapRegionSettings141 {
             section(body, "≡", tr("クイック調整", "Fine adjustment", "微調"));
             for (int i = 0; i < adjustments.length; i += 2) {
                 LinearLayout pair = row(body);
-                pair.setPadding(0, dp(i == 0 ? 3 : 7), 0, dp(3));
+                pair.setPadding(0, dp(i == 0 ? 1 : 2), 0, 0);
                 addAdjustment(pair, i);
                 addAdjustment(pair, i + 1);
             }
@@ -191,12 +193,12 @@ public final class TapRegionSettings141 {
             section(body, "▤", tr("領域", "Areas", "區域"));
             android.widget.FrameLayout selector = new android.widget.FrameLayout(context);
             LinearLayout.LayoutParams selectorSize = new LinearLayout.LayoutParams(-1, -2);
-            selectorSize.setMargins(dp(2), dp(7), dp(2), dp(8));
+            selectorSize.setMargins(dp(2), dp(2), dp(2), dp(3));
             body.addView(selector, selectorSize);
             areaSelector = createButton("", this::showAreas);
             areaSelector.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
-            areaSelector.setPadding(dp(14), dp(6), dp(32), dp(6));
-            areaSelector.setMinHeight(dp(42));
+            areaSelector.setPadding(dp(14), dp(4), dp(32), dp(4));
+            areaSelector.setMinHeight(dp(36));
             style(areaSelector, false);
             selector.addView(areaSelector, new android.widget.FrameLayout.LayoutParams(-1, -2));
             areaChevron = new TextView(context);
@@ -208,13 +210,13 @@ public final class TapRegionSettings141 {
             chevron.setMarginEnd(dp(14));
             selector.addView(areaChevron, chevron);
             LinearLayout actions = row(body);
-            actions.setPadding(0, dp(3), 0, dp(6));
+            actions.setPadding(0, 0, 0, dp(2));
             remove = button(actions, tr("領域を削除", "Delete area", "刪除區域"), this::removeArea);
             add = button(actions, tr("＋ 領域を追加", "+ Add area", "＋ 新增區域"), this::addArea);
             style(remove, false);
             style(add, false);
             LinearLayout resetRow = row(body);
-            resetRow.setPadding(0, dp(7), 0, dp(7));
+            resetRow.setPadding(0, dp(2), 0, dp(1));
             Button reset = button(resetRow, tr("初期値に戻す", "Restore default", "恢復預設"),
                     () -> {
                         openOnly.setChecked(false);
@@ -263,7 +265,7 @@ public final class TapRegionSettings141 {
         }
 
         private TextView section(LinearLayout parent, String symbol, String title) {
-            divider(parent, 9, 7);
+            divider(parent, 6, 5);
             LinearLayout heading = row(parent);
             TextView icon = new TextView(context);
             icon.setText(symbol);
@@ -287,22 +289,62 @@ public final class TapRegionSettings141 {
             return tr("領域", "Area", "區域") + " " + (index + 1);
         }
 
+        /**
+         * Small anchored area picker, matching the dev.13 interaction. A PopupWindow
+         * avoids dimming the main editor; only its surface gets a subtle corner radius.
+         */
         private void showAreas() {
-            String[] items = new String[ranges.size()];
-            for (int i = 0; i < items.length; i++) items[i] = areaName(i);
+            if (ranges.size() < 2) return;
+            LinearLayout list = column();
+            list.setPadding(dp(2), dp(4), dp(2), dp(4));
+            GradientDrawable surface = new GradientDrawable();
+            surface.setColor((Integer) surfaceColor());
+            surface.setCornerRadius(dp(10));
+            final PopupWindow popup = new PopupWindow(context);
+            popup.setContentView(list);
+            popup.setWidth(Math.min(dp(216), Math.max(dp(160), areaSelector.getWidth())));
+            popup.setHeight(android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+            popup.setBackgroundDrawable(surface);
+            popup.setElevation(dp(7));
+            popup.setFocusable(true);
+            popup.setOutsideTouchable(true);
+            popup.setInputMethodMode(PopupWindow.INPUT_METHOD_NOT_NEEDED);
+            for (int i = 0; i < ranges.size(); i++) {
+                final int index = i;
+                LinearLayout option = new LinearLayout(context);
+                option.setGravity(Gravity.CENTER_VERTICAL);
+                option.setPadding(dp(14), 0, dp(10), 0);
+                option.setBackground(new android.graphics.drawable.RippleDrawable(
+                        android.content.res.ColorStateList.valueOf(tint(accent, 38)), null, null));
+                TextView name = new TextView(context);
+                name.setText(areaName(i));
+                name.setTextColor(foreground);
+                name.setTextSize(15);
+                option.addView(name, new LinearLayout.LayoutParams(0, -2, 1));
+                RadioButton indicator = new RadioButton(context);
+                indicator.setButtonTintList(android.content.res.ColorStateList.valueOf(
+                        i == selected ? accent : secondary));
+                indicator.setChecked(i == selected);
+                indicator.setClickable(false);
+                indicator.setFocusable(false);
+                indicator.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+                option.addView(indicator);
+                option.setContentDescription(areaName(i));
+                option.setOnClickListener(v -> {
+                    select(index);
+                    popup.dismiss();
+                });
+                list.addView(option, new LinearLayout.LayoutParams(-1, dp(48)));
+            }
+            popup.showAsDropDown(areaSelector, dp(4), -dp(4), Gravity.START);
+        }
+
+        private Object surfaceColor() {
             try {
-                AlertDialog.Builder builder = (AlertDialog.Builder) Dev112.staticCall(
-                        "e.e.a.UiDialogs", "builder", new Class<?>[]{Context.class}, context);
-                AlertDialog picker = builder.setTitle(tr("領域を選択", "Choose area", "選擇區域"))
-                        .setSingleChoiceItems(items, selected, (dialog, which) -> {
-                            select(which);
-                            dialog.dismiss();
-                        })
-                        .setNegativeButton(android.R.string.cancel, null).create();
-                Dev112.show(picker);
-                roundDialog(picker, 24);
+                return Dev112.staticCall("e.e.a.UiDialogs", "surface",
+                        new Class<?>[]{Context.class}, context);
             } catch (Exception error) {
-                android.util.Log.w("nicoid-controls", "Cannot open rounded area selector", error);
+                return 0xff191b20;
             }
         }
 
@@ -324,7 +366,7 @@ public final class TapRegionSettings141 {
         private Button button(LinearLayout row, String text, Runnable action) {
             Button button = createButton(text, action);
             LinearLayout.LayoutParams size = new LinearLayout.LayoutParams(0, -2, 1);
-            size.setMargins(dp(4), dp(3), dp(4), dp(3));
+            size.setMargins(dp(3), dp(1), dp(3), dp(1));
             row.addView(button, size);
             return button;
         }
@@ -333,7 +375,7 @@ public final class TapRegionSettings141 {
             LinearLayout setting = new LinearLayout(context);
             setting.setGravity(Gravity.CENTER_VERTICAL);
             LinearLayout.LayoutParams size = new LinearLayout.LayoutParams(0, -2, 1);
-            size.setMargins(dp(3), dp(2), dp(3), dp(2));
+            size.setMargins(dp(2), dp(1), dp(2), dp(1));
             pair.addView(setting, size);
             adjustments[edge] = setting;
             minus[edge] = stepButton(setting, "−", edge, -1);

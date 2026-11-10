@@ -2,8 +2,8 @@
 """Guard ambient page backgrounds and longer preset fade, preserving UI layering."""
 from pathlib import Path
 r=Path(__file__).resolve().parents[2]
-code=(r/"porting/revisions/v1.11.1-dev.11/java/e/e/a/AmbientLight.java").read_text()
-dev=(r/"porting/revisions/v1.11.1-dev.11/java/e/e/a/Dev115.java").read_text()
+code=(r/"porting/revisions/v1.11.1-dev.12/java/e/e/a/AmbientLight.java").read_text()
+dev=(r/"porting/revisions/v1.11.1-dev.12/java/e/e/a/Dev115.java").read_text()
 viewport=(r/"extensions/extension/src/main/java/e/e/a/FullscreenViewport209.java").read_text()
 for token in (
  "pageGlow.sides = split ? 8 : 2;",
@@ -57,10 +57,10 @@ print("PASS: Vivid normal halo depth, landscape side corners, and background sta
 assert "if (sharedFade) c.clipRect(getBounds());" in code
 assert "if (!inner && !sharedFade)" in code
 assert "tabGlow.sharedFade = true;" in code and "pageGlow.sharedFade = true;" in code
-assert "if ((glow.sides & 2) == 0)" in code
+assert "if ((glow.sides & (split ? 8 : 2)) == 0)" in code
 assert "if ((glow.sides & (split ? 8 : 2)) == 0)" in code
 assert 'perimeterGlow.tracePlane = null;' in code
-diag=(r/"porting/revisions/v1.11.1-dev.11/java/e/e/a/AmbientGeometryTrace.java").read_text()
+diag=(r/"porting/revisions/v1.11.1-dev.12/java/e/e/a/AmbientGeometryTrace.java").read_text()
 assert 'getGlobalVisibleRect' in diag and 'getClipChildren' in diag
 assert '"e.e.a.ModernDebug", "record"' in diag
 assert "getText(" not in diag and "getContentDescription(" not in diag
@@ -81,3 +81,10 @@ assert 'if (view != null && view.getBackground() == installed)' in code
 assert 'Arrays.fill(normalEdgeLimits, 0);' in code
 assert 'glow.normalFade = glow.sharedFade = mode == NORMAL;' in code
 print("PASS native detail background targets, owned restoration and split underlay")
+
+assert 'if (sharedFade) drawSharedCorners(c);' in code
+assert '1f, normalAlphaStops(),' in code
+assert 'normalFade ? normalAlphaStops()' in code
+assert 'detail.cornerSources = reference.cornerSources;' in code
+assert 'installTabGlow(decor, target, split)' in code
+print("PASS matching straight-edge and corner attenuation and split tab continuation")

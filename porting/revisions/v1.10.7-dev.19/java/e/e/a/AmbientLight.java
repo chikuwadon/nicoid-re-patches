@@ -255,7 +255,7 @@ public final class AmbientLight {
         boolean playing = true;
         Bitmap sample;
         int[] config;
-        boolean copying, attached, haveColor;
+        boolean copying, attached, haveColor, sampling;
 
         Layer(View root, View video, int mode) {
             this.root = root;
@@ -286,7 +286,10 @@ public final class AmbientLight {
             remove();
             config = values(prefs);
             glow.sides = prefs.getInt(PREFIX + "sides", 15);
-            if (attached && enabled(prefs) && appliesTo(prefs, mode)) MAIN.post(this);
+            sampling = AmbientSampling148.shouldSample(enabled(prefs),
+                    appliesTo(prefs, mode), config[0], glow.sides);
+            if (attached && sampling) MAIN.post(this);
+            else if (!copying) sample = null;
         }
 
         void remove() {
@@ -319,7 +322,9 @@ public final class AmbientLight {
         }
 
         @Override public void run() {
-            if (!attached) return;
+            // Cancel queued work if a concurrent settings change has made
+            // the effect invisible (0% strength / no selected sides).
+            if (!attached || !sampling) return;
             if (!host.isShown() || root.getWindowVisibility() != View.VISIBLE) {
                 remove();
                 haveColor = false;
@@ -392,8 +397,11 @@ public final class AmbientLight {
                     final int ticket = generation;
                     PixelCopy.request((SurfaceView) surface, sample, result -> {
                         copying = false;
-                        if (ticket != generation || !attached) {
-                            if (!attached) sample = null;
+                        if (ticket != generation || !attached || !sampling) {
+                            // An in-flight PixelCopy cannot be cancelled: discard
+                            // its result after disable/mode switch, never publish
+                            // and never restart the sampling loop.
+                            if (!attached || !sampling) sample = null;
                             return;
                         }
                         if (result == PixelCopy.SUCCESS && surface.isShown()) publish();

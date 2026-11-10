@@ -16,7 +16,9 @@ concurrency:
 jobs:
   build:
     if: >-
-      github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'docs: update release notes')
+      github.event_name != 'push' ||
+      (!startsWith(github.event.head_commit.message, 'docs: update release notes') &&
+       !startsWith(github.event.head_commit.message, 'chore(maintenance):'))
     runs-on: ubuntu-latest
     timeout-minutes: 65
     steps:

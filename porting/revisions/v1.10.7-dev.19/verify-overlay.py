@@ -27,6 +27,18 @@ expected = {
     "Dev131.smali": ["nicoid_audio_focus_enabled", "installSettings", "applyToPlayer", "requestServiceFocus"],
     "Dev138.smali": ["menu_ranking", "menu_restart", "dispatchNativeMenu", "dispatchKnownRoute"],
     "Dev139.smali": ["Original SurfaceTexture retained", "connect", "remember", "hold"],
+    "AmbientSampling148.smali": ["shouldSample", "directionMask"],
+    "SettingsBackupData.smali": [
+        "nicoid_single_tap_control_region", "nicoid_single_tap_region_open_only",
+        "nicoid_ambient_enabled", "nicoid_ambient_mode_0",
+        "nicoid_ambient_mode_1", "nicoid_ambient_mode_2",
+        "nicoid_ambient_sides", "nicoid_ambient_intensity",
+        "nicoid_ambient_spread", "nicoid_ambient_softness",
+        "nicoid_ambient_brightness", "nicoid_ambient_contrast",
+        "nicoid_ambient_saturation", "nicoid_ambient_vibrance",
+        "nicoid_ambient_response", "nicoid_ambient_rate",
+        "nicoid_ambient_resolution"
+    ],
     "VideoOutput227.smali": ["Dev139;->connect(Landroid/view/View;Landroid/view/TextureView;)V"],
     "RetainedPlayback137.smali": ["Dev139;->hold", "Dev139$Retention;->restore", "Dev139$Retention;->close"],
     "Dev132.smali": ["nicoid_tab_bar_buttons", "addRankingLabel", "addRankingTab", "decorateBar", "show", "rememberClosed", "sameRanking", "showAddTab", "addActionName"],
@@ -198,7 +210,7 @@ def dex_classes(data):
     return {types[u32(class_off + 32*i)] for i in range(class_size)}
 
 helper_defs = dex_classes((output / "helpers.mpe").read_bytes())
-needed = ("Dev139", "Dev138", "Dev128", "GestureTurnPolicy128", "Dev130", "Dev131", "Dev132", "RankingTabIdentity133", "Dev134", "TabHistory127", "Dev111", "Dev112", "Dev113", "Dev114", "Dev115", "Dev116", "Dev117", "Dev118", "Dev119", "Dev120", "Dev121", "CommentBatchPolicy121", "Dev122", "PostingPolicy122", "PostEcho123", "PlaylistUrlParser", "LegacyCacheCleanup113", "StorageDiagnostics112")
+needed = ("AmbientSampling148", "Dev139", "Dev138", "Dev128", "GestureTurnPolicy128", "Dev130", "Dev131", "Dev132", "RankingTabIdentity133", "Dev134", "TabHistory127", "Dev111", "Dev112", "Dev113", "Dev114", "Dev115", "Dev116", "Dev117", "Dev118", "Dev119", "Dev120", "Dev121", "CommentBatchPolicy121", "Dev122", "PostingPolicy122", "PostEcho123", "PlaylistUrlParser", "LegacyCacheCleanup113", "StorageDiagnostics112")
 missing = [name for name in needed if "Le/e/a/" + name + ";" not in helper_defs]
 print("Assembled helper DEX class definitions:", len(helper_defs))
 print("Required development classes:", len(needed) - len(missing), "/", len(needed))

@@ -31,6 +31,8 @@ jobs:
           java-version: '21'
       - name: Verify version, metadata and immutable release sources
         run: python3 porting/tests/VerifyReleaseBaseline.py
+      - name: Verify helper source ownership before release
+        run: python3 porting/tests/VerifyCanonicalHelpers.py
       - name: Make Gradle dependency downloads resilient
         run: |
           sed -i 's#https\\://services.gradle.org/distributions/gradle-9.8.2-bin.zip#https\\://downloads.gradle.org/distributions/gradle-9.8.2-bin.zip#' gradle/wrapper/gradle-wrapper.properties

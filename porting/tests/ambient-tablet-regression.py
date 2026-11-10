@@ -2,8 +2,8 @@
 """Guard ambient page backgrounds and longer preset fade, preserving UI layering."""
 from pathlib import Path
 r=Path(__file__).resolve().parents[2]
-code=(r/"porting/revisions/v1.11.1-dev.9/java/e/e/a/AmbientLight.java").read_text()
-dev=(r/"porting/revisions/v1.11.1-dev.9/java/e/e/a/Dev115.java").read_text()
+code=(r/"porting/revisions/v1.11.1-dev.10/java/e/e/a/AmbientLight.java").read_text()
+dev=(r/"porting/revisions/v1.11.1-dev.10/java/e/e/a/Dev115.java").read_text()
 viewport=(r/"extensions/extension/src/main/java/e/e/a/FullscreenViewport209.java").read_text()
 for token in (
  "pageGlow.sides = split ? 8 : 2;",
@@ -52,3 +52,16 @@ def normal_fade(distance,spread,alpha):
 assert normal_fade(70,108,162)>110
 assert normal_fade(108,108,162)==0
 print("PASS: Vivid normal halo depth, landscape side corners, and background stacking")
+
+# Background layers clip the same falloff profile at their local bounds.
+assert "if (sharedFade) c.clipRect(getBounds());" in code
+assert "if (!inner && !sharedFade)" in code
+assert "tabGlow.sharedFade = true;" in code and "pageGlow.sharedFade = true;" in code
+assert "if ((glow.sides & 2) == 0)" in code
+assert "if ((glow.sides & (split ? 8 : 2)) == 0)" in code
+assert 'perimeterGlow.tracePlane = null;' in code
+diag=(r/"porting/revisions/v1.11.1-dev.10/java/e/e/a/AmbientGeometryTrace.java").read_text()
+assert 'getGlobalVisibleRect' in diag and 'getClipChildren' in diag
+assert '"e.e.a.ModernDebug", "record"' in diag
+assert "getText(" not in diag and "getContentDescription(" not in diag
+print("PASS shared gradient profile, direction gates and geometry diagnostics")

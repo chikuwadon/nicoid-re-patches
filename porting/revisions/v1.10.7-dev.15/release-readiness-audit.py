@@ -11,7 +11,7 @@ import re
 ROOT=pathlib.Path(__file__).resolve().parents[3]
 REV=pathlib.Path(__file__).resolve().parent
 HELPERS=REV/"java/e/e/a"
-VERSION="1.10.7-dev.14"
+VERSION="1.10.7-dev.15"
 checks=0
 
 def verify(ok:bool,reason:str)->None:
@@ -131,7 +131,7 @@ verify("Set<String> shown=buttons(activity)" in tabs,
 # Add-tab ranking must be second, preserve native item mapping and share the
 # ordinary saved-tab lifecycle; version asserts must match the actual build.
 patch_text=(REV/"patch-payloads.py").read_text(encoding="utf-8")
-verify('assert version == "1.10.7-dev.14"' in patch_text,
+verify('assert version == "1.10.7-dev.15"' in patch_text,
        "Development patch version mismatches Gradle version")
 verify('result[0]=existing[0]' in tabs and 'result[1]=tr(activity,"ランキング"' in tabs and
        'System.arraycopy(existing,1,result,2,existing.length-1)' in tabs,

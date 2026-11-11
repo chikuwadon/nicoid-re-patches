@@ -23,15 +23,22 @@ final class MergeLiveDex {
             replacements.add(cls.getType());
             pool.internClass(cls);
         }
+        Set<String> liveAmbient = new HashSet<>();
+        for (ClassDef cls : live.getClasses()) {
+            String type = cls.getType();
+            if (type.equals("Le/e/a/AmbientLight;") || type.startsWith("Le/e/a/AmbientLight$")
+                    || type.startsWith("Le/e/a/AmbientLight$$")) liveAmbient.add(type);
+        }
+        if (!liveAmbient.contains("Le/e/a/AmbientLight$Glow;")) throw new IOException("Missing ambient glow");
         Set<String> types = new HashSet<>();
         for (ClassDef cls : baseline.getClasses()) {
             types.add(cls.getType());
-            if (!replacements.contains(cls.getType())) pool.internClass(cls);
+            if (!replacements.contains(cls.getType()) && !liveAmbient.contains(cls.getType())) pool.internClass(cls);
         }
         if (!types.containsAll(replacements)) throw new IOException("Unknown replacement class");
         for (ClassDef cls : live.getClasses()) {
             String type = cls.getType();
-            if (types.add(type)) {
+            if (types.add(type) || liveAmbient.contains(type)) {
                 pool.internClass(cls);
             } else if (!type.startsWith("Lcom/android/tools/r8/annotations/")) {
                 throw new IOException("Live dependency collides with stable helper: " + type);

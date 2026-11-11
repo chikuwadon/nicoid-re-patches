@@ -16,6 +16,35 @@ class NicoliveBrowser {
   if(cached!=null&&System.currentTimeMillis()-cached.at<30000){main.post(()->{if(!closed&&token==generation)result.done(cached.html);});return;}
   loading=work.submit(()->{if(closed||token!=generation)return;try{final String html=new String(bytes(url,cookie,2097152,true),"UTF-8");main.post(()->{if(!closed&&token==generation){feeds.put(key,new Feed(html));while(feeds.size()>3)feeds.remove(feeds.keySet().iterator().next());result.done(html);}});}catch(Exception e){main.post(()->{if(!closed&&token==generation)result.error();});}});
  }
+ void reserve(String id,String cookie,Result result){
+  if(!id.matches("lv[0-9]+")||cookie.isEmpty()||closed){result.error();return;}
+  NicoliveIo.execute(()->{
+   HttpURLConnection request=null;
+   try{
+    request=(HttpURLConnection)new URL("https://live2.nicovideo.jp/api/v2/programs/"+id+"/timeshift/reservation").openConnection();
+    synchronized(requests){if(closed)return;requests.add(request);}
+    request.setInstanceFollowRedirects(false);
+    request.setConnectTimeout(15000);
+    request.setReadTimeout(15000);
+    request.setRequestMethod("POST");
+    request.setRequestProperty("Cookie",cookie);
+    request.setRequestProperty("User-Agent",NicoliveData.UA);
+    request.setRequestProperty("X-Frontend-Id","9");
+    request.setRequestProperty("Origin","https://live.nicovideo.jp");
+    request.setRequestProperty("Accept","application/json");
+    int status=request.getResponseCode();
+    main.post(()->{
+     if(closed)return;
+     if(status>=200&&status<300){refresh();result.done("");}
+     else result.error();
+    });
+   }catch(IOException failure){
+    main.post(()->{if(!closed)result.error();});
+   }finally{
+    if(request!=null){requests.remove(request);request.disconnect();}
+   }
+  });
+ }
  void refresh(){feeds.clear();}
  byte[] bytes(String original,String cookie,int max,boolean feed)throws IOException{
   String url=original;for(int redirect=0;redirect<4;redirect++){if(closed||Thread.currentThread().isInterrupted()||(!feed&&imagesPaused))throw new IOException("CANCELLED");URI u;try{u=URI.create(url);}catch(Exception e){throw new IOException("INVALID_URI");}String host=u.getHost();if(!"https".equalsIgnoreCase(u.getScheme())||host==null||!(host.equals("nicovideo.jp")||host.endsWith(".nicovideo.jp")||host.equals("nimg.jp")||host.endsWith(".nimg.jp")))throw new IOException("INVALID_HOST");

@@ -181,7 +181,7 @@ public final class NicoliveEntry {
         boolean japanese = NicoliveUi.ja(context);
         Map<String, Object> item = new HashMap<>();
         item.put("title", japanese ? "ニコ生 (β)" : "Niconico Live (β)");
-        item.put("subtitle", japanese ? "ニコ生視聴" : "Watch Niconico Live");
+        item.put("subtitle", japanese ? "ニコ生の視聴" : "Watch Niconico Live");
         item.put("islabel", false);
         item.put("type", 0);
         item.put("id", "nicoid_live");

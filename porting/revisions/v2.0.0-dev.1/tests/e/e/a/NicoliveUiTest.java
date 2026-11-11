@@ -104,7 +104,7 @@ public class NicoliveUiTest {
   assertEquals(1,a.hubTab);
  }
 
- @Test public void sidebarAddsOneNativeIntent(){ArrayList<Map<String,Object>> menu=new ArrayList<Map<String,Object>>();NicoliveEntry.addMenu(a,menu);NicoliveEntry.addMenu(a,menu);assertEquals(1,menu.size());assertEquals(NicoliveUi.ja(a)?"ニコ生視聴":"Watch Niconico Live",menu.get(0).get("subtitle"));assertEquals(NicoliveActivity.class.getName(),((Intent)menu.get(0).get("intent")).getComponent().getClassName());}
+ @Test public void sidebarAddsOneNativeIntent(){ArrayList<Map<String,Object>> menu=new ArrayList<Map<String,Object>>();NicoliveEntry.addMenu(a,menu);NicoliveEntry.addMenu(a,menu);assertEquals(1,menu.size());assertEquals(NicoliveUi.ja(a)?"ニコ生の視聴":"Watch Niconico Live",menu.get(0).get("subtitle"));assertEquals(NicoliveActivity.class.getName(),((Intent)menu.get(0).get("intent")).getComponent().getClassName());}
  @Test public void liveGestureFollowsShortsAndOpensTheNativeHub(){
   String[] original={"menu_ranking","menu_shorts","menu_video_id"};
   assertArrayEquals(new String[]{"menu_ranking","menu_shorts","menu_nicolive","menu_video_id"},
@@ -239,6 +239,57 @@ public class NicoliveUiTest {
   assertSame(outline,image.getOutlineProvider());
   assertFalse(avatar.getClipToOutline());
   assertFalse(overlay.getClipToOutline());
+ }
+ @Test public void rankingAndReservationTabPositionsAndLiveBadges(){
+  LinearLayout navigation=a.root.findViewWithTag("nicoid-live-navigation");
+  assertEquals("タイムシフト予約リスト",navigation.getChildAt(4).getContentDescription());
+  assertEquals("ランキング",((Button)a.categoryTabs.getChildAt(0)).getText().toString());
+  a.categoryTabs.getChildAt(0).performClick();
+  assertTrue(((Button)a.categoryTabs.getChildAt(0)).isSelected());
+  a.categoryTabs.getChildAt(1).performClick();
+  assertTrue(((Button)a.categoryTabs.getChildAt(1)).isSelected());
+
+  NicoliveData.Program row=new NicoliveData.Program("lv100");
+  row.status="ON_AIR";
+  a.programs.add(row);
+  a.feedAdapter.notifyDataSetChanged();
+  LinearLayout item=(LinearLayout)a.feedAdapter.getView(0,null,a.feed);
+  TextView badge=(TextView)((FrameLayout)item.getChildAt(0)).getChildAt(1);
+  assertEquals("LIVE",badge.getText().toString());
+  row.status="RELEASED";
+  row.reservations=1708;
+  assertSame(item,a.feedAdapter.getView(0,item,a.feed));
+  assertEquals("放送予定",badge.getText().toString());
+  assertTrue(((TextView)((LinearLayout)item.getChildAt(1)).getChildAt(3)).getText().toString().contains("1,708"));
+  row.status="ENDED";
+  a.feedAdapter.getView(0,item,a.feed);
+  assertEquals(View.GONE,badge.getVisibility());
+
+  navigation=a.root.findViewWithTag("nicoid-live-navigation");
+  navigation.getChildAt(1).performClick();
+  a.moveCategory(1);
+  assertTrue(((LinearLayout)a.body.getChildAt(0)).getChildAt(1).isSelected());
+  a.moveCategory(-1);
+  assertTrue(((LinearLayout)a.body.getChildAt(0)).getChildAt(0).isSelected());
+ }
+
+ @Test @Config(sdk=36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+ public void ambientGlowTapersBeforeItsOuterBoundary(){
+  AmbientLight.Glow glow=new AmbientLight.Glow();
+  glow.video.set(10,100,110,150);
+  glow.setBounds(0,0,120,160);
+  glow.sides=1;
+  glow.spread=100;
+  glow.normalFade=true;
+  glow.alpha=180;
+  Arrays.fill(glow.colors,Color.WHITE);
+  Bitmap pixels=Bitmap.createBitmap(120,160,Bitmap.Config.ARGB_8888);
+  glow.draw(new Canvas(pixels));
+  assertTrue(Color.alpha(pixels.getPixel(50,90))>120);
+  assertTrue(Color.alpha(pixels.getPixel(50,30))<55);
+  assertTrue(Color.alpha(pixels.getPixel(50,8))<10);
+  assertTrue(Color.alpha(pixels.getPixel(50,1))<4);
+  pixels.recycle();
  }
  @Test public void hubHasInlineSearchAndCompactBroadcastMetadata(){assertNotNull(a.searchInput);a.searchInput.setText("ゲーム");a.searchInput.onEditorAction(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH);assertEquals("ゲーム",a.query);NicoliveData.Program p=new NicoliveData.Program("lv123");p.title="番組タイトル";p.provider="official";p.owner="放送者";p.status="ON_AIR";p.begin=System.currentTimeMillis()/1000-65*60;p.views=123;p.comments=456;a.programs.add(p);a.feedAdapter.notifyDataSetChanged();View row=a.feedAdapter.getView(0,null,a.feed);assertTrue(((LinearLayout)row).getChildAt(0).getClipToOutline());LinearLayout text=(LinearLayout)((LinearLayout)row).getChildAt(1);assertTrue(((TextView)text.getChildAt(0)).getText().toString().contains("公式"));assertTrue(((TextView)text.getChildAt(0)).getText().toString().contains("1時間5分"));assertTrue(((TextView)text.getChildAt(3)).getText().toString().contains("456"));assertSame(row,a.feedAdapter.getView(0,row,a.feed));}
  @Test public void portraitViewerUsesNativeControlsAndPreservesDraft(){a.watching=true;a.requested="lv123";a.draft="下書き";a.viewer();layout(a.root,360,760);assertEquals("下書き",a.input.getText().toString());assertNotNull(a.playerFrame.video);assertTrue(a.input.getWidth()>0);assertTrue(a.composer.getBottom()<=a.body.getHeight());assertTrue(a.send.getWidth()>=NicoliveUi.dp(a,44));a.fullscreen=true;a.viewer();layout(a.root,760,360);assertEquals(View.GONE,a.header.getVisibility());assertEquals(View.GONE,a.viewerPane.getVisibility());}

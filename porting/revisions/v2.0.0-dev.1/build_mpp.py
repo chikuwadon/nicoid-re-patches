@@ -14,7 +14,7 @@ from patch_manifest import patch_manifest
 
 ROOT = Path(__file__).resolve().parent
 BASE_HASH = "8920e9cdc9fc49178be5bc78cdb990627f4e7a7be83fef782eece3e7c443bcce"
-VERSION = "2.0.0-dev.1-7"
+VERSION = "2.0.0-dev.1-8"
 
 
 def run(*args):
@@ -57,7 +57,8 @@ def build(args, work):
     classpath = os.pathsep.join(map(str, [android, helpers, network, *libs]))
     classes = work / "classes"
     run("java", "-jar", tools / "ecj.jar", "-8", "-proc:none", "-nowarn", "-cp", classpath,
-        "-d", classes, *sorted((ROOT / "java").rglob("*.java")))
+        "-d", classes, *sorted((ROOT / "java").rglob("*.java")),
+        ROOT.parent / "v1.11.1/java/e/e/a/AmbientLight.java")
     live_jar = work / "live.jar"
     with ZipFile(live_jar, "w", ZIP_DEFLATED) as archive:
         for class_file in sorted(classes.rglob("*.class")):
@@ -159,6 +160,22 @@ def build(args, work):
                 f"    {conditional_return}\n"
                 "    :nicoid_live_original_gesture")
         (hooks / gesture_file).write_text(gesture)
+        viewport_file = "FullscreenViewport209.smali"
+        viewport = (disassembled / "e/e/a" / viewport_file).read_text()
+        viewport = add_hook(viewport, ".method public static update(Landroid/view/View;Landroid/view/ViewGroup;Landroid/view/View;)V",
+                            "invoke-static/range {p0 .. p0}, Le/e/a/NormalVideoInsets;->clear(Landroid/view/View;)V")
+        (hooks / viewport_file).write_text(viewport)
+
+        restore_file = "Dev115.smali"
+        restore = (disassembled / "e/e/a" / restore_file).read_text()
+        signature = ".method public static afterFullscreenRestore(Landroid/view/View;)V"
+        replacement = (signature + "\n    .registers 1\n"
+                       "    invoke-static {p0}, Le/e/a/NormalVideoInsets;->schedule(Landroid/view/View;)V\n"
+                       "    return-void\n.end method")
+        restore, count = re.subn(re.escape(signature) + r".*?\.end method", replacement, restore, flags=re.DOTALL)
+        if count != 1:
+            raise ValueError("Missing normal playback restore")
+        (hooks / restore_file).write_text(restore)
         hook_dex = work / "hooks.dex"
         run("java", "-cp", smali, "org.jf.smali.Main", "assemble", work / "hooks", "-o", hook_dex)
         merged = work / "helpers.mpe"

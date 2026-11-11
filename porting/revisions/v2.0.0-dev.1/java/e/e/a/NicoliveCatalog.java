@@ -65,7 +65,7 @@ final class NicoliveCatalog {
         }
 
         boolean matches(NicoliveData.Program program) {
-            return state.equals(program.status);
+            return this == UPCOMING ? program.scheduled() : state.equals(program.status);
         }
     }
 
@@ -92,27 +92,115 @@ final class NicoliveCatalog {
     }
 
     static List<NicoliveData.Program> followed(String html) throws Exception {
-        JSONObject root;
-        try {
-            root = NicoliveData.embedded(html, "embedded-data", "data-props");
-        } catch (java.io.IOException missing) {
-            root = NicoliveData.embedded(html, "DAT-csr-data", "data-value").getJSONObject("props");
-        }
+        JSONObject root = accountPage(html);
         if (!root.getJSONObject("user").optBoolean("isLoggedIn")) return null;
-        JSONObject view = root.getJSONObject("view");
+        JSONObject view = root.optJSONObject("view");
+        boolean home = view != null && view.optJSONObject("favoriteProgramListSectionState") != null;
         LinkedHashMap<String, NicoliveData.Program> programs = new LinkedHashMap<>();
-        for (Iterator<String> keys = view.keys(); keys.hasNext();) {
-            String key = keys.next();
-            String name = key.toLowerCase(java.util.Locale.ROOT);
-            if (name.contains("programlist") && !name.contains("recommend") && !name.contains("popular")) {
-                NicoliveData.collect(view.opt(key), programs, 0);
+        if (home) {
+            for (Iterator<String> keys = view.keys(); keys.hasNext();) {
+                String key = keys.next();
+                String name = key.toLowerCase(java.util.Locale.ROOT);
+                if (name.contains("programlist") && (name.startsWith("favorite") || name.startsWith("followed")))
+                    collectAccountPrograms(view.opt(key), programs, 0);
             }
-        }
-        if (programs.isEmpty() && view.optJSONObject("followProgramListSectionState") == null) {
-            JSONObject domain = root.optJSONObject("follow");
-            if (domain != null) NicoliveData.collect(domain, programs, 0);
+        } else {
+            boolean found = collectFollowSections(root, programs);
+            JSONObject domain = root.optJSONObject("domain");
+            if (domain != null) found |= collectFollowSections(domain, programs);
+            if (view != null) found |= collectFollowSections(view, programs);
+            if (!found) throw new JSONException("FOLLOW_LIST_MISSING");
         }
         return new ArrayList<>(programs.values());
+    }
+
+    private static boolean collectFollowSections(JSONObject container, LinkedHashMap<String,NicoliveData.Program> programs) {
+        boolean found = false;
+        for (Iterator<String> keys = container.keys(); keys.hasNext();) {
+            String key = keys.next();
+            String name = key.toLowerCase(java.util.Locale.ROOT);
+            if (name.contains("notification") || name.contains("recommend") || name.contains("popular")) continue;
+            Object value = container.opt(key);
+            if (!(value instanceof JSONObject || value instanceof JSONArray)) continue;
+            if (name.contains("follow") || name.contains("favorite") || name.contains("programlist")
+                    || name.equals("programs") || name.equals("onair") || name.equals("comingsoon") || name.equals("closed")) {
+                collectAccountPrograms(value, programs, 0);
+                found = true;
+            }
+        }
+        return found;
+    }
+
+    static String reservationsUrl() {
+        return BASE + "/embed/timeshift-reservations";
+    }
+
+    static List<NicoliveData.Program> reservations(String html) throws Exception {
+        JSONObject root = accountPage(html);
+        JSONObject wrapper = root.getJSONObject("reservations");
+        LinkedHashMap<String,NicoliveData.Program> result = new LinkedHashMap<>();
+        collectAccountPrograms(wrapper.getJSONArray("reservations"), result, 0);
+        return new ArrayList<>(result.values());
+    }
+
+    private static JSONObject accountPage(String html) throws Exception {
+        try {
+            return NicoliveData.embedded(html, "embedded-data", "data-props");
+        } catch (java.io.IOException missing) {
+            return NicoliveData.embedded(html, "DAT-csr-data", "data-value").getJSONObject("props");
+        }
+    }
+
+    private static void collectAccountPrograms(Object node, LinkedHashMap<String,NicoliveData.Program> result, int depth) {
+        if (depth > 18) return;
+        if (node instanceof JSONArray) {
+            JSONArray items = (JSONArray) node;
+            for (int i = 0; i < items.length(); i++) collectAccountPrograms(items.opt(i), result, depth + 1);
+        } else if (node instanceof JSONObject) {
+            JSONObject row = (JSONObject) node;
+            NicoliveData.Program program = NicoliveData.Program.listing(row);
+            if (program == null || program.title.isEmpty() || program.status.isEmpty()) program = accountProgram(row);
+            if (program != null && !program.title.isEmpty() && !program.status.isEmpty()) {
+                result.putIfAbsent(program.id, program);
+                return;
+            }
+            for (Iterator<String> keys = row.keys(); keys.hasNext();)
+                collectAccountPrograms(row.opt(keys.next()), result, depth + 1);
+        }
+    }
+
+    private static NicoliveData.Program accountProgram(JSONObject row) {
+        JSONObject detail = row.optJSONObject("program");
+        if (detail == null) return null;
+        String id = row.optString("programId",detail.optString("nicoliveProgramId",detail.optString("id")));
+        if (!id.matches("lv[0-9]+")) return null;
+        JSONObject schedule = detail.optJSONObject("schedule");
+        if (schedule == null) return NicoliveData.Program.listing(detail);
+        NicoliveData.Program p = new NicoliveData.Program(id);
+        p.title = detail.optString("title");
+        p.status = schedule.optString("status").toUpperCase(java.util.Locale.ROOT).replace('-', '_');
+        if ("ON_AIR".equalsIgnoreCase(p.status) || "ONAIR".equals(p.status)) p.status = "ON_AIR";
+        if ("CLOSED".equals(p.status)) p.status = "ENDED";
+        try { p.begin = java.time.Instant.parse(schedule.optString("beginTime")).getEpochSecond(); }
+        catch (java.time.DateTimeException invalid) { p.begin = schedule.optLong("beginTime", 0); }
+        JSONObject provider = row.optJSONObject("programProvider");
+        p.provider = detail.optString("provider");
+        if (provider != null) {
+            p.owner = provider.optString("name");
+            p.provider = provider.optString("type", p.provider);
+        }
+        JSONObject social = row.optJSONObject("socialGroup");
+        if (p.owner.isEmpty() && social != null) p.owner = social.optString("name");
+        JSONObject thumbnail = row.optJSONObject("thumbnail");
+        p.thumbnail = NicoliveData.broadcastThumbnail(thumbnail);
+        if (p.thumbnail.isEmpty() && thumbnail != null) p.thumbnail = thumbnail.optString("large");
+        JSONObject stats = row.optJSONObject("statistics");
+        if (stats != null) {
+            p.views = stats.optLong("viewers", stats.optLong("watchCount", -1));
+            p.comments = stats.optLong("comments", stats.optLong("commentCount", -1));
+            p.reservations = stats.optLong("timeshiftReservations", stats.optLong("timeshiftReservationCount", -1));
+        }
+        return p;
     }
 
     static final class Page {

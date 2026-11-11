@@ -30,6 +30,36 @@ public class NicoliveProtocolTest {
   assertEquals(3,programs.size());
   assertTrue(programs.stream().anyMatch(NicoliveData.Program::ended));
  }
+ @Test public void accountFeedsParseNestedSchedulesAndReservationCounts()throws Exception{
+  JSONObject row=new JSONObject().put("programId","lv101")
+      .put("program",new JSONObject().put("title","放送前の番組").put("provider","official")
+          .put("schedule",new JSONObject().put("status","released").put("beginTime","2026-11-13T22:00:00+09:00")))
+      .put("statistics",new JSONObject().put("timeshiftReservations",1708))
+      .put("programProvider",new JSONObject().put("name","番組チャンネル").put("type","official"));
+  JSONObject wrapper=new JSONObject().put("reservations",new JSONArray().put(row).put(row));
+  String header="<script id='embedded-data' data-props='";
+  String footer="'></script>";
+  List<NicoliveData.Program> list=NicoliveCatalog.reservations(header+new JSONObject().put("reservations",wrapper)+footer);
+  assertEquals(1,list.size());
+  NicoliveData.Program p=list.get(0);
+  assertTrue(p.scheduled());
+  assertEquals(1708,p.reservations);
+  assertEquals("番組チャンネル",p.owner);
+  assertEquals(java.time.Instant.parse("2026-11-13T13:00:00Z").getEpochSecond(),p.begin);
+
+  JSONObject response=new JSONObject().put("user",new JSONObject().put("isLoggedIn",true))
+      .put("domain",new JSONObject().put("followedPrograms",new JSONArray().put(row)));
+  assertEquals("lv101",NicoliveCatalog.followed(header+response+footer).get(0).id);
+  response.remove("domain");
+  try{NicoliveCatalog.followed(header+response+footer);fail();}
+  catch(JSONException expected){assertEquals("FOLLOW_LIST_MISSING",expected.getMessage());}
+ }
+ @Test public void tabletNormalViewportAvoidsDoubleInsets(){
+  assertEquals(32,NormalVideoInsets.requiredMargin(0,0,0,32));
+  assertEquals(32,NormalVideoInsets.requiredMargin(0,32,32,32));
+  assertEquals(0,NormalVideoInsets.requiredMargin(0,32,64,32));
+  assertEquals(4,NormalVideoInsets.requiredMargin(4,4,36,32));
+ }
  @Test public void urlRoutingAcceptsOnlyLiveIdsAndKnownHosts(){assertEquals("lv123",NicoliveData.id("lv123"));assertEquals("lv123",NicoliveData.id("nicoid-re://live/lv123"));assertEquals("lv123",NicoliveData.id("https://live.nicovideo.jp/watch/lv123?ref=test"));assertEquals("lv123",NicoliveData.id("https://nico.ms/lv123"));assertNull(NicoliveData.id("https://example.com/watch/lv123"));assertNull(NicoliveData.id("https://live.nicovideo.jp.evil.test/watch/lv123"));assertNull(NicoliveData.id("sm123"));assertNull(NicoliveData.id("https://user:pw@live.nicovideo.jp/watch/lv123"));}
  @Test public void historyUsesLandscapeBroadcastThumbnailInsteadOfSmallIcon()throws Exception{
   String url="https://listing-thumbnail.live.nicovideo.jp/?image=prod-lv123/thumbnail.jpg&w=352&h=198";

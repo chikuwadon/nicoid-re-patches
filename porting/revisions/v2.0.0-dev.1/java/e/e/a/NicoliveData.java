@@ -30,12 +30,13 @@ public final class NicoliveData {
  }
  public static final class Program {
   public String id,title="",owner="",description="",thumbnail="",status="",provider="",socket="",quality="abr";
-  public long begin,open,end,vposBase,views=-1,comments=-1;public boolean loggedIn,premium,chaseCapable,canWatch=true;
+  public long begin,open,end,vposBase,views=-1,comments=-1,reservations=-1;public boolean loggedIn,premium,chaseCapable,canWatch=true;
   boolean programThumbnail;
   public JSONObject source;
   public Program(String id){this.id=id;}
   public boolean onAir(){return "ON_AIR".equals(status);}
   public boolean ended(){return "ENDED".equals(status);}
+  public boolean scheduled(){return "RELEASED".equals(status)||"BEFORE_OPEN".equals(status)||"COMING_SOON".equals(status);}
   public static Program watch(String html,String expected)throws Exception{
    JSONObject root=embedded(html,"embedded-data","data-props"),p=root.getJSONObject("program");String found=p.optString("nicoliveProgramId");if(!expected.equals(found))throw new IOException("PROGRAM_MISMATCH");
    Program v=new Program(found);v.source=root;v.title=p.optString("title");v.description=unescape(p.optString("description").replaceAll("(?is)<(?:script|style)[^>]*>.*?</(?:script|style)>","").replaceAll("(?i)<br\\s*/?>","\n").replaceAll("<[^>]+>",""));
@@ -73,6 +74,7 @@ public final class NicoliveData {
    if(stats!=null){
     program.views=stats.optLong("watchCount",-1);
     program.comments=stats.optLong("commentCount",-1);
+    program.reservations=stats.optLong("timeshiftReservationCount",stats.optLong("reservationCount",-1));
    }
    return program;
   }

@@ -1,0 +1,139 @@
+"""Build the private live development MPP on the exact v1.11.1 release."""
+import argparse
+import hashlib
+import io
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+from tempfile import TemporaryDirectory
+from zipfile import ZIP_DEFLATED, ZipFile
+
+from patch_manifest import patch_manifest
+
+ROOT = Path(__file__).resolve().parent
+BASE_HASH = "8920e9cdc9fc49178be5bc78cdb990627f4e7a7be83fef782eece3e7c443bcce"
+VERSION = "2.0.0-dev.1"
+
+
+def run(*args):
+    subprocess.run([str(arg) for arg in args], check=True)
+
+
+def add_hook(source, signature, instruction):
+    pattern = rf"(^{re.escape(signature)}\n\s*\.registers \d+\n)"
+    updated, count = re.subn(pattern, lambda match: match[1] + "\n    " + instruction + "\n",
+                             source, flags=re.MULTILINE)
+    if count != 1:
+        raise ValueError(f"Expected one method: {signature}")
+    return updated
+
+
+def build(args, work):
+    tools = args.tools.resolve()
+    android = tools / "android-all-16-robolectric-13921718.jar"
+    smali = os.pathsep.join(str(tools / name) for name in ("assemble/*", "dexlib2.jar", "guava.jar"))
+    smali_compile = os.pathsep.join(map(str, [*sorted((tools / "assemble").glob("*.jar")), tools / "dexlib2.jar", tools / "guava.jar"]))
+    deps = json.loads((ROOT / "media-dependencies.lock.json").read_text())
+    libs = [args.media / f"{dep['artifact']}-{dep['version']}.jar" for dep in deps]
+    if not all(lib.is_file() for lib in libs):
+        raise ValueError("Prepare the pinned Media3 graph with bootstrap_live.py")
+    original = work / "base.dex"
+    with ZipFile(args.base) as base:
+        original.write_bytes(base.read("nicoid/helpers.mpe"))
+        expected_input = dict(line.split()[::-1] for line in base.read("nicoid/input-hashes.txt").decode().splitlines())
+    native_dex = work / "original.dex"
+    with ZipFile(args.apk) as apk:
+        native = apk.read("classes.dex")
+    if hashlib.sha256(native).hexdigest() != expected_input["classes.dex"]:
+        raise ValueError("Use the original supported nicoid 6.49 APK")
+    native_dex.write_bytes(native)
+    helpers = work / "helpers.jar"
+    network = work / "original.jar"
+    for source, target in ((original, helpers), (native_dex, network)):
+        run("java", "-cp", str(args.media / "*"), "com.googlecode.dex2jar.tools.Dex2jarCmd",
+            "-o", target, source)
+    classpath = os.pathsep.join(map(str, [android, helpers, network, *libs]))
+    classes = work / "classes"
+    run("java", "-jar", tools / "ecj.jar", "-8", "-proc:none", "-nowarn", "-cp", classpath,
+        "-d", classes, *sorted((ROOT / "java").rglob("*.java")))
+    live_jar = work / "live.jar"
+    with ZipFile(live_jar, "w", ZIP_DEFLATED) as archive:
+        for class_file in sorted(classes.rglob("*.class")):
+            archive.write(class_file, class_file.relative_to(classes))
+    dex = work / "live-dex"
+    dex.mkdir()
+    java_home = Path(os.path.realpath(subprocess.check_output(["which", "java"], text=True).strip())).parents[1]
+    run("java", "-cp", tools / "r8.jar", "com.android.tools.r8.D8", "--release", "--min-api", 28,
+        "--lib", android, "--lib", java_home, "--classpath", helpers, "--classpath", network,
+        "--output", dex, live_jar, *libs)
+    live_dex = dex / "classes.dex"
+    if list(dex.glob("*.dex")) != [live_dex]:
+        raise ValueError("Expected a single live DEX")
+
+    with ZipFile(args.base) as base:
+        disassembled = work / "stable"
+        run("java", "-cp", smali, "org.jf.baksmali.Main", "disassemble", original, "-o", disassembled)
+        hooks = work / "hooks/e/e/a"
+        hooks.mkdir(parents=True)
+        replacements = {
+            "AccountPage": (".method public static addMenu(Landroid/content/Context;Ljava/util/ArrayList;)V",
+                            "invoke-static {p0, p1}, Le/e/a/NicoliveEntry;->addMenu(Landroid/content/Context;Ljava/util/ArrayList;)V"),
+            "Playback214": (".method public static begin(Ljava/lang/Object;Ljava/lang/String;)V",
+                            "invoke-static {}, Le/e/a/NicoliveEntry;->beforeVideo()V"),
+        }
+        for name, (signature, instruction) in replacements.items():
+            file = name + ".smali"
+            source = (disassembled / "e/e/a" / file).read_text()
+            (hooks / file).write_text(add_hook(source, signature, instruction))
+        for name in ("PatchVersion237", "ModernShorts"):
+            file = name + ".smali"
+            source = (disassembled / "e/e/a" / file).read_text()
+            updated, count = re.subn(r'(?<=["v])1\.11\.1(?=[" ])', VERSION, source)
+            if not count:
+                raise ValueError(f"Missing stable version in {name}")
+            (hooks / file).write_text(updated)
+        hook_dex = work / "hooks.dex"
+        run("java", "-cp", smali, "org.jf.smali.Main", "assemble", work / "hooks", "-o", hook_dex)
+        merged = work / "helpers.mpe"
+        run("java", "-jar", tools / "ecj.jar", "-21", "-proc:none", "-cp", smali_compile, "-d", work, ROOT / "MergeLiveDex.java")
+        run("java", "-cp", str(work) + os.pathsep + smali, "MergeLiveDex",
+            original, hook_dex, live_dex, merged)
+
+        resources = io.BytesIO()
+        with ZipFile(io.BytesIO(base.read("nicoid/resources.zip"))) as old, ZipFile(resources, "w", ZIP_DEFLATED) as new:
+            for item in old.infolist():
+                data = old.read(item)
+                new.writestr(item, patch_manifest(data) if item.filename == "AndroidManifest.xml" else data)
+        manifest = base.read("META-INF/MANIFEST.MF")
+        if manifest.count(b"Version: 1.11.1\r\n") != 1:
+            raise ValueError("Expected the stable patch version")
+        overrides = {
+            "META-INF/MANIFEST.MF": manifest.replace(b"Version: 1.11.1\r\n", f"Version: {VERSION}\r\n".encode()),
+            "nicoid/helpers.mpe": merged.read_bytes(),
+            "nicoid/resources.zip": resources.getvalue(),
+        }
+        with ZipFile(args.output, "w", ZIP_DEFLATED) as output:
+            for item in base.infolist():
+                output.writestr(item, overrides[item.filename] if item.filename in overrides else base.read(item))
+            for license_file in sorted((ROOT / "licenses").glob("*.txt")):
+                output.write(license_file, "META-INF/" + license_file.name)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    for flag in ("base", "apk", "tools", "media", "output"):
+        parser.add_argument("--" + flag, type=Path, required=True)
+    args = parser.parse_args()
+    if args.base.resolve() == args.output.resolve():
+        parser.error("Use a separate output path")
+    if hashlib.sha256(args.base.read_bytes()).hexdigest() != BASE_HASH:
+        parser.error("Expected the official v1.11.1 MPP")
+    with TemporaryDirectory() as folder:
+        build(args, Path(folder))
+    print(args.output)
+
+
+if __name__ == "__main__":
+    main()

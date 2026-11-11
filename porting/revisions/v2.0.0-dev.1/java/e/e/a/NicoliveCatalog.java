@@ -5,6 +5,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -16,8 +17,30 @@ final class NicoliveCatalog {
     private static final String BASE = "https://live.nicovideo.jp";
     private static final int PAGE_SIZE = 70;
 
-    static String recentUrl(int page) {
-        return BASE + "/front/api/pages/recent/v1/programs?sortOrder=recentDesc&offset=" + page;
+    enum Sort {
+        NEWEST("開始が新しい順", "recentDesc", (a, b) -> Long.compare(b.begin, a.begin)),
+        OLDEST("開始が早い順", "recentAsc", (a, b) -> Long.compare(a.begin, b.begin)),
+        VIEWS("来場者数が多い順", "viewCountDesc", (a, b) -> Long.compare(b.views, a.views)),
+        COMMENTS("コメント数が多い順", "commentCountDesc", (a, b) -> Long.compare(b.comments, a.comments));
+
+        final String label;
+        final String parameter;
+        final Comparator<NicoliveData.Program> comparator;
+
+        Sort(String label, String parameter, Comparator<NicoliveData.Program> comparator) {
+            this.label = label;
+            this.parameter = parameter;
+            this.comparator = comparator;
+        }
+
+        static Sort restore(String name, Sort fallback) {
+            try { return valueOf(name); }
+            catch (IllegalArgumentException | NullPointerException ignored) { return fallback; }
+        }
+    }
+
+    static String recentUrl(int page, Sort sort) {
+        return BASE + "/front/api/pages/recent/v1/programs?sortOrder=" + sort.parameter + "&offset=" + page;
     }
 
     static String timetableUrl(LocalDate date) {

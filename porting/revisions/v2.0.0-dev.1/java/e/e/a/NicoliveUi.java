@@ -22,6 +22,42 @@ final class NicoliveUi {
  static LinearLayout column(Context c){LinearLayout l=new LinearLayout(c);l.setOrientation(1);DynamicTheme.background(l);return l;}
  static LinearLayout row(Context c){LinearLayout l=new LinearLayout(c);l.setGravity(Gravity.CENTER_VERTICAL);return l;}
  static Button button(Context c,String s){Button b=new Button(c);b.setText(s);b.setAllCaps(false);b.setTextSize(13);b.setTypeface(Typeface.DEFAULT,0);b.setMinHeight(0);b.setMinimumHeight(0);b.setPadding(dp(c,8),0,dp(c,8),0);b.setTextColor(accent(c));b.setBackgroundColor(Color.TRANSPARENT);b.setElevation(0);return b;}
+ static GradientDrawable panel(Context c,int radius){
+  GradientDrawable panel=new GradientDrawable();
+  int surface=UiDialogs.surface(c),tint=ThemeChoice.isNight(c)?Color.WHITE:Color.BLACK;
+  panel.setColor(Color.rgb((Color.red(surface)*93+Color.red(tint)*7)/100,
+   (Color.green(surface)*93+Color.green(tint)*7)/100,(Color.blue(surface)*93+Color.blue(tint)*7)/100));
+  panel.setCornerRadius(dp(c,radius));
+  return panel;
+ }
+ static View navigationButton(Context c,String label,String icon,boolean selected){
+  LinearLayout button=new LinearLayout(c);
+  button.setOrientation(LinearLayout.VERTICAL);
+  button.setGravity(Gravity.CENTER);
+  button.setSelected(selected);
+  button.setFocusable(true);
+  button.setContentDescription(label);
+  button.setAccessibilityDelegate(new View.AccessibilityDelegate(){
+   @Override public void onInitializeAccessibilityNodeInfo(View view,android.view.accessibility.AccessibilityNodeInfo node){
+    super.onInitializeAccessibilityNodeInfo(view,node);
+    node.setClassName(Button.class.getName());
+   }
+  });
+  int color=selected?accent(c):DynamicTheme.secondaryTextColor(button);
+  ImageView image=new ImageView(c);
+  image.setImageDrawable(new Glyph(icon,color));
+  image.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+  button.addView(image,new LinearLayout.LayoutParams(dp(c,20),dp(c,20)));
+  TextView text=text(c,label,12);
+  text.setGravity(Gravity.CENTER);
+  text.setMaxLines(1);
+  text.setTextColor(color);
+  text.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+  LinearLayout.LayoutParams caption=new LinearLayout.LayoutParams(-1,dp(c,20));
+  caption.topMargin=dp(c,2);
+  button.addView(text,caption);
+  return button;
+ }
  static ImageButton icon(Context c,String name,String description){ImageButton b=new ImageButton(c);b.setImageDrawable(new Glyph(name,accent(c)));b.setContentDescription(description);b.setBackgroundColor(Color.TRANSPARENT);b.setPadding(dp(c,12),dp(c,12),dp(c,12),dp(c,12));b.setElevation(0);b.setLayoutParams(new LinearLayout.LayoutParams(dp(c,48),dp(c,48)));return b;}
  static EditText input(Context c,String hint){EditText e=new EditText(c);e.setTag("nicoid-managed-input");e.setSingleLine(true);e.setTextSize(16);e.setTextColor(DynamicTheme.textColor(e));e.setHintTextColor(DynamicTheme.secondaryTextColor(e));e.setHint(hint);e.setPadding(dp(c,8),dp(c,4),dp(c,8),dp(c,4));e.setBackgroundTintList(android.content.res.ColorStateList.valueOf(accent(c)));return e;}
  static void dialog(AlertDialog d){UiDialogs.show(d);}
@@ -38,6 +74,9 @@ final class NicoliveUi {
    else if(name.equals("expand")){line(c,3,9,3,3);line(c,3,3,9,3);line(c,15,3,21,3);line(c,21,3,21,9);line(c,21,15,21,21);line(c,21,21,15,21);line(c,9,21,3,21);line(c,3,21,3,15);}
    else if(name.equals("popup")){c.drawRoundRect(2,4,22,20,1,1,p);c.drawRect(11,11,21,19,p);}
    else if(name.equals("send")){Path path=new Path();path.moveTo(3,3);path.lineTo(22,12);path.lineTo(3,21);path.lineTo(7,12);path.close();c.drawPath(path,p);line(c,7,12,21,12);}
+   else if(name.equals("people")){c.drawCircle(9,7,3,p);c.drawArc(2,12,16,24,180,180,false,p);c.drawArc(13,4,20,11,-95,185,false,p);c.drawArc(12,12,23,24,-75,75,false,p);}
+   else if(name.equals("history")){c.drawArc(3,3,21,21,-155,305,false,p);line(c,3,3,3,9);line(c,3,9,9,9);line(c,12,7,12,12);line(c,12,12,16,14);}
+   else if(name.equals("calendar")){c.drawRoundRect(3,5,21,21,2,2,p);line(c,7,3,7,7);line(c,17,3,17,7);line(c,3,10,21,10);c.drawPoint(8,14,p);c.drawPoint(12,14,p);c.drawPoint(16,14,p);c.drawPoint(8,17,p);c.drawPoint(12,17,p);c.drawPoint(16,17,p);}
    else if(name.equals("person")){p.setStyle(Paint.Style.FILL);c.drawCircle(12,7,4,p);Path path=new Path();path.moveTo(7,12);path.cubicTo(3,15,3,21,5,21);path.lineTo(19,21);path.cubicTo(21,21,21,15,17,12);path.quadTo(12,16,7,12);c.drawPath(path,p);p.setStyle(Paint.Style.STROKE);}
    else if(name.equals("chat-stat")){p.setStyle(Paint.Style.FILL);c.drawRoundRect(3,3,21,18,2,2,p);Path path=new Path();path.moveTo(6,17);path.lineTo(6,22);path.lineTo(12,17);path.close();c.drawPath(path,p);p.setStyle(Paint.Style.STROKE);}
    else if(name.equals("comments-off")){c.drawRoundRect(3,4,21,18,2,2,p);line(c,3,2,22,22);}

@@ -40,7 +40,7 @@ class NicoliveBrowser {
   return BitmapFactory.decodeByteArray(bytes,0,bytes.length,options);
  }
  private void image(final String key,final String fallback,final String programId,final ImageView view){
-  view.setTag(key);Bitmap cached=key==null?null:images.get(key);if(cached!=null){view.setImageBitmap(cached);return;}view.setImageDrawable(new NicoliveUi.Glyph("live",NicoliveUi.accent(view.getContext())));if(key==null||key.isEmpty()||imagesPaused||closed)return;
+  view.setTag(key);Bitmap cached=key==null?null:images.get(key);if(cached!=null){view.setImageBitmap(cached);return;}view.setImageDrawable(null);if(key==null||key.isEmpty()||imagesPaused||closed)return;
   ArrayList<java.lang.ref.WeakReference<ImageView>> waiting=pending.get(key);
   if(waiting!=null){for(java.lang.ref.WeakReference<ImageView> ref:waiting)if(ref.get()==view)return;if(waiting.size()<16)waiting.add(new java.lang.ref.WeakReference<ImageView>(view));return;}
   final ArrayList<java.lang.ref.WeakReference<ImageView>> listeners=new ArrayList<>();

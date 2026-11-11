@@ -157,15 +157,18 @@ public class NicoliveUiTest {
   assertEquals(4,requestedUrls.size());
   assertEquals(1,a.feedAdapter.getCount());
 
-  LinearLayout tabs=(LinearLayout)a.body.getChildAt(0);
-  ((Button)tabs.getChildAt(3)).performClick();
+  LinearLayout tabs=a.root.findViewWithTag("nicoid-live-navigation");
+  tabs.getChildAt(3).performClick();
   assertEquals(0,a.feedAdapter.getCount());
   responses.get(4).done(timetable);
   assertEquals(2,a.feedAdapter.getCount());
   NicoliveData.Program scheduled=(NicoliveData.Program)a.feedAdapter.getItem(1);
   assertEquals("lv101",scheduled.id);
   assertTrue(a.programLabel(scheduled).contains("放送予定"));
-  ((LinearLayout)a.body.getChildAt(1)).getChildAt(3).performClick();
+  a.selectSort(NicoliveCatalog.Sort.NEWEST);
+  assertSame(scheduled,a.feedAdapter.getItem(0));
+  assertEquals(5,requestedUrls.size());
+  ((LinearLayout)a.body.getChildAt(0)).getChildAt(3).performClick();
   assertNotEquals(requestedUrls.get(4),requestedUrls.get(5));
   assertEquals(0,a.feedAdapter.getCount());
   responses.get(4).done(timetable);
@@ -173,8 +176,49 @@ public class NicoliveUiTest {
   responses.get(5).done(timetable);
   assertEquals(0,a.feedAdapter.getCount());
   assertEquals("番組はありません",a.status.getText().toString());
+
+  a.root.<LinearLayout>findViewWithTag("nicoid-live-navigation").getChildAt(0).performClick();
+  a.selectSort(NicoliveCatalog.Sort.COMMENTS);
+  assertTrue(requestedUrls.get(6).contains("recentDesc&offset=0"));
+  assertTrue(requestedUrls.get(7).contains("commentCountDesc&offset=0"));
+  responses.get(6).done(result.toString());
+  assertEquals(0,a.feedAdapter.getCount());
+  assertEquals("COMMENTS",PreferenceManager.getDefaultSharedPreferences(a).getString("nicolive_live_sort",""));
+  assertEquals("NEWEST",PreferenceManager.getDefaultSharedPreferences(a).getString("nicolive_timetable_sort",""));
  }
- @Test public void hubHasInlineSearchAndCompactBroadcastMetadata(){assertNotNull(a.searchInput);a.searchInput.setText("ゲーム");a.searchInput.onEditorAction(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH);assertEquals("ゲーム",a.query);NicoliveData.Program p=new NicoliveData.Program("lv123");p.title="番組タイトル";p.provider="official";p.owner="放送者";p.status="ON_AIR";p.begin=System.currentTimeMillis()/1000-65*60;p.views=123;p.comments=456;a.programs.add(p);a.feedAdapter.notifyDataSetChanged();View row=a.feedAdapter.getView(0,null,a.feed);LinearLayout text=(LinearLayout)((LinearLayout)row).getChildAt(1);assertTrue(((TextView)text.getChildAt(0)).getText().toString().contains("公式"));assertTrue(((TextView)text.getChildAt(0)).getText().toString().contains("1時間5分"));assertTrue(((TextView)text.getChildAt(3)).getText().toString().contains("456"));assertSame(row,a.feedAdapter.getView(0,row,a.feed));}
+
+ @Test public void hubKeepsListAboveNavigationAndClipsOnlyThumbnails(){
+  layout(a.root,360,760);
+  View navigation=a.root.findViewWithTag("nicoid-live-navigation");
+  assertSame(navigation,a.body.getChildAt(a.body.getChildCount()-1));
+  assertTrue(navigation.getTop()>0);
+  assertTrue(a.feed.getHeight()>navigation.getHeight()*5);
+  Button sort=a.root.findViewWithTag("nicoid-live-sort");
+  assertSame(a.status.getParent(),sort.getParent());
+  assertTrue(sort.getWidth()>0);
+  for(int index=0;index<4;index++){
+   LinearLayout destination=(LinearLayout)((LinearLayout)navigation).getChildAt(index);
+   TextView caption=(TextView)destination.getChildAt(1);
+   assertTrue(caption.getHeight()>0);
+   assertTrue(caption.getBottom()<=destination.getHeight());
+  }
+
+  FrameLayout row=new FrameLayout(a);
+  ImageView image=new ImageView(a),avatar=new ImageView(a);
+  View overlay=new View(a);
+  image.setId(0x7f0800cd);
+  row.addView(image);
+  row.addView(avatar);
+  row.addView(overlay);
+  ThumbnailCorners.applyNative(row);
+  assertTrue(image.getClipToOutline());
+  ViewOutlineProvider outline=image.getOutlineProvider();
+  ThumbnailCorners.applyNative(row);
+  assertSame(outline,image.getOutlineProvider());
+  assertFalse(avatar.getClipToOutline());
+  assertFalse(overlay.getClipToOutline());
+ }
+ @Test public void hubHasInlineSearchAndCompactBroadcastMetadata(){assertNotNull(a.searchInput);a.searchInput.setText("ゲーム");a.searchInput.onEditorAction(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH);assertEquals("ゲーム",a.query);NicoliveData.Program p=new NicoliveData.Program("lv123");p.title="番組タイトル";p.provider="official";p.owner="放送者";p.status="ON_AIR";p.begin=System.currentTimeMillis()/1000-65*60;p.views=123;p.comments=456;a.programs.add(p);a.feedAdapter.notifyDataSetChanged();View row=a.feedAdapter.getView(0,null,a.feed);assertTrue(((LinearLayout)row).getChildAt(0).getClipToOutline());LinearLayout text=(LinearLayout)((LinearLayout)row).getChildAt(1);assertTrue(((TextView)text.getChildAt(0)).getText().toString().contains("公式"));assertTrue(((TextView)text.getChildAt(0)).getText().toString().contains("1時間5分"));assertTrue(((TextView)text.getChildAt(3)).getText().toString().contains("456"));assertSame(row,a.feedAdapter.getView(0,row,a.feed));}
  @Test public void portraitViewerUsesNativeControlsAndPreservesDraft(){a.watching=true;a.requested="lv123";a.draft="下書き";a.viewer();layout(a.root,360,760);assertEquals("下書き",a.input.getText().toString());assertNotNull(a.playerFrame.video);assertTrue(a.input.getWidth()>0);assertTrue(a.composer.getBottom()<=a.body.getHeight());assertTrue(a.send.getWidth()>=NicoliveUi.dp(a,44));a.fullscreen=true;a.viewer();layout(a.root,760,360);assertEquals(View.GONE,a.header.getVisibility());assertEquals(View.GONE,a.viewerPane.getVisibility());}
  @Test public void keyboardHeightKeepsPlayerAndComposerReachable(){a.watching=true;a.viewer();layout(a.root,360,400);a.fitViewer();layout(a.root,360,400);assertEquals(View.GONE,a.details.getVisibility());assertTrue(a.playerFrame.getHeight()>=NicoliveUi.dp(a,72));assertTrue(a.composer.getBottom()<=a.body.getHeight());assertTrue(a.chat.getHeight()>0);}
  @Test public void readingHistoryKeepsAnchorAndShowsNewArrivalsAfterBufferIsFull(){ServiceController<NicoliveService> owner=Robolectric.buildService(NicoliveService.class);NicoliveService service=owner.create().get();try{service.id="lv123";a.watching=true;a.requested="lv123";a.service=service;a.viewer();for(int i=0;i<2000;i++){NicoliveData.Chat c=new NicoliveData.Chat();c.text="item "+i;service.history.add(c);}service.deliveredCount=2000;a.changed();layout(a.root,360,760);a.atBottom=false;a.chat.setSelectionFromTop(1000,0);layout(a.root,360,760);service.history.removeFirst();service.history.add(new NicoliveData.Chat());service.deliveredCount++;a.changed();assertEquals(1,a.newComments);assertEquals(View.VISIBLE,a.latest.getVisibility());a.latest.performClick();assertTrue(a.atBottom);assertEquals(0,a.newComments);}finally{a.service=null;owner.destroy();}}

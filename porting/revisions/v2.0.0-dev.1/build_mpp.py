@@ -14,7 +14,7 @@ from patch_manifest import patch_manifest
 
 ROOT = Path(__file__).resolve().parent
 BASE_HASH = "8920e9cdc9fc49178be5bc78cdb990627f4e7a7be83fef782eece3e7c443bcce"
-VERSION = "2.0.0-dev.1-5"
+VERSION = "2.0.0-dev.1-6"
 
 
 def run(*args):
@@ -103,6 +103,41 @@ def build(args, work):
             raise ValueError("Missing settings insertion point")
         (hooks / "SettingsTools.smali").write_text(settings.replace(
             anchor, anchor + "\n\n    invoke-static {p0, v1}, Le/e/a/NicoliveEntry;->settings(Landroid/preference/PreferenceActivity;Landroid/preference/PreferenceGroup;)V"))
+        # Clip only known thumbnail views; keep bitmap caches and sibling badges untouched.
+        outline = "Le/e/a/ThumbnailCorners;->apply(Landroid/view/View;)V"
+        native_outline = "Le/e/a/ThumbnailCorners;->applyNative(Landroid/view/View;)V"
+        for name, signature in (
+            ("VideoMarks119", ".method public static bind(Landroid/view/View;Ljava/lang/Object;)V"),
+            ("PaidVideos", ".method public static bind(Landroid/view/View;Ljava/lang/Object;)V"),
+            ("Dev116", ".method public static playlistThumbnail(Landroid/view/View;Landroid/widget/BaseAdapter;Lorg/json/JSONObject;)V"),
+        ):
+            file = name + ".smali"
+            source = (disassembled / "e/e/a" / file).read_text()
+            (hooks / file).write_text(add_hook(source, signature, f"invoke-static {{p0}}, {native_outline}"))
+        image_loader = "Le/e/a/ShortImages;->load(Ljava/lang/String;Landroid/widget/ImageView;Landroid/widget/TextView;)V"
+        for name, prefix in (
+            ("ModernShorts", r"invoke-static \{p0, p1, p2\}, "),
+            ("VideoDetails", r"invoke-static \{v0, v4, v5\}, "),
+            ("MiniChrome236", r"invoke-static \{p1, v0, v1\}, "),
+        ):
+            file = name + ".smali"
+            path = hooks / file
+            source = (path if path.exists() else disassembled / "e/e/a" / file).read_text()
+            updated, count = re.subn(r"(" + prefix + r")" + re.escape(image_loader),
+                                     lambda match: match[1] + image_loader.replace("ShortImages", "ThumbnailCorners"),
+                                     source)
+            if count != 1:
+                raise ValueError(f"Missing thumbnail binding in {name}")
+            path.write_text(updated)
+        for name, anchor, register in (
+            ("FollowFeed$Rows", "    iget-object v4, v2, Le/e/a/FollowFeedData$Item;->thumbnail:Ljava/lang/String;", "v3"),
+            ("QueueUi120", "    invoke-virtual {v11, v12}, Landroid/widget/FrameLayout;->setClipToOutline(Z)V", "v11"),
+        ):
+            file = name + ".smali"
+            source = (disassembled / "e/e/a" / file).read_text()
+            if source.count(anchor) != 1:
+                raise ValueError(f"Missing thumbnail frame in {name}")
+            (hooks / file).write_text(source.replace(anchor, anchor + f"\n\n    invoke-static {{{register}}}, {outline}"))
         hook_dex = work / "hooks.dex"
         run("java", "-cp", smali, "org.jf.smali.Main", "assemble", work / "hooks", "-o", hook_dex)
         merged = work / "helpers.mpe"

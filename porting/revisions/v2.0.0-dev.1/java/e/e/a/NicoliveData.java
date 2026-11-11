@@ -31,6 +31,7 @@ public final class NicoliveData {
  public static final class Program {
   public String id,title="",owner="",description="",thumbnail="",status="",provider="",socket="",quality="abr";
   public long begin,open,end,vposBase,views=-1,comments=-1;public boolean loggedIn,premium,chaseCapable,canWatch=true;
+  boolean programThumbnail;
   public JSONObject source;
   public Program(String id){this.id=id;}
   public boolean onAir(){return "ON_AIR".equals(status);}
@@ -41,13 +42,36 @@ public final class NicoliveData {
    v.status=p.optString("status");v.begin=p.optLong("beginTime");v.open=p.optLong("openTime");v.end=p.optLong("endTime");v.vposBase=p.optLong("vposBaseTime",v.begin);
    JSONObject supplier=p.optJSONObject("supplier");if(supplier!=null){v.owner=supplier.optString("name");v.provider=supplier.optString("supplierType");}
    JSONObject stats=p.optJSONObject("statistics");if(stats!=null){v.views=stats.optLong("watchCount",-1);v.comments=stats.optLong("commentCount",-1);}
-   JSONObject thumb=p.optJSONObject("thumbnail");if(thumb!=null)v.thumbnail=thumb.optString("small",thumb.optString("large"));
+   JSONObject thumb=p.optJSONObject("thumbnail");
+   v.thumbnail=broadcastThumbnail(thumb);
+   v.programThumbnail=!v.thumbnail.isEmpty();
+   if(!v.programThumbnail&&thumb!=null){
+    v.thumbnail=thumb.optString("small");
+    if(v.thumbnail.isEmpty())v.thumbnail=thumb.optString("large");
+   }
    JSONObject user=root.optJSONObject("user");if(user!=null){v.loggedIn=user.optBoolean("isLoggedIn");v.premium="premium".equals(user.optString("accountType"));}
    v.chaseCapable=v.premium&&p.optBoolean("isChasePlayEnabled");JSONObject watch=root.optJSONObject("userProgramWatch");if(watch!=null)v.canWatch=watch.optBoolean("canWatch",true);
    JSONObject site=root.getJSONObject("site"),relive=site.getJSONObject("relive");v.socket=relive.optString("webSocketUrl");if(v.socket.length()>0&&!secureServiceUri(v.socket,true))throw new IOException("INVALID_SESSION_HOST");return v;
   }
-  static Program listing(JSONObject p){String id=p.optString("nicoliveProgramId");if(!ID.matcher(id).matches())return null;Program v=new Program(id);v.title=p.optString("title");v.status=p.optString("status");v.thumbnail=p.optString("listingThumbnail");v.begin=p.optLong("beginTime");v.open=p.optLong("openTime");v.end=p.optLong("endTime");v.provider=p.optString("providerType");JSONObject supplier=p.optJSONObject("supplier");if(supplier==null)supplier=p.optJSONObject("socialGroup");if(supplier!=null)v.owner=supplier.optString("name");JSONObject stats=p.optJSONObject("statistics");if(stats!=null){v.views=stats.optLong("watchCount",-1);v.comments=stats.optLong("commentCount",-1);}return v;}
-  public JSONObject stored()throws JSONException{return new JSONObject().put("nicoliveProgramId",id).put("title",title).put("status",status).put("listingThumbnail",thumbnail).put("beginTime",begin).put("supplier",new JSONObject().put("name",owner)).put("providerType",provider).put("statistics",new JSONObject().put("watchCount",views).put("commentCount",comments));}
+  static Program listing(JSONObject p){String id=p.optString("nicoliveProgramId");if(!ID.matcher(id).matches())return null;Program v=new Program(id);v.title=p.optString("title");v.status=p.optString("status");v.thumbnail=p.optString("listingThumbnail");v.programThumbnail=p.optBoolean("programThumbnail")||isListingThumbnail(v.thumbnail);v.begin=p.optLong("beginTime");v.open=p.optLong("openTime");v.end=p.optLong("endTime");v.provider=p.optString("providerType");JSONObject supplier=p.optJSONObject("supplier");if(supplier==null)supplier=p.optJSONObject("socialGroup");if(supplier!=null)v.owner=supplier.optString("name");JSONObject stats=p.optJSONObject("statistics");if(stats!=null){v.views=stats.optLong("watchCount",-1);v.comments=stats.optLong("commentCount",-1);}return v;}
+  public JSONObject stored()throws JSONException{return new JSONObject().put("nicoliveProgramId",id).put("title",title).put("status",status).put("listingThumbnail",thumbnail).put("programThumbnail",programThumbnail).put("beginTime",begin).put("supplier",new JSONObject().put("name",owner)).put("providerType",provider).put("statistics",new JSONObject().put("watchCount",views).put("commentCount",comments));}
+ }
+ static String broadcastThumbnail(JSONObject thumbnail){
+  JSONObject variants=thumbnail==null?null:thumbnail.optJSONObject("huge");
+  if(variants!=null)for(String size:new String[]{"s352x198","s640x360","s1280x720","s1920x1080"}){
+   String url=variants.optString(size);
+   if(!url.isEmpty())return url;
+  }
+  return "";
+ }
+ static boolean isListingThumbnail(String url){
+  try{return "listing-thumbnail.live.nicovideo.jp".equalsIgnoreCase(URI.create(url).getHost());}
+  catch(IllegalArgumentException ignored){return false;}
+ }
+ static String historyThumbnail(String html,String id)throws Exception{
+  JSONObject program=embedded(html,"embedded-data","data-props").getJSONObject("program");
+  if(!id.equals(program.optString("nicoliveProgramId")))throw new IOException("PROGRAM_MISMATCH");
+  return broadcastThumbnail(program.optJSONObject("thumbnail"));
  }
  public static List<Program> listings(String html)throws Exception{
   JSONObject root;try{root=embedded(html,"DAT-csr-data","data-value");}catch(IOException e){root=embedded(html,"embedded-data","data-props");}

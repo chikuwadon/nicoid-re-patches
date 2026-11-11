@@ -6,6 +6,24 @@ public class NicoliveProtocolTest {
  static byte[] field(int id,byte[] value)throws IOException{return join(v(id*8+2),v(value.length),value);}
  static byte[] number(int id,long value)throws IOException{return join(v(id*8),v(value));}
  @Test public void urlRoutingAcceptsOnlyLiveIdsAndKnownHosts(){assertEquals("lv123",NicoliveData.id("lv123"));assertEquals("lv123",NicoliveData.id("nicoid-re://live/lv123"));assertEquals("lv123",NicoliveData.id("https://live.nicovideo.jp/watch/lv123?ref=test"));assertEquals("lv123",NicoliveData.id("https://nico.ms/lv123"));assertNull(NicoliveData.id("https://example.com/watch/lv123"));assertNull(NicoliveData.id("https://live.nicovideo.jp.evil.test/watch/lv123"));assertNull(NicoliveData.id("sm123"));assertNull(NicoliveData.id("https://user:pw@live.nicovideo.jp/watch/lv123"));}
+ @Test public void historyUsesLandscapeBroadcastThumbnailInsteadOfSmallIcon()throws Exception{
+  String url="https://listing-thumbnail.live.nicovideo.jp/?image=prod-lv123/thumbnail.jpg&w=352&h=198";
+  JSONObject thumbnail=new JSONObject().put("small","https://nicolive.cdn.nimg.jp/live/simg/img/blank_80x80.jpg")
+   .put("huge",new JSONObject().put("s352x198",url).put("s1920x1080","https://listing-thumbnail.live.nicovideo.jp/full"));
+  JSONObject program=new JSONObject().put("nicoliveProgramId","lv123").put("thumbnail",thumbnail);
+  JSONObject data=new JSONObject().put("program",program).put("site",new JSONObject().put("relive",new JSONObject()));
+  String html="<script id='embedded-data' data-props='"+data.toString().replace("&","&amp;")+"'></script>";
+  NicoliveData.Program watched=NicoliveData.Program.watch(html,"lv123");
+  assertEquals(url,watched.thumbnail);
+  assertTrue(watched.programThumbnail);
+  assertTrue(NicoliveData.Program.listing(watched.stored()).programThumbnail);
+  assertEquals(url,NicoliveData.historyThumbnail(html,"lv123"));
+  try{NicoliveData.historyThumbnail(html,"lv124");fail();}catch(IOException expected){}
+  JSONObject old=new JSONObject().put("nicoliveProgramId","lv123").put("listingThumbnail",thumbnail.getString("small"));
+  assertFalse(NicoliveData.Program.listing(old).programThumbnail);
+  assertTrue(NicoliveData.Program.listing(old.put("listingThumbnail",url)).programThumbnail);
+  assertEquals("",NicoliveData.broadcastThumbnail(new JSONObject().put("small","fallback")));
+ }
  @Test public void programIdentityAndGuestEntitlementsAreNotInvented()throws Exception{String data="{\"program\":{\"nicoliveProgramId\":\"lv123\",\"title\":\"A & B\",\"status\":\"ON_AIR\",\"isChasePlayEnabled\":true},\"site\":{\"relive\":{\"webSocketUrl\":\"wss://a.live2.nicovideo.jp/watch\"}},\"user\":{\"isLoggedIn\":false,\"accountType\":\"non\"}}";String html="<script id='embedded-data' data-props='"+data.replace("&","&amp;")+"'></script>";NicoliveData.Program p=NicoliveData.Program.watch(html,"lv123");assertTrue(p.onAir());assertFalse(p.loggedIn);assertFalse(p.chaseCapable);assertEquals("A & B",p.title);try{NicoliveData.Program.watch(html,"lv999");fail();}catch(IOException expected){}}
  @Test public void framedReaderHandlesShortReadsAndRejectsTruncationAndHugeLengths()throws Exception{byte[] body="hello".getBytes(StandardCharsets.UTF_8);final InputStream input=new FilterInputStream(new ByteArrayInputStream(join(v(body.length),body))){public int read(byte[] b,int off,int length)throws IOException{return super.read(b,off,Math.min(1,length));}};assertArrayEquals(body,NicoliveData.frame(input));assertNull(NicoliveData.frame(input));try{NicoliveData.frame(new ByteArrayInputStream(new byte[]{3,1}));fail();}catch(EOFException expected){}try{NicoliveData.frame(new ByteArrayInputStream(v(1048577)));fail();}catch(IOException expected){}}
  @Test public void unknownProtobufFieldsDoNotTurnSystemMessagesIntoChat()throws Exception{assertNull(NicoliveData.chat(field(2,field(23,"system event".getBytes(StandardCharsets.UTF_8)))));byte[] chat=join(field(1,"hello".getBytes(StandardCharsets.UTF_8)),number(3,12345),field(6,"anonymous".getBytes(StandardCharsets.UTF_8)),field(7,join(number(1,2),number(2,2),number(3,1))),number(99,999));byte[] meta=join(field(1,"event-id".getBytes(StandardCharsets.UTF_8)),field(2,join(number(1,1790000000),number(2,500000000))));NicoliveData.Chat c=NicoliveData.chat(join(field(1,meta),field(2,field(1,chat)),number(100,1)));assertNotNull(c);assertEquals("hello",c.text);assertEquals("live-anon:anonymous",c.user);assertEquals(12345,c.vpos);assertEquals(1790000000500L,c.atMs);assertEquals(2,c.position);assertEquals(2,c.size);assertEquals(0xffff4444,c.color);}

@@ -22,10 +22,54 @@ class NicoliveBrowser {
    HttpURLConnection c=(HttpURLConnection)new URL(url).openConnection();synchronized(requests){if(closed||(!feed&&imagesPaused))throw new IOException("CANCELLED");requests.add(c);}if(feed)feedConnection=c;try{c.setInstanceFollowRedirects(false);c.setConnectTimeout(15000);c.setReadTimeout(20000);c.setRequestProperty("User-Agent",NicoliveData.UA);c.setRequestProperty("Accept-Encoding","gzip");if((host.equals("live.nicovideo.jp")||host.equals("live2.nicovideo.jp"))&&cookie!=null&&!cookie.isEmpty())c.setRequestProperty("Cookie",cookie);int status=c.getResponseCode();if(status>=300&&status<400){String location=c.getHeaderField("Location");if(location==null)throw new IOException("REDIRECT");url=u.resolve(location).toString();continue;}if(status!=200)throw new IOException("HTTP_"+status);try(InputStream in="gzip".equalsIgnoreCase(c.getContentEncoding())?new java.util.zip.GZIPInputStream(c.getInputStream()):c.getInputStream()){ByteArrayOutputStream out=new ByteArrayOutputStream();byte[] buf=new byte[8192];for(int n;(n=in.read(buf))!=-1;){if(closed||Thread.currentThread().isInterrupted()||(!feed&&imagesPaused))throw new IOException("CANCELLED");if(out.size()+n>max)throw new IOException("TOO_LARGE");out.write(buf,0,n);}return out.toByteArray();}}finally{requests.remove(c);if(feedConnection==c)feedConnection=null;c.disconnect();}
   }throw new IOException("REDIRECT_LIMIT");
  }
- void image(final String url,final ImageView view){view.setTag(url);Bitmap cached=url==null?null:images.get(url);if(cached!=null){view.setImageBitmap(cached);return;}view.setImageDrawable(new NicoliveUi.Glyph("live",NicoliveUi.accent(view.getContext())));if(url==null||url.isEmpty()||imagesPaused||closed)return;
-  ArrayList<java.lang.ref.WeakReference<ImageView>> waiting=pending.get(url);if(waiting!=null){for(java.lang.ref.WeakReference<ImageView> ref:waiting)if(ref.get()==view)return;if(waiting.size()<16)waiting.add(new java.lang.ref.WeakReference<ImageView>(view));return;}
-  final ArrayList<java.lang.ref.WeakReference<ImageView>> listeners=new ArrayList<java.lang.ref.WeakReference<ImageView>>();listeners.add(new java.lang.ref.WeakReference<ImageView>(view));pending.put(url,listeners);final int token=imageGeneration;
-  try{imageWork.execute(()->{Bitmap decoded=null;try{if(token!=imageGeneration)return;byte[] b=bytes(url,"",2097152,false);BitmapFactory.Options o=new BitmapFactory.Options();o.inJustDecodeBounds=true;BitmapFactory.decodeByteArray(b,0,b.length,o);if(o.outWidth<=0||o.outHeight<=0)return;o.inSampleSize=1;while(o.outWidth/o.inSampleSize>384||o.outHeight/o.inSampleSize>216)o.inSampleSize*=2;o.inJustDecodeBounds=false;decoded=BitmapFactory.decodeByteArray(b,0,b.length,o);if(decoded!=null)images.put(url,decoded);}catch(Exception ignored){}finally{final Bitmap bitmap=decoded;main.post(()->{if(pending.get(url)==listeners)pending.remove(url);if(closed||imagesPaused||token!=imageGeneration||bitmap==null)return;for(java.lang.ref.WeakReference<ImageView> ref:listeners){ImageView target=ref.get();if(target!=null&&url.equals(target.getTag()))target.setImageBitmap(bitmap);}});}});}catch(RejectedExecutionException e){pending.remove(url);}
+ void image(String url,ImageView view){image(url,url,null,view);}
+ void historyImage(NicoliveData.Program program,ImageView view){
+  if(program.programThumbnail){image(program.thumbnail,view);return;}
+  image("history:"+program.id,program.thumbnail,program.id,view);
+ }
+ private Bitmap decodeImage(String url)throws IOException{
+  if(url==null||url.isEmpty())return null;
+  byte[] bytes=bytes(url,"",2097152,false);
+  BitmapFactory.Options options=new BitmapFactory.Options();
+  options.inJustDecodeBounds=true;
+  BitmapFactory.decodeByteArray(bytes,0,bytes.length,options);
+  if(options.outWidth<=0||options.outHeight<=0)return null;
+  options.inSampleSize=1;
+  while(options.outWidth/options.inSampleSize>384||options.outHeight/options.inSampleSize>216)options.inSampleSize*=2;
+  options.inJustDecodeBounds=false;
+  return BitmapFactory.decodeByteArray(bytes,0,bytes.length,options);
+ }
+ private void image(final String key,final String fallback,final String programId,final ImageView view){
+  view.setTag(key);Bitmap cached=key==null?null:images.get(key);if(cached!=null){view.setImageBitmap(cached);return;}view.setImageDrawable(new NicoliveUi.Glyph("live",NicoliveUi.accent(view.getContext())));if(key==null||key.isEmpty()||imagesPaused||closed)return;
+  ArrayList<java.lang.ref.WeakReference<ImageView>> waiting=pending.get(key);
+  if(waiting!=null){for(java.lang.ref.WeakReference<ImageView> ref:waiting)if(ref.get()==view)return;if(waiting.size()<16)waiting.add(new java.lang.ref.WeakReference<ImageView>(view));return;}
+  final ArrayList<java.lang.ref.WeakReference<ImageView>> listeners=new ArrayList<>();
+  listeners.add(new java.lang.ref.WeakReference<ImageView>(view));pending.put(key,listeners);
+  final int token=imageGeneration;
+  try{imageWork.execute(()->{
+   Bitmap decoded=null;
+   try{
+    if(token!=imageGeneration)return;
+    if(programId!=null){
+     try{
+      byte[] html=bytes("https://live.nicovideo.jp/watch/"+programId,"",2097152,false);
+      decoded=decodeImage(NicoliveData.historyThumbnail(new String(html,java.nio.charset.StandardCharsets.UTF_8),programId));
+     }catch(Exception ignored){}
+    }
+    if(decoded==null&&token==imageGeneration)decoded=decodeImage(fallback);
+    if(decoded!=null)images.put(key,decoded);
+   }catch(Exception ignored){}finally{
+    final Bitmap bitmap=decoded;
+    main.post(()->{
+     if(pending.get(key)==listeners)pending.remove(key);
+     if(closed||imagesPaused||token!=imageGeneration||bitmap==null)return;
+     for(java.lang.ref.WeakReference<ImageView> ref:listeners){
+      ImageView target=ref.get();
+      if(target!=null&&key.equals(target.getTag()))target.setImageBitmap(bitmap);
+     }
+    });
+   }
+  });}catch(RejectedExecutionException e){pending.remove(key);}
  }
  void disconnectRequests(){final ArrayList<HttpURLConnection> closing;synchronized(requests){closing=new ArrayList<HttpURLConnection>(requests);}if(closing.isEmpty())return;NicoliveIo.execute(()->{for(HttpURLConnection c:closing)c.disconnect();});}
  void pauseImages(){imagesPaused=true;++imageGeneration;++generation;if(loading!=null)loading.cancel(true);work.getQueue().clear();pending.clear();((ThreadPoolExecutor)imageWork).getQueue().clear();disconnectRequests();}

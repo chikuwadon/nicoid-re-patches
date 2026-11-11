@@ -53,7 +53,29 @@ public final class NicoliveData {
    v.chaseCapable=v.premium&&p.optBoolean("isChasePlayEnabled");JSONObject watch=root.optJSONObject("userProgramWatch");if(watch!=null)v.canWatch=watch.optBoolean("canWatch",true);
    JSONObject site=root.getJSONObject("site"),relive=site.getJSONObject("relive");v.socket=relive.optString("webSocketUrl");if(v.socket.length()>0&&!secureServiceUri(v.socket,true))throw new IOException("INVALID_SESSION_HOST");return v;
   }
-  static Program listing(JSONObject p){String id=p.optString("nicoliveProgramId");if(!ID.matcher(id).matches())return null;Program v=new Program(id);v.title=p.optString("title");v.status=p.optString("status");v.thumbnail=p.optString("listingThumbnail");v.programThumbnail=p.optBoolean("programThumbnail")||isListingThumbnail(v.thumbnail);v.begin=p.optLong("beginTime");v.open=p.optLong("openTime");v.end=p.optLong("endTime");v.provider=p.optString("providerType");JSONObject supplier=p.optJSONObject("supplier");if(supplier==null)supplier=p.optJSONObject("socialGroup");if(supplier!=null)v.owner=supplier.optString("name");JSONObject stats=p.optJSONObject("statistics");if(stats!=null){v.views=stats.optLong("watchCount",-1);v.comments=stats.optLong("commentCount",-1);}return v;}
+  static Program listing(JSONObject row){
+   String id=row.optString("nicoliveProgramId",row.optString("id"));
+   if(!ID.matcher(id).matches())return null;
+   Program program=new Program(id);
+   program.title=row.optString("title");
+   program.status=row.optString("status",row.optString("liveCycle"));
+   program.thumbnail=row.optString("listingThumbnail");
+   program.programThumbnail=row.optBoolean("programThumbnail")||isListingThumbnail(program.thumbnail);
+   program.begin=row.optLong("beginTime",row.optLong("beginAt")/1000);
+   program.open=row.optLong("openTime");
+   program.end=row.optLong("endTime",row.optLong("endAt")/1000);
+   program.provider=row.optString("providerType");
+   JSONObject supplier=row.optJSONObject("supplier");
+   if(supplier==null)supplier=row.optJSONObject("socialGroup");
+   if(supplier==null)supplier=row.optJSONObject("programProvider");
+   if(supplier!=null)program.owner=supplier.optString("name");
+   JSONObject stats=row.optJSONObject("statistics");
+   if(stats!=null){
+    program.views=stats.optLong("watchCount",-1);
+    program.comments=stats.optLong("commentCount",-1);
+   }
+   return program;
+  }
   public JSONObject stored()throws JSONException{return new JSONObject().put("nicoliveProgramId",id).put("title",title).put("status",status).put("listingThumbnail",thumbnail).put("programThumbnail",programThumbnail).put("beginTime",begin).put("supplier",new JSONObject().put("name",owner)).put("providerType",provider).put("statistics",new JSONObject().put("watchCount",views).put("commentCount",comments));}
  }
  static String broadcastThumbnail(JSONObject thumbnail){

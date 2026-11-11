@@ -62,7 +62,8 @@ final class NicoliveListGestures {
             case "refresh": activity.refreshFeed(); break;
             case "top": list.setSelection(0); break;
             case "bottom":
-                if (list.getCount() > 0) list.setSelection(list.getCount() - 1);
+                int loaded = list.getCount() - list.getFooterViewsCount();
+                if (loaded > 0) list.setSelection(loaded - 1);
                 break;
             case "lefttab": activity.moveCategory(-1); break;
             case "righttab": activity.moveCategory(1); break;

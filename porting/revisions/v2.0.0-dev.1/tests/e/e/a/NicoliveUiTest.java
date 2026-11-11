@@ -5,12 +5,13 @@ public class NicoliveUiTest {
  static Resources apkResources;
  public static class Screen extends NicoliveActivity {
   Resources.Theme theme;
+  boolean loadCatalog;
   public Resources getResources(){return apkResources==null?super.getResources():apkResources;}
   public AssetManager getAssets(){return apkResources==null?super.getAssets():apkResources.getAssets();}
   public Resources.Theme getTheme(){if(apkResources==null)return super.getTheme();if(theme==null){theme=getResources().newTheme();theme.applyStyle(android.R.style.Theme_Material,true);}return theme;}
   public void setTheme(int id){if(apkResources==null)super.setTheme(id);else getTheme().applyStyle(id,true);}
   public String getPackageName(){return "com.sauzask.nicoid.hls";}
-  @Override void load(){if(status!=null)status.setText("テスト番組");}
+  @Override void load(){if(loadCatalog)super.load();else if(status!=null)status.setText("テスト番組");}
   @Override void bind(){}
  }
  ActivityController<Screen> controller;Screen a;
@@ -104,6 +105,75 @@ public class NicoliveUiTest {
  }
 
  @Test public void sidebarAddsOneNativeIntent(){ArrayList<Map<String,Object>> menu=new ArrayList<Map<String,Object>>();NicoliveEntry.addMenu(a,menu);NicoliveEntry.addMenu(a,menu);assertEquals(1,menu.size());assertEquals(NicoliveActivity.class.getName(),((Intent)menu.get(0).get("intent")).getComponent().getClassName());}
+ @Test public void livePagesAndTimetableUseIndependentLists()throws Exception{
+  final List<String> requestedUrls=new ArrayList<>();
+  final List<NicoliveBrowser.Result> responses=new ArrayList<>();
+  a.browser.close();
+  a.browser=new NicoliveBrowser(){
+   @Override void load(String url,String cookie,Result result){requestedUrls.add(url);responses.add(result);}
+  };
+  a.loadCatalog=true;
+  a.hub();
+  assertTrue(requestedUrls.get(0).endsWith("offset=0"));
+
+  org.json.JSONArray rows=new org.json.JSONArray();
+  for(int id=1;id<=70;id++)rows.put(new org.json.JSONObject().put("id","lv"+id)
+      .put("liveCycle","ON_AIR").put("providerType","community").put("beginAt",1794406725000L-id*1000));
+  org.json.JSONObject result=new org.json.JSONObject().put("meta",new org.json.JSONObject().put("totalCount",72));
+  responses.get(0).done(result.put("data",rows).toString());
+  assertTrue(requestedUrls.get(1).contains("/timetable?date="));
+  assertEquals(70,a.feedAdapter.getCount());
+  org.json.JSONArray schedule=new org.json.JSONArray()
+      .put(new org.json.JSONObject().put("nicoliveProgramId","lv100").put("title","公式生放送")
+          .put("beginTime",1794406700).put("providerType","official").put("status","ON_AIR"))
+      .put(new org.json.JSONObject().put("nicoliveProgramId","lv101").put("title","放送予定")
+          .put("beginTime",1794409900).put("providerType","channel").put("status","RELEASED"));
+  String date=requestedUrls.get(1).split("date=")[1];
+  long day=java.time.LocalDate.parse(date,NicoliveCatalog.DAY).atStartOfDay(NicoliveCatalog.JAPAN).toInstant().toEpochMilli();
+  String timetable="<script id='embedded-data' data-props='"
+      +new org.json.JSONObject().put("view",new org.json.JSONObject().put("programs",schedule).put("date",day))+"'></script>";
+  responses.get(1).done(timetable);
+  assertEquals(71,a.feedAdapter.getCount());
+
+  Button more=org.robolectric.util.ReflectionHelpers.getField(a,"morePrograms");
+  assertEquals(View.VISIBLE,more.getVisibility());
+  more.performClick();
+  assertTrue(requestedUrls.get(2).endsWith("offset=1"));
+  responses.get(2).error();
+  assertEquals(71,a.feedAdapter.getCount());
+  assertEquals("再試行",more.getText().toString());
+  more.performClick();
+  assertEquals(requestedUrls.get(2),requestedUrls.get(3));
+  rows=new org.json.JSONArray().put(rows.getJSONObject(69)).put(new org.json.JSONObject().put("id","lv71")
+      .put("liveCycle","ON_AIR").put("providerType","channel"));
+  responses.get(3).done(result.put("data",rows).toString());
+  assertEquals(72,a.feedAdapter.getCount());
+  assertEquals(View.GONE,more.getVisibility());
+  a.selectCategory(2);
+  assertEquals(1,a.feedAdapter.getCount());
+
+  a.watching=true;
+  a.hub();
+  assertEquals(4,requestedUrls.size());
+  assertEquals(1,a.feedAdapter.getCount());
+
+  LinearLayout tabs=(LinearLayout)a.body.getChildAt(0);
+  ((Button)tabs.getChildAt(3)).performClick();
+  assertEquals(0,a.feedAdapter.getCount());
+  responses.get(4).done(timetable);
+  assertEquals(2,a.feedAdapter.getCount());
+  NicoliveData.Program scheduled=(NicoliveData.Program)a.feedAdapter.getItem(1);
+  assertEquals("lv101",scheduled.id);
+  assertTrue(a.programLabel(scheduled).contains("放送予定"));
+  ((LinearLayout)a.body.getChildAt(1)).getChildAt(3).performClick();
+  assertNotEquals(requestedUrls.get(4),requestedUrls.get(5));
+  assertEquals(0,a.feedAdapter.getCount());
+  responses.get(4).done(timetable);
+  assertEquals(0,a.feedAdapter.getCount());
+  responses.get(5).done(timetable);
+  assertEquals(0,a.feedAdapter.getCount());
+  assertEquals("番組はありません",a.status.getText().toString());
+ }
  @Test public void hubHasInlineSearchAndCompactBroadcastMetadata(){assertNotNull(a.searchInput);a.searchInput.setText("ゲーム");a.searchInput.onEditorAction(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH);assertEquals("ゲーム",a.query);NicoliveData.Program p=new NicoliveData.Program("lv123");p.title="番組タイトル";p.provider="official";p.owner="放送者";p.status="ON_AIR";p.begin=System.currentTimeMillis()/1000-65*60;p.views=123;p.comments=456;a.programs.add(p);a.feedAdapter.notifyDataSetChanged();View row=a.feedAdapter.getView(0,null,a.feed);LinearLayout text=(LinearLayout)((LinearLayout)row).getChildAt(1);assertTrue(((TextView)text.getChildAt(0)).getText().toString().contains("公式"));assertTrue(((TextView)text.getChildAt(0)).getText().toString().contains("1時間5分"));assertTrue(((TextView)text.getChildAt(3)).getText().toString().contains("456"));assertSame(row,a.feedAdapter.getView(0,row,a.feed));}
  @Test public void portraitViewerUsesNativeControlsAndPreservesDraft(){a.watching=true;a.requested="lv123";a.draft="下書き";a.viewer();layout(a.root,360,760);assertEquals("下書き",a.input.getText().toString());assertNotNull(a.playerFrame.video);assertTrue(a.input.getWidth()>0);assertTrue(a.composer.getBottom()<=a.body.getHeight());assertTrue(a.send.getWidth()>=NicoliveUi.dp(a,44));a.fullscreen=true;a.viewer();layout(a.root,760,360);assertEquals(View.GONE,a.header.getVisibility());assertEquals(View.GONE,a.viewerPane.getVisibility());}
  @Test public void keyboardHeightKeepsPlayerAndComposerReachable(){a.watching=true;a.viewer();layout(a.root,360,400);a.fitViewer();layout(a.root,360,400);assertEquals(View.GONE,a.details.getVisibility());assertTrue(a.playerFrame.getHeight()>=NicoliveUi.dp(a,72));assertTrue(a.composer.getBottom()<=a.body.getHeight());assertTrue(a.chat.getHeight()>0);}

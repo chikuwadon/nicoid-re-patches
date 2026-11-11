@@ -104,7 +104,17 @@ public class NicoliveUiTest {
   assertEquals(1,a.hubTab);
  }
 
- @Test public void sidebarAddsOneNativeIntent(){ArrayList<Map<String,Object>> menu=new ArrayList<Map<String,Object>>();NicoliveEntry.addMenu(a,menu);NicoliveEntry.addMenu(a,menu);assertEquals(1,menu.size());assertEquals(NicoliveActivity.class.getName(),((Intent)menu.get(0).get("intent")).getComponent().getClassName());}
+ @Test public void sidebarAddsOneNativeIntent(){ArrayList<Map<String,Object>> menu=new ArrayList<Map<String,Object>>();NicoliveEntry.addMenu(a,menu);NicoliveEntry.addMenu(a,menu);assertEquals(1,menu.size());assertEquals(NicoliveUi.ja(a)?"ニコ生視聴":"Watch Niconico Live",menu.get(0).get("subtitle"));assertEquals(NicoliveActivity.class.getName(),((Intent)menu.get(0).get("intent")).getComponent().getClassName());}
+ @Test public void liveGestureFollowsShortsAndOpensTheNativeHub(){
+  String[] original={"menu_ranking","menu_shorts","menu_video_id"};
+  assertArrayEquals(new String[]{"menu_ranking","menu_shorts","menu_nicolive","menu_video_id"},
+      NicoliveEntry.gestureActions(original));
+  assertNotNull(NicoliveEntry.gestureName(a,"menu_nicolive"));
+  assertNull(NicoliveEntry.gestureName(a,"menu_shorts"));
+  assertFalse(NicoliveEntry.performGesture(a,"menu_shorts"));
+  assertTrue(NicoliveEntry.performGesture(a,"menu_nicolive"));
+  assertEquals(NicoliveActivity.class.getName(),Shadows.shadowOf(a).getNextStartedActivity().getComponent().getClassName());
+ }
  @Test public void livePagesAndTimetableUseIndependentLists()throws Exception{
   final List<String> requestedUrls=new ArrayList<>();
   final List<NicoliveBrowser.Result> responses=new ArrayList<>();
@@ -133,55 +143,67 @@ public class NicoliveUiTest {
   String timetable="<script id='embedded-data' data-props='"
       +new org.json.JSONObject().put("view",new org.json.JSONObject().put("programs",schedule).put("date",day))+"'></script>";
   responses.get(1).done(timetable);
-  assertEquals(71,a.feedAdapter.getCount());
-
-  Button more=org.robolectric.util.ReflectionHelpers.getField(a,"morePrograms");
-  assertEquals(View.VISIBLE,more.getVisibility());
-  more.performClick();
   assertTrue(requestedUrls.get(2).endsWith("offset=1"));
-  responses.get(2).error();
-  assertEquals(71,a.feedAdapter.getCount());
-  assertEquals("再試行",more.getText().toString());
-  more.performClick();
-  assertEquals(requestedUrls.get(2),requestedUrls.get(3));
-  rows=new org.json.JSONArray().put(rows.getJSONObject(69)).put(new org.json.JSONObject().put("id","lv71")
+  org.json.JSONArray lastPage=new org.json.JSONArray().put(rows.getJSONObject(69)).put(new org.json.JSONObject().put("id","lv71")
       .put("liveCycle","ON_AIR").put("providerType","channel"));
+  responses.get(2).done(result.put("data",lastPage).toString());
+  assertEquals(72,a.feedAdapter.getCount());
+  assertEquals(0,a.feed.getFooterViewsCount());
+  a.refreshFeed();
+  assertTrue(requestedUrls.get(3).endsWith("offset=0"));
   responses.get(3).done(result.put("data",rows).toString());
   assertEquals(72,a.feedAdapter.getCount());
-  assertEquals(View.GONE,more.getVisibility());
+  responses.get(4).done(timetable);
+  assertTrue(requestedUrls.get(5).endsWith("offset=1"));
+  responses.get(5).error();
+  assertEquals(72,a.feedAdapter.getCount());
+  assertTrue(a.status.getText().toString().contains("再試行"));
+  a.refreshFeed();
+  responses.get(6).done(result.put("data",rows).toString());
+  responses.get(7).done(timetable);
+  responses.get(8).done(result.put("data",lastPage).toString());
+  assertEquals(72,a.feedAdapter.getCount());
   a.selectCategory(2);
   assertEquals(1,a.feedAdapter.getCount());
 
   a.watching=true;
   a.hub();
-  assertEquals(4,requestedUrls.size());
+  assertEquals(9,requestedUrls.size());
   assertEquals(1,a.feedAdapter.getCount());
 
   LinearLayout tabs=a.root.findViewWithTag("nicoid-live-navigation");
   tabs.getChildAt(3).performClick();
   assertEquals(0,a.feedAdapter.getCount());
-  responses.get(4).done(timetable);
+  responses.get(9).done(timetable);
   assertEquals(2,a.feedAdapter.getCount());
   NicoliveData.Program scheduled=(NicoliveData.Program)a.feedAdapter.getItem(1);
   assertEquals("lv101",scheduled.id);
   assertTrue(a.programLabel(scheduled).contains("放送予定"));
   a.selectSort(NicoliveCatalog.Sort.NEWEST);
   assertSame(scheduled,a.feedAdapter.getItem(0));
-  assertEquals(5,requestedUrls.size());
-  ((LinearLayout)a.body.getChildAt(0)).getChildAt(3).performClick();
-  assertNotEquals(requestedUrls.get(4),requestedUrls.get(5));
+  assertEquals(10,requestedUrls.size());
+
+  NicoliveSwipeLayout swipe=(NicoliveSwipeLayout)a.root;
+  MotionEvent down=MotionEvent.obtain(0,0,MotionEvent.ACTION_DOWN,290,280,0);
+  MotionEvent move=MotionEvent.obtain(0,50,MotionEvent.ACTION_MOVE,170,280,0);
+  MotionEvent up=MotionEvent.obtain(0,90,MotionEvent.ACTION_UP,80,280,0);
+  swipe.onInterceptTouchEvent(down);
+  assertTrue(swipe.onInterceptTouchEvent(move));
+  assertTrue(swipe.onTouchEvent(up));
+  down.recycle();move.recycle();up.recycle();
+  String next=java.time.LocalDate.parse(date,NicoliveCatalog.DAY).plusDays(1).format(NicoliveCatalog.DAY);
+  assertTrue(requestedUrls.get(10).endsWith("date="+next));
   assertEquals(0,a.feedAdapter.getCount());
-  responses.get(4).done(timetable);
+  responses.get(9).done(timetable);
   assertEquals(0,a.feedAdapter.getCount());
-  responses.get(5).done(timetable);
-  assertEquals(0,a.feedAdapter.getCount());
+  responses.get(10).done(timetable);
   assertEquals("番組はありません",a.status.getText().toString());
 
   a.root.<LinearLayout>findViewWithTag("nicoid-live-navigation").getChildAt(0).performClick();
   a.selectSort(NicoliveCatalog.Sort.COMMENTS);
-  assertTrue(requestedUrls.get(6).contains("recentDesc&offset=0"));
-  assertTrue(requestedUrls.get(7).contains("commentCountDesc&offset=0"));
-  responses.get(6).done(result.toString());
+  assertTrue(requestedUrls.get(11).contains("recentDesc&offset=0"));
+  assertTrue(requestedUrls.get(12).contains("commentCountDesc&offset=0"));
+  responses.get(11).done(result.toString());
   assertEquals(0,a.feedAdapter.getCount());
   assertEquals("COMMENTS",PreferenceManager.getDefaultSharedPreferences(a).getString("nicolive_live_sort",""));
   assertEquals("NEWEST",PreferenceManager.getDefaultSharedPreferences(a).getString("nicolive_timetable_sort",""));
@@ -196,7 +218,7 @@ public class NicoliveUiTest {
   Button sort=a.root.findViewWithTag("nicoid-live-sort");
   assertSame(a.status.getParent(),sort.getParent());
   assertTrue(sort.getWidth()>0);
-  for(int index=0;index<4;index++){
+  for(int index=0;index<5;index++){
    LinearLayout destination=(LinearLayout)((LinearLayout)navigation).getChildAt(index);
    TextView caption=(TextView)destination.getChildAt(1);
    assertTrue(caption.getHeight()>0);

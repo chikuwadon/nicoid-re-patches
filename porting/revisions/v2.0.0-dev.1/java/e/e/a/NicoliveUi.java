@@ -76,6 +76,7 @@ final class NicoliveUi {
    else if(name.equals("send")){Path path=new Path();path.moveTo(3,3);path.lineTo(22,12);path.lineTo(3,21);path.lineTo(7,12);path.close();c.drawPath(path,p);line(c,7,12,21,12);}
    else if(name.equals("people")){c.drawCircle(9,7,3,p);c.drawArc(2,12,16,24,180,180,false,p);c.drawArc(13,4,20,11,-95,185,false,p);c.drawArc(12,12,23,24,-75,75,false,p);}
    else if(name.equals("history")){c.drawArc(3,3,21,21,-155,305,false,p);line(c,3,3,3,9);line(c,3,9,9,9);line(c,12,7,12,12);line(c,12,12,16,14);}
+   else if(name.equals("ranking")){c.drawRect(3,13,7,20,p);c.drawRect(10,5,14,20,p);c.drawRect(17,10,21,20,p);}
    else if(name.equals("calendar")){c.drawRoundRect(3,5,21,21,2,2,p);line(c,7,3,7,7);line(c,17,3,17,7);line(c,3,10,21,10);c.drawPoint(8,14,p);c.drawPoint(12,14,p);c.drawPoint(16,14,p);c.drawPoint(8,17,p);c.drawPoint(12,17,p);c.drawPoint(16,17,p);}
    else if(name.equals("person")){p.setStyle(Paint.Style.FILL);c.drawCircle(12,7,4,p);Path path=new Path();path.moveTo(7,12);path.cubicTo(3,15,3,21,5,21);path.lineTo(19,21);path.cubicTo(21,21,21,15,17,12);path.quadTo(12,16,7,12);c.drawPath(path,p);p.setStyle(Paint.Style.STROKE);}
    else if(name.equals("chat-stat")){p.setStyle(Paint.Style.FILL);c.drawRoundRect(3,3,21,18,2,2,p);Path path=new Path();path.moveTo(6,17);path.lineTo(6,22);path.lineTo(12,17);path.close();c.drawPath(path,p);p.setStyle(Paint.Style.STROKE);}

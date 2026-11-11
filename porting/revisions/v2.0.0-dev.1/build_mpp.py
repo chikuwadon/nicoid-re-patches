@@ -14,7 +14,7 @@ from patch_manifest import patch_manifest
 
 ROOT = Path(__file__).resolve().parent
 BASE_HASH = "8920e9cdc9fc49178be5bc78cdb990627f4e7a7be83fef782eece3e7c443bcce"
-VERSION = "2.0.0-dev.1-6"
+VERSION = "2.0.0-dev.1-7"
 
 
 def run(*args):
@@ -138,6 +138,27 @@ def build(args, work):
             if source.count(anchor) != 1:
                 raise ValueError(f"Missing thumbnail frame in {name}")
             (hooks / file).write_text(source.replace(anchor, anchor + f"\n\n    invoke-static {{{register}}}, {outline}"))
+        gesture_file = "GestureControls110.smali"
+        gesture = (disassembled / "e/e/a" / gesture_file).read_text()
+        actions = "    sput-object v0, Le/e/a/GestureControls110;->ACTIONS:[Ljava/lang/String;"
+        if gesture.count(actions) != 1:
+            raise ValueError("Missing gesture action array")
+        gesture = gesture.replace(actions,
+            "    invoke-static {v0}, Le/e/a/NicoliveEntry;->gestureActions([Ljava/lang/String;)[Ljava/lang/String;\n"
+            "    move-result-object v0\n\n" + actions)
+        for signature, handler, conditional_return in (
+            (".method static name(Landroid/content/Context;Ljava/lang/String;)Ljava/lang/String;",
+             "gestureName(Landroid/content/Context;Ljava/lang/String;)Ljava/lang/String;", "return-object v0"),
+            (".method static perform(Landroid/app/Activity;Ljava/lang/String;)V",
+             "performGesture(Landroid/app/Activity;Ljava/lang/String;)Z", "return-void"),
+        ):
+            gesture = add_hook(gesture, signature,
+                f"invoke-static {{p0, p1}}, Le/e/a/NicoliveEntry;->{handler}\n"
+                f"    {'move-result-object' if conditional_return.startswith('return-object') else 'move-result'} v0\n"
+                "    if-eqz v0, :nicoid_live_original_gesture\n"
+                f"    {conditional_return}\n"
+                "    :nicoid_live_original_gesture")
+        (hooks / gesture_file).write_text(gesture)
         hook_dex = work / "hooks.dex"
         run("java", "-cp", smali, "org.jf.smali.Main", "assemble", work / "hooks", "-o", hook_dex)
         merged = work / "helpers.mpe"

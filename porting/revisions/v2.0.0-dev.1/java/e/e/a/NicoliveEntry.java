@@ -23,6 +23,33 @@ import java.util.WeakHashMap;
 public final class NicoliveEntry {
     private static final String POPUP_SERVICE = "com.sauzask.nicoid.NicoidPopupViewService";
 
+    private static final String OPEN_LIVE = "menu_nicolive";
+
+    public static String[] gestureActions(String[] existing) {
+        for (int index = 0; index < existing.length; index++) {
+            if ("menu_shorts".equals(existing[index])) {
+                String[] actions = new String[existing.length + 1];
+                int insert = index + 1;
+                System.arraycopy(existing, 0, actions, 0, insert);
+                actions[insert] = OPEN_LIVE;
+                System.arraycopy(existing, insert, actions, insert + 1, existing.length - insert);
+                return actions;
+            }
+        }
+        throw new IllegalStateException("Missing Shorts gesture");
+    }
+
+    public static String gestureName(Context context, String action) {
+        if (!OPEN_LIVE.equals(action)) return null;
+        return PanelUi.tr(context, "ニコ生を開く", "Open Niconico Live", "開啟 Nico 生放送");
+    }
+
+    public static boolean performGesture(Activity activity, String action) {
+        if (!OPEN_LIVE.equals(action)) return false;
+        activity.startActivity(new Intent(activity, NicoliveActivity.class));
+        return true;
+    }
+
     public static void beforeVideo() {
         NicoliveService live = NicoliveService.active;
         if (live == null || live.stopped) return;
@@ -154,7 +181,7 @@ public final class NicoliveEntry {
         boolean japanese = NicoliveUi.ja(context);
         Map<String, Object> item = new HashMap<>();
         item.put("title", japanese ? "ニコ生 (β)" : "Niconico Live (β)");
-        item.put("subtitle", japanese ? "放送中の番組・フォロー・視聴履歴" : "On air, following and viewing history");
+        item.put("subtitle", japanese ? "ニコ生視聴" : "Watch Niconico Live");
         item.put("islabel", false);
         item.put("type", 0);
         item.put("id", "nicoid_live");

@@ -5,6 +5,31 @@ public class NicoliveProtocolTest {
  static byte[] join(byte[]... parts)throws IOException{ByteArrayOutputStream b=new ByteArrayOutputStream();for(byte[] p:parts)b.write(p);return b.toByteArray();}
  static byte[] field(int id,byte[] value)throws IOException{return join(v(id*8+2),v(value.length),value);}
  static byte[] number(int id,long value)throws IOException{return join(v(id*8),v(value));}
+ @Test public void rankingAndFollowingKeepOnlyRelevantPrograms()throws Exception{
+  JSONObject live=new JSONObject().put("nicoliveProgramId","lv1").put("title","生放送").put("status","ON_AIR");
+  JSONObject future=new JSONObject().put("nicoliveProgramId","lv2").put("title","予定").put("status","RELEASED");
+  JSONObject ended=new JSONObject().put("nicoliveProgramId","lv3").put("title","終了").put("status","ENDED");
+  JSONArray ranking=new JSONArray().put(new JSONObject().put("value",future))
+      .put(new JSONObject().put("value",live)).put(new JSONObject().put("value",future));
+  JSONObject rank=new JSONObject().put("statusCategory","comingsoon").put("userPrograms",ranking)
+      .put("officialAndChannelPrograms",new JSONArray());
+  String html="<script id='embedded-data' data-props='"+new JSONObject().put("ranking",rank)+"'></script>";
+  List<NicoliveData.Program> programs=NicoliveCatalog.ranking(html,NicoliveCatalog.Broadcast.UPCOMING,true);
+  assertEquals(1,programs.size());
+  assertEquals("lv2",programs.get(0).id);
+  assertTrue(NicoliveCatalog.ranking(html,NicoliveCatalog.Broadcast.UPCOMING,false).isEmpty());
+  try{NicoliveCatalog.ranking(html,NicoliveCatalog.Broadcast.ENDED,true);fail();}
+  catch(JSONException expected){}
+
+  JSONObject view=new JSONObject().put("favoriteProgramListSectionState",new JSONArray().put(live).put(future))
+      .put("favoritePastProgramListSectionState",new JSONArray().put(ended))
+      .put("recommendedProgramListSectionState",new JSONArray().put(new JSONObject(live.toString()).put("nicoliveProgramId","lv4")));
+  JSONObject props=new JSONObject().put("view",view).put("user",new JSONObject().put("isLoggedIn",true));
+  html="<script id='DAT-csr-data' data-value='"+new JSONObject().put("props",props)+"'></script>";
+  programs=NicoliveCatalog.followed(html);
+  assertEquals(3,programs.size());
+  assertTrue(programs.stream().anyMatch(NicoliveData.Program::ended));
+ }
  @Test public void urlRoutingAcceptsOnlyLiveIdsAndKnownHosts(){assertEquals("lv123",NicoliveData.id("lv123"));assertEquals("lv123",NicoliveData.id("nicoid-re://live/lv123"));assertEquals("lv123",NicoliveData.id("https://live.nicovideo.jp/watch/lv123?ref=test"));assertEquals("lv123",NicoliveData.id("https://nico.ms/lv123"));assertNull(NicoliveData.id("https://example.com/watch/lv123"));assertNull(NicoliveData.id("https://live.nicovideo.jp.evil.test/watch/lv123"));assertNull(NicoliveData.id("sm123"));assertNull(NicoliveData.id("https://user:pw@live.nicovideo.jp/watch/lv123"));}
  @Test public void historyUsesLandscapeBroadcastThumbnailInsteadOfSmallIcon()throws Exception{
   String url="https://listing-thumbnail.live.nicovideo.jp/?image=prod-lv123/thumbnail.jpg&w=352&h=198";

@@ -1,16 +1,24 @@
 package e.e.a;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.preference.CheckBoxPreference;
+import android.preference.Preference;
+import android.preference.PreferenceActivity;
+import android.preference.PreferenceGroup;
+import android.preference.PreferenceManager;
+import android.widget.ListView;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 public final class NicoliveEntry {
     private static final String POPUP_SERVICE = "com.sauzask.nicoid.NicoidPopupViewService";
@@ -85,10 +93,63 @@ public final class NicoliveEntry {
         throw new NoSuchFieldException(name);
     }
 
+    private static final String SHOW_LIVE = "show_nicolive_menu";
+    private static final Map<Activity, Boolean> menuState = new WeakHashMap<>();
+
+    private static boolean showLive(Context context) {
+        return PreferenceManager.getDefaultSharedPreferences(context).getBoolean(SHOW_LIVE, true);
+    }
+
+    public static void settings(PreferenceActivity activity, PreferenceGroup other) {
+        if (Build.VERSION.SDK_INT < 28 || activity.findPreference(SHOW_LIVE) != null) return;
+        Preference shorts = other.findPreference("show_shorts_menu");
+        int order = shorts == null ? other.getPreferenceCount() : shorts.getOrder() + 1;
+        ArrayList<Preference> later = new ArrayList<>();
+        for (int index = 0; index < other.getPreferenceCount(); index++) {
+            Preference row = other.getPreference(index);
+            if (row.getOrder() >= order && row.getOrder() < Integer.MAX_VALUE) later.add(row);
+        }
+        for (Preference row : later) row.setOrder(row.getOrder() + 1);
+        CheckBoxPreference live = new CheckBoxPreference(activity);
+        live.setKey(SHOW_LIVE);
+        live.setDefaultValue(true);
+        live.setOrder(order);
+        live.setTitle(PanelUi.tr(activity, "サイドバーにニコ生を表示", "Show Niconico Live in the sidebar", "在側邊選單顯示 Nico 生放送"));
+        live.setSummary(PanelUi.tr(activity, "ショートの下にニコ生の入口を表示します",
+                "Show the Niconico Live entry below Shorts.", "在短片下方顯示 Nico 生放送入口"));
+        other.addPreference(live);
+    }
+
+    public static void refreshMenu(Activity activity) {
+        Boolean prior = menuState.get(activity);
+        if (prior == null || prior == showLive(activity)) return;
+        int id = activity.getResources().getIdentifier("menu_listview", "id", activity.getPackageName());
+        ListView menu = activity.findViewById(id);
+        if (menu == null) return;
+        try {
+            Class.forName("com.sauzask.nicoid.NicoidTopActivity")
+                    .getMethod("a", Context.class, ListView.class).invoke(null, activity, menu);
+        } catch (ReflectiveOperationException failure) {
+            Log.w("Nicolive", "Could not refresh the sidebar", failure);
+        }
+    }
+
     public static void addMenu(Context context, ArrayList<Map<String, Object>> items) {
         if (Build.VERSION.SDK_INT < 28) return;
-        for (Object item : items) {
-            if (item instanceof Map && "nicoid_live".equals(((Map<?, ?>) item).get("id"))) return;
+        boolean visible = showLive(context);
+        if (context instanceof Activity) menuState.put((Activity) context, visible);
+        items.removeIf(row -> row != null && "nicoid_live".equals(row.get("id")));
+        if (!visible) return;
+        int position = Math.min(1, items.size());
+        for (int index = 0; index < items.size(); index++) {
+            Map<String, Object> row = items.get(index);
+            if (row == null) continue;
+            Object intent = row.get("intent");
+            if ("ショート".equals(row.get("title")) || intent instanceof Intent
+                    && "nicoid-re://shorts".equals(((Intent) intent).getDataString())) {
+                position = index + 1;
+                break;
+            }
         }
         boolean japanese = NicoliveUi.ja(context);
         Map<String, Object> item = new HashMap<>();
@@ -98,6 +159,6 @@ public final class NicoliveEntry {
         item.put("type", 0);
         item.put("id", "nicoid_live");
         item.put("intent", new Intent(context, NicoliveActivity.class));
-        items.add(Math.min(3, items.size()), item);
+        items.add(position, item);
     }
 }

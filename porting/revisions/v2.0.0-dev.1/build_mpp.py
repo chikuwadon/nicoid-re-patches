@@ -14,7 +14,7 @@ from patch_manifest import patch_manifest
 
 ROOT = Path(__file__).resolve().parent
 BASE_HASH = "8920e9cdc9fc49178be5bc78cdb990627f4e7a7be83fef782eece3e7c443bcce"
-VERSION = "2.0.0-dev.2"
+VERSION = "2.0.0-dev.1-3"
 
 
 def run(*args):
@@ -78,8 +78,8 @@ def build(args, work):
         hooks = work / "hooks/e/e/a"
         hooks.mkdir(parents=True)
         replacements = {
-            "AccountPage": (".method public static addMenu(Landroid/content/Context;Ljava/util/ArrayList;)V",
-                            "invoke-static {p0, p1}, Le/e/a/NicoliveEntry;->addMenu(Landroid/content/Context;Ljava/util/ArrayList;)V"),
+            "ModernShorts$2": (".method public onActivityResumed(Landroid/app/Activity;)V",
+                               "invoke-static/range {p1 .. p1}, Le/e/a/NicoliveEntry;->refreshMenu(Landroid/app/Activity;)V"),
             "Playback214": (".method public static begin(Ljava/lang/Object;Ljava/lang/String;)V",
                             "invoke-static {}, Le/e/a/NicoliveEntry;->beforeVideo()V"),
         }
@@ -93,7 +93,16 @@ def build(args, work):
             updated, count = re.subn(r'(?<=["v])1\.11\.1(?=[" ])', VERSION, source)
             if not count:
                 raise ValueError(f"Missing stable version in {name}")
+            if name == "ModernShorts":
+                updated = add_hook(updated, ".method public static finishMenu(Landroid/content/Context;Ljava/util/ArrayList;)V",
+                                   "invoke-static/range {p0 .. p1}, Le/e/a/NicoliveEntry;->addMenu(Landroid/content/Context;Ljava/util/ArrayList;)V")
             (hooks / file).write_text(updated)
+        settings = (disassembled / "e/e/a/SettingsTools.smali").read_text()
+        anchor = "    invoke-static {p0, v1}, Le/e/a/HistoryLimit120;->settings(Landroid/app/Activity;Landroid/preference/PreferenceGroup;)V"
+        if settings.count(anchor) != 1:
+            raise ValueError("Missing settings insertion point")
+        (hooks / "SettingsTools.smali").write_text(settings.replace(
+            anchor, anchor + "\n\n    invoke-static {p0, v1}, Le/e/a/NicoliveEntry;->settings(Landroid/preference/PreferenceActivity;Landroid/preference/PreferenceGroup;)V"))
         hook_dex = work / "hooks.dex"
         run("java", "-cp", smali, "org.jf.smali.Main", "assemble", work / "hooks", "-o", hook_dex)
         merged = work / "helpers.mpe"

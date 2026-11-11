@@ -20,6 +20,16 @@ public class NicoliveServiceTest {
   assertEquals("ニコ生 (β)",rows.get(0).get("title"));
   assertEquals(NicoliveActivity.class.getName(),((android.content.Intent)rows.get(0).get("intent")).getComponent().getClassName());
  }
+ @Test public void mediaNotificationIncludesProgramAndBroadcaster() {
+  s.program=new NicoliveData.Program("lv123");
+  s.program.title="試験番組";
+  s.program.owner="放送者";
+  Notification notice=s.notification();
+  assertEquals("試験番組",notice.extras.getCharSequence(Notification.EXTRA_TITLE));
+  assertEquals("放送者",notice.extras.getCharSequence(Notification.EXTRA_TEXT));
+  assertEquals(s.mediaSession.getSessionToken(),notice.extras.getParcelable(Notification.EXTRA_MEDIA_SESSION));
+  assertEquals(2,notice.actions.length);
+ }
  @Test public void staleNotificationWithoutAProgramStopsIdleService() {
   s.onStartCommand(new android.content.Intent().setAction("reconnect"),0,1);
   assertTrue(s.stopped);

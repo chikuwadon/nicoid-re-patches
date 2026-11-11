@@ -1,6 +1,6 @@
 package e.e.a;
 
-import android.app.*;import android.content.*;import android.graphics.Color;import android.media.session.*;import android.net.Uri;import android.os.*;import android.preference.PreferenceManager;import android.view.*;import android.widget.*;
+import android.app.*;import android.content.*;import android.graphics.Color;import android.media.session.*;import android.media.MediaMetadata;import android.net.Uri;import android.os.*;import android.preference.PreferenceManager;import android.text.TextUtils;import android.view.*;import android.widget.*;
 import androidx.media3.common.*;import androidx.media3.datasource.*;import androidx.media3.exoplayer.*;import androidx.media3.exoplayer.hls.HlsMediaSource;import java.io.*;import java.net.URI;import java.util.*;import org.json.*;
 
 /** One process-local owner across the activity, popup and audio background modes. */
@@ -21,9 +21,11 @@ public class NicoliveService extends android.app.Service {
  }};
  @Override public void onCreate(){super.onCreate();active=this;manager=(WindowManager)getSystemService(WINDOW_SERVICE);ng=new NicoliveNg(this);
   if(Build.VERSION.SDK_INT>=26){NotificationChannel channel=new NotificationChannel("nicoid_live", "生放送の再生",NotificationManager.IMPORTANCE_LOW);channel.setShowBadge(false);((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).createNotificationChannel(channel);}
-  mediaSession=new android.media.session.MediaSession(this,"nicoid-live");mediaSession.setCallback(new android.media.session.MediaSession.Callback(){public void onPlay(){resume();}public void onPause(){pause();}public void onStop(){stopPlayback();}});mediaSession.setActive(true);
+  mediaSession=new android.media.session.MediaSession(this,"nicoid-live");mediaSession.setCallback(new android.media.session.MediaSession.Callback(){public void onPlay(){resume();}public void onPause(){pause();}public void onStop(){stopPlayback();}},main);mediaSession.setActive(true);
   foreground();player=new ExoPlayer.Builder(this).build();player.setAudioAttributes(new AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(),true);player.setHandleAudioBecomingNoisy(true);
-  player.addListener(new Player.Listener(){public void onPlayerError(PlaybackException error){status="映像を再生できませんでした。再接続をお試しください";notifyObservers();}public void onIsPlayingChanged(boolean value){updateNotification();if(frame!=null){frame.updateControls();if(value)frame.comments.postInvalidateOnAnimation();}}public void onVideoSizeChanged(VideoSize size){if(size.height>0){aspect=size.width*size.pixelWidthHeightRatio/size.height;if(frame!=null)frame.aspect(aspect);if(popup!=null)resizePopup(popupParams.width);}}});main.post(tick);
+  player.addListener(new Player.Listener(){public void onPlayerError(PlaybackException error){status="映像を再生できませんでした。再接続をお試しください";notifyObservers();}public void onIsPlayingChanged(boolean value){if(frame!=null){frame.updateControls();if(value)frame.comments.postInvalidateOnAnimation();}}public void onEvents(Player source,Player.Events events){
+   if(events.containsAny(Player.EVENT_IS_PLAYING_CHANGED,Player.EVENT_PLAY_WHEN_READY_CHANGED,Player.EVENT_PLAYBACK_STATE_CHANGED))updateNotification();
+  }public void onVideoSizeChanged(VideoSize size){if(size.height>0){aspect=size.width*size.pixelWidthHeightRatio/size.height;if(frame!=null)frame.aspect(aspect);if(popup!=null)resizePopup(popupParams.width);}}});main.post(tick);
  }
  @Override public int onStartCommand(Intent intent,int flags,int startId){if(intent!=null){String action=intent.getAction();if("stop".equals(action)){stopPlayback();return START_NOT_STICKY;}if("toggle".equals(action)){if(playRequested())pause();else resume();}else if("popup".equals(action))showPopup();else if("reconnect".equals(action)){if(!id.isEmpty())open(id);}else{String requested=NicoliveData.id(intent.getStringExtra("program"));if(requested!=null&&(terminal||!requested.equals(id)))open(requested);}}
   if(id.isEmpty())stopPlayback();
@@ -80,10 +82,48 @@ public class NicoliveService extends android.app.Service {
  void returnToFrame(NicolivePlayerFrame next){NicolivePlayerFrame old=popup;attach(next);if(old!=null){popup=null;try{manager.removeView(old);}catch(IllegalArgumentException ignored){}popupParams=null;}}
  void returnToActivity(){Intent intent=new Intent(this,NicoliveActivity.class).putExtra("program",id).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP);startActivity(intent);}
  void stopPlayback(){if(stopped)return;stopped=true;++serial;closePopup();if(frame!=null)detach(frame);if(session!=null){session.close();session=null;}main.removeCallbacksAndMessages(null);if(player!=null){player.release();player=null;}stopForeground(true);stopSelf();for(Observer o:new ArrayList<Observer>(observers))o.changed();}
- void foreground(){if(!stopped)startForeground(2000,notification());}
- PendingIntent action(String action,int code){return PendingIntent.getService(this,code,new Intent(this,NicoliveService.class).setAction(action),PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);}
- Notification notification(){Intent open=new Intent(this,NicoliveActivity.class).putExtra("program",id);PendingIntent content=PendingIntent.getActivity(this,2000,open,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);Notification.Builder b=Build.VERSION.SDK_INT>=26?new Notification.Builder(this,"nicoid_live"):new Notification.Builder(this);b.setSmallIcon(android.R.drawable.ic_media_play).setContentTitle(program==null?"nicoid Re / 生放送":program.title).setContentText(program==null?status:program.owner).setContentIntent(content).setOngoing(true).setOnlyAlertOnce(true).setCategory(Notification.CATEGORY_TRANSPORT).setVisibility(Notification.VISIBILITY_PUBLIC).addAction(android.R.drawable.ic_media_pause,playRequested()?"一時停止":"再生",action("toggle",2001)).addAction(android.R.drawable.ic_menu_close_clear_cancel,"終了",action("stop",2002));if(mediaSession!=null)b.setStyle(new Notification.MediaStyle().setMediaSession(mediaSession.getSessionToken()).setShowActionsInCompactView(0,1));return b.build();}
- void updateNotification(){if(stopped||terminal)return;((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).notify(2000,notification());if(mediaSession!=null)mediaSession.setPlaybackState(new PlaybackState.Builder().setActions(PlaybackState.ACTION_PLAY|PlaybackState.ACTION_PAUSE|PlaybackState.ACTION_STOP).setState(playing()?PlaybackState.STATE_PLAYING:PlaybackState.STATE_PAUSED,0,1).build());}
+ void foreground(){
+  if(!stopped)startForeground(2000,notification());
+ }
+ PendingIntent action(String action,int code){
+  return PendingIntent.getService(this,code,new Intent(this,NicoliveService.class).setAction(action),
+          PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
+ }
+ Notification notification(){
+  Intent open=new Intent(this,NicoliveActivity.class).putExtra("program",id)
+          .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP);
+  PendingIntent content=PendingIntent.getActivity(this,2000,open,
+          PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
+  String title=program==null||TextUtils.isEmpty(program.title)?"nicoid Re / 生放送":program.title;
+  String subtitle=program==null||TextUtils.isEmpty(program.owner)?status:program.owner;
+  boolean requested=playRequested();
+  Notification.Builder builder=new Notification.Builder(this,"nicoid_live")
+          .setSmallIcon(android.R.drawable.ic_media_play).setContentTitle(title).setContentText(subtitle)
+          .setContentIntent(content).setOngoing(true).setOnlyAlertOnce(true)
+          .setCategory(Notification.CATEGORY_TRANSPORT).setVisibility(Notification.VISIBILITY_PUBLIC)
+          .addAction(requested?android.R.drawable.ic_media_pause:android.R.drawable.ic_media_play,
+                  requested?"一時停止":"再生",action("toggle",2001))
+          .addAction(android.R.drawable.ic_menu_close_clear_cancel,"終了",action("stop",2002));
+  if(mediaSession!=null){
+   mediaSession.setSessionActivity(content);
+   mediaSession.setMetadata(new MediaMetadata.Builder().putString(MediaMetadata.METADATA_KEY_TITLE,title)
+           .putString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE,title)
+           .putString(MediaMetadata.METADATA_KEY_ARTIST,subtitle)
+           .putString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE,subtitle).build());
+   int state=playing()?PlaybackState.STATE_PLAYING:PlaybackState.STATE_PAUSED;
+   if(requested&&player!=null&&player.getPlaybackState()==Player.STATE_BUFFERING)state=PlaybackState.STATE_BUFFERING;
+   mediaSession.setPlaybackState(new PlaybackState.Builder()
+           .setActions(PlaybackState.ACTION_PLAY|PlaybackState.ACTION_PAUSE|PlaybackState.ACTION_PLAY_PAUSE|PlaybackState.ACTION_STOP)
+           .setState(state,PlaybackState.PLAYBACK_POSITION_UNKNOWN,playing()?1f:0f).build());
+   builder.setStyle(new Notification.MediaStyle().setMediaSession(mediaSession.getSessionToken())
+           .setShowActionsInCompactView(0,1));
+  }
+  return builder.build();
+ }
+ void updateNotification(){
+  if(stopped||terminal)return;
+  ((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).notify(2000,notification());
+ }
  void saveHistory(NicoliveData.Program p){try{SharedPreferences prefs=PreferenceManager.getDefaultSharedPreferences(this);JSONArray all=new JSONArray(prefs.getString("nicolive_history","[]")),next=new JSONArray();next.put(p.stored());for(int i=0;i<all.length()&&next.length()<100;i++){JSONObject o=all.optJSONObject(i);if(o!=null&&!p.id.equals(o.optString("nicoliveProgramId")))next.put(o);}prefs.edit().putString("nicolive_history",next.toString()).apply();}catch(Exception ignored){}}
  @Override public void onDestroy(){stopPlayback();if(mediaSession!=null){mediaSession.release();mediaSession=null;}if(active==this)active=null;observers.clear();super.onDestroy();}
 }

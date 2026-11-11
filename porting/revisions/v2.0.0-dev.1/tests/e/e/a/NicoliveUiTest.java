@@ -40,6 +40,69 @@ public class NicoliveUiTest {
  static void snapshot(View view,String name)throws Exception{Bitmap bitmap=Bitmap.createBitmap(360,760,Bitmap.Config.ARGB_8888);view.draw(new Canvas(bitmap));java.io.File dir=new java.io.File("build/ui");dir.mkdirs();try(java.io.FileOutputStream out=new java.io.FileOutputStream(new java.io.File(dir,name+".png"))){bitmap.compress(Bitmap.CompressFormat.PNG,100,out);}bitmap.recycle();}
  static double contrast(int a,int b){double x=luminance(a),y=luminance(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05);}
  static double luminance(int color){double[] c={Color.red(color)/255d,Color.green(color)/255d,Color.blue(color)/255d};for(int i=0;i<3;i++)c[i]=c[i]<=.04045?c[i]/12.92:Math.pow((c[i]+.055)/1.055,2.4);return c[0]*.2126+c[1]*.7152+c[2]*.0722;}
+ @Test public void sidebarEntryFollowsShortsAndRespectsItsOwnPreference(){
+  android.content.SharedPreferences prefs=PreferenceManager.getDefaultSharedPreferences(a);
+  prefs.edit().remove("show_nicolive_menu").commit();
+  ArrayList<Map<String,Object>> menu=new ArrayList<>();
+  Map<String,Object> ranking=new HashMap<>(),shorts=new HashMap<>(),search=new HashMap<>();
+  shorts.put("intent",new Intent().setData(android.net.Uri.parse("nicoid-re://shorts")));
+  menu.add(ranking);menu.add(shorts);menu.add(search);
+  NicoliveEntry.addMenu(a,menu);
+  assertSame(shorts,menu.get(1));
+  assertEquals("nicoid_live",menu.get(2).get("id"));
+  assertSame(search,menu.get(3));
+  prefs.edit().putBoolean("show_nicolive_menu",false).commit();
+  NicoliveEntry.addMenu(a,menu);
+  assertEquals(Arrays.asList(ranking,shorts,search),menu);
+ }
+
+ public static class TestSettings extends android.preference.PreferenceActivity {}
+
+ @Test public void livePreferenceIsInsertedBetweenShortsAndNextRow(){
+  android.preference.PreferenceActivity settings=Robolectric.buildActivity(TestSettings.class).setup().get();
+  android.preference.PreferenceScreen screen=settings.getPreferenceManager().createPreferenceScreen(settings);
+  settings.setPreferenceScreen(screen);
+  android.preference.PreferenceCategory other=new android.preference.PreferenceCategory(settings);
+  screen.addPreference(other);
+  android.preference.CheckBoxPreference shorts=new android.preference.CheckBoxPreference(settings);
+  shorts.setKey("show_shorts_menu");shorts.setOrder(8);other.addPreference(shorts);
+  android.preference.Preference next=new android.preference.Preference(settings);
+  next.setOrder(9);other.addPreference(next);
+  NicoliveEntry.settings(settings,other);
+  NicoliveEntry.settings(settings,other);
+  assertEquals(3,other.getPreferenceCount());
+  assertSame(shorts,other.getPreference(0));
+  assertEquals("show_nicolive_menu",other.getPreference(1).getKey());
+  assertSame(next,other.getPreference(2));
+ }
+
+ @Test public void bottomRefreshAndCloseBroadcastAreAvailable(){
+  assertNotNull(a.root.findViewWithTag("nicoid-live-bottom-refresh"));
+  assertEquals(View.GONE,a.nowPlayingBar.getVisibility());
+  ServiceController<NicoliveService> controller=Robolectric.buildService(NicoliveService.class).create();
+  NicoliveService live=controller.get();
+  try{
+   live.id="lv123";
+   a.updateNowPlaying();
+   assertEquals(View.VISIBLE,a.nowPlayingBar.getVisibility());
+   a.root.findViewWithTag("nicoid-live-close-broadcast").performClick();
+   assertTrue(live.stopped);
+   assertEquals(View.GONE,a.nowPlayingBar.getVisibility());
+  }finally{controller.destroy();}
+ }
+
+ @Test public void tabGesturesMoveOnlyBroadcastCategories(){
+  NicoliveListGestures.perform(a,a.feed,"righttab");
+  assertEquals(1,a.category);
+  assertEquals(0,a.hubTab);
+  NicoliveListGestures.perform(a,a.feed,"lefttab");
+  assertEquals(0,a.category);
+  a.hubTab=1;
+  NicoliveListGestures.perform(a,a.feed,"righttab");
+  assertEquals(0,a.category);
+  assertEquals(1,a.hubTab);
+ }
+
  @Test public void sidebarAddsOneNativeIntent(){ArrayList<Map<String,Object>> menu=new ArrayList<Map<String,Object>>();NicoliveEntry.addMenu(a,menu);NicoliveEntry.addMenu(a,menu);assertEquals(1,menu.size());assertEquals(NicoliveActivity.class.getName(),((Intent)menu.get(0).get("intent")).getComponent().getClassName());}
  @Test public void hubHasInlineSearchAndCompactBroadcastMetadata(){assertNotNull(a.searchInput);a.searchInput.setText("ゲーム");a.searchInput.onEditorAction(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH);assertEquals("ゲーム",a.query);NicoliveData.Program p=new NicoliveData.Program("lv123");p.title="番組タイトル";p.provider="official";p.owner="放送者";p.status="ON_AIR";p.begin=System.currentTimeMillis()/1000-65*60;p.views=123;p.comments=456;a.programs.add(p);a.feedAdapter.notifyDataSetChanged();View row=a.feedAdapter.getView(0,null,a.feed);LinearLayout text=(LinearLayout)((LinearLayout)row).getChildAt(1);assertTrue(((TextView)text.getChildAt(0)).getText().toString().contains("公式"));assertTrue(((TextView)text.getChildAt(0)).getText().toString().contains("1時間5分"));assertTrue(((TextView)text.getChildAt(3)).getText().toString().contains("456"));assertSame(row,a.feedAdapter.getView(0,row,a.feed));}
  @Test public void portraitViewerUsesNativeControlsAndPreservesDraft(){a.watching=true;a.requested="lv123";a.draft="下書き";a.viewer();layout(a.root,360,760);assertEquals("下書き",a.input.getText().toString());assertNotNull(a.playerFrame.video);assertTrue(a.input.getWidth()>0);assertTrue(a.composer.getBottom()<=a.body.getHeight());assertTrue(a.send.getWidth()>=NicoliveUi.dp(a,44));a.fullscreen=true;a.viewer();layout(a.root,760,360);assertEquals(View.GONE,a.header.getVisibility());assertEquals(View.GONE,a.viewerPane.getVisibility());}
@@ -50,7 +113,7 @@ public class NicoliveUiTest {
  @Test public void manifestDeclaresLiveActivityServiceAndPermissions()throws Exception{AssetManager assets=a.getAssets();int cookie=(Integer)AssetManager.class.getMethod("addAssetPath",String.class).invoke(assets,System.getProperty("test.apk"));android.content.res.XmlResourceParser xml=assets.openXmlResourceParser(cookie,"AndroidManifest.xml");boolean activity=false,service=false,permission=false;for(int event;(event=xml.next())!=org.xmlpull.v1.XmlPullParser.END_DOCUMENT;){if(event!=org.xmlpull.v1.XmlPullParser.START_TAG)continue;String name=xml.getAttributeValue("http://schemas.android.com/apk/res/android","name");if("activity".equals(xml.getName())&&"e.e.a.NicoliveActivity".equals(name))activity=true;if("service".equals(xml.getName())&&"e.e.a.NicoliveService".equals(name)){service=true;assertFalse(xml.getAttributeBooleanValue("http://schemas.android.com/apk/res/android","exported",true));assertEquals(2,xml.getAttributeIntValue("http://schemas.android.com/apk/res/android","foregroundServiceType",0));}if("uses-permission".equals(xml.getName())&&"android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK".equals(name))permission=true;}xml.close();assertTrue(activity);assertTrue(service);assertTrue(permission);}
  @Test public void overlayQueueIsBoundedAndUsesExistingAppearance(){a.watching=true;a.viewer();layout(a.root,360,760);NicoliveCommentsView view=a.playerFrame.comments;view.layout(0,0,360,200);for(int i=0;i<10000;i++){NicoliveData.Chat c=new NicoliveData.Chat();c.text="comment";view.add(c,1000);}assertTrue(view.items.size()<=80);view.clear();assertEquals(0,view.items.size());}
  @Test public void rotationKeepsSurfaceDraftAndScrollViews(){a.watching=true;a.viewer();a.input.setText("draft");Object surface=a.playerFrame.video,frame=a.playerFrame,list=a.chat,root=a.root;for(int i=0;i<100;i++){a.fullscreen=i%2==0;a.viewer();android.content.res.Configuration c=new android.content.res.Configuration();c.orientation=a.fullscreen?2:1;a.onConfigurationChanged(c);layout(a.root,a.fullscreen?760:360,a.fullscreen?360:760);assertSame(surface,a.playerFrame.video);assertSame(frame,a.playerFrame);assertSame(root,a.root);assertSame(list,a.chat);assertEquals("draft",a.input.getText().toString());assertEquals(a.fullscreen?View.VISIBLE:View.GONE,a.playerFrame.reconnect.getVisibility());}assertTrue(a.playerFrame.bottom.getHeight()<=NicoliveUi.dp(a,36));}
- @Test public void swipeSwitchesHubAndCommentPanesButNotVerticalScroll(){layout(a.root,360,760);swipe(a.root,300,410,60,420);assertEquals(1,a.hubTab);layout(a.root,360,760);swipe(a.root,60,410,300,420);assertEquals(0,a.hubTab);a.watching=true;a.viewer();layout(a.root,360,760);swipe(a.root,300,550,60,560);assertTrue(a.info);swipe(a.root,60,550,300,560);assertFalse("right swipe returns to comments",a.info);swipe(a.root,140,600,150,420);assertFalse("vertical scroll keeps current tab",a.info);}
+ @Test public void swipeSwitchesCategoriesAndCommentPanesButNotVerticalScroll(){layout(a.root,360,760);swipe(a.root,300,410,60,420);assertEquals(1,a.category);assertEquals(0,a.hubTab);layout(a.root,360,760);swipe(a.root,60,410,300,420);assertEquals(0,a.category);a.watching=true;a.viewer();layout(a.root,360,760);swipe(a.root,300,550,60,560);assertTrue(a.info);swipe(a.root,60,550,300,560);assertFalse("right swipe returns to comments",a.info);swipe(a.root,140,600,150,420);assertFalse("vertical scroll keeps current tab",a.info);}
  static void swipe(View v,float x,float y,float end,float bottom){long t=SystemClock.uptimeMillis();NicoliveServiceTest.event(v,t,t,MotionEvent.ACTION_DOWN,x,y);NicoliveServiceTest.event(v,t,t+50,MotionEvent.ACTION_MOVE,end,bottom);NicoliveServiceTest.event(v,t,t+100,MotionEvent.ACTION_UP,end,bottom);}
  @Test public void statisticsUseCommaSeparatedNumbersAndTwoIcons(){CharSequence value=NicoliveUi.statistics(a,21465,8243);assertTrue(value.toString().contains("21,465"));assertTrue(value.toString().contains("8,243"));assertEquals(2,((android.text.Spanned)value).getSpans(0,value.length(),android.text.style.ImageSpan.class).length);ArrayList<Map<String,Object>> menu=new ArrayList<Map<String,Object>>();NicoliveEntry.addMenu(a,menu);assertFalse(((String)menu.get(0).get("subtitle")).isEmpty());}
 

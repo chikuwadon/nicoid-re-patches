@@ -5,30 +5,125 @@ import android.app.*;import android.content.*;import android.content.pm.Activity
 /** Native live hub and viewer. Video-only screens retain their existing model and engine. */
 public class NicoliveActivity extends Activity implements NicoliveService.Observer {
  NicoliveBrowser browser;NicoliveService service;boolean bound,watching,fullscreen,info,atBottom=true,loading,resumeLoad;int loadToken,hubTab,category,newComments,feedPosition,feedOffset;long observedCount;String requested="",query="",draft="",pendingDraft="";NicoliveData.Program renderedProgram;long renderedViews=Long.MIN_VALUE,renderedComments=Long.MIN_VALUE;LinearLayout root,header,body,viewerPane,details,tabs,composer;TextView heading,status,title,owner,stats,information;ListView feed,chat;Button latest,login;EditText input,searchInput;CheckBox anonymous;ImageButton send;NicolivePlayerFrame playerFrame;FeedAdapter feedAdapter;ChatAdapter chatAdapter;final ArrayList<NicoliveData.Program> programs=new ArrayList<NicoliveData.Program>();final ArrayList<NicoliveData.Chat> comments=new ArrayList<NicoliveData.Chat>();
+ final NicoliveListGestures listGestures=new NicoliveListGestures();
+ LinearLayout categoryTabs,nowPlayingBar;
+
+ @Override public boolean dispatchTouchEvent(MotionEvent event) {
+  if (!watching && listGestures.handle(this,feed,event)) return true;
+  return super.dispatchTouchEvent(event);
+ }
+
  final ServiceConnection connection=new ServiceConnection(){public void onServiceConnected(ComponentName name,IBinder binder){service=((NicoliveService.LocalBinder)binder).service();service.observe(NicoliveActivity.this);if(service!=null&&watching&&playerFrame!=null){service.returnToFrame(playerFrame);}refreshAccount();changed();}public void onServiceDisconnected(ComponentName name){service=null;bound=false;}};
- @Override protected void onCreate(Bundle state){DynamicTheme.apply(this);super.onCreate(state);UiTheme191.activity(this);getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);browser=new NicoliveBrowser();if(state!=null){draft=state.getString("draft","");query=state.getString("query","");hubTab=state.getInt("hubTab",0);requested=state.getString("program","");}
+ @Override protected void onCreate(Bundle state){DynamicTheme.apply(this);super.onCreate(state);UiTheme191.activity(this);getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);browser=new NicoliveBrowser();if(state!=null){draft=state.getString("draft","");query=state.getString("query","");hubTab=state.getInt("hubTab",0);category=state.getInt("category",0);requested=state.getString("program","");}
   if(state==null){String id=fromIntent(getIntent());if(id!=null)requested=id;}if(!requested.isEmpty())watch(requested);else hub();
  }
  String fromIntent(Intent intent){if(intent==null)return null;String id=NicoliveData.id(intent.getStringExtra("program"));return id!=null?id:NicoliveData.id(intent.getDataString());}
  @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);String id=fromIntent(intent);if(id!=null)watch(id);}
  @Override protected void onStart(){super.onStart();if(!watching){browser.resumeImages();if(resumeLoad){resumeLoad=false;load();}}if(watching||NicoliveService.active!=null)bind();}
  @Override protected void onStop(){resumeLoad=!watching&&loading;browser.pauseImages();if(input!=null)draft=input.getText().toString();unbind();super.onStop();}
- @Override protected void onResume(){super.onResume();refreshAccount();}
+ @Override protected void onResume(){super.onResume();refreshAccount();updateNowPlaying();}
  void refreshAccount(){if(!watching||service==null||service.program==null||service.program.loggedIn||service.session==null)return;String cookie=NicoliveBrowser.cookie(this);if(cookie.contains("user_session=")&&!cookie.equals(service.session.accountCookie))service.open(service.id);}
  @Override protected void onDestroy(){unbind();if(browser!=null)browser.close();super.onDestroy();}
- @Override protected void onSaveInstanceState(Bundle state){if(input!=null)draft=input.getText().toString();state.putString("draft",draft);state.putString("query",query);state.putInt("hubTab",hubTab);state.putString("program",watching?requested:"");super.onSaveInstanceState(state);}
+ @Override protected void onSaveInstanceState(Bundle state){if(input!=null)draft=input.getText().toString();state.putString("draft",draft);state.putString("query",query);state.putInt("hubTab",hubTab);state.putInt("category",category);state.putString("program",watching?requested:"");super.onSaveInstanceState(state);}
  @Override public void onConfigurationChanged(Configuration config){super.onConfigurationChanged(config);if(watching){if(input!=null)draft=input.getText().toString();fullscreen=config.orientation==Configuration.ORIENTATION_LANDSCAPE;updateViewerLayout();}else hub();}
  void bind(){if(bound)return;bound=bindService(new Intent(this,NicoliveService.class),connection,BIND_AUTO_CREATE);}
  void unbind(){if(service!=null){service.unobserve(this);if(playerFrame!=null)service.detach(playerFrame);}if(bound){try{unbindService(connection);}catch(Exception ignored){}bound=false;}service=null;}
- void base(){renderedProgram=null;renderedViews=renderedComments=Long.MIN_VALUE;root=new NicoliveSwipeLayout(this,step->{if(watching){if(!fullscreen){info=step>0;showPane();}}else{int next=Math.max(0,Math.min(2,hubTab+(step>0?1:-1)));if(next!=hubTab){hubTab=next;query="";hub();}}});DynamicTheme.background(root);root.setFitsSystemWindows(true);setContentView(root);header=NicoliveUi.row(this);root.addView(header,new LinearLayout.LayoutParams(-1,NicoliveUi.dp(this,48)));body=NicoliveUi.column(this);root.addView(body,new LinearLayout.LayoutParams(-1,0,1));}
+ void base(){renderedProgram=null;renderedViews=renderedComments=Long.MIN_VALUE;root=new NicoliveSwipeLayout(this,step->{if(watching){if(!fullscreen){info=step>0;showPane();}}else moveCategory(step);});DynamicTheme.background(root);root.setFitsSystemWindows(true);setContentView(root);header=NicoliveUi.row(this);root.addView(header,new LinearLayout.LayoutParams(-1,NicoliveUi.dp(this,48)));body=NicoliveUi.column(this);root.addView(body,new LinearLayout.LayoutParams(-1,0,1));}
  void hub(){browser.resumeImages();watching=false;fullscreen=false;getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN|WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);if(service!=null&&playerFrame!=null)service.detach(playerFrame);playerFrame=null;input=null;chat=null;base();
-  ImageButton back=NicoliveUi.icon(this,"back","戻る");header.addView(back);back.setOnClickListener(v->finish());heading=NicoliveUi.text(this,"生放送",18);header.addView(heading,new LinearLayout.LayoutParams(0,-1,1));ImageButton refresh=NicoliveUi.icon(this,"refresh","更新");header.addView(refresh);refresh.setOnClickListener(v->{browser.refresh();load();});
+  ImageButton back=NicoliveUi.icon(this,"back","戻る");header.addView(back);back.setOnClickListener(v->finish());heading=NicoliveUi.text(this,"生放送",18);header.addView(heading,new LinearLayout.LayoutParams(0,-1,1));ImageButton refresh=NicoliveUi.icon(this,"refresh","更新");header.addView(refresh);refresh.setOnClickListener(v->refreshFeed());
   LinearLayout hubTabs=NicoliveUi.row(this);String[] names={"放送中","フォロー","履歴"};for(int i=0;i<names.length;i++){final int index=i;Button b=NicoliveUi.button(this,names[i]);NicoliveUi.selected(b,i==hubTab);hubTabs.addView(b,new LinearLayout.LayoutParams(0,NicoliveUi.dp(this,44),1));b.setOnClickListener(v->{hubTab=index;query="";hub();});}body.addView(hubTabs);
   if(hubTab==0){LinearLayout searchRow=NicoliveUi.row(this);searchRow.setPadding(NicoliveUi.dp(this,8),0,NicoliveUi.dp(this,4),0);searchInput=NicoliveUi.input(this,"番組名 / lv番号 / 生放送URL");searchInput.setTextSize(14);searchInput.setText(query);searchInput.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH);searchRow.addView(searchInput,new LinearLayout.LayoutParams(0,NicoliveUi.dp(this,48),1));ImageButton search=NicoliveUi.icon(this,"search","検索 / 番組を開く");searchRow.addView(search);search.setOnClickListener(v->searchValue(searchInput.getText().toString()));searchInput.setOnEditorActionListener((v,action,event)->{if(action==android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH){searchValue(searchInput.getText().toString());return true;}return false;});body.addView(searchRow);}
-  if(hubTab==0){LinearLayout types=NicoliveUi.row(this);String[] kinds={"すべて","ユーザー","公式","チャンネル"};for(int i=0;i<kinds.length;i++){final int selected=i;Button b=NicoliveUi.button(this,kinds[i]);b.setTextSize(12);NicoliveUi.selected(b,i==category);types.addView(b,new LinearLayout.LayoutParams(0,NicoliveUi.dp(this,40),1));b.setOnClickListener(v->{category=selected;for(int j=0;j<types.getChildCount();j++)NicoliveUi.selected((Button)types.getChildAt(j),j==category);feedPosition=0;feedOffset=0;feedAdapter.notifyDataSetChanged();});}body.addView(types);}
-  status=NicoliveUi.text(this,"",13);status.setPadding(NicoliveUi.dp(this,12),0,NicoliveUi.dp(this,12),0);body.addView(status,new LinearLayout.LayoutParams(-1,NicoliveUi.dp(this,28)));feed=new ListView(this);feed.setDivider(null);feed.setCacheColorHint(Color.TRANSPARENT);feedAdapter=new FeedAdapter();feed.setAdapter(feedAdapter);body.addView(feed,new LinearLayout.LayoutParams(-1,0,1));feed.setOnItemClickListener((parent,view,pos,row)->watch(((NicoliveData.Program)feedAdapter.getItem(pos)).id));
-  if(NicoliveService.active!=null&&!NicoliveService.active.id.isEmpty()&&!NicoliveService.active.stopped){final NicoliveService playing=NicoliveService.active;Button resume=NicoliveUi.button(this,"再生中の生放送に戻る");body.addView(resume,new LinearLayout.LayoutParams(-1,NicoliveUi.dp(this,48)));resume.setOnClickListener(v->watch(playing.id));}load();
+  categoryTabs=null;
+  if(hubTab==0){
+   categoryTabs=NicoliveUi.row(this);
+   String[] kinds={"すべて","ユーザー","公式","チャンネル"};
+   for(int i=0;i<kinds.length;i++){
+    final int selected=i;
+    Button button=NicoliveUi.button(this,kinds[i]);
+    button.setTextSize(12);
+    NicoliveUi.selected(button,i==category);
+    categoryTabs.addView(button,new LinearLayout.LayoutParams(0,NicoliveUi.dp(this,40),1));
+    button.setOnClickListener(v->selectCategory(selected));
+   }
+   body.addView(categoryTabs);
+  }
+  status=NicoliveUi.text(this,"",13);
+  status.setPadding(NicoliveUi.dp(this,12),0,NicoliveUi.dp(this,12),0);
+  body.addView(status,new LinearLayout.LayoutParams(-1,NicoliveUi.dp(this,28)));
+  FrameLayout listArea=new FrameLayout(this);
+  body.addView(listArea,new LinearLayout.LayoutParams(-1,0,1));
+  feed=new ListView(this);
+  feed.setDivider(null);
+  feed.setCacheColorHint(Color.TRANSPARENT);
+  feed.setClipToPadding(false);
+  feed.setPadding(0,0,0,NicoliveUi.dp(this,72));
+  feedAdapter=new FeedAdapter();
+  feed.setAdapter(feedAdapter);
+  listArea.addView(feed,new FrameLayout.LayoutParams(-1,-1));
+  feed.setOnItemClickListener((parent,view,pos,row)->watch(((NicoliveData.Program)feedAdapter.getItem(pos)).id));
+  ImageButton bottomRefresh=NicoliveUi.icon(this,"refresh","一覧を更新");
+  bottomRefresh.setTag("nicoid-live-bottom-refresh");
+  android.graphics.drawable.GradientDrawable circle=new android.graphics.drawable.GradientDrawable();
+  circle.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+  circle.setColor(UiDialogs.surface(this));
+  circle.setStroke(NicoliveUi.dp(this,1),NicoliveUi.accent(this));
+  bottomRefresh.setBackground(circle);
+  int padding=NicoliveUi.dp(this,14);
+  bottomRefresh.setPadding(padding,padding,padding,padding);
+  int size=NicoliveUi.dp(this,58);
+  FrameLayout.LayoutParams refreshLayout=new FrameLayout.LayoutParams(size,size,Gravity.BOTTOM|Gravity.RIGHT);
+  refreshLayout.setMargins(0,0,padding,padding);
+  listArea.addView(bottomRefresh,refreshLayout);
+  bottomRefresh.setOnClickListener(v->refreshFeed());
+
+  nowPlayingBar=NicoliveUi.row(this);
+  Button resume=NicoliveUi.button(this,"再生中の生放送に戻る");
+  nowPlayingBar.addView(resume,new LinearLayout.LayoutParams(0,NicoliveUi.dp(this,48),1));
+  resume.setOnClickListener(v->{NicoliveService playing=activeBroadcast();if(playing!=null)watch(playing.id);});
+  ImageButton close=NicoliveUi.icon(this,"close","再生中の生放送を閉じる");
+  close.setTag("nicoid-live-close-broadcast");
+  nowPlayingBar.addView(close);
+  close.setOnClickListener(v->{
+   NicoliveService playing=activeBroadcast();
+   if(playing!=null)playing.stopPlayback();
+   updateNowPlaying();
+  });
+  body.addView(nowPlayingBar,new LinearLayout.LayoutParams(-1,NicoliveUi.dp(this,48)));
+  updateNowPlaying();
+  load();
  }
+
+ private NicoliveService activeBroadcast(){
+  NicoliveService live=NicoliveService.active;
+  if(live==null||live.stopped||live.terminal||live.id.isEmpty())return null;
+  return live;
+ }
+
+ void updateNowPlaying(){
+  if(!watching&&nowPlayingBar!=null)nowPlayingBar.setVisibility(activeBroadcast()==null?View.GONE:View.VISIBLE);
+ }
+
+ void refreshFeed(){
+  browser.refresh();
+  load();
+ }
+
+ void moveCategory(int step){
+  if(hubTab==0)selectCategory(Math.max(0,Math.min(3,category+step)));
+ }
+
+ void selectCategory(int selected){
+  if(categoryTabs==null||category==selected)return;
+  category=selected;
+  for(int index=0;index<categoryTabs.getChildCount();index++){
+   NicoliveUi.selected((Button)categoryTabs.getChildAt(index),index==category);
+  }
+  feedPosition=0;
+  feedOffset=0;
+  feedAdapter.notifyDataSetChanged();
+  feed.setSelection(0);
+ }
+
  void load(){if(watching)return;final int token=++loadToken;loading=true;status.setText("取得中…");
   if(hubTab==2){programs.clear();try{JSONArray history=new JSONArray(PreferenceManager.getDefaultSharedPreferences(this).getString("nicolive_history","[]"));for(int i=0;i<history.length();i++){JSONObject p=history.optJSONObject(i);NicoliveData.Program value=p==null?null:NicoliveData.Program.listing(p);if(value!=null)programs.add(value);}}catch(Exception ignored){}loading=false;status.setText(programs.isEmpty()?"視聴履歴はありません":"視聴履歴");feedAdapter.notifyDataSetChanged();return;}
   String url="https://live.nicovideo.jp/";if(!query.isEmpty())try{url="https://live.nicovideo.jp/search?keyword="+URLEncoder.encode(query,"UTF-8");}catch(Exception ignored){}
@@ -57,7 +152,7 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
  }
  void fitViewer(){if(fullscreen||!watching||playerFrame==null||body.getHeight()<=0||details==null)return;boolean compact=body.getHeight()<NicoliveUi.dp(this,480);details.setVisibility(compact?View.GONE:View.VISIBLE);int fixed=0;for(View v:new View[]{details,status,tabs,composer,login,latest})if(v!=null&&v.getVisibility()!=View.GONE)fixed+=v.getHeight();int height=Math.min(Math.round(body.getWidth()/(16f/9)),Math.max(NicoliveUi.dp(this,72),body.getHeight()-fixed-NicoliveUi.dp(this,64)));ViewGroup.LayoutParams lp=playerFrame.getLayoutParams();if(lp.height!=height){lp.height=height;playerFrame.setLayoutParams(lp);}}
  void showPane(){if(chat==null)return;for(int i=0;i<tabs.getChildCount();i++)NicoliveUi.selected((Button)tabs.getChildAt(i),info?i==1:i==0);chat.setVisibility(info?View.GONE:View.VISIBLE);View scroll=root.findViewWithTag("infoScroll");if(scroll!=null)scroll.setVisibility(info?View.VISIBLE:View.GONE);information.setVisibility(info?View.VISIBLE:View.GONE);}
- @Override public void changed(){if(service==null)return;if(service.stopped){if(watching)hub();unbind();return;}if(!watching)return;if(!service.id.equals(requested))return;if(playerFrame!=null)playerFrame.updateControls();NicoliveData.Program p=service.program;if(p!=null){if(renderedProgram!=p){title.setText(p.title);owner.setText(p.owner);information.setText(p.title+"\n\n"+p.owner+"\n\n"+p.description);}if(renderedProgram!=p||renderedViews!=p.views||renderedComments!=p.comments){stats.setText(NicoliveUi.statistics(this,p.views,p.comments));stats.setContentDescription("来場 "+p.views+"、コメント "+p.comments);renderedViews=p.views;renderedComments=p.comments;}renderedProgram=p;}else if(renderedProgram!=null){renderedProgram=null;title.setText("");owner.setText("");information.setText("");stats.setText("");stats.setContentDescription(null);}String statusText=service.status+(!service.commentsConnected&&service.playing()?" / コメント未接続":"");if(!statusText.contentEquals(status.getText()))status.setText(statusText);
+ @Override public void changed(){updateNowPlaying();if(service==null)return;if(service.stopped){if(watching)hub();unbind();return;}if(!watching)return;if(!service.id.equals(requested))return;if(playerFrame!=null)playerFrame.updateControls();NicoliveData.Program p=service.program;if(p!=null){if(renderedProgram!=p){title.setText(p.title);owner.setText(p.owner);information.setText(p.title+"\n\n"+p.owner+"\n\n"+p.description);}if(renderedProgram!=p||renderedViews!=p.views||renderedComments!=p.comments){stats.setText(NicoliveUi.statistics(this,p.views,p.comments));stats.setContentDescription("来場 "+p.views+"、コメント "+p.comments);renderedViews=p.views;renderedComments=p.comments;}renderedProgram=p;}else if(renderedProgram!=null){renderedProgram=null;title.setText("");owner.setText("");information.setText("");stats.setText("");stats.setContentDescription(null);}String statusText=service.status+(!service.commentsConnected&&service.playing()?" / コメント未接続":"");if(!statusText.contentEquals(status.getText()))status.setText(statusText);
   boolean canPost=p!=null&&p.loggedIn&&p.onAir()&&!service.terminal;composer.setVisibility(canPost?View.VISIBLE:View.GONE);login.setVisibility(p!=null&&!p.loggedIn&&!service.terminal?View.VISIBLE:View.GONE);input.setEnabled(canPost);send.setEnabled(canPost&&service.session!=null&&!service.session.posting);
   if(observedCount==service.deliveredCount&&comments.size()==service.history.size())return;int first=chat.getFirstVisiblePosition(),top=chat.getChildCount()>0?chat.getChildAt(0).getTop():0;NicoliveData.Chat anchor=first>=0&&first<comments.size()?comments.get(first):null;comments.clear();comments.addAll(service.history);chatAdapter.notifyDataSetChanged();if(atBottom)chat.setSelection(Math.max(0,comments.size()-1));else{int position=anchor==null?-1:comments.indexOf(anchor);if(position>=0)chat.setSelectionFromTop(position,top);int delta=(int)Math.max(0,Math.min(9999,service.deliveredCount-observedCount));newComments=Math.min(9999,newComments+delta);if(newComments>0){latest.setText("新着 "+newComments+"件 / 最新コメントへ");latest.setVisibility(View.VISIBLE);}}observedCount=service.deliveredCount;
  }

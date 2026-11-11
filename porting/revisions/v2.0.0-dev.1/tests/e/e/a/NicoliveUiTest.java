@@ -2,23 +2,35 @@ package e.e.a;
 import android.app.*;import android.content.*;import android.content.res.*;import android.graphics.*;import android.os.*;import android.preference.PreferenceManager;import android.view.*;import android.widget.*;import java.util.*;import org.junit.*;import static org.junit.Assert.*;import org.junit.runner.RunWith;import org.robolectric.*;import org.robolectric.android.controller.*;import org.robolectric.annotation.*;
 @RunWith(RobolectricTestRunner.class) @Config(sdk={28,34,36},manifest=Config.NONE)
 public class NicoliveUiTest {
+ static Resources apkResources;
  public static class Screen extends NicoliveActivity {
   Resources.Theme theme;
-  public Resources getResources(){return AppliedApkTest.apkResources==null?super.getResources():AppliedApkTest.apkResources;}
-  public AssetManager getAssets(){return AppliedApkTest.apkResources==null?super.getAssets():AppliedApkTest.apkResources.getAssets();}
-  public Resources.Theme getTheme(){if(AppliedApkTest.apkResources==null)return super.getTheme();if(theme==null){theme=getResources().newTheme();theme.applyStyle(android.R.style.Theme_Material,true);}return theme;}
-  public void setTheme(int id){if(AppliedApkTest.apkResources==null)super.setTheme(id);else getTheme().applyStyle(id,true);}
+  public Resources getResources(){return apkResources==null?super.getResources():apkResources;}
+  public AssetManager getAssets(){return apkResources==null?super.getAssets():apkResources.getAssets();}
+  public Resources.Theme getTheme(){if(apkResources==null)return super.getTheme();if(theme==null){theme=getResources().newTheme();theme.applyStyle(android.R.style.Theme_Material,true);}return theme;}
+  public void setTheme(int id){if(apkResources==null)super.setTheme(id);else getTheme().applyStyle(id,true);}
   public String getPackageName(){return "com.sauzask.nicoid.hls";}
   @Override void load(){if(status!=null)status.setText("テスト番組");}
   @Override void bind(){}
  }
  ActivityController<Screen> controller;Screen a;
- @Before public void setup()throws Exception{new AppliedApkTest().prepare();controller=Robolectric.buildActivity(Screen.class);a=controller.setup().get();}
- @After public void cleanup(){if(controller!=null)controller.pause().stop().destroy();AppliedApkTest.apkResources=null;}
+ @Before public void setup()throws Exception {
+  Resources device=RuntimeEnvironment.getApplication().getResources();
+  AssetManager assets=AssetManager.class.getDeclaredConstructor().newInstance();
+  int cookie=(Integer)AssetManager.class.getMethod("addAssetPath",String.class).invoke(assets,System.getProperty("test.apk"));
+  assertTrue("Expected resources from the applied APK",cookie>0);
+  apkResources=new Resources(assets,device.getDisplayMetrics(),device.getConfiguration()){
+   @Override public ClassLoader getClassLoader(){return NicoliveUiTest.class.getClassLoader();}
+  };
+  org.robolectric.util.ReflectionHelpers.setField(apkResources,"mClassLoader",NicoliveUiTest.class.getClassLoader());
+  controller=Robolectric.buildActivity(Screen.class);
+  a=controller.setup().get();
+ }
+ @After public void cleanup(){if(controller!=null)controller.pause().stop().destroy();apkResources=null;}
  static void layout(View v,int width,int height){v.measure(View.MeasureSpec.makeMeasureSpec(width,1073741824),View.MeasureSpec.makeMeasureSpec(height,1073741824));v.layout(0,0,width,height);}
  @Test @Config(sdk=36) @GraphicsMode(GraphicsMode.Mode.NATIVE) public void lightDarkAndMaterialThemesUseReadableNativeColors()throws Exception{
   for(boolean night:new boolean[]{false,true})for(boolean material:new boolean[]{false,true}){
-   controller.pause().stop().destroy();android.content.res.Configuration config=new android.content.res.Configuration(AppliedApkTest.apkResources.getConfiguration());config.uiMode=(config.uiMode&~48)|(night?32:16);AppliedApkTest.apkResources.updateConfiguration(config,AppliedApkTest.apkResources.getDisplayMetrics());PreferenceManager.getDefaultSharedPreferences(a).edit().putString("app_theme",material?"material":night?"dark":"light").putBoolean("material_you_mode",material).commit();controller=Robolectric.buildActivity(Screen.class);a=controller.setup().get();
+   controller.pause().stop().destroy();android.content.res.Configuration config=new android.content.res.Configuration(apkResources.getConfiguration());config.uiMode=(config.uiMode&~48)|(night?32:16);apkResources.updateConfiguration(config,apkResources.getDisplayMetrics());PreferenceManager.getDefaultSharedPreferences(a).edit().putString("app_theme",material?"material":night?"dark":"light").putBoolean("material_you_mode",material).commit();controller=Robolectric.buildActivity(Screen.class);a=controller.setup().get();
    ServiceController<NicoliveService> serviceController=Robolectric.buildService(NicoliveService.class);NicoliveService service=serviceController.create().get();try{a.service=service;a.watching=true;a.requested=service.id="lv123";NicoliveData.Program p=new NicoliveData.Program("lv123");p.title="放送中の番組 / ゆっくり雑談";p.owner="放送者";p.provider="user";p.status="ON_AIR";p.begin=System.currentTimeMillis()/1000-5400;p.loggedIn=true;p.views=1234;p.comments=5678;p.description="番組情報のテキストです。";service.program=p;service.status="LIVE";String[] sample={"こんばんは","音声も聞こえています","今日はどんなお話ですか？","コメント表示の確認です","よろしくお願いします"};for(int i=0;i<sample.length;i++){NicoliveData.Chat c=new NicoliveData.Chat();c.text=sample[i];c.vpos=540000+i*100;service.history.add(c);}service.deliveredCount=sample.length;service.player.play();a.viewer();a.input.setText("コメントの下書き");layout(a.root,360,760);a.fitViewer();layout(a.root,360,760);
     int background=((android.graphics.drawable.ColorDrawable)a.root.getBackground()).getColor();assertEquals("Theme brightness",night,luminance(background)<.5);assertTrue("Primary text contrast",contrast(a.title.getCurrentTextColor(),background)>=4.5);assertEquals(NicoliveUi.accent(a),a.input.getBackgroundTintList().getDefaultColor());assertEquals(NicoliveUi.accent(a),a.anonymous.getButtonTintList().getDefaultColor());assertTrue(a.playerFrame.live.getText().toString().startsWith("LIVE"));assertNotNull(a.playerFrame.live.getLayout());String suffix=(material?"material":"classic")+(night?"-dark":"-light");snapshot(a.root,suffix);
     a.hub();for(int i=0;i<4;i++){NicoliveData.Program item=new NicoliveData.Program("lv"+(100+i));item.title=new String[]{"のんびりゲーム配信 / 続きから","新しい作品について話します","今週のニュースと解説","音楽を聴きながら雑談"}[i];item.owner="放送者 "+(i+1);item.status="ON_AIR";item.provider=i==2?"official":i==1?"channel":"user";item.begin=System.currentTimeMillis()/1000-(i+1)*1260;item.views=123*(i+1);item.comments=54*(i+1);a.programs.add(item);}a.feedAdapter.notifyDataSetChanged();layout(a.root,360,760);snapshot(a.root,"hub-"+suffix);

@@ -9,6 +9,39 @@ public class NicoliveServiceTest {
  @Test public void explicitStopReleasesPlayerAndRemovesPolling(){assertSame(s,NicoliveService.active);s.attach(new NicolivePlayerFrame(s,false));s.stopPlayback();assertNull(s.frame);assertTrue(s.stopped);assertNull(s.player);assertNull(s.session);assertFalse(s.main.hasCallbacks(s.tick));s.stopPlayback();}
  @Test public void popupResizeAlwaysStaysWithinScreen(){s.popupParams=new WindowManager.LayoutParams();s.popupParams.x=99999;s.popupParams.y=-999;s.resizePopup(999999);assertTrue(s.popupParams.width<=s.getResources().getDisplayMetrics().widthPixels);assertTrue(s.popupParams.x>=0);assertTrue(s.popupParams.y>=0);assertTrue(s.popupParams.x+s.popupParams.width<=s.getResources().getDisplayMetrics().widthPixels);s.resizePopup(1);assertTrue(s.popupParams.width>1);}
  @Test public void openingVideoStopsTheLiveOwner(){NicoliveEntry.beforeVideo();Shadows.shadowOf(Looper.getMainLooper()).idle();assertTrue(s.stopped);assertNull(s.player);}
+ @Test public void japaneseEntryIsBetaAndIsAddedOnlyOnce() {
+  android.content.res.Configuration config=new android.content.res.Configuration(s.getResources().getConfiguration());
+  config.setLocale(java.util.Locale.JAPANESE);
+  android.content.Context context=s.createConfigurationContext(config);
+  java.util.ArrayList<java.util.Map<String,Object>> rows=new java.util.ArrayList<>();
+  NicoliveEntry.addMenu(context,rows);
+  NicoliveEntry.addMenu(context,rows);
+  assertEquals(1,rows.size());
+  assertEquals("ニコ生 (β)",rows.get(0).get("title"));
+  assertEquals(NicoliveActivity.class.getName(),((android.content.Intent)rows.get(0).get("intent")).getComponent().getClassName());
+ }
+ @Test public void staleNotificationWithoutAProgramStopsIdleService() {
+  s.onStartCommand(new android.content.Intent().setAction("reconnect"),0,1);
+  assertTrue(s.stopped);
+  assertNull(s.player);
+ }
+ public static class CommandService extends NicoliveService {
+  int openCount;
+  @Override void open(String requested) {openCount++;id=requested;terminal=false;}
+ }
+ @Test public void openingAnEndedProgramStartsItAgainWithoutRestartingActivePlayback() {
+  ServiceController<CommandService> controller=Robolectric.buildService(CommandService.class).create();
+  CommandService live=controller.get();
+  try {
+   live.id="lv123";
+   android.content.Intent open=new android.content.Intent().putExtra("program","lv123");
+   live.onStartCommand(open,0,1);
+   assertEquals(0,live.openCount);
+   live.terminal=true;
+   live.onStartCommand(open,0,2);
+   assertEquals(1,live.openCount);
+  } finally {controller.destroy();}
+ }
  static void measure(View v,int w,int h){v.measure(View.MeasureSpec.makeMeasureSpec(w,1073741824),View.MeasureSpec.makeMeasureSpec(h,1073741824));v.layout(0,0,w,h);}
  NicolivePlayerFrame popup(){s.id="lv123";s.popupParams=new WindowManager.LayoutParams();s.popupParams.width=192;s.popupParams.height=108;s.popupParams.x=0;s.popupParams.y=20;s.popupParams.type=WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;s.popupParams.flags=WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;s.popupParams.gravity=Gravity.TOP|Gravity.LEFT;NicolivePlayerFrame frame=new NicolivePlayerFrame(s,true);s.popup=frame;s.attach(frame);s.manager.addView(frame,s.popupParams);measure(frame,192,108);return frame;}
  static void event(View v,long down,long at,int action,float x,float y){MotionEvent e=MotionEvent.obtain(down,at,action,x,y,0);v.dispatchTouchEvent(e);e.recycle();}

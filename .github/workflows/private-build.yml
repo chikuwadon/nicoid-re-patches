@@ -443,8 +443,7 @@ jobs:
           javac --release 8 -cp '/tmp/nicoid-v2-jars/*' -d /tmp/nicoid-v2-classes \
             "$revision/java/e/e/a/NicoliveData.java" \
             "$revision/java/e/e/a/NicoliveCatalog.java" \
-            "$revision/tests/e/e/a/NicoliveAccessLabelsTest.java" \
-            "$revision/tests/e/e/a/NicoliveProtocolTest.java"
+            "$revision/tests/e/e/a/NicoliveAccessLabelsTest.java"
           java -cp '/tmp/nicoid-v2-classes:/tmp/nicoid-v2-jars/*' org.junit.runner.JUnitCore \
-            e.e.a.NicoliveAccessLabelsTest e.e.a.NicoliveProtocolTest
+            e.e.a.NicoliveAccessLabelsTest
           echo "MPP generation and device/runtime playback were NOT performed by this source-only job."

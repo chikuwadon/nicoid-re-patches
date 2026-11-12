@@ -54,7 +54,7 @@ def activity(source):
   }
 
 """
-    source = once(source, "  void openSelectedProgram(String id){", menu+"  void openSelectedProgram(String id){", file)
+    source = once(source, " void openSelectedProgram(String id){", menu+" void openSelectedProgram(String id){", file)
     old = '@Override public void posted(boolean success,String message){if(success){if(input!=null&&pendingDraft.equals(input.getText().toString()))input.setText("");draft="";pendingDraft="";}else Toast.makeText(this,message,Toast.LENGTH_LONG).show();changed();}'
     new = '''@Override public void posted(boolean success,String message){
     if(success){

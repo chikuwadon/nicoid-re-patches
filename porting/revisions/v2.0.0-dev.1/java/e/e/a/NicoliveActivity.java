@@ -16,7 +16,9 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
  private static final int[] HUB_TABS={0,RANKING,TIMETABLE,FOLLOWING,2,RESERVATIONS};
  private static final String[] HUB_LABELS={"放送中","ランキング","番組表","フォロー","履歴","予約リスト"};
  private static final String EXIT_CONFIRM="nicolive_exit_confirm", START_TAB="nicolive_start_tab",
-  LAST_TAB="nicolive_last_tab", FLOAT_REFRESH="nicolive_float_refresh", START_TIME="nicolive_start_time";
+  LAST_TAB="nicolive_last_tab", FLOAT_REFRESH="nicolive_float_refresh", START_TIME="nicolive_start_time",
+  TAP_BEHAVIOR="nicolive_tap_behavior"; // 0: usual viewer, 1: keep the hub and show popup
+ private String pendingPopupId="",deniedProgramId="";
  private static final DateTimeFormatter DATE_TAB=DateTimeFormatter.ofPattern("M/d(E)",Locale.JAPAN);
  private boolean timetableOnAir;
  private AlertDialog exitDialog;
@@ -37,7 +39,7 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
   return super.dispatchTouchEvent(event);
  }
 
- final ServiceConnection connection=new ServiceConnection(){public void onServiceConnected(ComponentName name,IBinder binder){service=((NicoliveService.LocalBinder)binder).service();service.observe(NicoliveActivity.this);if(service!=null&&watching&&playerFrame!=null){service.returnToFrame(playerFrame);}refreshAccount();changed();}public void onServiceDisconnected(ComponentName name){service=null;bound=false;}};
+ final ServiceConnection connection=new ServiceConnection(){public void onServiceConnected(ComponentName name,IBinder binder){service=((NicoliveService.LocalBinder)binder).service();service.observe(NicoliveActivity.this);if(service!=null&&watching&&playerFrame!=null){service.returnToFrame(playerFrame);}if(service!=null&&!pendingPopupId.isEmpty())activateRequestedPopup();refreshAccount();changed();}public void onServiceDisconnected(ComponentName name){service=null;bound=false;}};
  @Override protected void onCreate(Bundle state){DynamicTheme.apply(this);super.onCreate(state);UiTheme191.activity(this);getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);browser=new NicoliveBrowser();
   android.content.SharedPreferences prefs=PreferenceManager.getDefaultSharedPreferences(this);
   liveSort=NicoliveCatalog.Sort.restore(prefs.getString("nicolive_live_sort",""),NicoliveCatalog.Sort.NEWEST);
@@ -132,11 +134,13 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
    if(pos>=feedAdapter.getCount())return;
    NicoliveData.Program selected=(NicoliveData.Program)feedAdapter.getItem(pos);
    if((hubTab==TIMETABLE||hubTab==FOLLOWING||hubTab==RANKING||hubTab==RESERVATIONS)&&!selected.onAir())openTimetableProgram(selected.id);
-   else watch(selected.id);
+   else openSelectedProgram(selected.id);
   });
   feed.setOnItemLongClickListener((parent,view,pos,row)->{
    if(pos>=feedAdapter.getCount())return false;
    NicoliveData.Program program=(NicoliveData.Program)feedAdapter.getItem(pos);
+   if(hubTab==2){confirmHistoryRemoval(program);return true;}
+   if(hubTab==RESERVATIONS){confirmReservationRemoval(program);return true;}
    if(!program.scheduled())return false;
    confirmReservation(program);
    return true;
@@ -222,16 +226,18 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
   CheckBox refresh=settingSwitch(options,"右下に更新ボタンを表示",preferences.getBoolean(FLOAT_REFRESH,true));
   Button launch=settingChoiceRow(options,confirm.getCompoundPaddingStart());
   Button time=settingChoiceRow(options,confirm.getCompoundPaddingStart());
+  Button tap=settingChoiceRow(options,confirm.getCompoundPaddingStart());
   String[] startOptions=Arrays.copyOf(HUB_LABELS,HUB_LABELS.length+1);
   startOptions[HUB_LABELS.length]="前回開いたタブ";
   int saved=preferences.getInt(START_TAB,0);
   int current=0;
   for(int i=0;i<HUB_TABS.length;i++)if(HUB_TABS[i]==saved)current=i;
   if(saved==-1)current=HUB_LABELS.length;
-  int[] selections={current,preferences.getBoolean(START_TIME,false)?1:0};
+  int[] selections={current,preferences.getBoolean(START_TIME,false)?1:0,Math.max(0,Math.min(1,preferences.getInt(TAP_BEHAVIOR,0)))};
   String[] timeOptions={"経過時間","放送開始時刻"};
   bindSettingChoice(launch,"最初に開くタブ",startOptions,selections,0);
   bindSettingChoice(time,"放送中の時刻表示",timeOptions,selections,1);
+  bindSettingChoice(tap,"タップ時の動作",new String[]{"通常再生","ポップアップ再生"},selections,2);
   ScrollView scroll=new ScrollView(options.getContext());
   scroll.addView(options);
   NicoliveUi.dialog(UiDialogs.builder(this).setTitle("ニコ生の設定").setView(scroll)
@@ -240,7 +246,7 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
     int start=selections[0]==HUB_TABS.length?-1:HUB_TABS[selections[0]];
     preferences.edit().putBoolean(EXIT_CONFIRM,confirm.isChecked())
      .putBoolean(FLOAT_REFRESH,refresh.isChecked()).putInt(START_TAB,start)
-     .putBoolean(START_TIME,selections[1]==1).apply();
+     .putBoolean(START_TIME,selections[1]==1).putInt(TAP_BEHAVIOR,selections[2]).apply();
     updateHubDisplayOptions();
    }).create());
  }
@@ -566,6 +572,50 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
   hub();
  }
 
+ private void confirmHistoryRemoval(NicoliveData.Program program){
+  NicoliveUi.dialog(UiDialogs.builder(this).setTitle("視聴履歴を削除")
+   .setMessage(program.title+"\nこの端末の視聴履歴から削除しますか？")
+   .setPositiveButton("削除",(dialog,which)->{
+    try{
+     SharedPreferences preferences=prefs();
+     JSONArray entries=new JSONArray(preferences.getString("nicolive_history","[]"));
+     JSONArray retained=new JSONArray();
+     for(int i=0;i<entries.length();i++){
+      JSONObject saved=entries.optJSONObject(i);
+      if(saved==null||!program.id.equals(saved.optString("nicoliveProgramId")))retained.put(entries.opt(i));
+     }
+     if(!preferences.edit().putString("nicolive_history",retained.toString()).commit()){
+      Toast.makeText(this,"視聴履歴を保存できませんでした",Toast.LENGTH_LONG).show();return;
+     }
+     if(hubTab==2&&!watching){programs.removeIf(p->program.id.equals(p.id));showResults(programs.isEmpty()?"視聴履歴はありません":"視聴履歴");}
+    }catch(JSONException e){Toast.makeText(this,"視聴履歴を削除できませんでした",Toast.LENGTH_LONG).show();}
+   }).setNegativeButton("キャンセル",null).create());
+ }
+
+ private void confirmReservationRemoval(NicoliveData.Program program){
+  String cookie=NicoliveBrowser.cookie(this);
+  if(cookie.isEmpty()){Toast.makeText(this,"予約の取消にはログインが必要です",Toast.LENGTH_SHORT).show();return;}
+  if(reserving.contains(program.id))return;
+  NicoliveUi.dialog(UiDialogs.builder(this).setTitle("タイムシフト予約を削除")
+   .setMessage(program.title+"\n予約を取り消しますか？")
+   .setPositiveButton("予約を削除",(dialog,which)->{
+    if(!reserving.add(program.id))return;
+    browser.cancelReservation(program.id,cookie,new NicoliveBrowser.Result(){
+     public void done(String ignored){
+      reserving.remove(program.id);
+      if(isFinishing()||isDestroyed())return;
+      Toast.makeText(NicoliveActivity.this,"タイムシフト予約を取り消しました",Toast.LENGTH_SHORT).show();
+      if(hubTab==RESERVATIONS&&!watching){browser.refresh();load();}
+     }
+     public void error(){
+      reserving.remove(program.id);
+      if(!isFinishing()&&!isDestroyed())Toast.makeText(NicoliveActivity.this,
+       "予約を取り消せませんでした / 通信状態と予約を確認してください",Toast.LENGTH_LONG).show();
+     }
+    });
+   }).setNegativeButton("キャンセル",null).create());
+ }
+
  private void loadReservations(int token){
   String cookie=NicoliveBrowser.cookie(this);
   if(cookie.isEmpty()){showResults("タイムシフト予約を見るにはログインしてください");return;}
@@ -814,8 +864,51 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
   catch(ActivityNotFoundException unavailable){Toast.makeText(this,"ブラウザを開けませんでした",Toast.LENGTH_SHORT).show();}
  }
 
+ void openSelectedProgram(String id){
+  if(prefs().getInt(TAP_BEHAVIOR,0)==1)openPopupFromHub(id);
+  else watch(id);
+ }
+
+ void openPopupFromHub(String id){
+  if(Build.VERSION.SDK_INT<28){Toast.makeText(this,"生放送はAndroid 9以降で利用できます",Toast.LENGTH_LONG).show();return;}
+  if(!android.provider.Settings.canDrawOverlays(this)){
+   Toast.makeText(this,"ポップアップ再生には重ねて表示する権限が必要です",Toast.LENGTH_LONG).show();
+   startActivity(new Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,Uri.parse("package:"+getPackageName())));
+   return;
+  }
+  requested=id;pendingPopupId=id;deniedProgramId="";
+  Intent start=new Intent(this,NicoliveService.class).putExtra("program",id);
+  startForegroundService(start);
+  if(service!=null&&!service.stopped)activateRequestedPopup();
+  else bind();
+  updateNowPlaying();
+ }
+
+ void activateRequestedPopup(){
+  if(service==null||pendingPopupId.isEmpty())return;
+  String id=pendingPopupId;pendingPopupId="";
+  if(service.stopped)return;
+  if(!id.equals(service.id)||service.terminal)service.open(id);
+  service.showPopup();
+  if(service.popup==null)Toast.makeText(this,"ポップアップを開始できませんでした",Toast.LENGTH_LONG).show();
+  updateNowPlaying();
+ }
+
+ void showWatchRestriction(NicoliveData.Program program){
+  if(program==null||program.canWatch||program.id.equals(deniedProgramId)||isFinishing())return;
+  deniedProgramId=program.id;
+  String requirement=program.accessLabel();
+  String message=(requirement.isEmpty()?"この番組":requirement+"の番組")+"は現在のアカウントで視聴できません。";
+  if(!program.loggedIn)message+="\nログインが必要な場合があります。";
+  else message+="\n視聴権・購入状況・チャンネル会員資格を確認してください。";
+  NicoliveUi.dialog(UiDialogs.builder(this).setTitle("視聴条件の確認")
+   .setMessage(message)
+   .setPositiveButton("公式サイトで確認",(dialog,which)->openTimetableProgram(program.id))
+   .setNegativeButton("閉じる",null).create());
+ }
+
  void searchValue(String text){String value=text.trim(),id=NicoliveData.id(value);((InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(root.getWindowToken(),0);if(id!=null)watch(id);else{if(!query.equals(value)){recentReady=false;programs.clear();feedAdapter.notifyDataSetChanged();}query=value;feedPosition=0;feedOffset=0;if(hubTab!=0){hubTab=0;hub();}else load();}}
- void watch(String id){if(!watching&&feed!=null){feedPosition=feed.getFirstVisiblePosition();feedOffset=feed.getChildCount()>0?feed.getChildAt(0).getTop():0;}browser.pauseImages();if(Build.VERSION.SDK_INT<28){Toast.makeText(this,"生放送はAndroid 9以降で利用できます",Toast.LENGTH_LONG).show();return;}boolean same=id.equals(requested);if(!same){draft="";pendingDraft="";if(input!=null)input.setText("");}requested=id;watching=true;info=false;atBottom=true;newComments=0;observedCount=0;++loadToken;viewer();Intent start=new Intent(this,NicoliveService.class).putExtra("program",id);startForegroundService(start);bind();if(service!=null&&!service.stopped){if(!id.equals(service.id)||service.terminal)service.open(id);service.returnToFrame(playerFrame);changed();}}
+ void watch(String id){pendingPopupId="";if(!id.equals(requested))deniedProgramId="";if(!watching&&feed!=null){feedPosition=feed.getFirstVisiblePosition();feedOffset=feed.getChildCount()>0?feed.getChildAt(0).getTop():0;}browser.pauseImages();if(Build.VERSION.SDK_INT<28){Toast.makeText(this,"生放送はAndroid 9以降で利用できます",Toast.LENGTH_LONG).show();return;}boolean same=id.equals(requested);if(!same){draft="";pendingDraft="";if(input!=null)input.setText("");}requested=id;watching=true;info=false;atBottom=true;newComments=0;observedCount=0;++loadToken;viewer();Intent start=new Intent(this,NicoliveService.class).putExtra("program",id);startForegroundService(start);bind();if(service!=null&&!service.stopped){if(!id.equals(service.id)||service.terminal)service.open(id);service.returnToFrame(playerFrame);changed();}}
  void viewer(){if(playerFrame!=null&&viewerPane!=null&&playerFrame.getParent()==body){updateViewerLayout();return;}NicolivePlayerFrame old=playerFrame;if(service!=null&&old!=null)service.detach(old);base();header.setVisibility(fullscreen?View.GONE:View.VISIBLE);root.setFitsSystemWindows(!fullscreen);if(fullscreen)getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
   ImageButton back=NicoliveUi.icon(this,"back","番組一覧に戻る");header.addView(back);back.setOnClickListener(v->{if(input!=null)draft=input.getText().toString();hub();});heading=NicoliveUi.text(this,"生放送",16);header.addView(heading,new LinearLayout.LayoutParams(0,-1,1));ImageButton popup=NicoliveUi.icon(this,"popup","ポップアップ");header.addView(popup);popup.setOnClickListener(v->popup());ImageButton reconnect=NicoliveUi.icon(this,"refresh","再接続");header.addView(reconnect);reconnect.setOnClickListener(v->{if(service!=null)service.reconnect();});
   playerFrame=new NicolivePlayerFrame(this,false);int videoHeight=fullscreen?-1:Math.round(getResources().getDisplayMetrics().widthPixels/(16f/9));body.addView(playerFrame,new LinearLayout.LayoutParams(-1,videoHeight));if(service!=null){service.returnToFrame(playerFrame);}viewerPane=NicoliveUi.column(this);body.addView(viewerPane,new LinearLayout.LayoutParams(-1,0,1));
@@ -833,14 +926,14 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
  }
  void fitViewer(){if(fullscreen||!watching||playerFrame==null||body.getHeight()<=0||details==null)return;boolean compact=body.getHeight()<NicoliveUi.dp(this,480);details.setVisibility(compact?View.GONE:View.VISIBLE);int fixed=0;for(View v:new View[]{details,status,tabs,composer,login,latest})if(v!=null&&v.getVisibility()!=View.GONE)fixed+=v.getHeight();int height=Math.min(Math.round(body.getWidth()/(16f/9)),Math.max(NicoliveUi.dp(this,72),body.getHeight()-fixed-NicoliveUi.dp(this,64)));ViewGroup.LayoutParams lp=playerFrame.getLayoutParams();if(lp.height!=height){lp.height=height;playerFrame.setLayoutParams(lp);}}
  void showPane(){if(chat==null)return;for(int i=0;i<tabs.getChildCount();i++)NicoliveUi.selected((Button)tabs.getChildAt(i),info?i==1:i==0);chat.setVisibility(info?View.GONE:View.VISIBLE);View scroll=root.findViewWithTag("infoScroll");if(scroll!=null)scroll.setVisibility(info?View.VISIBLE:View.GONE);information.setVisibility(info?View.VISIBLE:View.GONE);}
- @Override public void changed(){updateNowPlaying();if(service==null)return;if(service.stopped){if(watching)hub();unbind();return;}if(!watching)return;if(!service.id.equals(requested))return;if(playerFrame!=null)playerFrame.updateControls();NicoliveData.Program p=service.program;if(p!=null){if(renderedProgram!=p){title.setText(p.title);owner.setText(p.owner);information.setText(p.title+"\n\n"+p.owner+"\n\n"+p.description);}if(renderedProgram!=p||renderedViews!=p.views||renderedComments!=p.comments){stats.setText(NicoliveUi.statistics(this,p.views,p.comments));stats.setContentDescription("来場 "+p.views+"、コメント "+p.comments);renderedViews=p.views;renderedComments=p.comments;}renderedProgram=p;}else if(renderedProgram!=null){renderedProgram=null;title.setText("");owner.setText("");information.setText("");stats.setText("");stats.setContentDescription(null);}String statusText=service.status+(!service.commentsConnected&&service.playing()?" / コメント未接続":"");if(!statusText.contentEquals(status.getText()))status.setText(statusText);
+ @Override public void changed(){updateNowPlaying();if(service==null)return;if(service.program!=null&&!service.program.canWatch)showWatchRestriction(service.program);if(service.stopped){if(watching)hub();unbind();return;}if(!watching)return;if(!service.id.equals(requested))return;if(playerFrame!=null)playerFrame.updateControls();NicoliveData.Program p=service.program;if(p!=null){if(renderedProgram!=p){title.setText(p.title);owner.setText(p.owner);information.setText(p.title+"\n\n"+p.owner+"\n\n"+p.description);}if(renderedProgram!=p||renderedViews!=p.views||renderedComments!=p.comments){stats.setText(NicoliveUi.statistics(this,p.views,p.comments));stats.setContentDescription("来場 "+p.views+"、コメント "+p.comments);renderedViews=p.views;renderedComments=p.comments;}renderedProgram=p;}else if(renderedProgram!=null){renderedProgram=null;title.setText("");owner.setText("");information.setText("");stats.setText("");stats.setContentDescription(null);}String statusText=service.status+(!service.commentsConnected&&service.playing()?" / コメント未接続":"");if(!statusText.contentEquals(status.getText()))status.setText(statusText);
   boolean canPost=p!=null&&p.loggedIn&&p.onAir()&&!service.terminal;composer.setVisibility(canPost?View.VISIBLE:View.GONE);login.setVisibility(p!=null&&!p.loggedIn&&!service.terminal?View.VISIBLE:View.GONE);input.setEnabled(canPost);send.setEnabled(canPost&&service.session!=null&&!service.session.posting);
   if(observedCount==service.deliveredCount&&comments.size()==service.history.size())return;int first=chat.getFirstVisiblePosition(),top=chat.getChildCount()>0?chat.getChildAt(0).getTop():0;NicoliveData.Chat anchor=first>=0&&first<comments.size()?comments.get(first):null;comments.clear();comments.addAll(service.history);chatAdapter.notifyDataSetChanged();if(atBottom)chat.setSelection(Math.max(0,comments.size()-1));else{int position=anchor==null?-1:comments.indexOf(anchor);if(position>=0)chat.setSelectionFromTop(position,top);int delta=(int)Math.max(0,Math.min(9999,service.deliveredCount-observedCount));newComments=Math.min(9999,newComments+delta);if(newComments>0){latest.setText("新着 "+newComments+"件 / 最新コメントへ");latest.setVisibility(View.VISIBLE);}}observedCount=service.deliveredCount;
  }
  void send(){String text=input.getText().toString();if(text.codePointCount(0,text.length())>75){Toast.makeText(this,"コメントは75文字以内で入力してください",Toast.LENGTH_SHORT).show();return;}if(service!=null&&service.send(text,anonymous.isChecked())){pendingDraft=text;send.setEnabled(false);}else Toast.makeText(this,"現在は投稿できません。再生・接続状態を確認してください",Toast.LENGTH_SHORT).show();}
  @Override public void posted(boolean success,String message){if(success){if(input!=null&&pendingDraft.equals(input.getText().toString()))input.setText("");draft="";pendingDraft="";}else Toast.makeText(this,message,Toast.LENGTH_LONG).show();changed();}
  void commentMenu(final NicoliveData.Chat c){AlertDialog d=UiDialogs.builder(this).setTitle("コメント").setItems(new String[]{"本文をコピー","このユーザーをNGに登録","この本文をNGワードに登録"},(dialog,which)->{if(which==0){((android.content.ClipboardManager)getSystemService(CLIPBOARD_SERVICE)).setPrimaryClip(ClipData.newPlainText("コメント",c.text));}else if(service!=null){if(which==1)service.ng.addUser(c.user);else service.ng.addWord(c.text);service.history.removeIf(item->service.ng.blocked(item));playerFrame.comments.clear();changed();}}).create();NicoliveUi.dialog(d);}
- void popup(){if(service==null)return;if(!android.provider.Settings.canDrawOverlays(this)){startActivity(new Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,Uri.parse("package:"+getPackageName())));Toast.makeText(this,"許可後にポップアップボタンを押してください",Toast.LENGTH_LONG).show();return;}service.showPopup();if(service.popup!=null)moveTaskToBack(true);}
+ void popup(){if(service==null)return;if(!android.provider.Settings.canDrawOverlays(this)){startActivity(new Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,Uri.parse("package:"+getPackageName())));Toast.makeText(this,"許可後にポップアップボタンを押してください",Toast.LENGTH_LONG).show();return;}service.showPopup();if(service.popup!=null){if(input!=null)draft=input.getText().toString();hub();}}
  void toggleFullscreen(){fullscreen=!fullscreen;setRequestedOrientation(fullscreen?ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE:ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);if(input!=null)draft=input.getText().toString();updateViewerLayout();}
  void playerSettings(){if(service==null)return;final ArrayList<String> choices=new ArrayList<String>(service.qualities);ArrayList<String> labels=new ArrayList<String>();for(String q:choices)labels.add((q.equals(service.selected)?"✓  ":"　 ")+NicoliveData.qualityLabel(q));labels.add("再接続");labels.add("ポップアップ");labels.add("生放送のNG設定");AlertDialog d=UiDialogs.builder(this).setTitle("画質と設定").setItems(labels.toArray(new String[0]),(dialog,which)->{if(service==null)return;int count=choices.size();if(which<count)service.selectQuality(choices.get(which));else if(which==count)service.reconnect();else if(which==count+1)popup();else ngSettings();}).create();NicoliveUi.dialog(d);}
  void ngSettings(){if(service==null)return;final Set<String> users=new HashSet<String>(service.ng.prefs.getStringSet("nicolive_ng_users",Collections.<String>emptySet())),words=new HashSet<String>(service.ng.prefs.getStringSet("nicolive_ng_words",Collections.<String>emptySet()));final ArrayList<String> keys=new ArrayList<String>(),types=new ArrayList<String>();for(String s:users){keys.add(s);types.add("ユーザー: "+s);}for(String s:words){keys.add(s);types.add("ワード: "+s);}final boolean[] remove=new boolean[keys.size()];AlertDialog d=UiDialogs.builder(this).setTitle("生放送のNG設定").setMultiChoiceItems(types.toArray(new String[0]),remove,(dialog,which,checked)->remove[which]=checked).setPositiveButton("選択を削除",(dialog,which)->{for(int i=0;i<keys.size();i++)if(remove[i]){if(types.get(i).startsWith("ユーザー: "))users.remove(keys.get(i));else words.remove(keys.get(i));}if(service==null)return;service.ng.prefs.edit().putStringSet("nicolive_ng_users",users).putStringSet("nicolive_ng_words",words).apply();service.ng.reload();}).setNegativeButton("閉じる",null).create();NicoliveUi.dialog(d);}
@@ -867,6 +960,13 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
    FrameLayout.LayoutParams badgeLayout=new FrameLayout.LayoutParams(-2,NicoliveUi.dp(NicoliveActivity.this,17),Gravity.TOP|Gravity.LEFT);
    badgeLayout.setMargins(space,space,0,0);
    artwork.addView(badge,badgeLayout);
+   TextView entitlement=NicoliveUi.text(NicoliveActivity.this,"",10);
+   entitlement.setTextColor(Color.WHITE);
+   entitlement.setTypeface(android.graphics.Typeface.DEFAULT,android.graphics.Typeface.BOLD);
+   entitlement.setPadding(space,0,space,0);
+   FrameLayout.LayoutParams entitlementLayout=new FrameLayout.LayoutParams(-2,NicoliveUi.dp(NicoliveActivity.this,17),Gravity.TOP|Gravity.LEFT);
+   entitlementLayout.setMargins(space,space,0,0);
+   artwork.addView(entitlement,entitlementLayout);
    int thumb=Math.max(NicoliveUi.dp(NicoliveActivity.this,112),Math.min(NicoliveUi.dp(NicoliveActivity.this,160),Math.round(getResources().getDisplayMetrics().widthPixels*.36f)));
    row.addView(artwork,new LinearLayout.LayoutParams(thumb,Math.round(thumb/(16f/9))));
    LinearLayout copy=NicoliveUi.column(NicoliveActivity.this);copy.setPadding(NicoliveUi.dp(NicoliveActivity.this,8),0,0,0);TextView kind=NicoliveUi.text(NicoliveActivity.this,"",11);kind.setTextColor(DynamicTheme.secondaryTextColor(kind));copy.addView(kind);TextView text=NicoliveUi.text(NicoliveActivity.this,"",14);text.setMaxLines(2);text.setEllipsize(TextUtils.TruncateAt.END);copy.addView(text);TextView byline=NicoliveUi.text(NicoliveActivity.this,"",12);byline.setSingleLine(true);byline.setEllipsize(TextUtils.TruncateAt.END);byline.setTextColor(DynamicTheme.secondaryTextColor(byline));copy.addView(byline);TextView meta=NicoliveUi.text(NicoliveActivity.this,"",11);meta.setTextColor(DynamicTheme.secondaryTextColor(meta));copy.addView(meta);row.addView(copy,new LinearLayout.LayoutParams(0,-2,1));}
@@ -881,6 +981,19 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
     chip.setCornerRadius(NicoliveUi.dp(NicoliveActivity.this,3));
     chip.setColor(live?0xffbf2537:0xff21669a);
     badge.setBackground(chip);
+   }
+   TextView entitlement=(TextView)artwork.getChildAt(2);
+   String access=p.accessLabel();
+   entitlement.setVisibility(access.isEmpty()?View.GONE:View.VISIBLE);
+   if(!access.isEmpty()){
+    entitlement.setText(access);
+    android.graphics.drawable.GradientDrawable tag=new android.graphics.drawable.GradientDrawable();
+    tag.setCornerRadius(NicoliveUi.dp(NicoliveActivity.this,3));
+    tag.setColor(0xd9252525);
+    entitlement.setBackground(tag);
+    FrameLayout.LayoutParams tagLayout=(FrameLayout.LayoutParams)entitlement.getLayoutParams();
+    tagLayout.topMargin=NicoliveUi.dp(NicoliveActivity.this,live||scheduled?25:4);
+    entitlement.setLayoutParams(tagLayout);
    }
    if(hubTab==2)browser.historyImage(p,thumbnail);else browser.image(p.thumbnail,thumbnail);
    LinearLayout copy=(LinearLayout)row.getChildAt(1);((TextView)copy.getChildAt(0)).setText(hubTab==RANKING?(pos+1)+"位 / "+programLabel(p):programLabel(p));((TextView)copy.getChildAt(1)).setText(p.title);((TextView)copy.getChildAt(2)).setText(p.owner);TextView stats=(TextView)copy.getChildAt(3);

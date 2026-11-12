@@ -178,6 +178,8 @@ final class NicoliveCatalog {
         if (schedule == null) return NicoliveData.Program.listing(detail);
         NicoliveData.Program p = new NicoliveData.Program(id);
         p.title = detail.optString("title");
+        p.access = NicoliveData.accessLabel(detail);
+        if(p.access.isEmpty())p.access=NicoliveData.accessLabel(row);
         p.status = schedule.optString("status").toUpperCase(java.util.Locale.ROOT).replace('-', '_');
         if ("ON_AIR".equalsIgnoreCase(p.status) || "ONAIR".equals(p.status)) p.status = "ON_AIR";
         if ("CLOSED".equals(p.status)) p.status = "ENDED";

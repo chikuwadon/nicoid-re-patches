@@ -30,10 +30,11 @@ public final class NicoliveData {
  }
  public static final class Program {
   public String id,title="",owner="",description="",thumbnail="",status="",provider="",socket="",quality="abr";
-  public long begin,open,end,vposBase,views=-1,comments=-1,reservations=-1;public boolean loggedIn,premium,chaseCapable,canWatch=true;
+  public long begin,open,end,vposBase,views=-1,comments=-1,reservations=-1;public boolean loggedIn,premium,chaseCapable,canWatch=true;public String access="";
   boolean programThumbnail;
   public JSONObject source;
   public Program(String id){this.id=id;}
+  public String accessLabel(){return access==null?"":access;}
   public boolean onAir(){return "ON_AIR".equals(status);}
   public boolean ended(){return "ENDED".equals(status);}
   public boolean scheduled(){return "RELEASED".equals(status)||"BEFORE_OPEN".equals(status)||"COMING_SOON".equals(status);}
@@ -51,7 +52,7 @@ public final class NicoliveData {
     if(v.thumbnail.isEmpty())v.thumbnail=thumb.optString("large");
    }
    JSONObject user=root.optJSONObject("user");if(user!=null){v.loggedIn=user.optBoolean("isLoggedIn");v.premium="premium".equals(user.optString("accountType"));}
-   v.chaseCapable=v.premium&&p.optBoolean("isChasePlayEnabled");JSONObject watch=root.optJSONObject("userProgramWatch");if(watch!=null)v.canWatch=watch.optBoolean("canWatch",true);
+   v.chaseCapable=v.premium&&p.optBoolean("isChasePlayEnabled");v.access=accessLabel(p);JSONObject watch=root.optJSONObject("userProgramWatch");if(watch!=null)v.canWatch=watch.optBoolean("canWatch",true);
    JSONObject site=root.getJSONObject("site"),relive=site.getJSONObject("relive");v.socket=relive.optString("webSocketUrl");if(v.socket.length()>0&&!secureServiceUri(v.socket,true))throw new IOException("INVALID_SESSION_HOST");return v;
   }
   static Program listing(JSONObject row){
@@ -66,6 +67,8 @@ public final class NicoliveData {
    program.open=row.optLong("openTime");
    program.end=row.optLong("endTime",row.optLong("endAt")/1000);
    program.provider=row.optString("providerType");
+   program.access=accessLabel(row);
+   if(program.access.isEmpty())program.access=accessLabel(row.optJSONObject("program"));
    JSONObject supplier=row.optJSONObject("supplier");
    if(supplier==null)supplier=row.optJSONObject("socialGroup");
    if(supplier==null)supplier=row.optJSONObject("programProvider");
@@ -78,7 +81,17 @@ public final class NicoliveData {
    }
    return program;
   }
-  public JSONObject stored()throws JSONException{return new JSONObject().put("nicoliveProgramId",id).put("title",title).put("status",status).put("listingThumbnail",thumbnail).put("programThumbnail",programThumbnail).put("beginTime",begin).put("supplier",new JSONObject().put("name",owner)).put("providerType",provider).put("statistics",new JSONObject().put("watchCount",views).put("commentCount",comments));}
+  public JSONObject stored()throws JSONException{return new JSONObject().put("nicoliveProgramId",id).put("title",title).put("status",status).put("nicoliveAccessLabel",accessLabel()).put("listingThumbnail",thumbnail).put("programThumbnail",programThumbnail).put("beginTime",begin).put("supplier",new JSONObject().put("name",owner)).put("providerType",provider).put("statistics",new JSONObject().put("watchCount",views).put("commentCount",comments));}
+ }
+ /** Only explicit flags from official response data are interpreted; absence is unknown. */
+ static String accessLabel(JSONObject info){
+  if(info==null)return "";
+  String saved=info.optString("nicoliveAccessLabel","");
+  if("有料".equals(saved)||"会員無料".equals(saved)||"一部無料".equals(saved))return saved;
+  if(info.optBoolean("isPartialFree")||info.optBoolean("isPartiallyFree")||info.optBoolean("isFreePart"))return "一部無料";
+  if(info.optBoolean("isPayProgram")||info.optBoolean("isPaidProgram"))return "有料";
+  if(info.optBoolean("isMemberOnly")||info.optBoolean("isMemberFree"))return "会員無料";
+  return "";
  }
  static String broadcastThumbnail(JSONObject thumbnail){
   JSONObject variants=thumbnail==null?null:thumbnail.optJSONObject("huge");

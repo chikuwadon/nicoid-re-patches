@@ -16,6 +16,29 @@ class NicoliveBrowser {
   if(cached!=null&&System.currentTimeMillis()-cached.at<30000){main.post(()->{if(!closed&&token==generation)result.done(cached.html);});return;}
   loading=work.submit(()->{if(closed||token!=generation)return;try{final String html=new String(bytes(url,cookie,2097152,true),"UTF-8");main.post(()->{if(!closed&&token==generation){feeds.put(key,new Feed(html));while(feeds.size()>3)feeds.remove(feeds.keySet().iterator().next());result.done(html);}});}catch(Exception e){main.post(()->{if(!closed&&token==generation)result.error();});}});
  }
+ void cancelReservation(String id,String cookie,Result result){
+  if(!id.matches("lv[0-9]+")||cookie.isEmpty()||closed){result.error();return;}
+  NicoliveIo.execute(()->{
+   HttpURLConnection request=null;
+   try{
+    // Delete the remote reservation; do not mutate the local list on failure.
+    request=(HttpURLConnection)new URL("https://live2.nicovideo.jp/api/v2/timeshift/reservations?programIds="+id).openConnection();
+    synchronized(requests){if(closed)return;requests.add(request);}
+    request.setInstanceFollowRedirects(false);
+    request.setConnectTimeout(15000);request.setReadTimeout(15000);
+    request.setRequestMethod("DELETE");
+    request.setRequestProperty("Cookie",cookie);
+    request.setRequestProperty("User-Agent",NicoliveData.UA);
+    request.setRequestProperty("X-Frontend-Id","9");
+    request.setRequestProperty("Origin","https://live.nicovideo.jp");
+    request.setRequestProperty("Accept","application/json");
+    int status=request.getResponseCode();
+    main.post(()->{if(closed)return;if(status>=200&&status<300){refresh();result.done("");}else result.error();});
+   }catch(IOException failure){main.post(()->{if(!closed)result.error();});}
+   finally{if(request!=null){requests.remove(request);request.disconnect();}}
+  });
+ }
+
  void reserve(String id,String cookie,Result result){
   if(!id.matches("lv[0-9]+")||cookie.isEmpty()||closed){result.error();return;}
   NicoliveIo.execute(()->{

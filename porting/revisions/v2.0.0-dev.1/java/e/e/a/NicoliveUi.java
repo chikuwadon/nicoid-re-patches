@@ -69,7 +69,7 @@ final class NicoliveUi {
   public void draw(Canvas raw){Canvas c=raw;int save=c.save();Rect b=getBounds();c.translate(b.left,b.top);c.scale(b.width()/24f,b.height()/24f);
    if(name.equals("back")){line(c,17,4,7,12);line(c,7,12,17,20);}
    else if(name.equals("note")){c.drawCircle(12,12,10,p);line(c,12,6,12,13);c.drawPoint(12,17,p);}
-   else if(name.equals("more")){c.drawPoint(12,5,p);c.drawPoint(12,12,p);c.drawPoint(12,19,p);}
+   else if(name.equals("more")){p.setStyle(Paint.Style.FILL);c.drawCircle(12,5,1.8f,p);c.drawCircle(12,12,1.8f,p);c.drawCircle(12,19,1.8f,p);p.setStyle(Paint.Style.STROKE);}
    else if(name.equals("close")){line(c,5,5,19,19);line(c,19,5,5,19);}
    else if(name.equals("pause")){line(c,8,5,8,19);line(c,16,5,16,19);}
    else if(name.equals("play")){Path path=new Path();path.moveTo(7,4);path.lineTo(19,12);path.lineTo(7,20);path.close();c.drawPath(path,p);}

@@ -4,7 +4,6 @@
 Does not replace compilation of the Android UI/Media3 sources or an APK run.
 """
 from pathlib import Path
-import re
 R=Path(__file__).resolve().parents[1]
 src={name:(R/"java/e/e/a"/(name+".java")).read_text(encoding="utf-8")
      for name in ("NicoliveUi","NicoliveActivity","NicoliveBrowser","NicoliveData","NicoliveCatalog")}
@@ -36,9 +35,9 @@ assert 'NicoliveData.accessLabel(p)' in src["NicoliveData"]
 assert 'static String accessLabel(JSONObject info)' in src["NicoliveData"]
 assert "if(!program.canWatch)" not in a, "do not preemptively block the live listing"
 build=(R/"build_mpp.py").read_text()
-version=re.search(r'^VERSION = "(2\\.0\\.0-dev\\.1-\\d+)"
-,build,re.MULTILINE)
-assert version, "unexpected development version"
+version=next((line.split('"')[1] for line in build.splitlines()
+              if line.startswith('VERSION = "')), None)
+assert version and version.startswith("2.0.0-dev.1-"), "unexpected development version"
 assert f'Version: {version.group(1)}' in (R/"verify_mpp.py").read_text()
 corners=(R/"java/e/e/a/ThumbnailCorners.java").read_text()
 entry=(R/"java/e/e/a/NicoliveEntry.java").read_text()

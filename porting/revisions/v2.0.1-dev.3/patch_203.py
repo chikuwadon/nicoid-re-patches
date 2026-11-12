@@ -128,9 +128,9 @@ def retained(s):
  }
  private static synchronized void finish(Session s,boolean stop) {''', filename)
     s = replace_once(s,
-        '''if(s.media!=null){s.media.setActive(false);s.media.release();s.media=null;}
-   Service keeper=s.service;s.service=null;
-   if(keeper!=null){keeper.stopForeground(true);keeper.stopSelf();}''',
+        '''  if(s.media!=null){s.media.setActive(false);s.media.release();s.media=null;}
+  Service keeper=s.service;s.service=null;
+  if(keeper!=null){keeper.stopForeground(true);keeper.stopSelf();}''',
         '''if(s.media!=null){
     try{s.media.setPlaybackState(new PlaybackState.Builder()
       .setState(PlaybackState.STATE_STOPPED,PlaybackState.PLAYBACK_POSITION_UNKNOWN,0f)

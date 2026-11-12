@@ -38,7 +38,7 @@ def build(args, work):
     android = tools / "android-all-16-robolectric-13921718.jar"
     smali = os.pathsep.join(str(tools / name) for name in ("assemble/*", "dexlib2.jar", "guava.jar"))
     smali_compile = os.pathsep.join(map(str, [*sorted((tools / "assemble").glob("*.jar")), tools / "dexlib2.jar", tools / "guava.jar"]))
-    deps = json.loads((ROOT / "media-dependencies.lock.json").read_text())
+    deps = json.loads((BASE_ROOT / "media-dependencies.lock.json").read_text())
     libs = [args.media / f"{dep['artifact']}-{dep['version']}.jar" for dep in deps]
     if not all(lib.is_file() for lib in libs):
         raise ValueError("Prepare the pinned Media3 graph with bootstrap_live.py")
@@ -326,7 +326,7 @@ def build(args, work):
         hook_dex = work / "hooks.dex"
         run("java", "-cp", smali, "org.jf.smali.Main", "assemble", work / "hooks", "-o", hook_dex)
         merged = work / "helpers.mpe"
-        run("java", "-jar", tools / "ecj.jar", "-21", "-proc:none", "-cp", smali_compile, "-d", work, ROOT / "MergeLiveDex.java")
+        run("java", "-jar", tools / "ecj.jar", "-21", "-proc:none", "-cp", smali_compile, "-d", work, BASE_ROOT / "MergeLiveDex.java")
         run("java", "-cp", str(work) + os.pathsep + smali, "MergeLiveDex",
             original, hook_dex, live_dex, merged)
 

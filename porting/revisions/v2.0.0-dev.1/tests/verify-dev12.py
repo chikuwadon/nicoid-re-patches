@@ -101,6 +101,16 @@ key_policy=(R/"java/e/e/a/HlsKeyRefreshPolicy.java").read_text()
 assert 'new HlsPlaylistParser(master,previous)' in parser
 assert 'HlsKeyRefreshPolicy.rewriteLine(line,generation)' in parser
 assert 'HLS_PLAYLIST_TOO_LARGE' in parser
+assert 'HlsBlankSegmentPolicy.annotate(updated.toString())' in parser
+assert 'normalized.added>0' in parser
+assert 'blankGapTags.getAndAdd' in parser
+blank=(R/"java/e/e/a/HlsBlankSegmentPolicy.java").read_text()
+assert 'boolean expectingSegment=false' in blank
+assert 'out.append("#EXT-X-GAP")' in blank
+assert 'return new Result(out.toString(),added);' in blank
+session=(R/"java/e/e/a/NicoliveSession.java").read_text()
+assert 'WebSocket ping/keepSeat sent=' in session
+assert 'blankGaps=' in service
 assert 'nicoid-key-refresh-' in key_policy
 assert 'uri.indexOf' in key_policy
 assert 'session.reconnect();' in service

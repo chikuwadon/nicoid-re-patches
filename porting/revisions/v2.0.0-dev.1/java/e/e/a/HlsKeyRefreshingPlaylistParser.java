@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public final class HlsKeyRefreshingPlaylistParser implements HlsPlaylistParserFactory {
  private static final int MAX_BYTES=2*1024*1024;
  private final AtomicLong generations=new AtomicLong();
+ public final AtomicLong blankGapTags=new AtomicLong();
  public volatile boolean sawAes128;
  @Override public ParsingLoadable.Parser<HlsPlaylist> createPlaylistParser(){
   return wrapped(new HlsPlaylistParser());
@@ -44,7 +45,12 @@ public final class HlsKeyRefreshingPlaylistParser implements HlsPlaylistParserFa
     if(hasCr)updated.append('\r');
     if(hasLf)updated.append('\n');
    }
-   return delegate.parse(uri,new ByteArrayInputStream(updated.toString().getBytes(StandardCharsets.UTF_8)));
+   HlsBlankSegmentPolicy.Result normalized=HlsBlankSegmentPolicy.annotate(updated.toString());
+   if(normalized.added>0){
+    long previous=blankGapTags.getAndAdd(normalized.added);
+    if(previous==0)android.util.Log.i("nicoid-live","HLS blank filler detected; marked as gap without player reset");
+   }
+   return delegate.parse(uri,new ByteArrayInputStream(normalized.playlist.getBytes(StandardCharsets.UTF_8)));
   };
  }
 }

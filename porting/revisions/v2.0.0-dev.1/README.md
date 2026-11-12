@@ -91,3 +91,12 @@ Android実機での起動、実配信、認証済みコメント投稿、長時�
 - For repeated stream messages with the *same* signed media URI and selected quality, keep the healthy Media3 player, buffered segments and AES key parser instead of calling setMediaSource/prepare.
 - Replace the media source only when the stream URL or quality actually changes, or when the existing player is idle/ended/errored. No credentials or signed URLs are written to debug logs.
 - Retain the v2.0.0-dev.1-23 HLS AES-128 key-cache invalidation and bounded fallback recovery. This version specifically reduces avoidable player resets; actual 10+ minute uninterrupted playback still requires device verification.
+
+## v2.0.0-dev.1-25: Niconico Live HLS filler handling (release remains blocked)
+
+- A new SC-52D Android bugreport shows recurring fMP4 parse failure at 18:52:01 and AES-128 BAD_DECRYPT at 18:53:03, approximately one minute apart. These errors do not establish a lost mobile/Wi-Fi connection.
+- The Niconico-specific Streamlink implementation filters `/blank/` filler segments. Preserve media sequence, timing and segment URLs while adding `#EXT-X-GAP` to blank media segments, so Media3 skips loading them without recreating the player or losing synchronization.
+- Keep the Niconico viewing seat alive on server WebSocket pings via `pong` and `keepSeat` in addition to the existing periodic seat renewal timer.
+- Record only whether a blank filler was detected, and the number of gap tags on playback failures; no authentication secrets, signed URLs, or encryption keys are logged.
+- Preserve the existing HLS key refresh, proactive cookie updates, media notifications and playlist navigation. Source/Java tests cover playlist integrity, idempotence, signed queries, CRLF and multi-variant playlists.
+- This is an experimental fix: the supplied bugreport does not contain per-segment HTTP URLs, so the actual filler-segment involvement is not yet confirmed. Keep the pre-release blocked pending 10+ minute device playback.

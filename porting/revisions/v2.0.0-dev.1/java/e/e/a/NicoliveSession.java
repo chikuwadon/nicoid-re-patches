@@ -35,7 +35,12 @@ public final class NicoliveSession implements Closeable {
  }
  synchronized void message(final WebSocket ws,JSONObject obj,final int token)throws Exception{
   if(!active(token))return;String type=obj.optString("type");JSONObject data=obj.optJSONObject("data");if(data==null)data=new JSONObject();
-  if(type.equals("ping")){ws.send("{\"type\":\"pong\"}");}
+  if(type.equals("ping")){
+   ws.send("{\"type\":\"pong\"}");
+   // Renew the viewing seat on each ping, in addition to the periodic timer.
+   boolean kept=ws.send("{\"type\":\"keepSeat\"}");
+   android.util.Log.d("nicoid-live","WebSocket ping/keepSeat sent="+kept);
+  }
   else if(type.equals("seat")){if(seat!=null)seat.cancel(false);int seconds=Math.max(1,Math.min(3600,data.optInt("keepIntervalSec",30)));seat=timers.scheduleAtFixedRate(new Runnable(){public void run(){if(active(token))ws.send("{\"type\":\"keepSeat\"}");}},seconds,seconds,TimeUnit.SECONDS);}
   else if(type.equals("serverTime")){String value=data.optString("currentMs");try{long ms=Long.parseLong(value);serverOffset=ms-System.currentTimeMillis();}catch(Exception ignored){try{serverOffset=java.time.Instant.parse(data.optString("currentTime")).toEpochMilli()-System.currentTimeMillis();}catch(Exception ignored2){}}}
   else if(type.equals("stream")){if(!NicoliveData.secureServiceUri(data.optString("uri"),false))throw new IOException("INVALID_STREAM_HOST");failures=0;listener.stream(data);listener.status("LIVE",false);}

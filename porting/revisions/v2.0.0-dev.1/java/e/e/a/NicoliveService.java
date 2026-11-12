@@ -55,7 +55,7 @@ public class NicoliveService extends android.app.Service {
     final int attempt=++cryptoRecoveryCount, token=serial;
     cryptoRecoveryPending=true;
     status="HLS配信データを再取得しています…";
-    android.util.Log.w("nicoid-live","Encrypted HLS consistency error ("+error.getErrorCodeName()+"); refreshing watch session "+attempt+"/"+LiveRecoveryPolicy.MAX_ATTEMPTS);
+    android.util.Log.w("nicoid-live","Encrypted HLS consistency error ("+error.getErrorCodeName()+"); blankGaps="+(keyParser==null?0:keyParser.blankGapTags.get())+"; refreshing watch session "+attempt+"/"+LiveRecoveryPolicy.MAX_ATTEMPTS);
     notifyObservers();updateNotification();
     main.postDelayed(()->{
      if(!stopped&&token==serial&&session!=null&&!terminal&&!userPaused&&cryptoRecoveryPending){

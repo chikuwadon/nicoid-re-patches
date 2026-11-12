@@ -70,7 +70,7 @@ public class NicoliveService extends android.app.Service {
   status="映像を再生できませんでした。再接続をお試しください";
   notifyObservers();updateNotification();
  }
- void open(String newId){if(stopped||player==null)return;activeStreamUri="";activeStreamQuality="";keyParser=null;clearArtwork();cryptoRecoveryPending=false;cryptoRecoveryCount=0;cryptoRecoveryStart=0;final int token=++serial;main.removeCallbacks(tick);main.post(tick);NicoliveEntry.beforeLive(this);if(session!=null)session.close();id=newId;program=null;terminal=false;status="接続中…";qualities.clear();selected="abr";audioOnly=false;userPaused=false;deliveredCount=0;commentsConnected=false;pausedAt=0;player.setTrackSelectionParameters(player.getTrackSelectionParameters().buildUpon().setTrackTypeDisabled(C.TRACK_TYPE_VIDEO,false).build());history.clear();scheduled.clear();synchronized(incoming){incoming.clear();}if(frame!=null)frame.comments.clear();ng.reload();player.stop();
+ void open(String newId){if(stopped||player==null)return;activeStreamUri="";activeStreamQuality="";mediaCookies=new JSONArray();keyParser=null;clearArtwork();cryptoRecoveryPending=false;cryptoRecoveryCount=0;cryptoRecoveryStart=0;final int token=++serial;main.removeCallbacks(tick);main.post(tick);NicoliveEntry.beforeLive(this);if(session!=null)session.close();id=newId;program=null;terminal=false;status="接続中…";qualities.clear();selected="abr";audioOnly=false;userPaused=false;deliveredCount=0;commentsConnected=false;pausedAt=0;player.setTrackSelectionParameters(player.getTrackSelectionParameters().buildUpon().setTrackTypeDisabled(C.TRACK_TYPE_VIDEO,false).build());history.clear();scheduled.clear();synchronized(incoming){incoming.clear();}if(frame!=null)frame.comments.clear();ng.reload();player.stop();
   String cookie="";try{cookie=SessionCookies194.cookie(this,null);}catch(Exception ignored){}
   session=new NicoliveSession(id,cookie,new NicoliveSession.Listener(){
    void dispatch(final Runnable r){main.post(new Runnable(){public void run(){if(!stopped&&token==serial)r.run();}});}
@@ -82,7 +82,7 @@ public class NicoliveService extends android.app.Service {
    public void posted(final boolean success,final String message){dispatch(new Runnable(){public void run(){for(Observer o:new ArrayList<Observer>(observers))o.posted(success,message);}});}
   });foreground();session.start();notifyObservers();
  }
- void applyStream(JSONObject stream){try{cryptoRecoveryPending=false;mediaCookies=stream.optJSONArray("cookies");if(mediaCookies==null)mediaCookies=new JSONArray();qualities.clear();JSONArray q=stream.optJSONArray("availableQualities");if(q!=null)for(int i=0;i<q.length();i++)qualities.add(q.optString(i));
+ void applyStream(JSONObject stream){try{cryptoRecoveryPending=false;JSONArray updatedCookies=stream.optJSONArray("cookies");if(updatedCookies!=null)mediaCookies=updatedCookies;qualities.clear();JSONArray q=stream.optJSONArray("availableQualities");if(q!=null)for(int i=0;i<q.length();i++)qualities.add(q.optString(i));
     String nextUri=stream.getString("uri");
     int state=player.getPlaybackState();
     boolean activeMedia=player.getCurrentMediaItem()!=null&&player.getPlayerError()==null

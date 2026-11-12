@@ -7,7 +7,7 @@ workflow=(root.parents[2]/".github/workflows/private-build.yml").read_text()
 for needle in (
  "ScrollRestorePolicy205.ready", "ScrollRestorePolicy205.userMoved",
  "ScrollRestorePolicy205.MAX_WAIT_MS", "restoring(ListView list)",
- "PENDING.remove(list)", "setSelectionFromTop(position,top)",
+ "PENDING.remove(list)", "apply(list,position,top)",
  "if(everVisible&&!visible)", "PENDING.get(list)!=this",
  "MAIN.postDelayed(this,ScrollRestorePolicy205.RETRY_MS)"
 ):

@@ -84,6 +84,7 @@ def build(args, work):
         *sorted((ROOT.parent / "v2.0.1-dev.2/java").rglob("*.java")),
         *sorted(p for p in (ROOT.parent / "v2.0.1-dev.4/java").rglob("*.java")
                 if p.name != "SmoothTabRestore204.java"),
+        *sorted((ROOT.parent / "v2.0.1-dev.5/java").rglob("*.java")),
         *sorted((ROOT / "java").rglob("*.java")),
         *sorted(overrides.rglob("*.java")),
         ROOT.parent / "v1.11.1/java/e/e/a/AmbientLight.java")

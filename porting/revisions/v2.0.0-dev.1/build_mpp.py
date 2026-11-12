@@ -129,7 +129,7 @@ def build(args, work):
         if mini_source.count(mini_anchor) != 1:
             raise ValueError("Missing playback mini-thumbnail")
         mini_source = mini_source.replace(mini_anchor, mini_anchor +
-            "\\n\\n    invoke-static {p2}, Le/e/a/ThumbnailCorners;->apply(Landroid/view/View;)V")
+            "\n\n    invoke-static {p2}, Le/e/a/ThumbnailCorners;->apply(Landroid/view/View;)V")
         (hooks / "MiniChrome236.smali").write_text(mini_source)
 
         # Clip only known thumbnail views; keep bitmap caches and sibling badges untouched.

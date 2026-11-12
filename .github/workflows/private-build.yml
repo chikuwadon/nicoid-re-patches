@@ -511,12 +511,17 @@ jobs:
             echo
             sha256sum "$output"
           } > /tmp/nicoid-v2-delivery/verification.txt
-          (cd /tmp/nicoid-v2-delivery && zip -q /tmp/nicoid-re-2.0.0-dev.1-18.zip ./*)
+          # upload-artifact already creates a ZIP; upload the two files directly.
+          # This avoids a ZIP inside the downloadable Actions artifact.
+          test -s /tmp/nicoid-v2-delivery/nicoid-re-2.0.0-dev.1-18.mpp
+          test -s /tmp/nicoid-v2-delivery/verification.txt
+          test "$(find /tmp/nicoid-v2-delivery -maxdepth 1 -type f | wc -l)" -eq 2
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: nicoid-re-v2.0.0-dev.1-18-mpp
-          path: /tmp/nicoid-re-2.0.0-dev.1-18.zip
+          path: /tmp/nicoid-v2-delivery/*
+          compression-level: 0
           if-no-files-found: error
           retention-days: 2
 

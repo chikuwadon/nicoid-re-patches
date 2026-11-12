@@ -71,8 +71,8 @@ assert 'Le/e/a/LocalPlaylists$Page;' in merge
 assert 'nicoid_local_playlist_sort_' in local
 assert 'static void bindArtwork(View row,BaseAdapter adapter,JSONObject video)' in local
 assert 'Dev116.playlistThumbnail(row,adapter,video);' in local
-assert 'if(!selecting&&!reordering){ListActions.bind(row,nativeRows,n);bindArtwork(row,nativeRows,video);return row;}' in local
-assert 'bindArtwork(row,nativeRows,video);' in local
+assert 'if(!selecting&&!reordering){ListActions.bind(row,nativeRows,n);bindArtwork(row,display,video);return row;}' in local
+assert 'bindArtwork(row,display,video);' in local
 assert 'image.setImageDrawable(null);' not in local
 assert 'ThumbnailCorners.load(url,image,null)' not in local
 assert 'private static final String LAST_FOLDER=' in local

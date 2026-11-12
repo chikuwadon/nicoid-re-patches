@@ -28,5 +28,5 @@ with TemporaryDirectory() as temp:
     assert 'missingHistory' in browser and '< 180000L' in browser
     assert 'trustedThumbnail(image)' in data and 'og:image' in data
     assert 'VERSION = "2.0.1-dev.2"' in builder
-    assert 'patch_sources.stage(' in builder
+    assert 'stage(BASE_ROOT / "java/e/e/a", overrides)' in builder
     print("PASS: gestures, metadata, menu, toast, image request and build contracts")

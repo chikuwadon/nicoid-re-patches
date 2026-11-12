@@ -123,6 +123,8 @@ assert 'host.endsWith(".nicovideo.jp")' in artwork
 assert 'connection.setInstanceFollowRedirects(false)' in artwork
 assert 'LiveStreamUpdatePolicy.reuse(activeStreamUri,nextUri,activeStreamQuality,selected,activeMedia)' in service
 assert 'JSONArray currentCookies=mediaCookies;' in service
+assert 'if(updatedCookies!=null)mediaCookies=updatedCookies;' in service
+assert 'mediaCookies=new JSONArray();keyParser=null;' in service
 assert 'new CookieSource();' in service
 assert 'activeStreamUri=nextUri;activeStreamQuality=selected;' in service
 assert 'Stream credentials updated without player reset' in service

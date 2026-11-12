@@ -62,7 +62,7 @@ public class NicoliveService extends android.app.Service {
    }
   }
   cryptoRecoveryPending=false;
-  android.util.Log.w("nicoid-live","Unrecoverable media playback error, code="+error.errorCodeName);
+  android.util.Log.w("nicoid-live","Unrecoverable media playback error, code="+error.getErrorCodeName());
   status="映像を再生できませんでした。再接続をお試しください";
   notifyObservers();updateNotification();
  }

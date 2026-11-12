@@ -143,7 +143,19 @@ assert 'out.size()+n>LIMIT' in artwork
 diagnostics=(R/"java/e/e/a/NicoliveDiagnostics.java").read_text()
 assert 'nicoid-live-events.log' in diagnostics
 assert 'NicoLive playback diagnostics (no URLs or credentials)' in diagnostics
-assert 'MAX_EVENTS=500,MAX_TEXT=65536' in diagnostics
+assert 'MAX_EVENTS=4000,MAX_TEXT=262144' in diagnostics
+full_policy=(R/"java/e/e/a/HlsFullSegmentPolicy.java").read_text()
+assert 'HlsFullSegmentPolicy.normalize(normalized.playlist)' in parser
+assert 'fullOnly.partsFound' in parser
+assert 'return delegate.parse(uri,new ByteArrayInputStream(fullOnly.playlist.getBytes' in parser
+assert 'partTags=' in parser
+assert 'fullOnly=' in parser
+assert 'llPartsSuppressed=' in service
+assert 'entry.startsWith("#EXT-X-PART:")' in full_policy
+assert 'entry.startsWith("#EXT-X-PRELOAD-HINT:")' in full_policy
+assert 'entry.startsWith("#EXT-X-SERVER-CONTROL:")' in full_policy
+assert 'if(fullSegments<2||parts==0)' in full_policy
+assert 'result.append(entry);' in full_policy
 assert 's.replaceAll("(?i)(?:https?|wss?)://' in diagnostics
 assert 'ModernDebug.smali' in build
 assert 'NicoliveDiagnostics;->append' in build

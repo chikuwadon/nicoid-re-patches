@@ -15,6 +15,7 @@ public final class HlsKeyRefreshingPlaylistParser implements HlsPlaylistParserFa
  private static final int MAX_BYTES=2*1024*1024;
  private final AtomicLong generations=new AtomicLong();
  public final AtomicLong blankGapTags=new AtomicLong();
+ public final AtomicLong llPartsSuppressed=new AtomicLong();
  public volatile boolean sawAes128;
  @Override public ParsingLoadable.Parser<HlsPlaylist> createPlaylistParser(){
   return wrapped(new HlsPlaylistParser());
@@ -50,6 +51,11 @@ public final class HlsKeyRefreshingPlaylistParser implements HlsPlaylistParserFa
     long previous=blankGapTags.getAndAdd(normalized.added);
     if(previous==0)android.util.Log.i("nicoid-live","HLS blank filler detected; marked as gap without player reset");
    }
+   HlsFullSegmentPolicy.Result fullOnly=HlsFullSegmentPolicy.normalize(normalized.playlist);
+   if(fullOnly.converted){
+    long previous=llPartsSuppressed.getAndAdd(fullOnly.partsFound);
+    if(previous==0)android.util.Log.i("nicoid-live","Low-latency partial HLS detected; using full segments to stabilize encrypted CMAF");
+   }
    int segments=0,discontinuities=0,keyTags=0;
    for(String entry:lines){
     if(entry.startsWith("#EXTINF:"))segments++;
@@ -57,8 +63,9 @@ public final class HlsKeyRefreshingPlaylistParser implements HlsPlaylistParserFa
     if(HlsKeyRefreshPolicy.isAes128KeyLine(entry))keyTags++;
    }
    NicoliveDiagnostics.record("HLS_PLAYLIST","generation="+generation+" segments="+segments+
-     " aesTags="+keyTags+" gapTags="+normalized.added+" discontinuities="+discontinuities);
-   return delegate.parse(uri,new ByteArrayInputStream(normalized.playlist.getBytes(StandardCharsets.UTF_8)));
+     " aesTags="+keyTags+" gapTags="+normalized.added+" discontinuities="+discontinuities+
+     " partTags="+fullOnly.partsFound+" fullOnly="+fullOnly.converted);
+   return delegate.parse(uri,new ByteArrayInputStream(fullOnly.playlist.getBytes(StandardCharsets.UTF_8)));
   };
  }
 }

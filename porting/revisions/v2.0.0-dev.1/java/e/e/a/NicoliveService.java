@@ -49,7 +49,8 @@ public class NicoliveService extends android.app.Service {
   NicoliveDiagnostics.record("PLAYER_ERROR","code="+error.getErrorCodeName()
    +" cause="+(error.getCause()==null?"none":error.getCause().getClass().getSimpleName())
    +" aesManifest="+(keyParser!=null&&keyParser.sawAes128)
-   +" blankGaps="+(keyParser==null?0:keyParser.blankGapTags.get()));
+   +" blankGaps="+(keyParser==null?0:keyParser.blankGapTags.get())
+   +" llPartsSuppressed="+(keyParser==null?0:keyParser.llPartsSuppressed.get()));
   long now=android.os.SystemClock.elapsedRealtime();
   if((LiveRecoveryPolicy.isAes128Failure(error)||(keyParser!=null&&keyParser.sawAes128&&LiveRecoveryPolicy.isCorruptedFmp4Failure(error)))&&session!=null&&!terminal&&!userPaused&&!stopped){
    if(cryptoRecoveryStart==0||now<cryptoRecoveryStart||now-cryptoRecoveryStart>LiveRecoveryPolicy.WINDOW_MS){

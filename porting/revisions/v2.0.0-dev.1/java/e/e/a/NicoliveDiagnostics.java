@@ -13,7 +13,9 @@ import java.util.concurrent.*;
  * Snapshots are written off the playback thread and included in ModernDebug.share.
  */
 public final class NicoliveDiagnostics {
- private static final int MAX_EVENTS=500,MAX_TEXT=65536;
+ // Preserve at least ~2 minutes of high-frequency HLS HTTP events, so a
+ // previous 60-second failure is retained after automatic reconnection.
+ private static final int MAX_EVENTS=4000,MAX_TEXT=262144;
  private static final Object LOCK=new Object();
  private static final ArrayDeque<String> events=new ArrayDeque<>();
  private static final ScheduledExecutorService writer=Executors.newSingleThreadScheduledExecutor(r->{

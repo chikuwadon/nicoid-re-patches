@@ -40,7 +40,7 @@ with ZipFile(base_path) as base,ZipFile(candidate_path) as new:
 print("MPP SHA-256",hashlib.sha256(candidate_path.read_bytes()).hexdigest())
 ,(Path(__file__).parent/"build_mpp.py").read_text(),re.MULTILINE)
     assert expected, "Missing development version"
-    assert f"Version: {expected.group(1)}\\r\\n".encode() in new.read("META-INF/MANIFEST.MF")
+    assert b"Version: "+expected.group(1).encode()+bytes((13,10)) in new.read("META-INF/MANIFEST.MF")
     with ZipFile(io.BytesIO(base.read("nicoid/resources.zip"))) as original,ZipFile(io.BytesIO(new.read("nicoid/resources.zip"))) as updated:
         assert original.namelist()==updated.namelist()
         assert all(original.read(k)==updated.read(k) for k in original.namelist() if k!="AndroidManifest.xml")

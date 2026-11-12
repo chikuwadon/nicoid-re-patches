@@ -14,7 +14,7 @@ from patch_manifest import patch_manifest
 
 ROOT = Path(__file__).resolve().parent
 BASE_HASH = "8920e9cdc9fc49178be5bc78cdb990627f4e7a7be83fef782eece3e7c443bcce"
-VERSION = "2.0.0-dev.1-10"
+VERSION = "2.0.0-dev.1-11"
 
 
 def run(*args):
@@ -159,7 +159,41 @@ def build(args, work):
                 "    if-eqz v0, :nicoid_live_original_gesture\n"
                 f"    {conditional_return}\n"
                 "    :nicoid_live_original_gesture")
+        reset_messages = {
+            "Reset assignments, sensitivity and display. Keep gestures enabled or disabled as currently set.":
+                "Restore default assignments, sensitivity, display and axis recognition. Keep the main gesture switch as set.",
+            "割り当て・感度・表示を初期値に戻します。ジェスチャーの有効/無効は維持します。":
+                "割り当て・感度・表示・上下/左右方向の認識を初期値に戻します。ジェスチャー全体の有効/無効は維持します。",
+            "重設手勢、靈敏度與顯示，保留啟用狀態。":
+                "重設手勢指派、靈敏度、顯示與方向辨識，保留手勢總開關。"
+        }
+        for old, new in reset_messages.items():
+            old_string, new_string = (json.dumps(value, ensure_ascii=True) for value in (old, new))
+            if gesture.count(old_string) != 1:
+                raise ValueError("Missing gesture reset description")
+            gesture = gesture.replace(old_string, new_string)
         (hooks / gesture_file).write_text(gesture)
+        axis_file = "Dev128.smali"
+        axis = (disassembled / "e/e/a" / axis_file).read_text()
+        axis = add_hook(axis, ".method public static allowClaim(Landroid/content/Context;Ljava/lang/String;)Z",
+            "invoke-static {p0, p1}, Le/e/a/GestureAxisOptions;->allowHorizontalClaim(Landroid/content/Context;Ljava/lang/String;)Z\n"
+            "    move-result v0\n"
+            "    if-nez v0, :nicoid_check_vertical\n"
+            "    return v0\n"
+            "    :nicoid_check_vertical")
+        for method, params, registers in (
+            ("install", "Landroid/app/Activity;Landroid/widget/LinearLayout;", "p0, p1"),
+            ("reset", "Landroid/content/Context;", "p0"),
+        ):
+            signature = f".method public static {method}({params})V"
+            replacement = (f"{signature}\n    .registers {registers.count(',') + 1}\n"
+                           f"    invoke-static {{{registers}}}, Le/e/a/GestureAxisOptions;->{method}({params})V\n"
+                           "    return-void\n.end method")
+            axis, count = re.subn(re.escape(signature) + r".*?\.end method", replacement, axis, flags=re.DOTALL)
+            if count != 1:
+                raise ValueError(f"Missing gesture direction method: {method}")
+        (hooks / axis_file).write_text(axis)
+
         viewport_file = "FullscreenViewport209.smali"
         viewport = (disassembled / "e/e/a" / viewport_file).read_text()
         viewport = add_hook(viewport, ".method public static update(Landroid/view/View;Landroid/view/ViewGroup;Landroid/view/View;)V",

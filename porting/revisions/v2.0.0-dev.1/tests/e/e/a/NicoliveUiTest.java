@@ -317,6 +317,50 @@ public class NicoliveUiTest {
   assertTrue(a.isFinishing());
  }
 
+ @Test public void gestureAxisOptionsControlRecognitionAndOpenSeparateHelp(){
+  SharedPreferences preferences=GestureControls110.prefs(a);
+  preferences.edit().putString("app_lang","0").putBoolean("list_gestures_enabled",true).commit();
+  GestureControls110.configure(a);
+  AlertDialog settings=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();
+  String[] labels={"上下方向のみのジェスチャーを認識","左右方向のみのジェスチャーを認識"};
+  CheckBox[] options=new CheckBox[2];
+  for(int i=0;i<labels.length;i++){
+   ArrayList<View> found=new ArrayList<>();
+   settings.getWindow().getDecorView().findViewsWithText(found,labels[i],View.FIND_VIEWS_WITH_TEXT);
+   assertEquals(1,found.size());
+   options[i]=(CheckBox)found.get(0);
+   assertEquals(i==1,options[i].isChecked());
+   LinearLayout row=(LinearLayout)options[i].getParent();
+   assertEquals(2,row.getChildCount());
+   View note=row.getChildAt(1);
+   assertEquals(labels[i]+"の説明",note.getContentDescription());
+   note.performClick();
+   AlertDialog help=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();
+   TextView description=help.findViewById(android.R.id.message);
+   assertTrue(description.getText().toString().contains(i==0?"↑↓":"←→"));
+   assertEquals(i==1,options[i].isChecked());
+   help.dismiss();
+  }
+  assertFalse(Dev128.allowClaim(a,"UDU"));
+  assertTrue(Dev128.allowClaim(a,"RLR"));
+  options[0].setChecked(true);
+  options[1].setChecked(false);
+  assertTrue(Dev128.allowClaim(a,"UDU"));
+  assertFalse(Dev128.allowClaim(a,"RLR"));
+  assertFalse(Dev128.allowClaim(a,"LR"));
+  assertTrue(Dev128.allowClaim(a,"LRU"));
+  assertTrue(Dev128.allowClaim(a,"UDL"));
+  options[0].setChecked(false);
+  assertFalse(Dev128.allowClaim(a,"DU"));
+  assertTrue(Dev128.allowClaim(a,"LRD"));
+  options[0].setChecked(true);
+  Dev128.reset(a);
+  assertFalse(Dev128.allowClaim(a,"UD"));
+  assertTrue(Dev128.allowClaim(a,"RL"));
+  assertTrue(preferences.getBoolean("list_gestures_enabled",false));
+  settings.dismiss();
+ }
+
  @Test public void generalSettingsSortPlacesTabHeightImmediatelyAfterPlacement(){
   ActivityController<TestSettings> owner=Robolectric.buildActivity(TestSettings.class).setup();
   try{

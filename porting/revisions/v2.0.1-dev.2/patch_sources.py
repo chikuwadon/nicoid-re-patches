@@ -25,11 +25,11 @@ def activity(source):
                   "void onStop(){listGestures.reset();if(postNotice!=null)postNotice.cancel();ExitModeOptions.clear(this);", file)
     source = once(source, 'private String pendingPopupId="",deniedProgramId="";',
                   'private String pendingPopupId="",deniedProgramId="";\n  private Toast postNotice;', file)
-    old = """    if(hubTab==2){confirmHistoryRemoval(program);return true;}
-    if(hubTab==RESERVATIONS){confirmReservationRemoval(program);return true;}
-    if(!program.scheduled())return false;
-    confirmReservation(program);
-    return true;"""
+    old = """   if(hubTab==2){confirmHistoryRemoval(program);return true;}
+   if(hubTab==RESERVATIONS){confirmReservationRemoval(program);return true;}
+   if(!program.scheduled())return false;
+   confirmReservation(program);
+   return true;"""
     new = """    showProgramActions(program);
     return true;"""
     source = once(source, old, new, file)
@@ -78,10 +78,10 @@ def browser(source):
   final java.util.concurrent.ConcurrentHashMap<String,Long> missingHistory = new java.util.concurrent.ConcurrentHashMap<>();
   void setContext(Context context){appContext=context.getApplicationContext();}""", file)
     source = once(source,
-        '''void historyImage(NicoliveData.Program program,ImageView view){
-   if(program.programThumbnail){image(program.thumbnail,view);return;}
-   image("history:"+program.id,program.thumbnail,program.id,view);
-  }''',
+        ''' void historyImage(NicoliveData.Program program,ImageView view){
+  if(program.programThumbnail){image(program.thumbnail,view);return;}
+  image("history:"+program.id,program.thumbnail,program.id,view);
+ }''',
         '''void historyImage(NicoliveData.Program program,ImageView view){
    if(program.programThumbnail){image(program.thumbnail,view);return;}
    Long failedAt=missingHistory.get(program.id);
@@ -91,12 +91,12 @@ def browser(source):
    }
    image("history:"+program.id,program.thumbnail,program.id,view);
   }''', file)
-    old = '''     if(programId!=null){
-      try{
-       byte[] html=bytes("https://live.nicovideo.jp/watch/"+programId,"",2097152,false);
-       decoded=decodeImage(NicoliveData.historyThumbnail(new String(html,java.nio.charset.StandardCharsets.UTF_8),programId));
-      }catch(Exception ignored){}
-     }'''
+    old = '''    if(programId!=null){
+     try{
+      byte[] html=bytes("https://live.nicovideo.jp/watch/"+programId,"",2097152,false);
+      decoded=decodeImage(NicoliveData.historyThumbnail(new String(html,java.nio.charset.StandardCharsets.UTF_8),programId));
+     }catch(Exception ignored){}
+    }'''
     new = '''     if(programId!=null){
       try{
        // Only the trusted watch host receives the current session cookie.
@@ -122,11 +122,11 @@ def browser(source):
 
 def data(source):
     file = "NicoliveData.java"
-    old = '''  static String historyThumbnail(String html,String id)throws Exception{
-   JSONObject program=embedded(html,"embedded-data","data-props").getJSONObject("program");
-   if(!id.equals(program.optString("nicoliveProgramId")))throw new IOException("PROGRAM_MISMATCH");
-   return broadcastThumbnail(program.optJSONObject("thumbnail"));
-  }'''
+    old = ''' static String historyThumbnail(String html,String id)throws Exception{
+  JSONObject program=embedded(html,"embedded-data","data-props").getJSONObject("program");
+  if(!id.equals(program.optString("nicoliveProgramId")))throw new IOException("PROGRAM_MISMATCH");
+  return broadcastThumbnail(program.optJSONObject("thumbnail"));
+ }'''
     new = '''  static String historyThumbnail(String html,String id)throws Exception{
    JSONObject program=embedded(html,"embedded-data","data-props").getJSONObject("program");
    if(!id.equals(program.optString("nicoliveProgramId")))throw new IOException("PROGRAM_MISMATCH");

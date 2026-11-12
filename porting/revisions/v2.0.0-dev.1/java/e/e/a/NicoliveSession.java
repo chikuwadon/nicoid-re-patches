@@ -18,7 +18,7 @@ public final class NicoliveSession implements Closeable {
  public NicoliveSession(String id,String cookie,Listener listener){if(NicoliveData.id(id)==null)throw new IllegalArgumentException("Invalid program");this.id=id;this.accountCookie=cookie==null?"":cookie;this.listener=listener;client=new OkHttpClient.Builder().connectTimeout(15,TimeUnit.SECONDS).readTimeout(25,TimeUnit.SECONDS).followRedirects(false).build();}
  boolean active(int token){return !closed&&token==generation;}
  public void start(){connect();}
- synchronized void connect(){if(closed)return;final int token=++generation;program=null;if(connectionTask!=null){connectionTask.cancel(true);((ThreadPoolExecutor)workers).purge();}final Future<?> retired=cancelTransport(false);listener.status(failures==0?"接続中…":"再接続中…",false);
+ synchronized void connect(){if(closed)return;final int token=++generation;NicoliveDiagnostics.record("SOCKET","connect gen="+token);program=null;if(connectionTask!=null){connectionTask.cancel(true);((ThreadPoolExecutor)workers).purge();}final Future<?> retired=cancelTransport(false);listener.status(failures==0?"接続中…":"再接続中…",false);
   connectionTask=workers.submit(new Runnable(){public void run(){try{
    if(retired!=null)retired.get(15,TimeUnit.SECONDS);if(!active(token))return;String html=getText("https://live.nicovideo.jp/watch/"+id,2097152,token);final NicoliveData.Program p=NicoliveData.Program.watch(html,id);if(!active(token))return;program=p;listener.program(p);
    if(p.ended()){listener.status("放送は終了しました",true);return;}
@@ -26,10 +26,10 @@ public final class NicoliveSession implements Closeable {
    if(!p.onAir()){listener.status("開演前です",true);return;}
    if(p.socket.length()==0)throw new IOException("SESSION_MISSING");
    Request request=request(p.socket,true);synchronized(NicoliveSession.this){if(!active(token))return;socket=client.newWebSocket(request,new WebSocketListener(){
-    @Override public void onOpen(WebSocket ws,Response response){if(!active(token)){ws.cancel();return;}try{JSONObject data=new JSONObject().put("reconnect",false).put("room",new JSONObject().put("protocol","webSocket").put("commentable",true)).put("stream",new JSONObject().put("protocol","hls").put("quality",preferred).put("latency","high").put("chasePlay",false).put("accessRightMethod","single_cookie"));ws.send(new JSONObject().put("type","startWatching").put("data",data).toString());}catch(JSONException e){failed(token);}}
+    @Override public void onOpen(WebSocket ws,Response response){if(!active(token)){ws.cancel();return;}NicoliveDiagnostics.record("SOCKET","opened gen="+token);try{JSONObject data=new JSONObject().put("reconnect",false).put("room",new JSONObject().put("protocol","webSocket").put("commentable",true)).put("stream",new JSONObject().put("protocol","hls").put("quality",preferred).put("latency","high").put("chasePlay",false).put("accessRightMethod","single_cookie"));ws.send(new JSONObject().put("type","startWatching").put("data",data).toString());}catch(JSONException e){failed(token);}}
     @Override public void onMessage(WebSocket ws,String text){if(!active(token))return;try{message(ws,new JSONObject(text),token);}catch(Exception e){listener.status("受信情報を処理できませんでした",false);}}
-    @Override public void onFailure(WebSocket ws,Throwable t,Response response){if(active(token))failed(token);}
-    @Override public void onClosed(WebSocket ws,int code,String reason){if(active(token))failed(token);}
+    @Override public void onFailure(WebSocket ws,Throwable t,Response response){NicoliveDiagnostics.record("SOCKET","failure gen="+token+" error="+(t==null?"unknown":t.getClass().getSimpleName())+" http="+(response==null?-1:response.code()));if(active(token))failed(token);}
+    @Override public void onClosed(WebSocket ws,int code,String reason){NicoliveDiagnostics.record("SOCKET","closed gen="+token+" code="+code);if(active(token))failed(token);}
    });}
   }catch(Exception e){if(active(token))failed(token);}}});
  }
@@ -39,7 +39,7 @@ public final class NicoliveSession implements Closeable {
    ws.send("{\"type\":\"pong\"}");
    // Renew the viewing seat on each ping, in addition to the periodic timer.
    boolean kept=ws.send("{\"type\":\"keepSeat\"}");
-   android.util.Log.d("nicoid-live","WebSocket ping/keepSeat sent="+kept);
+   android.util.Log.d("nicoid-live","WebSocket ping/keepSeat sent="+kept);NicoliveDiagnostics.record("SOCKET","keepSeat ok="+kept);
   }
   else if(type.equals("seat")){if(seat!=null)seat.cancel(false);int seconds=Math.max(1,Math.min(3600,data.optInt("keepIntervalSec",30)));seat=timers.scheduleAtFixedRate(new Runnable(){public void run(){if(active(token))ws.send("{\"type\":\"keepSeat\"}");}},seconds,seconds,TimeUnit.SECONDS);}
   else if(type.equals("serverTime")){String value=data.optString("currentMs");try{long ms=Long.parseLong(value);serverOffset=ms-System.currentTimeMillis();}catch(Exception ignored){try{serverOffset=java.time.Instant.parse(data.optString("currentTime")).toEpochMilli()-System.currentTimeMillis();}catch(Exception ignored2){}}}

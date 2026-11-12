@@ -50,6 +50,14 @@ public final class HlsKeyRefreshingPlaylistParser implements HlsPlaylistParserFa
     long previous=blankGapTags.getAndAdd(normalized.added);
     if(previous==0)android.util.Log.i("nicoid-live","HLS blank filler detected; marked as gap without player reset");
    }
+   int segments=0,discontinuities=0,keyTags=0;
+   for(String entry:lines){
+    if(entry.startsWith("#EXTINF:"))segments++;
+    if(entry.startsWith("#EXT-X-DISCONTINUITY"))discontinuities++;
+    if(HlsKeyRefreshPolicy.isAes128KeyLine(entry))keyTags++;
+   }
+   NicoliveDiagnostics.record("HLS_PLAYLIST","generation="+generation+" segments="+segments+
+     " aesTags="+keyTags+" gapTags="+normalized.added+" discontinuities="+discontinuities);
    return delegate.parse(uri,new ByteArrayInputStream(normalized.playlist.getBytes(StandardCharsets.UTF_8)));
   };
  }

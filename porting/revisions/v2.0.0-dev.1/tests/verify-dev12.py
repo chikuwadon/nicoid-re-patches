@@ -140,4 +140,22 @@ assert 'activeStreamUri=nextUri;activeStreamQuality=selected;' in service
 assert 'Stream credentials updated without player reset' in service
 assert 'final JSONArray cookies;CookieSource(JSONArray cookies)' not in service
 assert 'out.size()+n>LIMIT' in artwork
+diagnostics=(R/"java/e/e/a/NicoliveDiagnostics.java").read_text()
+assert 'nicoid-live-events.log' in diagnostics
+assert 'NicoLive playback diagnostics (no URLs or credentials)' in diagnostics
+assert 'MAX_EVENTS=500,MAX_TEXT=65536' in diagnostics
+assert 's.replaceAll("(?i)(?:https?|wss?)://' in diagnostics
+assert 'ModernDebug.smali' in build
+assert 'NicoliveDiagnostics;->append' in build
+assert 'NicoliveDiagnostics.init(this);' in service
+for marker in ('"HTTP_OPEN"','"HTTP_READY"','"HTTP_FAIL"','"HTTP_DONE"',
+               '"PLAYER_ERROR"','"HLS_PLAYLIST"','"SOCKET"'):
+    assert marker in (service+parser+session), marker
+assert 'delegate.getResponseHeaders()' in service
+assert 'Content-Type' in service
+assert 'responseCode' in service
+assert 'getErrorCodeName()' in service
+assert 'snapshot()' in diagnostics
+assert 'writer.scheduleWithFixedDelay' in diagnostics
+print("PASS: live diagnostics included in Debug share without exposing stream URLs or credentials")
 print("PASS: live features, thumbnail artwork, media controls and manual playlist sorting contracts")

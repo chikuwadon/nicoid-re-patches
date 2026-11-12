@@ -100,3 +100,10 @@ Android実機での起動、実配信、認証済みコメント投稿、長時�
 - Record only whether a blank filler was detected, and the number of gap tags on playback failures; no authentication secrets, signed URLs, or encryption keys are logged.
 - Preserve the existing HLS key refresh, proactive cookie updates, media notifications and playlist navigation. Source/Java tests cover playlist integrity, idempotence, signed queries, CRLF and multi-variant playlists.
 - This is an experimental fix: the supplied bugreport does not contain per-segment HTTP URLs, so the actual filler-segment involvement is not yet confirmed. Keep the pre-release blocked pending 10+ minute device playback.
+
+## v2.0.0-dev.1-26: persistent NicoLive diagnostic tracing (pre-release blocked)
+
+- The SC-52D 2026-11-12 19:15 Android bugreport proves `BAD_DECRYPT` at 19:14:01 and malformed fMP4 atoms at 19:14:59. `blankGaps=0`; the WebSocket `keepSeat` succeeded before both failures. Neither is proof of transport/network disconnection.
+- Previous nicoid Debug > Share exported the header and a stale Java crash, but not the separate live player logs. Add a bounded persistent `NicoliveDiagnostics` trace and append it automatically to the existing debug export.
+- Record sanitized timestamps, HLS media playlist segment/key/gap counts, HTTP request resource category and response length/content-type category, cookie-count (never values), WebSocket open/ping/failure statuses and Media3 error codes. Do not export URLs, tokens, cookie names/values, program IDs or encrypted keys. Rotate the in-memory trace to 500 events / 64 KiB; persist asynchronously every 5 seconds.
+- This is an evidence-gathering build, not a claim that the once-per-minute stop is fixed. Playback code and the previous 2.0.0-dev.1-25 workaround remain unchanged, and pre-release publication stays blocked pending identification of the exact failed segment/key fetch.

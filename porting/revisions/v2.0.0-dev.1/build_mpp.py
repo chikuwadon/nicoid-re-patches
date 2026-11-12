@@ -14,7 +14,7 @@ from patch_manifest import patch_manifest
 
 ROOT = Path(__file__).resolve().parent
 BASE_HASH = "8920e9cdc9fc49178be5bc78cdb990627f4e7a7be83fef782eece3e7c443bcce"
-VERSION = "2.0.0-dev.1-25"
+VERSION = "2.0.0-dev.1-26"
 
 
 def run(*args):
@@ -115,6 +115,21 @@ def build(args, work):
             raise ValueError("Missing settings insertion point")
         (hooks / "SettingsTools.smali").write_text(settings.replace(
             anchor, anchor + "\n\n    invoke-static {p0, v1}, Le/e/a/NicoliveEntry;->settings(Landroid/preference/PreferenceActivity;Landroid/preference/PreferenceGroup;)V"))
+        # Include live playback diagnostics in the existing Debug > Share output.
+        # Preserve the stable debug UI and save location.
+        debug_file = "ModernDebug.smali"
+        debug = (disassembled / "e/e/a" / debug_file).read_text()
+        debug_anchor = ("    invoke-static {p0, v1}, Le/e/a/CrashDiagnostics;->append"
+                        "(Landroid/content/Context;Ljava/lang/String;)Ljava/lang/String;\n"
+                        "\n    move-result-object v1")
+        if debug.count(debug_anchor) != 1:
+            raise ValueError("Missing ModernDebug.share crash-log append hook")
+        debug = debug.replace(debug_anchor, debug_anchor +
+            "\n\n    invoke-static {p0, v1}, Le/e/a/NicoliveDiagnostics;->append"
+            "(Landroid/content/Context;Ljava/lang/String;)Ljava/lang/String;"
+            "\n\n    move-result-object v1")
+        (hooks / debug_file).write_text(debug)
+
         # Preserve the native Back hook while replacing the old checkbox with a mode chooser.
         dev112_file = "Dev112.smali"
         dev112 = (disassembled / "e/e/a" / dev112_file).read_text()

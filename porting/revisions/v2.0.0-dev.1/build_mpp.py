@@ -44,17 +44,26 @@ def build(args, work):
         original.write_bytes(base.read("nicoid/helpers.mpe"))
         expected_input = dict(line.split()[::-1] for line in base.read("nicoid/input-hashes.txt").decode().splitlines())
     native_dex = work / "original.dex"
-    with ZipFile(args.apk) as apk:
-        native = apk.read("classes.dex")
-    if hashlib.sha256(native).hexdigest() != expected_input["classes.dex"]:
-        raise ValueError("Use the original supported nicoid 6.49 APK")
-    native_dex.write_bytes(native)
-    helpers = work / "helpers.jar"
+    sources = [(original, work / "helpers.jar")]
     network = work / "original.jar"
-    for source, target in ((original, helpers), (native_dex, network)):
+    if args.apk is not None:
+        with ZipFile(args.apk) as apk:
+            native = apk.read("classes.dex")
+        if hashlib.sha256(native).hexdigest() != expected_input["classes.dex"]:
+            raise ValueError("Use the original supported nicoid 6.49 APK")
+        native_dex.write_bytes(native)
+        sources.append((native_dex, network))
+    elif not args.ci_without_apk or os.environ.get("GITHUB_ACTIONS") != "true" or \
+         os.environ.get("GITHUB_REF") != "refs/heads/v2.0.0-dev":
+        raise ValueError("The original nicoid 6.49 APK is required outside the guarded CI build")
+    for source, target in sources:
         run("java", "-cp", str(args.media / "*"), "com.googlecode.dex2jar.tools.Dex2jarCmd",
             "-o", target, source)
-    classpath = os.pathsep.join(map(str, [android, helpers, network, *libs]))
+    helpers = work / "helpers.jar"
+    compile_only = [network] if args.apk is not None else args.compile_jar
+    if not all(jar.is_file() for jar in compile_only):
+        raise ValueError("Missing compiler classpath JAR")
+    classpath = os.pathsep.join(map(str, [android, helpers, *compile_only, *libs]))
     classes = work / "classes"
     run("java", "-jar", tools / "ecj.jar", "-8", "-proc:none", "-nowarn", "-cp", classpath,
         "-d", classes, *sorted((ROOT / "java").rglob("*.java")),
@@ -66,9 +75,11 @@ def build(args, work):
     dex = work / "live-dex"
     dex.mkdir()
     java_home = Path(os.path.realpath(subprocess.check_output(["which", "java"], text=True).strip())).parents[1]
-    run("java", "-cp", tools / "r8.jar", "com.android.tools.r8.D8", "--release", "--min-api", 28,
-        "--lib", android, "--lib", java_home, "--classpath", helpers, "--classpath", network,
-        "--output", dex, live_jar, *libs)
+    dex_cmd = ["java", "-cp", tools / "r8.jar", "com.android.tools.r8.D8", "--release", "--min-api", 28,
+               "--lib", android, "--lib", java_home, "--classpath", helpers]
+    for jar in compile_only:
+        dex_cmd.extend(("--classpath", jar))
+    run(*dex_cmd, "--output", dex, live_jar, *libs)
     live_dex = dex / "classes.dex"
     if list(dex.glob("*.dex")) != [live_dex]:
         raise ValueError("Expected a single live DEX")
@@ -278,11 +289,20 @@ def build(args, work):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    for flag in ("base", "apk", "tools", "media", "output"):
+    for flag in ("base", "tools", "media", "output"):
         parser.add_argument("--" + flag, type=Path, required=True)
+    parser.add_argument("--apk", type=Path)
+    parser.add_argument("--ci-without-apk", action="store_true",
+                        help="GitHub v2.0.0-dev only: compile against pinned API JARs instead of private APK")
+    parser.add_argument("--compile-jar", action="append", type=Path, default=[])
+    
     args = parser.parse_args()
     if args.base.resolve() == args.output.resolve():
         parser.error("Use a separate output path")
+    if args.apk is None and (not args.ci_without_apk or len(args.compile_jar) < 2):
+        parser.error("The original APK is required, except for the CI-only checked-source build")
+    if args.apk is not None and args.ci_without_apk:
+        parser.error("Select either an original APK or the CI-only build")
     if hashlib.sha256(args.base.read_bytes()).hexdigest() != BASE_HASH:
         parser.error("Expected the official v1.11.1 MPP")
     with TemporaryDirectory() as folder:

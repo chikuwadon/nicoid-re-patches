@@ -125,8 +125,8 @@ public final class LocalPlaylists {
   FrameLayout frame=old instanceof FrameLayout&&("nicoid_playlist_selection".equals(old.getTag())||"nicoid_playlist_reorder".equals(old.getTag()))?(FrameLayout)old:null;
   View recycled=(selecting||reordering)?(frame==null?null:frame.getChildAt(0)):(frame==null?old:null);
   View row=nativeRows.getView(n,recycled,parent);JSONObject video=identities.get(rows.get(n));
-  if(!selecting&&!reordering){ListActions.bind(row,nativeRows,n);bindArtwork(row,nativeRows,video);return row;}
-  bindArtwork(row,nativeRows,video);
+  if(!selecting&&!reordering){ListActions.bind(row,nativeRows,n);bindArtwork(row,display,video);return row;}
+  bindArtwork(row,display,video);
   disable(row);
   if(reordering){
    if(frame==null||!"nicoid_playlist_reorder".equals(frame.getTag())){

@@ -172,7 +172,7 @@ public class NicoliveUiTest {
   assertEquals(1,a.feedAdapter.getCount());
 
   LinearLayout tabs=a.root.findViewWithTag("nicoid-live-navigation");
-  tabs.getChildAt(3).performClick();
+  tabs.getChildAt(2).performClick();
   assertEquals(0,a.feedAdapter.getCount());
   responses.get(9).done(timetable);
   assertEquals(2,a.feedAdapter.getCount());
@@ -218,7 +218,7 @@ public class NicoliveUiTest {
   Button sort=a.root.findViewWithTag("nicoid-live-sort");
   assertSame(a.status.getParent(),sort.getParent());
   assertTrue(sort.getWidth()>0);
-  for(int index=0;index<5;index++){
+  for(int index=0;index<6;index++){
    LinearLayout destination=(LinearLayout)((LinearLayout)navigation).getChildAt(index);
    TextView caption=(TextView)destination.getChildAt(1);
    assertTrue(caption.getHeight()>0);
@@ -242,12 +242,19 @@ public class NicoliveUiTest {
  }
  @Test public void rankingAndReservationTabPositionsAndLiveBadges(){
   LinearLayout navigation=a.root.findViewWithTag("nicoid-live-navigation");
-  assertEquals("タイムシフト予約リスト",navigation.getChildAt(4).getContentDescription());
-  assertEquals("ランキング",((Button)a.categoryTabs.getChildAt(0)).getText().toString());
-  a.categoryTabs.getChildAt(0).performClick();
-  assertTrue(((Button)a.categoryTabs.getChildAt(0)).isSelected());
-  a.categoryTabs.getChildAt(1).performClick();
-  assertTrue(((Button)a.categoryTabs.getChildAt(1)).isSelected());
+  assertEquals(Arrays.asList("放送中","ランキング","番組表","フォロー","履歴","タイムシフト予約リスト"),
+   Arrays.asList(navigation.getChildAt(0).getContentDescription(),navigation.getChildAt(1).getContentDescription(),
+    navigation.getChildAt(2).getContentDescription(),navigation.getChildAt(3).getContentDescription(),
+    navigation.getChildAt(4).getContentDescription(),navigation.getChildAt(5).getContentDescription()));
+  navigation.getChildAt(1).performClick();
+  assertNull(a.categoryTabs);
+  assertTrue(a.officialPage().contains("/ranking"));
+  navigation=a.root.findViewWithTag("nicoid-live-navigation");
+  assertTrue(navigation.getChildAt(1).isSelected());
+  navigation.getChildAt(0).performClick();
+  assertTrue(a.categoryTabs.getChildAt(0).isSelected());
+  a.moveCategory(-1);
+  assertTrue(a.categoryTabs.getChildAt(0).isSelected());
 
   NicoliveData.Program row=new NicoliveData.Program("lv100");
   row.status="ON_AIR";
@@ -266,11 +273,101 @@ public class NicoliveUiTest {
   assertEquals(View.GONE,badge.getVisibility());
 
   navigation=a.root.findViewWithTag("nicoid-live-navigation");
-  navigation.getChildAt(1).performClick();
+  navigation.getChildAt(3).performClick();
   a.moveCategory(1);
   assertTrue(((LinearLayout)a.body.getChildAt(0)).getChildAt(1).isSelected());
   a.moveCategory(-1);
   assertTrue(((LinearLayout)a.body.getChildAt(0)).getChildAt(0).isSelected());
+ }
+
+ @Test public void timetableDateStripIncludesOnAirBetweenYesterdayAndToday(){
+  a.root.<LinearLayout>findViewWithTag("nicoid-live-navigation").getChildAt(2).performClick();
+  HorizontalScrollView strip=a.root.findViewWithTag("nicoid-live-timetable-dates");
+  LinearLayout dates=(LinearLayout)strip.getChildAt(0);
+  assertEquals(16,dates.getChildCount());
+  assertEquals("放送中",((Button)dates.getChildAt(7)).getText());
+  assertEquals("今日",((Button)dates.getChildAt(8)).getText());
+  assertTrue(dates.getChildAt(8).isSelected());
+  a.moveCategory(-1);
+  dates=(LinearLayout)a.root.<HorizontalScrollView>findViewWithTag("nicoid-live-timetable-dates").getChildAt(0);
+  assertTrue(dates.getChildAt(7).isSelected());
+  assertEquals("https://live.nicovideo.jp/timetable",a.officialPage());
+  a.moveCategory(-1);
+  dates=(LinearLayout)a.root.<HorizontalScrollView>findViewWithTag("nicoid-live-timetable-dates").getChildAt(0);
+  assertTrue(dates.getChildAt(6).isSelected());
+ }
+
+ @Test public void liveMenuAndBothBackRoutesRespectExitConfirmation(){
+  a.root.findViewWithTag("nicoid-live-menu").performClick();
+  AlertDialog menu=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();
+  assertEquals(3,menu.getListView().getCount());
+  assertEquals("ニコ生の設定",menu.getListView().getItemAtPosition(1).toString());
+  menu.dismiss();
+  a.header.getChildAt(0).performClick();
+  AlertDialog confirm=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();
+  assertTrue(confirm.isShowing());
+  assertFalse(a.isFinishing());
+  confirm.dismiss();
+  a.onBackPressed();
+  assertTrue(org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog().isShowing());
+  org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog().dismiss();
+  PreferenceManager.getDefaultSharedPreferences(a).edit().putBoolean("nicolive_exit_confirm",false).commit();
+  a.onBackPressed();
+  assertTrue(a.isFinishing());
+ }
+
+ @Test public void multipleTabPlacementKeepsExistingBarAndListInSelectedOrder(){
+  SharedPreferences preferences=PreferenceManager.getDefaultSharedPreferences(a);
+  LinearLayout root=new LinearLayout(a);
+  root.setOrientation(LinearLayout.VERTICAL);
+  View list=new View(a),bar=new View(a);
+  LinearLayout.LayoutParams barParams=new LinearLayout.LayoutParams(-1,32);
+  root.addView(list,new LinearLayout.LayoutParams(-1,0,1));
+  MultiTabPlacement.insert(root,bar,0,barParams);
+  assertSame(bar,root.getChildAt(0));
+  root.removeView(bar);
+  preferences.edit().putBoolean("multiple_video_tabs_at_bottom",true).commit();
+  MultiTabPlacement.insert(root,bar,0,barParams);
+  assertSame(list,root.getChildAt(0));
+  assertSame(bar,root.getChildAt(1));
+  assertSame(barParams,bar.getLayoutParams());
+  preferences.edit().remove("multiple_video_tabs_at_bottom").commit();
+ }
+
+ @Test @Config(sdk=36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+ public void translucentCommentDoesNotDarkenWhereFillAndOutlineIntersect(){
+  Bitmap image=Bitmap.createBitmap(100,100,Bitmap.Config.ARGB_8888);
+  Canvas canvas=new Canvas(image);
+  Paint paint=new Paint();
+  paint.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));
+  paint.setTextSize(56);
+  paint.setColor(Color.BLACK);
+  String glyph="I";
+  int x=35,y=70;
+  Rect bounds=new Rect();
+  paint.getTextBounds(glyph,0,glyph.length(),bounds);
+  int center=x+bounds.centerX(), sampleY=y+bounds.centerY(), edge=x+bounds.left+1;
+  image.eraseColor(Color.WHITE);
+  paint.setStyle(Paint.Style.STROKE);
+  assertTrue(CommentOutlineOpacity.drawPass(canvas,glyph,x,y,paint,39,24,0));
+  paint.setStyle(Paint.Style.FILL);
+  assertTrue(CommentOutlineOpacity.drawPass(canvas,glyph,x,y,paint,39,24,0));
+  int expected=255-Math.round(255*.39f);
+  assertEquals(expected,Color.red(image.getPixel(center,sampleY)),1);
+  assertEquals(expected,Color.red(image.getPixel(edge,sampleY)),1);
+  assertEquals(255,paint.getAlpha());
+  image.eraseColor(Color.WHITE);
+  Paint outline=new Paint(paint);
+  outline.setStyle(Paint.Style.STROKE);
+  outline.setStrokeWidth(24);
+  outline.setAlpha(99);
+  paint.setAlpha(99);
+  CommentOutlineOpacity.drawLive(canvas,glyph,x,y,outline,paint);
+  assertEquals(expected,Color.red(image.getPixel(center,sampleY)),1);
+  assertEquals(expected,Color.red(image.getPixel(edge,sampleY)),1);
+  assertEquals(99,paint.getAlpha());
+  assertEquals(99,outline.getAlpha());
+  image.recycle();
  }
 
  @Test @Config(sdk=36) @GraphicsMode(GraphicsMode.Mode.NATIVE)

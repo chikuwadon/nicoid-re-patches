@@ -13,8 +13,16 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
  private static final int FOLLOWING=1;
  private static final DateTimeFormatter PROGRAM_TIME=DateTimeFormatter.ofPattern("M/d HH:mm",Locale.JAPAN);
  private static final DateTimeFormatter TIMETABLE_TIME=DateTimeFormatter.ofPattern("HH:mm");
+ private static final int[] HUB_TABS={0,RANKING,TIMETABLE,FOLLOWING,2,RESERVATIONS};
+ private static final String[] HUB_LABELS={"放送中","ランキング","番組表","フォロー","履歴","予約リスト"};
+ private static final String EXIT_CONFIRM="nicolive_exit_confirm", START_TAB="nicolive_start_tab",
+  LAST_TAB="nicolive_last_tab", FLOAT_REFRESH="nicolive_float_refresh", START_TIME="nicolive_start_time";
+ private static final DateTimeFormatter DATE_TAB=DateTimeFormatter.ofPattern("M/d(E)",Locale.JAPAN);
+ private boolean timetableOnAir;
+ private AlertDialog exitDialog;
  private LocalDate timetableDay=LocalDate.now(NicoliveCatalog.JAPAN);
  private Button sortButton;
+ private ImageButton bottomRefresh;
  private int followFilter;
  private final Set<String> reserving=new HashSet<>();
  private boolean rankingUsers=true;
@@ -34,7 +42,9 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
   android.content.SharedPreferences prefs=PreferenceManager.getDefaultSharedPreferences(this);
   liveSort=NicoliveCatalog.Sort.restore(prefs.getString("nicolive_live_sort",""),NicoliveCatalog.Sort.NEWEST);
   timetableSort=NicoliveCatalog.Sort.restore(prefs.getString("nicolive_timetable_sort",""),NicoliveCatalog.Sort.OLDEST);
-  if(state!=null){draft=state.getString("draft","");query=state.getString("query","");hubTab=state.getInt("hubTab",0);category=state.getInt("category",0);try{timetableDay=LocalDate.parse(state.getString("timetableDay",timetableDay.toString()));}catch(java.time.DateTimeException ignored){}requested=state.getString("program","");}
+  int startTab=prefs.getInt(START_TAB,0);
+  hubTab=validHubTab(startTab==-1?prefs.getInt(LAST_TAB,0):startTab);
+  if(state!=null){timetableOnAir=state.getBoolean("timetableOnAir");draft=state.getString("draft","");query=state.getString("query","");hubTab=validHubTab(state.getInt("hubTab",hubTab));category=state.getInt("category",0);try{timetableDay=LocalDate.parse(state.getString("timetableDay",timetableDay.toString()));}catch(java.time.DateTimeException ignored){}requested=state.getString("program","");}
   if(state==null){String id=fromIntent(getIntent());if(id!=null)requested=id;}if(!requested.isEmpty())watch(requested);else hub();
  }
  String fromIntent(Intent intent){if(intent==null)return null;String id=NicoliveData.id(intent.getStringExtra("program"));return id!=null?id:NicoliveData.id(intent.getDataString());}
@@ -44,13 +54,13 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
  @Override protected void onResume(){super.onResume();refreshAccount();updateNowPlaying();}
  void refreshAccount(){if(!watching||service==null||service.program==null||service.program.loggedIn||service.session==null)return;String cookie=NicoliveBrowser.cookie(this);if(cookie.contains("user_session=")&&!cookie.equals(service.session.accountCookie))service.open(service.id);}
  @Override protected void onDestroy(){unbind();if(browser!=null)browser.close();super.onDestroy();}
- @Override protected void onSaveInstanceState(Bundle state){if(input!=null)draft=input.getText().toString();state.putString("draft",draft);state.putString("query",query);state.putInt("hubTab",hubTab);state.putInt("category",category);state.putString("timetableDay",timetableDay.toString());state.putString("program",watching?requested:"");super.onSaveInstanceState(state);}
+ @Override protected void onSaveInstanceState(Bundle state){if(input!=null)draft=input.getText().toString();state.putString("draft",draft);state.putString("query",query);state.putInt("hubTab",hubTab);state.putInt("category",category);state.putBoolean("timetableOnAir",timetableOnAir);state.putString("timetableDay",timetableDay.toString());state.putString("program",watching?requested:"");super.onSaveInstanceState(state);}
  @Override public void onConfigurationChanged(Configuration config){super.onConfigurationChanged(config);if(watching){if(input!=null)draft=input.getText().toString();fullscreen=config.orientation==Configuration.ORIENTATION_LANDSCAPE;updateViewerLayout();}else hub();}
  void bind(){if(bound)return;bound=bindService(new Intent(this,NicoliveService.class),connection,BIND_AUTO_CREATE);}
  void unbind(){if(service!=null){service.unobserve(this);if(playerFrame!=null)service.detach(playerFrame);}if(bound){try{unbindService(connection);}catch(Exception ignored){}bound=false;}service=null;}
  void base(){renderedProgram=null;renderedViews=renderedComments=Long.MIN_VALUE;root=new NicoliveSwipeLayout(this,step->{if(watching){if(!fullscreen){info=step>0;showPane();}}else moveCategory(step);});DynamicTheme.background(root);root.setFitsSystemWindows(true);setContentView(root);header=NicoliveUi.row(this);root.addView(header,new LinearLayout.LayoutParams(-1,NicoliveUi.dp(this,48)));body=NicoliveUi.column(this);root.addView(body,new LinearLayout.LayoutParams(-1,0,1));}
  void hub(){boolean keepRecent=watching&&recentFeed()&&recentReady;browser.resumeImages();watching=false;fullscreen=false;getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN|WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);if(service!=null&&playerFrame!=null)service.detach(playerFrame);playerFrame=null;input=null;chat=null;base();
-  ImageButton back=NicoliveUi.icon(this,"back","戻る");header.addView(back);back.setOnClickListener(v->finish());String screenTitle=hubTab==RESERVATIONS?"タイムシフト予約リスト":"生放送";heading=NicoliveUi.text(this,screenTitle,18);header.addView(heading,new LinearLayout.LayoutParams(0,-1,1));ImageButton refresh=NicoliveUi.icon(this,"refresh","更新");header.addView(refresh);refresh.setOnClickListener(v->refreshFeed());
+  ImageButton back=NicoliveUi.icon(this,"back","戻る");header.addView(back);back.setOnClickListener(v->exitHub());String screenTitle=hubTab==RESERVATIONS?"タイムシフト予約リスト":"生放送";heading=NicoliveUi.text(this,screenTitle,18);header.addView(heading,new LinearLayout.LayoutParams(0,-1,1));ImageButton menu=NicoliveUi.icon(this,"more","ニコ生メニュー");menu.setTag("nicoid-live-menu");header.addView(menu);menu.setOnClickListener(v->showHubMenu());
   searchInput=null;
   if(hubTab==0){
    LinearLayout searchRow=NicoliveUi.row(this);
@@ -75,15 +85,15 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
    body.addView(searchRow,searchLayout);
   }
   categoryTabs=null;
-  if(hubTab==0||hubTab==RANKING){
+  if(hubTab==0){
    categoryTabs=NicoliveUi.row(this);
-   String[] kinds={"ランキング","すべて","ユーザー","公式","チャンネル"};
+   String[] kinds={"すべて","ユーザー","公式","チャンネル"};
    for(int i=0;i<kinds.length;i++){
-    final int selected=i-1;
+    final int selected=i;
     Button button=NicoliveUi.button(this,kinds[i]);
     button.setTextSize(12);
     button.setPadding(0,0,0,0);
-    NicoliveUi.selected(button,hubTab==RANKING?selected==-1:selected==category);
+    NicoliveUi.selected(button,selected==category);
     categoryTabs.addView(button,new LinearLayout.LayoutParams(0,NicoliveUi.dp(this,40),1));
     button.setOnClickListener(v->selectCategory(selected));
    }
@@ -115,7 +125,6 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
   feed.setDivider(null);
   feed.setCacheColorHint(Color.TRANSPARENT);
   feed.setClipToPadding(false);
-  feed.setPadding(0,0,0,NicoliveUi.dp(this,62));
   feedAdapter=new FeedAdapter();
   feed.setAdapter(feedAdapter);
   listArea.addView(feed,new FrameLayout.LayoutParams(-1,-1));
@@ -132,7 +141,7 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
    confirmReservation(program);
    return true;
   });
-  ImageButton bottomRefresh=NicoliveUi.icon(this,"refresh","一覧を更新");
+  bottomRefresh=NicoliveUi.icon(this,"refresh","一覧を更新");
   bottomRefresh.setTag("nicoid-live-bottom-refresh");
   android.graphics.drawable.GradientDrawable circle=new android.graphics.drawable.GradientDrawable();
   circle.setShape(android.graphics.drawable.GradientDrawable.OVAL);
@@ -145,6 +154,7 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
   refreshLayout.setMargins(0,0,padding,padding);
   listArea.addView(bottomRefresh,refreshLayout);
   bottomRefresh.setOnClickListener(v->refreshFeed());
+  updateHubDisplayOptions();
 
   nowPlayingBar=NicoliveUi.row(this);
   Button resume=NicoliveUi.button(this,"再生中の生放送に戻る");
@@ -172,22 +182,136 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
   }
  }
 
+ private SharedPreferences prefs(){
+  return PreferenceManager.getDefaultSharedPreferences(this);
+ }
+
+ private static int validHubTab(int value){
+  for(int tab:HUB_TABS)if(tab==value)return tab;
+  return 0;
+ }
+
+ private void showHubMenu(){
+  AlertDialog menu=UiDialogs.builder(this).setTitle("ニコ生")
+   .setItems(new String[]{"現在の一覧を更新","ニコ生の設定","公式サイトで開く"},(dialog,which)->{
+    switch(which){
+     case 0: refreshFeed(); break;
+     case 1: showHubSettings(); break;
+     case 2: openBrowser(officialPage()); break;
+    }
+   }).create();
+  NicoliveUi.dialog(menu);
+  Window window=menu.getWindow();
+  if(window!=null){
+   window.setGravity(Gravity.TOP|Gravity.END);
+   WindowManager.LayoutParams layout=window.getAttributes();
+   layout.y=NicoliveUi.dp(this,48);
+   window.setAttributes(layout);
+   window.setLayout(Math.min(getResources().getDisplayMetrics().widthPixels,NicoliveUi.dp(this,288)),
+    ViewGroup.LayoutParams.WRAP_CONTENT);
+  }
+ }
+
+ private void showHubSettings(){
+  SharedPreferences preferences=prefs();
+  LinearLayout options=NicoliveUi.column(UiTheme191.context(this));
+  int inset=NicoliveUi.dp(this,20);
+  options.setPadding(inset,0,inset,0);
+  CheckBox confirm=settingSwitch(options,"ニコ生を閉じる前に確認する",preferences.getBoolean(EXIT_CONFIRM,true));
+  CheckBox refresh=settingSwitch(options,"右下に更新ボタンを表示",preferences.getBoolean(FLOAT_REFRESH,true));
+  Button launch=NicoliveUi.button(options.getContext(),"");
+  Button time=NicoliveUi.button(options.getContext(),"");
+  options.addView(launch,new LinearLayout.LayoutParams(-1,NicoliveUi.dp(this,48)));
+  options.addView(time,new LinearLayout.LayoutParams(-1,NicoliveUi.dp(this,48)));
+  String[] startOptions=Arrays.copyOf(HUB_LABELS,HUB_LABELS.length+1);
+  startOptions[HUB_LABELS.length]="前回開いたタブ";
+  int saved=preferences.getInt(START_TAB,0);
+  int current=0;
+  for(int i=0;i<HUB_TABS.length;i++)if(HUB_TABS[i]==saved)current=i;
+  if(saved==-1)current=HUB_LABELS.length;
+  int[] selections={current,preferences.getBoolean(START_TIME,false)?1:0};
+  String[] timeOptions={"経過時間","放送開始時刻"};
+  bindSettingChoice(launch,"最初に開くタブ",startOptions,selections,0);
+  bindSettingChoice(time,"放送中の時刻表示",timeOptions,selections,1);
+  ScrollView scroll=new ScrollView(options.getContext());
+  scroll.addView(options);
+  NicoliveUi.dialog(UiDialogs.builder(this).setTitle("ニコ生の設定").setView(scroll)
+   .setNegativeButton(android.R.string.cancel,null)
+   .setPositiveButton("適用",(dialog,which)->{
+    int start=selections[0]==HUB_TABS.length?-1:HUB_TABS[selections[0]];
+    preferences.edit().putBoolean(EXIT_CONFIRM,confirm.isChecked())
+     .putBoolean(FLOAT_REFRESH,refresh.isChecked()).putInt(START_TAB,start)
+     .putBoolean(START_TIME,selections[1]==1).apply();
+    updateHubDisplayOptions();
+   }).create());
+ }
+
+ private CheckBox settingSwitch(LinearLayout options,String label,boolean checked){
+  CheckBox check=new CheckBox(options.getContext());
+  check.setText(label);
+  check.setMinHeight(NicoliveUi.dp(this,48));
+  check.setChecked(checked);
+  options.addView(check,new LinearLayout.LayoutParams(-1,-2));
+  return check;
+ }
+
+ private void updateHubDisplayOptions(){
+  boolean show=prefs().getBoolean(FLOAT_REFRESH,true);
+  bottomRefresh.setVisibility(show?View.VISIBLE:View.GONE);
+  feed.setPadding(0,0,0,show?NicoliveUi.dp(this,62):0);
+  feedAdapter.notifyDataSetChanged();
+ }
+
+ private void bindSettingChoice(Button button,String label,String[] choices,int[] selections,int index){
+  button.setText(label+" / "+choices[selections[index]]);
+  button.setOnClickListener(v->NicoliveUi.dialog(UiDialogs.builder(this).setTitle(label)
+   .setSingleChoiceItems(choices,selections[index],(dialog,which)->{
+    selections[index]=which;
+    button.setText(label+" / "+choices[which]);
+    dialog.dismiss();
+   }).setNegativeButton(android.R.string.cancel,null).create()));
+ }
+
+ String officialPage(){
+  switch(hubTab){
+   case RANKING: return NicoliveCatalog.rankingUrl(rankingState);
+   case TIMETABLE:
+    return timetableOnAir?"https://live.nicovideo.jp/timetable":NicoliveCatalog.timetableUrl(timetableDay);
+   case FOLLOWING:
+    return NicoliveCatalog.followUrl(followFilter==0?NicoliveCatalog.Broadcast.LIVE:
+     NicoliveCatalog.Broadcast.values()[followFilter-1]);
+   case 2: return "https://www.nicovideo.jp/my/history/live";
+   case RESERVATIONS: return "https://www.nicovideo.jp/my/timeshift-reservations";
+   default: return query.isEmpty()?"https://live.nicovideo.jp/recent":
+    "https://live.nicovideo.jp/search?keyword="+Uri.encode(query);
+  }
+ }
+
+ private void exitHub(){
+  if(!prefs().getBoolean(EXIT_CONFIRM,true)){finish();return;}
+  if(exitDialog!=null&&exitDialog.isShowing())return;
+  exitDialog=UiDialogs.builder(this).setTitle("ニコ生を閉じますか？")
+   .setMessage("通常のニコ動画面に戻ります")
+   .setNegativeButton(android.R.string.cancel,null)
+   .setPositiveButton("戻る",(dialog,which)->finish()).create();
+  NicoliveUi.dialog(exitDialog);
+ }
+
  private LinearLayout hubNavigation(){
   LinearLayout navigation=NicoliveUi.row(this);
   navigation.setTag("nicoid-live-navigation");
   navigation.setBackground(NicoliveUi.panel(this,10));
-  String[] names={"放送中","フォロー","履歴","番組表","予約リスト"};
-  String[] icons={"live","people","history","calendar","schedule"};
-  for(int index=0;index<names.length;index++){
-   final int destination=index==4?RESERVATIONS:index;
-   boolean selected=hubTab==destination||(hubTab==RANKING&&destination==0);
-   View button=NicoliveUi.navigationButton(this,names[index],icons[index],selected);
+  String[] icons={"live","ranking","calendar","people","history","schedule"};
+  for(int index=0;index<HUB_TABS.length;index++){
+   final int destination=HUB_TABS[index];
+   View button=NicoliveUi.navigationButton(this,HUB_LABELS[index],icons[index],hubTab==destination);
    if(destination==RESERVATIONS)button.setContentDescription("タイムシフト予約リスト");
    navigation.addView(button,new LinearLayout.LayoutParams(0,-1,1));
    button.setOnClickListener(v->{
     if(hubTab==destination)return;
     recentReady=false;
     hubTab=destination;
+    prefs().edit().putInt(LAST_TAB,destination).apply();
     query="";
     feedPosition=0;
     feedOffset=0;
@@ -257,29 +381,17 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
  }
 
  void moveCategory(int step){
-  if(hubTab==0)selectCategory(Math.max(-1,Math.min(3,category+step)));
-  else if(hubTab==RANKING&&step>0)selectCategory(0);
+  if(hubTab==0)selectCategory(Math.max(0,Math.min(3,category+step)));
   else if(hubTab==FOLLOWING)selectFollow(Math.max(0,Math.min(3,followFilter+step)));
-  else if(hubTab==TIMETABLE)selectTimetableDay(timetableDay.plusDays(step));
+  else if(hubTab==TIMETABLE)moveTimetable(step);
  }
 
  void selectCategory(int selected){
   if(categoryTabs==null)return;
-  if(selected==-1||hubTab==RANKING){
-   int destination=selected==-1?RANKING:0;
-   if(hubTab==destination)return;
-   if(selected>=0)category=selected;
-   hubTab=destination;
-   recentReady=false;
-   query="";
-   feedPosition=feedOffset=0;
-   hub();
-   return;
-  }
   if(category==selected)return;
   category=selected;
   for(int index=0;index<categoryTabs.getChildCount();index++){
-   NicoliveUi.selected((Button)categoryTabs.getChildAt(index),index==category+1);
+   NicoliveUi.selected((Button)categoryTabs.getChildAt(index),index==category);
   }
   feedPosition=0;
   feedOffset=0;
@@ -569,61 +681,100 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
   });
  }
 
- private LinearLayout timetableControls(){
+ private HorizontalScrollView timetableControls(){
+  HorizontalScrollView scroll=new HorizontalScrollView(this);
+  scroll.setHorizontalScrollBarEnabled(false);
+  scroll.setTag("nicoid-live-timetable-dates");
   LinearLayout row=NicoliveUi.row(this);
-  Button previous=NicoliveUi.button(this,"前日");
-  previous.setOnClickListener(v->selectTimetableDay(timetableDay.minusDays(1)));
-  row.addView(previous,new LinearLayout.LayoutParams(NicoliveUi.dp(this,56),NicoliveUi.dp(this,44)));
-  Button date=NicoliveUi.button(this,timetableDay.format(DateTimeFormatter.ofPattern("M月d日 (E)",Locale.JAPAN)));
-  date.setContentDescription(date.getText()+" / 日付を選択");
-  date.setOnClickListener(v->{
-   LocalDate day=timetableDay;
-   new DatePickerDialog(this,(picker,y,m,d)->selectTimetableDay(LocalDate.of(y,m+1,d)),
-           day.getYear(),day.getMonthValue()-1,day.getDayOfMonth()).show();
+  scroll.addView(row);
+  LocalDate today=LocalDate.now(NicoliveCatalog.JAPAN);
+  LocalDate first=today.minusDays(7),last=today.plusDays(7);
+  if(timetableDay.isBefore(first)||timetableDay.isAfter(last))timetableDay=today;
+  for(LocalDate day=first;!day.isAfter(last);day=day.plusDays(1)){
+   if(day.equals(today))addDateTab(row,"放送中",today,true);
+   addDateTab(row,day.equals(today)?"今日":DATE_TAB.format(day),day,false);
+  }
+  scroll.post(()->{
+   for(int i=0;i<row.getChildCount();i++){
+    View tab=row.getChildAt(i);
+    if(tab.isSelected()){scroll.scrollTo(tab.getLeft()+(tab.getWidth()-scroll.getWidth())/2,0);break;}
+   }
   });
-  row.addView(date,new LinearLayout.LayoutParams(0,NicoliveUi.dp(this,44),1));
-  Button today=NicoliveUi.button(this,"今日");
-  today.setOnClickListener(v->selectTimetableDay(LocalDate.now(NicoliveCatalog.JAPAN)));
-  row.addView(today,new LinearLayout.LayoutParams(NicoliveUi.dp(this,56),NicoliveUi.dp(this,44)));
-  Button next=NicoliveUi.button(this,"翌日");
-  next.setOnClickListener(v->selectTimetableDay(timetableDay.plusDays(1)));
-  row.addView(next,new LinearLayout.LayoutParams(NicoliveUi.dp(this,56),NicoliveUi.dp(this,44)));
-  return row;
+  return scroll;
  }
 
- private void selectTimetableDay(LocalDate day){
-  if(day.equals(timetableDay))return;
+ private void addDateTab(LinearLayout row,String label,LocalDate day,boolean onAir){
+  Button tab=NicoliveUi.button(this,label);
+  tab.setSingleLine(true);
+  tab.setMinWidth(NicoliveUi.dp(this,60));
+  NicoliveUi.selected(tab,timetableOnAir==onAir&&(onAir||timetableDay.equals(day)));
+  row.addView(tab,new LinearLayout.LayoutParams(-2,NicoliveUi.dp(this,42)));
+  tab.setOnClickListener(v->selectTimetableDay(day,onAir));
+ }
+
+ private void moveTimetable(int step){
+  LocalDate today=LocalDate.now(NicoliveCatalog.JAPAN);
+  if(timetableOnAir){
+   selectTimetableDay(step<0?today.minusDays(1):today,false);
+  }else if((step<0&&timetableDay.equals(today))||(step>0&&timetableDay.equals(today.minusDays(1)))){
+   selectTimetableDay(today,true);
+  }else if(!timetableDay.plusDays(step).isBefore(today.minusDays(7))&&
+           !timetableDay.plusDays(step).isAfter(today.plusDays(7))){
+   selectTimetableDay(timetableDay.plusDays(step),false);
+  }
+ }
+
+ private void selectTimetableDay(LocalDate day,boolean onAir){
+  if(day.equals(timetableDay)&&onAir==timetableOnAir)return;
   timetableDay=day;
-  feedPosition=0;
-  feedOffset=0;
+  timetableOnAir=onAir;
+  feedPosition=feedOffset=0;
   hub();
  }
 
  private void loadTimetable(int token){
   programs.clear();
   feedAdapter.notifyDataSetChanged();
-  LocalDate date=timetableDay;
-  browser.load(NicoliveCatalog.timetableUrl(date),NicoliveBrowser.cookie(this),new NicoliveBrowser.Result(){
+  LocalDate today=LocalDate.now(NicoliveCatalog.JAPAN);
+  LocalDate date=timetableOnAir?today:timetableDay;
+  loadTimetableDate(token,date,NicoliveBrowser.cookie(this),timetableOnAir,false,
+    false,new LinkedHashMap<>());
+ }
+
+ private void loadTimetableDate(int token,LocalDate date,String cookie,boolean onAir,
+                                boolean previous,boolean failed,LinkedHashMap<String,NicoliveData.Program> results){
+  browser.load(NicoliveCatalog.timetableUrl(date),cookie,new NicoliveBrowser.Result(){
    @Override public void done(String html){
     if(!currentLoad(token))return;
     try{
-     programs.addAll(NicoliveCatalog.timetable(html,date));
-     loading=false;
-     status.setText(programs.isEmpty()?"番組はありません":"公式・チャンネル "+programs.size()+"件");
-     feedAdapter.notifyDataSetChanged();
-     feed.setSelectionFromTop(feedPosition,feedOffset);
-    }catch(Exception invalid){error();}
+     for(NicoliveData.Program program:NicoliveCatalog.timetable(html,date)){
+      if(!onAir||program.onAir())results.putIfAbsent(program.id,program);
+     }
+    }catch(Exception invalid){error();return;}
+    if(onAir&&!previous){loadTimetableDate(token,date.minusDays(1),cookie,true,true,false,results);return;}
+    showTimetableResults(results,failed);
    }
    @Override public void error(){
     if(!currentLoad(token))return;
-    loading=false;
-    status.setText("番組表を取得できませんでした");
+    if(onAir&&!previous){loadTimetableDate(token,date.minusDays(1),cookie,true,true,true,results);return;}
+    showTimetableResults(results,true);
    }
   });
  }
 
+ private void showTimetableResults(Map<String,NicoliveData.Program> results,boolean failed){
+  programs.addAll(results.values());
+  String count="公式・チャンネル "+programs.size()+"件";
+  if(programs.isEmpty())showResults(failed?"番組表を取得できませんでした":"番組はありません");
+  else showResults(failed?count+" / 一部取得できませんでした":count);
+ }
+
  private void openTimetableProgram(String id){
-  Intent browserIntent=new Intent(Intent.ACTION_VIEW,Uri.parse("https://live.nicovideo.jp/watch/"+id));
+  openBrowser("https://live.nicovideo.jp/watch/"+id);
+ }
+
+ private void openBrowser(String url){
+  Intent browserIntent=new Intent(Intent.ACTION_VIEW,Uri.parse(url));
   browserIntent.setSelector(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_BROWSER));
   try{startActivity(browserIntent);}
   catch(ActivityNotFoundException unavailable){Toast.makeText(this,"ブラウザを開けませんでした",Toast.LENGTH_SHORT).show();}
@@ -659,8 +810,8 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
  void toggleFullscreen(){fullscreen=!fullscreen;setRequestedOrientation(fullscreen?ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE:ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);if(input!=null)draft=input.getText().toString();updateViewerLayout();}
  void playerSettings(){if(service==null)return;final ArrayList<String> choices=new ArrayList<String>(service.qualities);ArrayList<String> labels=new ArrayList<String>();for(String q:choices)labels.add((q.equals(service.selected)?"✓  ":"　 ")+NicoliveData.qualityLabel(q));labels.add("再接続");labels.add("ポップアップ");labels.add("生放送のNG設定");AlertDialog d=UiDialogs.builder(this).setTitle("画質と設定").setItems(labels.toArray(new String[0]),(dialog,which)->{if(service==null)return;int count=choices.size();if(which<count)service.selectQuality(choices.get(which));else if(which==count)service.reconnect();else if(which==count+1)popup();else ngSettings();}).create();NicoliveUi.dialog(d);}
  void ngSettings(){if(service==null)return;final Set<String> users=new HashSet<String>(service.ng.prefs.getStringSet("nicolive_ng_users",Collections.<String>emptySet())),words=new HashSet<String>(service.ng.prefs.getStringSet("nicolive_ng_words",Collections.<String>emptySet()));final ArrayList<String> keys=new ArrayList<String>(),types=new ArrayList<String>();for(String s:users){keys.add(s);types.add("ユーザー: "+s);}for(String s:words){keys.add(s);types.add("ワード: "+s);}final boolean[] remove=new boolean[keys.size()];AlertDialog d=UiDialogs.builder(this).setTitle("生放送のNG設定").setMultiChoiceItems(types.toArray(new String[0]),remove,(dialog,which,checked)->remove[which]=checked).setPositiveButton("選択を削除",(dialog,which)->{for(int i=0;i<keys.size();i++)if(remove[i]){if(types.get(i).startsWith("ユーザー: "))users.remove(keys.get(i));else words.remove(keys.get(i));}if(service==null)return;service.ng.prefs.edit().putStringSet("nicolive_ng_users",users).putStringSet("nicolive_ng_words",words).apply();service.ng.reload();}).setNegativeButton("閉じる",null).create();NicoliveUi.dialog(d);}
- @Override public void onBackPressed(){if(fullscreen){toggleFullscreen();return;}if(watching){if(input!=null)draft=input.getText().toString();hub();return;}super.onBackPressed();}
- String programLabel(NicoliveData.Program p){String type=p.provider.equals("official")?"公式":p.provider.equals("channel")?"CH":p.provider.equals("user")||p.provider.equals("community")?"ユーザー":"生放送";if(hubTab==2)return "視聴履歴 / "+type;if(hubTab==TIMETABLE&&p.begin>0){String time=TIMETABLE_TIME.format(Instant.ofEpochSecond(p.begin).atZone(NicoliveCatalog.JAPAN));String state=p.onAir()?"放送中":p.ended()?"放送終了":"放送予定";return type+" / "+time+" / "+state;}if(!p.onAir()){String state=p.ended()?"放送終了":"放送予定";if(p.begin>0)state+=" / "+PROGRAM_TIME.format(Instant.ofEpochSecond(p.begin).atZone(NicoliveCatalog.JAPAN));return type+" / "+state;}long minutes=p.begin>0?Math.max(0,(System.currentTimeMillis()/1000-p.begin)/60):-1;return type+" / "+(minutes<0?"放送中":minutes<60?minutes+"分経過":minutes/60+"時間"+minutes%60+"分経過");}
+ @Override public void onBackPressed(){if(fullscreen){toggleFullscreen();return;}if(watching){if(input!=null)draft=input.getText().toString();hub();return;}exitHub();}
+ String programLabel(NicoliveData.Program p){String type=p.provider.equals("official")?"公式":p.provider.equals("channel")?"CH":p.provider.equals("user")||p.provider.equals("community")?"ユーザー":"生放送";if(hubTab==2)return "視聴履歴 / "+type;if(hubTab==TIMETABLE&&!timetableOnAir&&p.begin>0){String time=TIMETABLE_TIME.format(Instant.ofEpochSecond(p.begin).atZone(NicoliveCatalog.JAPAN));String state=p.onAir()?"放送中":p.ended()?"放送終了":"放送予定";return type+" / "+time+" / "+state;}if(!p.onAir()){String state=p.ended()?"放送終了":"放送予定";if(p.begin>0)state+=" / "+PROGRAM_TIME.format(Instant.ofEpochSecond(p.begin).atZone(NicoliveCatalog.JAPAN));return type+" / "+state;}if(p.begin>0&&prefs().getBoolean(START_TIME,false))return type+" / "+PROGRAM_TIME.format(Instant.ofEpochSecond(p.begin).atZone(NicoliveCatalog.JAPAN))+" 開始";long minutes=p.begin>0?Math.max(0,(System.currentTimeMillis()/1000-p.begin)/60):-1;return type+" / "+(minutes<0?"放送中":minutes<60?minutes+"分経過":minutes/60+"時間"+minutes%60+"分経過");}
  final class FeedAdapter extends BaseAdapter {
   final ArrayList<NicoliveData.Program> visible=new ArrayList<NicoliveData.Program>();
   FeedAdapter(){filter();}

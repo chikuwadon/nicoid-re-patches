@@ -14,7 +14,7 @@ from patch_manifest import patch_manifest
 
 ROOT = Path(__file__).resolve().parent
 BASE_HASH = "8920e9cdc9fc49178be5bc78cdb990627f4e7a7be83fef782eece3e7c443bcce"
-VERSION = "2.0.0-dev.1-8"
+VERSION = "2.0.0-dev.1-9"
 
 
 def run(*args):
@@ -176,6 +176,44 @@ def build(args, work):
         if count != 1:
             raise ValueError("Missing normal playback restore")
         (hooks / restore_file).write_text(restore)
+        tab_host_file = "MultiTabs227$Host.smali"
+        tab_host = (disassembled / "e/e/a" / tab_host_file).read_text()
+        insert = "invoke-virtual {v1, v2, v5, v3}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;ILandroid/view/ViewGroup$LayoutParams;)V"
+        if tab_host.count(insert) != 1:
+            raise ValueError("Missing multiple tab bar insertion")
+        tab_host = tab_host.replace(insert,
+            "invoke-static {v1, v2, v5, v3}, Le/e/a/MultiTabPlacement;->insert(Landroid/widget/LinearLayout;Landroid/view/View;ILandroid/view/ViewGroup$LayoutParams;)V")
+        cached_bar = "    invoke-virtual/range {p0 .. p0}, Le/e/a/MultiTabs227$Host;->refreshSelected()V"
+        if tab_host.count(cached_bar) != 1:
+            raise ValueError("Missing cached tab bar update")
+        (hooks / tab_host_file).write_text(tab_host.replace(cached_bar,
+            "    iget-object v2, v0, Le/e/a/MultiTabs227$Host;->parent:Landroid/widget/LinearLayout;\n"
+            "    iget-object v3, v0, Le/e/a/MultiTabs227$Host;->bar:Landroid/view/View;\n"
+            "    invoke-static {v2, v3}, Le/e/a/MultiTabPlacement;->update(Landroid/widget/LinearLayout;Landroid/view/View;)V\n\n" + cached_bar))
+        tab_file = "MultiTabs227.smali"
+        tabs = (disassembled / "e/e/a" / tab_file).read_text()
+        add_preference = "    invoke-virtual {v1, v3}, Landroid/preference/PreferenceGroup;->addPreference(Landroid/preference/Preference;)Z"
+        if tabs.count(add_preference) != 1:
+            raise ValueError("Missing multiple tab settings insertion")
+        (hooks / tab_file).write_text(tabs.replace(add_preference, add_preference +
+            "\n\n    invoke-static {v1, v3}, Le/e/a/MultiTabPlacement;->settings(Landroid/preference/PreferenceGroup;Landroid/preference/Preference;)V"))
+
+        ink_file = "CommentInk192.smali"
+        ink = (disassembled / "e/e/a" / ink_file).read_text()
+        ink = add_hook(ink, ".method public static draw(Landroid/graphics/Canvas;Ljava/lang/String;FFLandroid/graphics/Paint;IFI)V",
+            "invoke-static/range {p0 .. p7}, Le/e/a/CommentOutlineOpacity;->drawPass(Landroid/graphics/Canvas;Ljava/lang/String;FFLandroid/graphics/Paint;IFI)Z\n"
+            "    move-result v0\n"
+            "    if-eqz v0, :nicoid_legacy_ink\n"
+            "    return-void\n"
+            "    :nicoid_legacy_ink")
+        (hooks / ink_file).write_text(ink)
+        visuals_file = "CommentVisuals.smali"
+        visuals = (disassembled / "e/e/a" / visuals_file).read_text()
+        custom_draw = "invoke-virtual {v2, v4, v0, v12, v1}, Landroid/graphics/Canvas;->drawText(Ljava/lang/String;FFLandroid/graphics/Paint;)V"
+        if visuals.count(custom_draw) != 2:
+            raise ValueError("Missing custom comment outline and fill passes")
+        (hooks / visuals_file).write_text(visuals.replace(custom_draw,
+            "invoke-static {v2, v4, v0, v12, v1}, Le/e/a/CommentOutlineOpacity;->drawCustom(Landroid/graphics/Canvas;Ljava/lang/String;FFLandroid/graphics/Paint;)V"))
         hook_dex = work / "hooks.dex"
         run("java", "-cp", smali, "org.jf.smali.Main", "assemble", work / "hooks", "-o", hook_dex)
         merged = work / "helpers.mpe"

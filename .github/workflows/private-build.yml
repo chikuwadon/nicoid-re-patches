@@ -447,3 +447,27 @@ jobs:
           java -cp '/tmp/nicoid-v2-classes:/tmp/nicoid-v2-jars/*' org.junit.runner.JUnitCore \
             e.e.a.NicoliveAccessLabelsTest
           echo "MPP generation and device/runtime playback were NOT performed by this source-only job."
+
+      - name: Compile complete Android live source against official MPP
+        shell: bash
+        run: |
+          set -euo pipefail
+          revision=porting/revisions/v2.0.0-dev.1
+          python3 "$revision/bootstrap_tools.py"
+          python3 "$revision/bootstrap_live.py"
+          curl -fLs --retry 2 https://github.com/chikuwadon/nicoid-re-patches/releases/download/v1.11.1/patches-1.11.1.mpp -o /tmp/stable-nicoid.mpp
+          echo "8920e9cdc9fc49178be5bc78cdb990627f4e7a7be83fef782eece3e7c443bcce  /tmp/stable-nicoid.mpp" | sha256sum -c -
+          python3 -c 'from zipfile import ZipFile;ZipFile("/tmp/stable-nicoid.mpp").extract("nicoid/helpers.mpe","/tmp")'
+          java -cp "$revision/deps/*" com.googlecode.dex2jar.tools.Dex2jarCmd -o /tmp/nicoid-v2-helpers.jar /tmp/nicoid/helpers.mpe
+          mkdir -p /tmp/nicoid-v2-android-classes
+          cp="$revision/tools/android-all-16-robolectric-13921718.jar:/tmp/nicoid-v2-helpers.jar"
+          for jar in "$revision"/deps/*.jar; do cp="$cp:$jar"; done
+          java -jar "$revision/tools/ecj.jar" -8 -proc:none -nowarn -cp "$cp" \
+            -d /tmp/nicoid-v2-android-classes \
+            $(find "$revision/java" -name '*.java' | sort) \
+            porting/revisions/v1.11.1/java/e/e/a/AmbientLight.java
+          test -s /tmp/nicoid-v2-android-classes/e/e/a/NicoliveActivity.class
+          test -s /tmp/nicoid-v2-android-classes/e/e/a/NicoliveBrowser.class
+          test -s /tmp/nicoid-v2-android-classes/e/e/a/NicoliveData.class
+          echo "Complete live Java source compiled. No original APK was used or distributed."
+

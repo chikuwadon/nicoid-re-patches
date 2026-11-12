@@ -14,7 +14,7 @@ from patch_manifest import patch_manifest
 
 ROOT = Path(__file__).resolve().parent
 BASE_HASH = "8920e9cdc9fc49178be5bc78cdb990627f4e7a7be83fef782eece3e7c443bcce"
-VERSION = "2.0.0-dev.1-13"
+VERSION = "2.0.0-dev.1-14"
 
 
 def run(*args):
@@ -115,8 +115,26 @@ def build(args, work):
             raise ValueError("Missing settings insertion point")
         (hooks / "SettingsTools.smali").write_text(settings.replace(
             anchor, anchor + "\n\n    invoke-static {p0, v1}, Le/e/a/NicoliveEntry;->settings(Landroid/preference/PreferenceActivity;Landroid/preference/PreferenceGroup;)V"))
+        # Clip thumbnail surfaces and native progress overlays together without touching image caches.
+        details_source = (disassembled / "e/e/a/VideoDetails.smali").read_text()
+        details_source = add_hook(
+            details_source, ".method public static bind(Ljava/lang/Object;Landroid/view/View;)V",
+            "invoke-static {p1}, Le/e/a/ThumbnailCorners;->applyDetails(Landroid/view/View;)V")
+        (hooks / "VideoDetails.smali").write_text(details_source)
+
+        # The playback mini bar may start with a Bitmap before an URL is loaded.
+        mini_path = disassembled / "e/e/a/MiniChrome236.smali"
+        mini_source = mini_path.read_text()
+        mini_anchor = "invoke-virtual {p2, p1}, Landroid/widget/ImageView;->setContentDescription(Ljava/lang/CharSequence;)V"
+        if mini_source.count(mini_anchor) != 1:
+            raise ValueError("Missing playback mini-thumbnail")
+        mini_source = mini_source.replace(mini_anchor, mini_anchor +
+            "\\n\\n    invoke-static {p2}, Le/e/a/ThumbnailCorners;->apply(Landroid/view/View;)V")
+        (hooks / "MiniChrome236.smali").write_text(mini_source)
+
         # Clip only known thumbnail views; keep bitmap caches and sibling badges untouched.
         outline = "Le/e/a/ThumbnailCorners;->apply(Landroid/view/View;)V"
+        outline_with_parent = "Le/e/a/ThumbnailCorners;->applyWithParent(Landroid/view/View;)V"
         native_outline = "Le/e/a/ThumbnailCorners;->applyNative(Landroid/view/View;)V"
         for name, signature in (
             ("VideoMarks119", ".method public static bind(Landroid/view/View;Ljava/lang/Object;)V"),
@@ -149,7 +167,7 @@ def build(args, work):
             source = (disassembled / "e/e/a" / file).read_text()
             if source.count(anchor) != 1:
                 raise ValueError(f"Missing thumbnail frame in {name}")
-            (hooks / file).write_text(source.replace(anchor, anchor + f"\n\n    invoke-static {{{register}}}, {outline}"))
+            (hooks / file).write_text(source.replace(anchor, anchor + f"\n\n    invoke-static {{{register}}}, {outline if name == 'QueueUi120' else outline_with_parent}"))
         gesture_file = "GestureControls110.smali"
         gesture = (disassembled / "e/e/a" / gesture_file).read_text()
         actions = "    sput-object v0, Le/e/a/GestureControls110;->ACTIONS:[Ljava/lang/String;"

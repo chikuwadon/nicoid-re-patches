@@ -46,4 +46,10 @@ for marker in ('rounded.setDefaultValue(true)', 'OriginalOutline original = ORIG
     assert marker in corners, marker
 assert 'ThumbnailCorners.settings(activity, other)' in entry
 assert 'ThumbnailCorners.applyFrame(artwork)' in a
+assert 'applyWithParent(View thumbnail)' in corners
+assert 'applyDetails(View root)' in corners
+assert 'appの再起動' not in corners
+assert '変更はアプリの再起動後に反映されます' in corners
+assert '->applyDetails(Landroid/view/View;)V' in build
+assert 'Missing playback mini-thumbnail' in build
 print("PASS: live features, thumbnail-shape option and source-only contracts")

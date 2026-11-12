@@ -10,6 +10,10 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceGroup;
 import android.preference.PreferenceManager;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewParent;
+import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
 import android.view.ViewOutlineProvider;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -60,9 +64,9 @@ public final class ThumbnailCorners {
         rounded.setTitle(PanelUi.tr(activity, "サムネイルの角丸表示",
                 "Rounded thumbnails", "縮圖圓角顯示"));
         rounded.setSummary(PanelUi.tr(activity,
-                "OFFにすると、従来の角丸なしのサムネイルを表示します",
-                "Turn off to show thumbnails with square corners, as before.",
-                "關閉後，縮圖會恢復為原本的直角樣式"));
+                "OFFにすると角丸なしで表示します。変更はアプリの再起動後に反映されます",
+                "Turn off for square corners. Changes take effect after restarting the app.",
+                "關閉後顯示直角縮圖。變更將在重新啟動應用程式後生效"));
         other.addPreference(rounded);
     }
 
@@ -93,16 +97,75 @@ public final class ThumbnailCorners {
         }
     }
 
+    /**
+     * Clip the thumbnail's artwork frame as well as its image. The native watch
+     * progress is drawn in ImageView.getOverlay(), and a background belonging to
+     * the frame would otherwise remain rectangular outside the image corners.
+     */
+    public static void applyWithParent(View thumbnail) {
+        if (thumbnail == null) return;
+        apply(thumbnail);
+        ViewParent parent = thumbnail.getParent();
+        if (!(parent instanceof ViewGroup)) return;
+        ViewGroup frame = (ViewGroup) parent;
+        if (!(frame instanceof FrameLayout || frame instanceof RelativeLayout)) return;
+        if (thumbnail.getWidth() > 0 && frame.getWidth() > 0 &&
+                frame.getWidth() - thumbnail.getWidth() >
+                        8 * thumbnail.getResources().getDisplayMetrics().density) return;
+        ViewGroup.LayoutParams size = thumbnail.getLayoutParams();
+        if (thumbnail.getWidth() == 0 && frame instanceof RelativeLayout &&
+                (size == null || size.width != ViewGroup.LayoutParams.MATCH_PARENT)) return;
+        apply(frame);
+    }
+
     public static void applyNative(View row) {
         if (row == null) return;
         View thumbnail = row.findViewById(ROW_THUMBNAIL);
-        if (thumbnail instanceof ImageView) apply(thumbnail);
+        if (thumbnail instanceof ImageView) {
+            if (thumbnail.getParent() == row) apply(thumbnail);
+            else applyWithParent(thumbnail);
+        }
         thumbnail = row.findViewById(NATIVE_THUMBNAIL);
-        if (thumbnail instanceof ImageView) apply(thumbnail);
+        if (thumbnail instanceof ImageView) {
+            if (thumbnail.getParent() == row) apply(thumbnail);
+            else applyWithParent(thumbnail);
+        }
+    }
+
+    /**
+     * The video's original information header is laid out in the unmodified
+     * application, not in VideoDetails. Select only the sizeable 16:9 artwork;
+     * small round avatars, action icons, and the playback surface are excluded.
+     */
+    public static void applyDetails(View root) {
+        if (root == null) return;
+        root.post(() -> {
+            ImageView thumbnail = findLargeArtwork(root, null);
+            if (thumbnail != null) applyWithParent(thumbnail);
+        });
+    }
+
+    private static ImageView findLargeArtwork(View view, ImageView candidate) {
+        if (view instanceof ImageView && view.getVisibility() == View.VISIBLE) {
+            ImageView image = (ImageView) view;
+            int width = image.getWidth(), height = image.getHeight();
+            int minimum = (int) (96 * image.getResources().getDisplayMetrics().density);
+            if (width >= minimum && height > 0 && width >= height * 1.35f &&
+                    width <= height * 2.3f &&
+                    (candidate == null || (long) width * height >
+                                           (long) candidate.getWidth() * candidate.getHeight()))
+                candidate = image;
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++)
+                candidate = findLargeArtwork(group.getChildAt(i), candidate);
+        }
+        return candidate;
     }
 
     public static void load(String url, ImageView image, TextView placeholder) {
-        apply(image);
+        applyWithParent(image);
         ShortImages.load(url, image, placeholder);
     }
 }

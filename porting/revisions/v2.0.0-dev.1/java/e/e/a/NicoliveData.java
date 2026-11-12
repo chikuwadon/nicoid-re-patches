@@ -52,7 +52,7 @@ public final class NicoliveData {
     if(v.thumbnail.isEmpty())v.thumbnail=thumb.optString("large");
    }
    JSONObject user=root.optJSONObject("user");if(user!=null){v.loggedIn=user.optBoolean("isLoggedIn");v.premium="premium".equals(user.optString("accountType"));}
-   v.chaseCapable=v.premium&&p.optBoolean("isChasePlayEnabled");v.access=accessLabel(p);JSONObject watch=root.optJSONObject("userProgramWatch");if(watch!=null)v.canWatch=watch.optBoolean("canWatch",true);
+   v.chaseCapable=v.premium&&p.optBoolean("isChasePlayEnabled");v.access=NicoliveData.accessLabel(p);JSONObject watch=root.optJSONObject("userProgramWatch");if(watch!=null)v.canWatch=watch.optBoolean("canWatch",true);
    JSONObject site=root.getJSONObject("site"),relive=site.getJSONObject("relive");v.socket=relive.optString("webSocketUrl");if(v.socket.length()>0&&!secureServiceUri(v.socket,true))throw new IOException("INVALID_SESSION_HOST");return v;
   }
   static Program listing(JSONObject row){
@@ -67,8 +67,8 @@ public final class NicoliveData {
    program.open=row.optLong("openTime");
    program.end=row.optLong("endTime",row.optLong("endAt")/1000);
    program.provider=row.optString("providerType");
-   program.access=accessLabel(row);
-   if(program.access.isEmpty())program.access=accessLabel(row.optJSONObject("program"));
+   program.access=NicoliveData.accessLabel(row);
+   if(program.access.isEmpty())program.access=NicoliveData.accessLabel(row.optJSONObject("program"));
    JSONObject supplier=row.optJSONObject("supplier");
    if(supplier==null)supplier=row.optJSONObject("socialGroup");
    if(supplier==null)supplier=row.optJSONObject("programProvider");

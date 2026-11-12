@@ -187,7 +187,99 @@ jobs:
         run: |
           set -euo pipefail
           ./gradlew :patches:buildAndroid --no-daemon
-          python3 porting/revisions/v1.11.1/verify-mpp.py 1.11.1
+          if grep -Eq '^version[[:space:]]*=[[:space:]]*2[.]0[.]0[[:space:]]*
+          python3 porting/tests/regression141.py
+          python3 porting/tests/regression155.py
+          python3 porting/tests/retained-notification-regression.py
+          python3 porting/tests/tap-regions-regression.py
+          python3 porting/tests/tap-region-ui-regression.py
+
+      # Use the verified project dependency tree, not an action that installs
+      # its own separate (unpatched) semantic-release toolchain.
+      - name: Release
+        id: release
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git ls-remote --refs --tags origin 'refs/tags/v*' |
+            awk '{print $2}' | sed 's|^refs/tags/||' |
+            grep -E '^v[0-9]+[.][0-9]+[.][0-9]+(-dev[.][0-9]+)?$' | sort -u > /tmp/nicoid-tags-before
+          ./node_modules/.bin/semantic-release
+          git ls-remote --refs --tags origin 'refs/tags/v*' |
+            awk '{print $2}' | sed 's|^refs/tags/||' |
+            grep -E '^v[0-9]+[.][0-9]+[.][0-9]+(-dev[.][0-9]+)?$' | sort -u > /tmp/nicoid-tags-after
+          mapfile -t created < <(comm -13 /tmp/nicoid-tags-before /tmp/nicoid-tags-after)
+          if (( ${#created[@]} > 1 )); then
+            echo "Unexpected multiple new release tags" >&2
+            exit 1
+          elif (( ${#created[@]} == 1 )); then
+            echo "new_release_published=true" >> "$GITHUB_OUTPUT"
+            echo "new_release_git_tag=${created[0]}" >> "$GITHUB_OUTPUT"
+          else
+            echo "new_release_published=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Attest
+        if: steps.release.outputs.new_release_published == 'true' && github.event.repository.private == false
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
+          subject-path: patches/build/libs/patches-*.mpp
+
+      # Verify compilation if the manually approved run does not publish.
+      - name: Verify project compiles
+        if: steps.release.outputs.new_release_published != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew clean :patches:buildAndroid --no-daemon
+
+  sync-dev:
+    name: Fast-forward dev after a published stable release
+    needs: release
+    if: needs.release.outputs.new_release_published == 'true' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Synchronize main to dev without rewriting history
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ needs.release.outputs.new_release_git_tag }}
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+            echo "::error::Unexpected stable release tag"; exit 1;
+          }
+          git fetch --prune origin main dev --tags
+          git rev-parse --verify "refs/tags/$RELEASE_TAG^{commit}" >/dev/null
+          git merge-base --is-ancestor "refs/tags/$RELEASE_TAG^{commit}" origin/main || {
+            echo "::error::The published tag is not in main"; exit 1;
+          }
+          if git merge-base --is-ancestor origin/dev origin/main; then
+            git checkout --detach origin/main
+            if git push origin HEAD:refs/heads/dev; then
+              echo "### Release branch synchronization" >> "$GITHUB_STEP_SUMMARY"
+              echo "Fast-forwarded dev to the verified main commit after $RELEASE_TAG." >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "::warning::dev push blocked by branch rules or a concurrent update; manual sync required"
+              echo "### Warning: dev synchronization was blocked; manually review the branch protection or concurrent update." >> "$GITHUB_STEP_SUMMARY"
+            fi
+          else
+            echo "::warning::dev is not an ancestor of main; refusing rebase or force-push"
+            echo "### Warning: dev diverged from main. Review and merge deliberately; no history was rewritten." >> "$GITHUB_STEP_SUMMARY"
+          fi
+ gradle.properties; then
+            NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.0-mpp.sh
+          else
+            python3 porting/revisions/v1.11.1/verify-mpp.py 1.11.1
+          fi
           python3 porting/tests/regression136.py
           python3 porting/tests/regression141.py
           python3 porting/tests/regression155.py

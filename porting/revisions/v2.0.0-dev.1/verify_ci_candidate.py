@@ -23,6 +23,8 @@ with ZipFile(base_path) as base,ZipFile(candidate_path) as new:
     expected=next((line.split('"')[1] for line in (Path(__file__).parent/"build_mpp.py").read_text().splitlines()
                    if line.startswith('VERSION = "')), None)
     assert expected and expected.startswith("2.0.0-dev.1-"), expected
+    if b"Version: 2.0.0\r\n" in new.read("META-INF/MANIFEST.MF"):
+        expected = "2.0.0"
     assert b"Version: "+expected.encode()+bytes((13,10)) in new.read("META-INF/MANIFEST.MF")
     with ZipFile(io.BytesIO(base.read("nicoid/resources.zip"))) as original,ZipFile(io.BytesIO(new.read("nicoid/resources.zip"))) as updated:
         assert original.namelist()==updated.namelist()

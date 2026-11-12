@@ -53,8 +53,10 @@ def build(args, work):
             raise ValueError("Use the original supported nicoid 6.49 APK")
         native_dex.write_bytes(native)
         sources.append((native_dex, network))
-    elif not args.ci_without_apk or os.environ.get("GITHUB_ACTIONS") != "true" or \
-         os.environ.get("GITHUB_REF") != "refs/heads/v2.0.0-dev":
+    elif not args.ci_without_apk or os.environ.get("GITHUB_ACTIONS") != "true" or not (
+         os.environ.get("GITHUB_REF") == "refs/heads/v2.0.0-dev" or (
+         args.official_release and os.environ.get("GITHUB_REF") == "refs/heads/main"
+         and os.environ.get("NICOID_OFFICIAL_RELEASE_APPROVED") in ("APPROVE","VERIFY"))):
         raise ValueError("The original nicoid 6.49 APK is required outside the guarded CI build")
     for source, target in sources:
         run("java", "-cp", str(args.media / "*"), "com.googlecode.dex2jar.tools.Dex2jarCmd",
@@ -343,11 +345,19 @@ def main():
     for flag in ("base", "tools", "media", "output"):
         parser.add_argument("--" + flag, type=Path, required=True)
     parser.add_argument("--apk", type=Path)
+    parser.add_argument("--official-release", action="store_true", help="Build verified v2.0.0 on approved main CI")
     parser.add_argument("--ci-without-apk", action="store_true",
                         help="GitHub v2.0.0-dev only: compile against pinned API JARs instead of private APK")
     parser.add_argument("--compile-jar", action="append", type=Path, default=[])
     
     args = parser.parse_args()
+    global VERSION
+    if args.official_release:
+        if not (os.environ.get("GITHUB_ACTIONS") == "true"
+                and os.environ.get("GITHUB_REF") == "refs/heads/main"
+                and os.environ.get("NICOID_OFFICIAL_RELEASE_APPROVED") in ("APPROVE","VERIFY")):
+            parser.error("Official v2.0.0 requires approved or verification-only main CI")
+        VERSION = "2.0.0"
     if args.base.resolve() == args.output.resolve():
         parser.error("Use a separate output path")
     if args.apk is None and (not args.ci_without_apk or len(args.compile_jar) < 2):

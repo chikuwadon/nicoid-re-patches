@@ -12,6 +12,9 @@ public final class LiveRecoveryPolicyTest {
     "javax.crypto.BadPaddingException: OPENSSL_internal:BAD_DECRYPT")),"wrapped OpenSSL error");
   check(!LiveRecoveryPolicy.isAes128Failure(new IOException("HTTP 404")),"unrelated HTTP error");
   check(!LiveRecoveryPolicy.isAes128Failure(new IllegalStateException("BAD_PLAYER")),"unrelated state error");
+  check(LiveRecoveryPolicy.isCorruptedFmp4Failure(new IOException(
+    new IllegalArgumentException("Skipping atom with length > 2147483647 (unsupported)"))),"encrypted fMP4 atom");
+  check(!LiveRecoveryPolicy.isCorruptedFmp4Failure(new IOException("HTTP 403")),"unrelated network error");
   check(LiveRecoveryPolicy.retryDelayMs(1)==1000L,"first retry");
   check(LiveRecoveryPolicy.retryDelayMs(3)==3000L,"third retry");
   check(LiveRecoveryPolicy.retryDelayMs(100)==5000L,"maximum delay");

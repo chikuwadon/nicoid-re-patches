@@ -15,6 +15,14 @@ public final class LiveRecoveryPolicy {
   }
   return false;
  }
+ /** Corrupted encrypted fMP4 can surface as an impossible atom size instead of BAD_DECRYPT. */
+ public static boolean isCorruptedFmp4Failure(Throwable error){
+  for(int depth=0;error!=null&&depth<12;depth++,error=error.getCause()){
+   String message=error.getMessage();
+   if(message!=null&&message.contains("Skipping atom with length > 2147483647"))return true;
+  }
+  return false;
+ }
  public static long retryDelayMs(int attempt){
   return Math.min(5000L,Math.max(1,attempt)*1000L);
  }

@@ -77,3 +77,10 @@ Android実機での起動、実配信、認証済みコメント投稿、長時�
 - Keep the live session's paused/buffering/playing/error media controls synchronized. On a terminal playback error, offer Reconnect directly rather than displaying an inappropriate Pause button.
 - Live streaming has no seekable duration and does not advertise seek actions. Android may still draw a disabled timeline bar, which the app cannot forcibly hide across all OEM variants.
 - Retain AES-128 recovery, local-playlist drawer restoration, serialized timeshift reservation writes, and all prior fixes. No pre-release publication until long-running device playback passes.
+
+## v2.0.0-dev.1-23: live HLS key-rotation mitigation (pre-release blocked)
+
+- Repeated SC-52D logs (2026-11-12) show `BAD_DECRYPT` at approximately 60-second intervals and `Skipping atom with length > 2147483647` from the fMP4 extractor.
+- Work around Media3 AES-128 key caching by assigning a unique fragment-only identity to each key URI on playlist refresh. The HTTP endpoint, signed query, key bytes, encryption IV, segment data, cookies, and user-facing controls remain unchanged.
+- Allow the exact suspicious fMP4 atom-length error to use bounded encrypted-HLS watch-session recovery, and only after an AES-128 playlist has been seen. All unrelated parse errors remain terminal to prevent retry loops.
+- Source contracts and Java-level tests validate signed URL preservation, AES-128-only rewriting, encrypted fMP4 recovery gating, and unchanged UI. Device playback over multiple key rotation intervals remains unverified.

@@ -93,6 +93,16 @@ service=(R/"java/e/e/a/NicoliveService.java").read_text()
 policy=(R/"java/e/e/a/LiveRecoveryPolicy.java").read_text()
 assert 'handlePlaybackError(error);' in service
 assert 'LiveRecoveryPolicy.isAes128Failure(error)' in service
+assert 'LiveRecoveryPolicy.isCorruptedFmp4Failure(error)' in service
+assert 'keyParser.sawAes128' in service
+assert '.setPlaylistParserFactory(keyParser)' in service
+parser=(R/"java/e/e/a/HlsKeyRefreshingPlaylistParser.java").read_text()
+key_policy=(R/"java/e/e/a/HlsKeyRefreshPolicy.java").read_text()
+assert 'new HlsPlaylistParser(master,previous)' in parser
+assert 'HlsKeyRefreshPolicy.rewriteLine(line,generation)' in parser
+assert 'HLS_PLAYLIST_TOO_LARGE' in parser
+assert 'nicoid-key-refresh-' in key_policy
+assert 'uri.indexOf' in key_policy
 assert 'session.reconnect();' in service
 assert 'cryptoRecoveryCount<LiveRecoveryPolicy.MAX_ATTEMPTS' in service
 assert 'cryptoRecoveryPending=false;session.reconnect();' in service

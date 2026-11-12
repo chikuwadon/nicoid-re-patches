@@ -20,7 +20,10 @@ with ZipFile(base_path) as base,ZipFile(candidate_path) as new:
     assert base.testzip() is None and new.testzip() is None
     changed={k for k in base.namelist() if base.read(k)!=new.read(k)}
     assert changed=={"META-INF/MANIFEST.MF","nicoid/helpers.mpe","nicoid/resources.zip"},changed
-    expected=re.search(r'^VERSION = "([^"]+)"
+    expected=next((line.split('"')[1] for line in (Path(__file__).parent/"build_mpp.py").read_text().splitlines()
+                   if line.startswith('VERSION = "')), None)
+    assert expected and expected.startswith("2.0.0-dev.1-"), expected
+    assert b"Version: "+expected.encode()+bytes((13,10)) in new.read("META-INF/MANIFEST.MF")
     with ZipFile(io.BytesIO(base.read("nicoid/resources.zip"))) as original,ZipFile(io.BytesIO(new.read("nicoid/resources.zip"))) as updated:
         assert original.namelist()==updated.namelist()
         assert all(original.read(k)==updated.read(k) for k in original.namelist() if k!="AndroidManifest.xml")

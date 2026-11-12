@@ -947,7 +947,7 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
   public int getCount(){return visible.size();}public Object getItem(int p){return visible.get(p);}public long getItemId(int p){return p;}
   public View getView(int pos,View convert,ViewGroup parent){NicoliveData.Program p=(NicoliveData.Program)getItem(pos);LinearLayout row=convert instanceof LinearLayout?(LinearLayout)convert:NicoliveUi.row(NicoliveActivity.this);
    if(row.getChildCount()==0){row.setPadding(NicoliveUi.dp(NicoliveActivity.this,8),NicoliveUi.dp(NicoliveActivity.this,2),NicoliveUi.dp(NicoliveActivity.this,8),NicoliveUi.dp(NicoliveActivity.this,2));row.setMinimumHeight(NicoliveUi.dp(NicoliveActivity.this,88));FrameLayout artwork=new FrameLayout(NicoliveActivity.this);
-   ThumbnailCorners.apply(artwork);
+   // The shared preference is applied on each row bind, including recycled views.
    artwork.setBackground(NicoliveUi.panel(NicoliveActivity.this,4));
    ImageView image=new ImageView(NicoliveActivity.this);
    image.setScaleType(ImageView.ScaleType.CENTER_CROP);
@@ -971,6 +971,7 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
    row.addView(artwork,new LinearLayout.LayoutParams(thumb,Math.round(thumb/(16f/9))));
    LinearLayout copy=NicoliveUi.column(NicoliveActivity.this);copy.setPadding(NicoliveUi.dp(NicoliveActivity.this,8),0,0,0);TextView kind=NicoliveUi.text(NicoliveActivity.this,"",11);kind.setTextColor(DynamicTheme.secondaryTextColor(kind));copy.addView(kind);TextView text=NicoliveUi.text(NicoliveActivity.this,"",14);text.setMaxLines(2);text.setEllipsize(TextUtils.TruncateAt.END);copy.addView(text);TextView byline=NicoliveUi.text(NicoliveActivity.this,"",12);byline.setSingleLine(true);byline.setEllipsize(TextUtils.TruncateAt.END);byline.setTextColor(DynamicTheme.secondaryTextColor(byline));copy.addView(byline);TextView meta=NicoliveUi.text(NicoliveActivity.this,"",11);meta.setTextColor(DynamicTheme.secondaryTextColor(meta));copy.addView(meta);row.addView(copy,new LinearLayout.LayoutParams(0,-2,1));}
    FrameLayout artwork=(FrameLayout)row.getChildAt(0);
+   ThumbnailCorners.applyFrame(artwork);
    ImageView thumbnail=(ImageView)artwork.getChildAt(0);
    TextView badge=(TextView)artwork.getChildAt(1);
    boolean live=p.onAir(),scheduled=p.scheduled();

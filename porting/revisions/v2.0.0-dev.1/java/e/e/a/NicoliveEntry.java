@@ -128,6 +128,8 @@ public final class NicoliveEntry {
     }
 
     public static void settings(PreferenceActivity activity, PreferenceGroup other) {
+        if (activity == null || other == null) return;
+        ThumbnailCorners.settings(activity, other);
         if (Build.VERSION.SDK_INT < 28 || activity.findPreference(SHOW_LIVE) != null) return;
         Preference shorts = other.findPreference("show_shorts_menu");
         int order = shorts == null ? other.getPreferenceCount() : shorts.getOrder() + 1;

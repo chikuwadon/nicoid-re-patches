@@ -3,6 +3,8 @@ import android.app.*;import android.content.*;import android.net.Uri;import andr
 /** Device lists reuse the app's video rows and list selection layout. */
 public final class LocalPlaylists {
  private static final String KEY="nicoid_local_playlists_v1";
+ private static final String LAST_FOLDER="nicoid_local_playlist_last_folder_v1";
+ private static final String LAST_GROUP="nicoid_local_playlist_last_group_v1";
  private static final Map<Activity,Page> PAGES=new WeakHashMap<>();
  private static final Map<Object,Page> ADAPTER_PAGES=new WeakHashMap<>();
  static String tr(Context c,String j,String e,String z){return PanelUi.tr(c,j,e,z);}
@@ -13,20 +15,12 @@ public final class LocalPlaylists {
  static void change(Context host,Edit edit,java.util.function.Consumer<Boolean> done){Context app=host.getApplicationContext();WRITES.execute(()->{boolean saved=false;try{android.content.SharedPreferences prefs=PreferenceManager.getDefaultSharedPreferences(app);saved=PlaylistStorage.update(new PlaylistStorage.Persistence(){public String read(){return prefs.getString(KEY,"{}");}public boolean write(String value){return prefs.edit().putString(KEY,value).commit();}public void restore(String value){prefs.edit().putString(KEY,value).apply();}},edit);}catch(Exception error){android.util.Log.w("nicoid-playlist","Playlist update failed; original snapshot retained",error);}final boolean ok=saved;MAIN.post(()->{if(host instanceof Activity&&(((Activity)host).isFinishing()||((Activity)host).isDestroyed()))return;if(!ok)Toast.makeText(host,tr(host,"保存に失敗しました。保存済みのデータは保持しています","Unable to save. Stored data has been retained.","儲存失敗，原有資料已保留"),1).show();done.accept(ok);});});}
 
  /**
-  * The native adapter's image fetch can be lost when its enclosing playlist
-  * adapter is rebuilt for manual sorting. Bind the stored URL explicitly
-  * through the existing bounded/cached image loader instead of relying on
-  * an Activity-specific native loader callback.
+  * Reuse the proven native-playlist thumbnail pipeline, including missing
+  * image URL resolution, image visibility recovery and batched refreshes.
+  * Avoid competing image-view tags or clearing native artwork ourselves.
   */
- static void bindArtwork(View row,JSONObject video){
-  if(row==null||video==null)return;
-  String url=video.optString("thumbnail","");
-  if(!url.startsWith("https://"))return;
-  View candidate=row.findViewById(0x7f0800cd);
-  if(!(candidate instanceof ImageView))return;
-  ImageView image=(ImageView)candidate;
-  if(!url.equals(image.getTag()))image.setImageDrawable(null);
-  ThumbnailCorners.load(url,image,null);
+ static void bindArtwork(View row,BaseAdapter adapter,JSONObject video){
+  Dev116.playlistThumbnail(row,adapter,video);
  }
  static void reorderFolder(LocalPlaylistData data,String folder,List<String> ids)throws JSONException{
   if(folder==null||ids==null)throw new JSONException("Missing reorder target");
@@ -70,12 +64,42 @@ public final class LocalPlaylists {
  @SuppressWarnings({"rawtypes","unchecked"})public static void menu(Context c,ArrayList rows){for(Object entry:rows){if(!(entry instanceof Map))continue;Object target=((Map)entry).get("intent");if(target instanceof Intent&&((Intent)target).getComponent()!=null&&((Intent)target).getComponent().getClassName().endsWith("NicoidFavUserActivity"))((Map)entry).put("title",tr(c,"フォロー中","Following","追蹤中"));}for(int n=0;n<rows.size();n++){Object row=rows.get(n);if(!(row instanceof Map))continue;if("フォロー中のユーザー".equals(((Map)row).get("title")))((Map)row).put("title",tr(c,"フォロー中","Following","追蹤中"));Object intent=((Map)row).get("intent");if(intent instanceof Intent){String target=((Intent)intent).getComponent()==null?"":((Intent)intent).getComponent().getClassName();if(target.endsWith("NicoidVideoListActivity")&&((Intent)intent).getIntExtra("type",-1)==8){Map entry=new HashMap();entry.put("title",tr(c,"プレイリスト","Playlists","播放清單"));entry.put("subtitle",tr(c,"本体に保存した動画のリスト","Video lists saved on this device","儲存在此裝置的影片清單"));entry.put("islabel",false);entry.put("type",0);entry.put("intent",new Intent().setClassName(c,"com.sauzask.nicoid.NicoidNicorepoActivity").putExtra("nicoid_local_playlists",true));rows.add(n+1,entry);return;}}}}
  static final class Page {
   final Activity a;final LinearLayout root;final Set<String> selected=new HashSet<>();String folder=null,group=null,sortFolder=null;boolean selecting,reordering,reorderSaving,continuous,shuffle;int sort;Object images;BaseAdapter display;ListView videoList;LinearLayout footer;TextView count;List<JSONObject> visible=new ArrayList<>();
-  Page(Activity a){this.a=a;folder=a.getIntent().hasExtra("nicoid_playlist_folder")?a.getIntent().getStringExtra("nicoid_playlist_folder"):null;root=PanelUi.column(a);TabViewport110.fill(root);ThemeChoice.background(root);}
+  Page(Activity a){
+   this.a=a;
+   android.content.SharedPreferences saved=PreferenceManager.getDefaultSharedPreferences(a);
+   folder=a.getIntent().hasExtra("nicoid_playlist_folder")
+    ?a.getIntent().getStringExtra("nicoid_playlist_folder")
+    :saved.getString(LAST_FOLDER,null);
+   group=saved.getString(LAST_GROUP,null);
+   root=PanelUi.column(a);TabViewport110.fill(root);ThemeChoice.background(root);
+  }
+  void saveLocation(){
+   android.content.SharedPreferences.Editor edit=PreferenceManager.getDefaultSharedPreferences(a).edit();
+   if(folder==null)edit.remove(LAST_FOLDER);else edit.putString(LAST_FOLDER,folder);
+   if(group==null)edit.remove(LAST_GROUP);else edit.putString(LAST_GROUP,group);
+   edit.apply();
+   if(folder==null)a.getIntent().removeExtra("nicoid_playlist_folder");
+   else a.getIntent().putExtra("nicoid_playlist_folder",folder);
+  }
   void toolbar(String title){try{Object bar=Review181.field(a,"O");bar.getClass().getMethod("b",CharSequence.class).invoke(bar,title);bar.getClass().getMethod("c",CharSequence.class).invoke(bar,new Object[]{folder==null?null:tr(a,"プレイリスト","Playlists","播放清單")});}catch(Exception ignored){}a.invalidateOptionsMenu();}
-  void render(){if(createPopup!=null)createPopup.dismiss();if(folder==null)a.getIntent().removeExtra("nicoid_playlist_folder");else a.getIntent().putExtra("nicoid_playlist_folder",folder);LocalPlaylistData data;try{data=read(a);}catch(IllegalStateException error){root.removeAllViews();root.addView(PanelUi.text(a,tr(a,"プレイリストを読み込めませんでした。保存済みのデータは保持しています","Unable to read playlists. Stored data has been retained.","無法讀取播放清單，原有資料已保留"),14));Button retry=PanelUi.button(a,tr(a,"再試行","Retry","重試"));retry.setOnClickListener(v->render());root.addView(retry);return;}int oldIndex=videoList!=null&&folder!=null&&folder.equals(sortFolder)?
+  void render(){if(createPopup!=null)createPopup.dismiss();LocalPlaylistData data;try{data=read(a);}catch(IllegalStateException error){root.removeAllViews();root.addView(PanelUi.text(a,tr(a,"プレイリストを読み込めませんでした。保存済みのデータは保持しています","Unable to read playlists. Stored data has been retained.","無法讀取播放清單，原有資料已保留"),14));Button retry=PanelUi.button(a,tr(a,"再試行","Retry","重試"));retry.setOnClickListener(v->render());root.addView(retry);return;}int oldIndex=videoList!=null&&folder!=null&&folder.equals(sortFolder)?
     videoList.getFirstVisiblePosition():-1;
    int oldTop=oldIndex>=0&&videoList.getChildCount()>0?videoList.getChildAt(0).getTop():0;
-   root.removeAllViews();display=null;videoList=null;footer=null;count=null;if(folder!=null&&!data.hasFolder(folder))folder=null;if(folder==null){sortFolder=null;reordering=false;catalog(data);return;}
+   root.removeAllViews();display=null;videoList=null;footer=null;count=null;
+   if(folder!=null&&!data.hasFolder(folder))folder=null;
+   if(folder!=null){
+    if(folder.isEmpty())group="@unfiled";
+    else for(int f=0;f<data.folders.length();f++){
+     JSONObject entry=data.folders.optJSONObject(f);
+     if(entry!=null&&folder.equals(entry.optString("id"))){
+      String parent=entry.optString("group","");
+      group=parent.isEmpty()?"@unfiled":parent;
+      break;
+     }
+    }
+   }else if(group!=null&&!"@unfiled".equals(group)&&!data.hasGroup(group))group=null;
+   saveLocation();
+   if(folder==null){sortFolder=null;reordering=false;catalog(data);return;}
    if(!folder.equals(sortFolder)){
     sortFolder=folder;reordering=false;
     sort=PreferenceManager.getDefaultSharedPreferences(a).getInt("nicoid_local_playlist_sort_"+folder,0);
@@ -101,8 +125,8 @@ public final class LocalPlaylists {
   FrameLayout frame=old instanceof FrameLayout&&("nicoid_playlist_selection".equals(old.getTag())||"nicoid_playlist_reorder".equals(old.getTag()))?(FrameLayout)old:null;
   View recycled=(selecting||reordering)?(frame==null?null:frame.getChildAt(0)):(frame==null?old:null);
   View row=nativeRows.getView(n,recycled,parent);JSONObject video=identities.get(rows.get(n));
-  if(!selecting&&!reordering){ListActions.bind(row,nativeRows,n);bindArtwork(row,video);return row;}
-  bindArtwork(row,video);
+  if(!selecting&&!reordering){ListActions.bind(row,nativeRows,n);bindArtwork(row,nativeRows,video);return row;}
+  bindArtwork(row,nativeRows,video);
   disable(row);
   if(reordering){
    if(frame==null||!"nicoid_playlist_reorder".equals(frame.getTag())){

@@ -69,11 +69,18 @@ for marker in ('カスタム順','static void reorderFolder(','void installDrag(
 assert 'livePlaylist.contains(type)' in merge
 assert 'Le/e/a/LocalPlaylists$Page;' in merge
 assert 'nicoid_local_playlist_sort_' in local
-assert 'static void bindArtwork(View row,JSONObject video)' in local
-assert 'ThumbnailCorners.load(url,image,null)' in local
-assert 'if(!selecting&&!reordering){ListActions.bind(row,nativeRows,n);bindArtwork(row,video);return row;}' in local
-assert 'bindArtwork(row,video);' in local
-assert 'if(!url.startsWith("https://"))return;' in local
-assert 'if(!url.equals(image.getTag()))image.setImageDrawable(null);' in local
-assert 'static void load(String url, ImageView image, TextView placeholder)' in corners
+assert 'static void bindArtwork(View row,BaseAdapter adapter,JSONObject video)' in local
+assert 'Dev116.playlistThumbnail(row,adapter,video);' in local
+assert 'if(!selecting&&!reordering){ListActions.bind(row,nativeRows,n);bindArtwork(row,nativeRows,video);return row;}' in local
+assert 'bindArtwork(row,nativeRows,video);' in local
+assert 'image.setImageDrawable(null);' not in local
+assert 'ThumbnailCorners.load(url,image,null)' not in local
+assert 'private static final String LAST_FOLDER=' in local
+assert 'private static final String LAST_GROUP=' in local
+assert 'saved.getString(LAST_FOLDER,null)' in local
+assert 'group=saved.getString(LAST_GROUP,null)' in local
+assert 'void saveLocation()' in local
+assert 'saveLocation();' in local
+assert 'if(folder.isEmpty())group="@unfiled";' in local
+assert 'group=parent.isEmpty()?"@unfiled":parent;' in local
 print("PASS: live features, optional thumbnails and manual playlist sorting contracts")

@@ -51,7 +51,7 @@ with ZipFile(sys.argv[1]) as base, ZipFile(sys.argv[2]) as candidate, ZipFile(sy
     assert candidate.testzip() is None and apk.testzip() is None
     changed = {name for name in base.namelist() if base.read(name) != candidate.read(name)}
     assert changed == {"META-INF/MANIFEST.MF", "nicoid/helpers.mpe", "nicoid/resources.zip"}, changed
-    assert b"Version: 2.0.0-dev.1-18\r\n" in candidate.read("META-INF/MANIFEST.MF")
+    assert b"Version: 2.0.0-dev.1-19\r\n" in candidate.read("META-INF/MANIFEST.MF")
     with ZipFile(io.BytesIO(base.read("nicoid/resources.zip"))) as old, \
             ZipFile(io.BytesIO(candidate.read("nicoid/resources.zip"))) as new:
         assert old.namelist() == new.namelist()

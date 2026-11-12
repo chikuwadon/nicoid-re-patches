@@ -11,11 +11,11 @@ python3 bootstrap_tools.py
 python3 bootstrap_live.py
 python3 build_mpp.py --base /path/to/patches-1.11.1.mpp \
   --apk /path/to/nicoid-6.49.apk --tools tools --media deps \
-  --output /path/to/nicoid-re-2.0.0-dev.1-18.mpp
+  --output /path/to/nicoid-re-2.0.0-dev.1-19.mpp
 java -jar tools/morphe.jar patch --unsigned \
-  -p /path/to/nicoid-re-2.0.0-dev.1-18.mpp -o /path/to/test.apk /path/to/nicoid-6.49.apk
+  -p /path/to/nicoid-re-2.0.0-dev.1-19.mpp -o /path/to/test.apk /path/to/nicoid-6.49.apk
 python3 verify_mpp.py /path/to/patches-1.11.1.mpp \
-  /path/to/nicoid-re-2.0.0-dev.1-18.mpp /path/to/test.apk
+  /path/to/nicoid-re-2.0.0-dev.1-19.mpp /path/to/test.apk
 ```
 
 ビルドは配布済みMPPのハッシュと入力APKのDEXを照合する。既存Gradleタスクは正規版ベースのビルド経路。ニコ生入り開発版には上記のコマンドを使う。
@@ -43,7 +43,7 @@ python3 verify_mpp.py /path/to/patches-1.11.1.mpp \
 
 Android実機での起動、実配信、認証済みコメント投稿、長時間視聴、通常動画との往復、ポップアップ切り替えは未確認。旧版で報告された約1分でのクラッシュと切り替え時の黒画面は、今回のAPK適用結果から解消を判断できない。
 
-## Local playlists: custom order (v2.0.0-dev.1-18)
+## Local playlists: custom order (v2.0.0-dev.1-19)
 
 - Use the rightmost reorder button in the playback-options row to enter reorder mode.
 - Long-press and drag a row's handle; completed moves persist per playlist using existing stable video IDs and atomic playlist storage.
@@ -51,9 +51,15 @@ Android実機での起動、実配信、認証済みコメント投稿、長時�
 - Exit reorder mode with the checkmark or Back. Sorting preference is remembered per playlist.
 - Preserve playback/long-press actions outside reorder mode. No official release is made by this branch.
 
-## Thumbnail regression fix (v2.0.0-dev.1-18)
+## Thumbnail regression fix (v2.0.0-dev.1-19)
 
 - Bind local-playlist image URLs through the existing `ShortImages` cache via `ThumbnailCorners.load` after constructing native video rows.
 - Bind thumbnails in both normal and manual-reordering modes, avoiding the black placeholders seen after the playlist adapter replacement.
 - Reuse in-memory/disk caches and limit network workers using the existing loader; retain video duration, viewing progress, and other metadata.
 - Keep the manual sorting behavior, persistent custom order and existing video actions unchanged.
+
+## v2.0.0-dev.1-19: playlist regressions
+
+- Restore `Dev116.playlistThumbnail` in both normal and reorder rows so missing thumbnail URLs, image visibility, and cached refreshes use the original stable pipeline, removing the incompatible generic image loader.
+- Persist the open playlist ID and parent group, restoring the same valid nested location when the last-used tab reopens after app restart.
+- Preserve existing drag reorder, custom sort, cached thumbnail progress and the single-ZIP MPP packaging.

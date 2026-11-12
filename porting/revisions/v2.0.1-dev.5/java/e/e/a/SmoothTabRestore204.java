@@ -18,6 +18,21 @@ import java.util.WeakHashMap;
 public final class SmoothTabRestore204 {
  private static final Handler MAIN=new Handler(Looper.getMainLooper());
  private static final Map<ListView,Pending> PENDING=new WeakHashMap<>();
+ private static final Map<ListView,Applied> APPLIED=new WeakHashMap<>();
+ private static final class Applied {
+  final int position,top;
+  final long at;
+  Applied(int p,int t){position=p;top=t;at=SystemClock.uptimeMillis();}
+ }
+ private static boolean justApplied(ListView list,int p,int t){
+  Applied a=APPLIED.get(list);
+  return a!=null&&a.position==p&&a.top==t
+      &&SystemClock.uptimeMillis()-a.at<500L;
+ }
+ private static void apply(ListView list,int p,int t){
+  APPLIED.put(list,new Applied(p,t));
+  list.setSelectionFromTop(p,t);
+ }
  private SmoothTabRestore204(){}
 
  private static Object field(Object owner,String name)throws Exception {
@@ -47,14 +62,16 @@ public final class SmoothTabRestore204 {
    MAIN.post(()->restoreList(target.get(),position,top));
    return;
   }
-  Pending previous=PENDING.remove(list);
-  if(previous!=null)previous.cancel();
+  Pending previous=PENDING.get(list);
+  if(previous!=null&&previous.position==position&&previous.top==top)return;
+  if(previous!=null){PENDING.remove(list);previous.cancel();}
+  if(justApplied(list,position,top))return;
   int first=list.getFirstVisiblePosition();
   View row=list.getChildAt(0);
   if(!ScrollRestorePolicy204.needs(position,top,first,row==null?0:row.getTop(),row!=null))return;
   if(ScrollRestorePolicy205.ready(list.getCount(),position,list.getHeight(),
        list.isAttachedToWindow(),list.isShown())){
-   list.setSelectionFromTop(position,top);
+   apply(list,position,top);
    return;
   }
   Pending pending=new Pending(list,position,top,first,row);
@@ -103,7 +120,7 @@ public final class SmoothTabRestore204 {
     if(ScrollRestorePolicy205.ready(list.getCount(),position,list.getHeight(),
            true,true)){
      cancel();
-     list.setSelectionFromTop(position,top);  // At most once.
+     apply(list,position,top);  // At most once per restoration request.
      return;
     }
    }

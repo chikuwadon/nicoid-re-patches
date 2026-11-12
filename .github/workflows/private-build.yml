@@ -450,6 +450,14 @@ jobs:
           python3 porting/tests/retained-notification-regression.py
           python3 porting/tests/tap-regions-regression.py
           python3 porting/tests/tap-region-ui-regression.py
+      - name: Verify NicoLive gesture traces, history pictures and short messages
+        if: github.ref == 'refs/heads/dev'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile porting/revisions/v2.0.1-dev.2/patch_sources.py
+          python3 porting/revisions/v2.0.1-dev.2/tests/verify.py
+
       - name: Run NicoLive data/API contract JUnit tests
         shell: bash
         run: |
@@ -466,6 +474,26 @@ jobs:
           java -cp '/tmp/nicoid-v2-classes:/tmp/nicoid-v2-jars/*' org.junit.runner.JUnitCore \
             e.e.a.NicoliveAccessLabelsTest
           echo "MPP generation and device/runtime playback were NOT performed by this source-only job."
+
+      - name: Test history thumbnail fallback and trusted metadata
+        if: github.ref == 'refs/heads/dev'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0,"porting/revisions/v2.0.1-dev.2")
+          from patch_sources import stage
+          stage(Path("porting/revisions/v2.0.0-dev.1/java/e/e/a"),
+                Path("/tmp/nicoid-v201-thumbnail-overrides"))
+          PY
+          mkdir -p /tmp/nicoid-v201-thumb-classes
+          javac --release 8 -cp '/tmp/nicoid-v2-jars/*' -d /tmp/nicoid-v201-thumb-classes \
+            /tmp/nicoid-v201-thumbnail-overrides/NicoliveData.java \
+            porting/revisions/v2.0.1-dev.2/tests/e/e/a/NicoliveThumbnailFallbackTest.java
+          java -cp '/tmp/nicoid-v201-thumb-classes:/tmp/nicoid-v2-jars/*' org.junit.runner.JUnitCore \
+            e.e.a.NicoliveThumbnailFallbackTest
 
       - name: Test double-Back timing boundaries
         shell: bash
@@ -544,8 +572,8 @@ jobs:
           builder="$revision"
           version=2.0.0-dev.1-27
           if [[ "$GITHUB_REF" == "refs/heads/dev" ]]; then
-            builder=porting/revisions/v2.0.1-dev.1
-            version=2.0.1-dev.1
+            builder=porting/revisions/v2.0.1-dev.2
+            version=2.0.1-dev.2
           fi
           output="/tmp/nicoid-re-$version.mpp"
           python3 "$builder/build_mpp.py" \
@@ -583,14 +611,14 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/nicoid-v2-source
-          git archive --format=zip --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.1-source.zip HEAD
-          git archive --format=tar.gz --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.1-source.tar.gz HEAD
-          unzip -tq /tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.1-source.zip
-          tar -tzf /tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.1-source.tar.gz > /dev/null
+          git archive --format=zip --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.2-source.zip HEAD
+          git archive --format=tar.gz --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.2-source.tar.gz HEAD
+          unzip -tq /tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.2-source.zip
+          tar -tzf /tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.2-source.tar.gz > /dev/null
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: nicoid-re-v2.0.1-dev.1-source
+          name: nicoid-re-v2.0.1-dev.2-source
           path: /tmp/nicoid-v2-source/*
           if-no-files-found: error
           retention-days: 2

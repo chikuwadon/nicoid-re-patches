@@ -34,10 +34,18 @@ with ZipFile(base_path) as base,ZipFile(candidate_path) as new:
     before=set(dex_classes(base.read("nicoid/helpers.mpe")))
     classes=dex_classes(new.read("nicoid/helpers.mpe"))
     assert len(classes)==len(set(classes)), "Duplicate helper class"
-    assert before.issubset(classes), "Stable class disappeared"
+    # The previous LocalPlaylists family (including obsolete compiler-generated
+    # lambda classes) is deliberately replaced as a whole. No unrelated stable
+    # helper is allowed to disappear.
+    removed=before-set(classes)
+    unexpected={name for name in removed
+                if not (name=="Le/e/a/LocalPlaylists;" or name.startswith("Le/e/a/LocalPlaylists$"))}
+    assert not unexpected, f"Unrelated stable class disappeared: {sorted(unexpected)[:10]}"
+    assert "Le/e/a/LocalPlaylists;" in classes
+    assert "Le/e/a/LocalPlaylists$Page;" in classes
     for x in ("ThumbnailCorners","NicoliveUi","NicoliveActivity","NicoliveBrowser","NicoliveData","NicoliveService","NicoliveCatalog","NicoliveSession"):
         assert "Le/e/a/"+x+";" in classes, x
-    print(f"PASS: base {len(before)} classes retained, candidate {len(classes)} unique classes")
+    print(f"PASS: base {len(before)} classes, {len(removed)} replaced playlist classes, candidate {len(classes)} unique classes")
     print(f"PASS: version, resources, manifest & helper class checks")
     print("NOT TESTED: Morphe applying to original APK; runtime playback on Android")
 print("MPP SHA-256",hashlib.sha256(candidate_path.read_bytes()).hexdigest())

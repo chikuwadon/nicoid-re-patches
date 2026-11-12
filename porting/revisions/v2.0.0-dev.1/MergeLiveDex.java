@@ -30,15 +30,29 @@ final class MergeLiveDex {
                     || type.startsWith("Le/e/a/AmbientLight$$")) liveAmbient.add(type);
         }
         if (!liveAmbient.contains("Le/e/a/AmbientLight$Glow;")) throw new IOException("Missing ambient glow");
+        // The local playlist screen needs cohesive UI + adapter changes: replace
+        // its complete class family, including compiled lambda implementations.
+        Set<String> livePlaylist = new HashSet<>();
+        for (ClassDef cls : live.getClasses()) {
+            String type = cls.getType();
+            if (type.equals("Le/e/a/LocalPlaylists;") || type.startsWith("Le/e/a/LocalPlaylists$"))
+                livePlaylist.add(type);
+        }
+        if (!livePlaylist.contains("Le/e/a/LocalPlaylists;")
+                || !livePlaylist.contains("Le/e/a/LocalPlaylists$Page;"))
+            throw new IOException("Missing local playlist replacement classes");
         Set<String> types = new HashSet<>();
         for (ClassDef cls : baseline.getClasses()) {
-            types.add(cls.getType());
-            if (!replacements.contains(cls.getType()) && !liveAmbient.contains(cls.getType())) pool.internClass(cls);
+            String type = cls.getType();
+            types.add(type);
+            if (!replacements.contains(type) && !liveAmbient.contains(type)
+                    && !type.equals("Le/e/a/LocalPlaylists;")
+                    && !type.startsWith("Le/e/a/LocalPlaylists$")) pool.internClass(cls);
         }
         if (!types.containsAll(replacements)) throw new IOException("Unknown replacement class");
         for (ClassDef cls : live.getClasses()) {
             String type = cls.getType();
-            if (types.add(type) || liveAmbient.contains(type)) {
+            if (types.add(type) || liveAmbient.contains(type) || livePlaylist.contains(type)) {
                 pool.internClass(cls);
             } else if (!type.startsWith("Lcom/android/tools/r8/annotations/")) {
                 throw new IOException("Live dependency collides with stable helper: " + type);

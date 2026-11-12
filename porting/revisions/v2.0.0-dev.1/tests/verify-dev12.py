@@ -60,4 +60,13 @@ assert 'public static final int DOUBLE_BACK = 2' in exit_modes
 assert 'nicoid_exit_mode' in exit_modes and 'nicolive_exit_mode' in exit_modes
 assert 'ExitBackPolicy.isSecondPress(first, now)' in exit_modes
 assert 'exitSummary' not in a, 'NicoLive exit mode should not display a separate description'
-print("PASS: live features, thumbnail-shape option and source-only contracts")
+local=(R/"java/e/e/a/LocalPlaylists.java").read_text()
+merge=(R/"MergeLiveDex.java").read_text()
+for marker in ('カスタム順','static void reorderFolder(','void installDrag(ListView list)',
+               'startDragAndDrop(','reordering?2:selecting?1:0',
+               'if(sort!=3)Collections.sort(visible'):
+    assert marker in local, marker
+assert 'livePlaylist.contains(type)' in merge
+assert 'Le/e/a/LocalPlaylists$Page;' in merge
+assert 'nicoid_local_playlist_sort_' in local
+print("PASS: live features, optional thumbnails and manual playlist sorting contracts")

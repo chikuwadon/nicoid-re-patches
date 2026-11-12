@@ -11,11 +11,11 @@ python3 bootstrap_tools.py
 python3 bootstrap_live.py
 python3 build_mpp.py --base /path/to/patches-1.11.1.mpp \
   --apk /path/to/nicoid-6.49.apk --tools tools --media deps \
-  --output /path/to/nicoid-re-2.0.0-dev.1-16.mpp
+  --output /path/to/nicoid-re-2.0.0-dev.1-17.mpp
 java -jar tools/morphe.jar patch --unsigned \
-  -p /path/to/nicoid-re-2.0.0-dev.1-16.mpp -o /path/to/test.apk /path/to/nicoid-6.49.apk
+  -p /path/to/nicoid-re-2.0.0-dev.1-17.mpp -o /path/to/test.apk /path/to/nicoid-6.49.apk
 python3 verify_mpp.py /path/to/patches-1.11.1.mpp \
-  /path/to/nicoid-re-2.0.0-dev.1-16.mpp /path/to/test.apk
+  /path/to/nicoid-re-2.0.0-dev.1-17.mpp /path/to/test.apk
 ```
 
 ビルドは配布済みMPPのハッシュと入力APKのDEXを照合する。既存Gradleタスクは正規版ベースのビルド経路。ニコ生入り開発版には上記のコマンドを使う。
@@ -42,3 +42,11 @@ python3 verify_mpp.py /path/to/patches-1.11.1.mpp \
 | DEXを再変換したJVMテスト | dex2jar変換結果にJVMの検証・型解決エラーがあり、DEX実行の成功判定には使用していない |
 
 Android実機での起動、実配信、認証済みコメント投稿、長時間視聴、通常動画との往復、ポップアップ切り替えは未確認。旧版で報告された約1分でのクラッシュと切り替え時の黒画面は、今回のAPK適用結果から解消を判断できない。
+
+## Local playlists: custom order (v2.0.0-dev.1-17)
+
+- Use the rightmost reorder button in the playback-options row to enter reorder mode.
+- Long-press and drag a row's handle; completed moves persist per playlist using existing stable video IDs and atomic playlist storage.
+- Custom order is added as a fourth sort option; other sort modes leave manual order intact.
+- Exit reorder mode with the checkmark or Back. Sorting preference is remembered per playlist.
+- Preserve playback/long-press actions outside reorder mode. No official release is made by this branch.

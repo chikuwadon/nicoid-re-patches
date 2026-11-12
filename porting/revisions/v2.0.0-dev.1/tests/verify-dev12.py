@@ -38,7 +38,7 @@ build=(R/"build_mpp.py").read_text()
 version=next((line.split('"')[1] for line in build.splitlines()
               if line.startswith('VERSION = "')), None)
 assert version and version.startswith("2.0.0-dev.1-"), "unexpected development version"
-assert f'Version: {version.group(1)}' in (R/"verify_mpp.py").read_text()
+assert f'Version: {version}' in (R/"verify_mpp.py").read_text()
 corners=(R/"java/e/e/a/ThumbnailCorners.java").read_text()
 entry=(R/"java/e/e/a/NicoliveEntry.java").read_text()
 for marker in ('rounded.setDefaultValue(true)', 'OriginalOutline original = ORIGINALS.remove(view)',

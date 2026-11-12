@@ -14,7 +14,7 @@ from patch_manifest import patch_manifest
 
 ROOT = Path(__file__).resolve().parent
 BASE_HASH = "8920e9cdc9fc49178be5bc78cdb990627f4e7a7be83fef782eece3e7c443bcce"
-VERSION = "2.0.0-dev.1-14"
+VERSION = "2.0.0-dev.1-15"
 
 
 def run(*args):
@@ -115,6 +115,24 @@ def build(args, work):
             raise ValueError("Missing settings insertion point")
         (hooks / "SettingsTools.smali").write_text(settings.replace(
             anchor, anchor + "\n\n    invoke-static {p0, v1}, Le/e/a/NicoliveEntry;->settings(Landroid/preference/PreferenceActivity;Landroid/preference/PreferenceGroup;)V"))
+        # Preserve the native Back hook while replacing the old checkbox with a mode chooser.
+        dev112_file = "Dev112.smali"
+        dev112 = (disassembled / "e/e/a" / dev112_file).read_text()
+        for signature, instruction, finish in (
+            (".method public static exitSettings(Landroid/preference/PreferenceActivity;)V",
+             "invoke-static {p0}, Le/e/a/ExitModeOptions;->install(Landroid/preference/PreferenceActivity;)V",
+             "return-void"),
+            (".method public static back(Landroid/app/Activity;)Z",
+             "invoke-static {p0}, Le/e/a/ExitModeOptions;->normalBack(Landroid/app/Activity;)Z\n"
+             "    move-result v0", "return v0"),
+        ):
+            replacement = signature + "\n    .registers 2\n\n    " + instruction + "\n    " + finish + "\n.end method"
+            dev112, count = re.subn(re.escape(signature) + r".*?\.end method",
+                                     lambda match: replacement, dev112, flags=re.DOTALL)
+            if count != 1:
+                raise ValueError("Missing exit method: " + signature)
+        (hooks / dev112_file).write_text(dev112)
+
         # Clip thumbnail surfaces and native progress overlays together without touching image caches.
         details_source = (disassembled / "e/e/a/VideoDetails.smali").read_text()
         details_source = add_hook(

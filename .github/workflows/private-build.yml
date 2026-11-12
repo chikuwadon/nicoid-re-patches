@@ -448,6 +448,14 @@ jobs:
             e.e.a.NicoliveAccessLabelsTest
           echo "MPP generation and device/runtime playback were NOT performed by this source-only job."
 
+      - name: Test double-Back timing boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          revision=porting/revisions/v2.0.0-dev.1
+          mkdir -p /tmp/nicoid-exit-policy-tests
+          javac --release 8 -d /tmp/nicoid-exit-policy-tests "$revision/java/e/e/a/ExitBackPolicy.java" "$revision/tests/ExitBackPolicyTest.java"
+          java -cp /tmp/nicoid-exit-policy-tests e.e.a.ExitBackPolicyTest
       - name: Compile complete Android live source against official MPP
         shell: bash
         run: |
@@ -480,7 +488,7 @@ jobs:
         run: |
           set -euo pipefail
           revision=porting/revisions/v2.0.0-dev.1
-          output=/tmp/nicoid-re-2.0.0-dev.1-14.mpp
+          output=/tmp/nicoid-re-2.0.0-dev.1-15.mpp
           python3 "$revision/build_mpp.py" \
             --base /tmp/stable-nicoid.mpp \
             --tools "$revision/tools" --media "$revision/deps" \
@@ -492,7 +500,7 @@ jobs:
           mkdir -p /tmp/nicoid-v2-delivery
           cp "$output" /tmp/nicoid-v2-delivery/
           {
-            echo "nicoid Re v2.0.0-dev.1-14"
+            echo "nicoid Re v2.0.0-dev.1-15"
             echo "Branch: v2.0.0-dev"
             echo "Source commit: $GITHUB_SHA"
             echo "Original nicoid APK SHA-256 checked separately: 17fc6b46228af184437ade7e6f5573915bc655b86996307ff3270fdf35279cce"
@@ -503,12 +511,12 @@ jobs:
             echo
             sha256sum "$output"
           } > /tmp/nicoid-v2-delivery/verification.txt
-          (cd /tmp/nicoid-v2-delivery && zip -q /tmp/nicoid-re-2.0.0-dev.1-14.zip ./*)
+          (cd /tmp/nicoid-v2-delivery && zip -q /tmp/nicoid-re-2.0.0-dev.1-15.zip ./*)
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: nicoid-re-v2.0.0-dev.1-14-mpp
-          path: /tmp/nicoid-re-2.0.0-dev.1-14.zip
+          name: nicoid-re-v2.0.0-dev.1-15-mpp
+          path: /tmp/nicoid-re-2.0.0-dev.1-15.zip
           if-no-files-found: error
           retention-days: 2
 

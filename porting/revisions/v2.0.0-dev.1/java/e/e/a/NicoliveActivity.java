@@ -15,7 +15,7 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
  private static final DateTimeFormatter TIMETABLE_TIME=DateTimeFormatter.ofPattern("HH:mm");
  private static final int[] HUB_TABS={0,RANKING,TIMETABLE,FOLLOWING,2,RESERVATIONS};
  private static final String[] HUB_LABELS={"放送中","ランキング","番組表","フォロー","履歴","予約リスト"};
- private static final String EXIT_CONFIRM="nicolive_exit_confirm", START_TAB="nicolive_start_tab",
+ private static final String START_TAB="nicolive_start_tab",
   LAST_TAB="nicolive_last_tab", FLOAT_REFRESH="nicolive_float_refresh", START_TIME="nicolive_start_time",
   TAP_BEHAVIOR="nicolive_tap_behavior"; // 0: usual viewer, 1: keep the hub and show popup
  private String pendingPopupId="",deniedProgramId="";
@@ -52,7 +52,7 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
  String fromIntent(Intent intent){if(intent==null)return null;String id=NicoliveData.id(intent.getStringExtra("program"));return id!=null?id:NicoliveData.id(intent.getDataString());}
  @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);String id=fromIntent(intent);if(id!=null)watch(id);}
  @Override protected void onStart(){super.onStart();if(!watching){browser.resumeImages();if(resumeLoad){resumeLoad=false;if(loading)load();}}if(watching||NicoliveService.active!=null)bind();}
- @Override protected void onStop(){resumeLoad=!watching&&loading;browser.pauseImages();if(input!=null)draft=input.getText().toString();unbind();super.onStop();}
+ @Override protected void onStop(){ExitModeOptions.clear(this);resumeLoad=!watching&&loading;browser.pauseImages();if(input!=null)draft=input.getText().toString();unbind();super.onStop();}
  @Override protected void onResume(){super.onResume();refreshAccount();updateNowPlaying();}
  void refreshAccount(){if(!watching||service==null||service.program==null||service.program.loggedIn||service.session==null)return;String cookie=NicoliveBrowser.cookie(this);if(cookie.contains("user_session=")&&!cookie.equals(service.session.accountCookie))service.open(service.id);}
  @Override protected void onDestroy(){unbind();if(browser!=null)browser.close();super.onDestroy();}
@@ -222,29 +222,45 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
   options.setBackgroundColor(Color.TRANSPARENT);
   int inset=NicoliveUi.dp(this,20);
   options.setPadding(inset,0,inset,0);
-  CheckBox confirm=settingSwitch(options,"ニコ生を閉じる前に確認する",preferences.getBoolean(EXIT_CONFIRM,true));
   CheckBox refresh=settingSwitch(options,"右下に更新ボタンを表示",preferences.getBoolean(FLOAT_REFRESH,true));
-  Button launch=settingChoiceRow(options,confirm.getCompoundPaddingStart());
-  Button time=settingChoiceRow(options,confirm.getCompoundPaddingStart());
-  Button tap=settingChoiceRow(options,confirm.getCompoundPaddingStart());
+  Button exitChoice=settingChoiceRow(options,refresh.getCompoundPaddingStart());
+  TextView exitSummary=NicoliveUi.text(options.getContext(),"",12);
+  exitSummary.setTextColor(DynamicTheme.secondaryTextColor(exitSummary));
+  exitSummary.setPadding(refresh.getCompoundPaddingStart(),0,0,NicoliveUi.dp(this,4));
+  options.addView(exitSummary,new LinearLayout.LayoutParams(-1,-2));
+  Button launch=settingChoiceRow(options,refresh.getCompoundPaddingStart());
+  Button time=settingChoiceRow(options,refresh.getCompoundPaddingStart());
+  Button tap=settingChoiceRow(options,refresh.getCompoundPaddingStart());
   String[] startOptions=Arrays.copyOf(HUB_LABELS,HUB_LABELS.length+1);
   startOptions[HUB_LABELS.length]="前回開いたタブ";
   int saved=preferences.getInt(START_TAB,0);
   int current=0;
   for(int i=0;i<HUB_TABS.length;i++)if(HUB_TABS[i]==saved)current=i;
   if(saved==-1)current=HUB_LABELS.length;
-  int[] selections={current,preferences.getBoolean(START_TIME,false)?1:0,Math.max(0,Math.min(1,preferences.getInt(TAP_BEHAVIOR,0)))};
+  int[] selections={current,preferences.getBoolean(START_TIME,false)?1:0,
+   Math.max(0,Math.min(1,preferences.getInt(TAP_BEHAVIOR,0))),
+   ExitModeOptions.mode(this,ExitModeOptions.LIVE_KEY)};
   String[] timeOptions={"経過時間","放送開始時刻"};
   bindSettingChoice(launch,"最初に開くタブ",startOptions,selections,0);
   bindSettingChoice(time,"放送中の時刻表示",timeOptions,selections,1);
   bindSettingChoice(tap,"タップ時の動作",new String[]{"通常再生","ポップアップ再生"},selections,2);
+  showChoiceValue(exitChoice,"ニコ生を閉じるときの確認",ExitModeOptions.labels(this)[selections[3]]);
+  exitSummary.setText(ExitModeOptions.summary(this,selections[3],true));
+  exitChoice.setOnClickListener(v->NicoliveUi.dialog(UiDialogs.builder(this)
+   .setTitle("ニコ生を閉じるときの確認")
+   .setSingleChoiceItems(ExitModeOptions.labels(this),selections[3],(dialog,which)->{
+    selections[3]=which;
+    showChoiceValue(exitChoice,"ニコ生を閉じるときの確認",ExitModeOptions.labels(this)[which]);
+    exitSummary.setText(ExitModeOptions.summary(this,which,true));
+    dialog.dismiss();
+   }).setNegativeButton(android.R.string.cancel,null).create()));
   ScrollView scroll=new ScrollView(options.getContext());
   scroll.addView(options);
   NicoliveUi.dialog(UiDialogs.builder(this).setTitle("ニコ生の設定").setView(scroll)
    .setNegativeButton(android.R.string.cancel,null)
    .setPositiveButton("適用",(dialog,which)->{
     int start=selections[0]==HUB_TABS.length?-1:HUB_TABS[selections[0]];
-    preferences.edit().putBoolean(EXIT_CONFIRM,confirm.isChecked())
+    preferences.edit().putInt(ExitModeOptions.LIVE_KEY,selections[3])
      .putBoolean(FLOAT_REFRESH,refresh.isChecked()).putInt(START_TAB,start)
      .putBoolean(START_TIME,selections[1]==1).putInt(TAP_BEHAVIOR,selections[2]).apply();
     updateHubDisplayOptions();
@@ -328,7 +344,13 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
  }
 
  private void exitHub(){
-  if(!prefs().getBoolean(EXIT_CONFIRM,true)){finish();return;}
+  int mode=ExitModeOptions.mode(this,ExitModeOptions.LIVE_KEY);
+  if(mode==ExitModeOptions.NONE){ExitModeOptions.clear(this);finish();return;}
+  if(mode==ExitModeOptions.DOUBLE_BACK){
+   if(ExitModeOptions.doubleBack(this,"もう一度戻るとニコ生を閉じます"))finish();
+   return;
+  }
+  ExitModeOptions.clear(this);
   if(exitDialog!=null&&exitDialog.isShowing())return;
   exitDialog=UiDialogs.builder(this).setTitle("ニコ生を閉じますか？")
    .setMessage("通常のニコ動画面に戻ります")
@@ -908,7 +930,7 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
  }
 
  void searchValue(String text){String value=text.trim(),id=NicoliveData.id(value);((InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(root.getWindowToken(),0);if(id!=null)watch(id);else{if(!query.equals(value)){recentReady=false;programs.clear();feedAdapter.notifyDataSetChanged();}query=value;feedPosition=0;feedOffset=0;if(hubTab!=0){hubTab=0;hub();}else load();}}
- void watch(String id){pendingPopupId="";if(!id.equals(requested))deniedProgramId="";if(!watching&&feed!=null){feedPosition=feed.getFirstVisiblePosition();feedOffset=feed.getChildCount()>0?feed.getChildAt(0).getTop():0;}browser.pauseImages();if(Build.VERSION.SDK_INT<28){Toast.makeText(this,"生放送はAndroid 9以降で利用できます",Toast.LENGTH_LONG).show();return;}boolean same=id.equals(requested);if(!same){draft="";pendingDraft="";if(input!=null)input.setText("");}requested=id;watching=true;info=false;atBottom=true;newComments=0;observedCount=0;++loadToken;viewer();Intent start=new Intent(this,NicoliveService.class).putExtra("program",id);startForegroundService(start);bind();if(service!=null&&!service.stopped){if(!id.equals(service.id)||service.terminal)service.open(id);service.returnToFrame(playerFrame);changed();}}
+ void watch(String id){ExitModeOptions.clear(this);pendingPopupId="";if(!id.equals(requested))deniedProgramId="";if(!watching&&feed!=null){feedPosition=feed.getFirstVisiblePosition();feedOffset=feed.getChildCount()>0?feed.getChildAt(0).getTop():0;}browser.pauseImages();if(Build.VERSION.SDK_INT<28){Toast.makeText(this,"生放送はAndroid 9以降で利用できます",Toast.LENGTH_LONG).show();return;}boolean same=id.equals(requested);if(!same){draft="";pendingDraft="";if(input!=null)input.setText("");}requested=id;watching=true;info=false;atBottom=true;newComments=0;observedCount=0;++loadToken;viewer();Intent start=new Intent(this,NicoliveService.class).putExtra("program",id);startForegroundService(start);bind();if(service!=null&&!service.stopped){if(!id.equals(service.id)||service.terminal)service.open(id);service.returnToFrame(playerFrame);changed();}}
  void viewer(){if(playerFrame!=null&&viewerPane!=null&&playerFrame.getParent()==body){updateViewerLayout();return;}NicolivePlayerFrame old=playerFrame;if(service!=null&&old!=null)service.detach(old);base();header.setVisibility(fullscreen?View.GONE:View.VISIBLE);root.setFitsSystemWindows(!fullscreen);if(fullscreen)getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
   ImageButton back=NicoliveUi.icon(this,"back","番組一覧に戻る");header.addView(back);back.setOnClickListener(v->{if(input!=null)draft=input.getText().toString();hub();});heading=NicoliveUi.text(this,"生放送",16);header.addView(heading,new LinearLayout.LayoutParams(0,-1,1));ImageButton popup=NicoliveUi.icon(this,"popup","ポップアップ");header.addView(popup);popup.setOnClickListener(v->popup());ImageButton reconnect=NicoliveUi.icon(this,"refresh","再接続");header.addView(reconnect);reconnect.setOnClickListener(v->{if(service!=null)service.reconnect();});
   playerFrame=new NicolivePlayerFrame(this,false);int videoHeight=fullscreen?-1:Math.round(getResources().getDisplayMetrics().widthPixels/(16f/9));body.addView(playerFrame,new LinearLayout.LayoutParams(-1,videoHeight));if(service!=null){service.returnToFrame(playerFrame);}viewerPane=NicoliveUi.column(this);body.addView(viewerPane,new LinearLayout.LayoutParams(-1,0,1));

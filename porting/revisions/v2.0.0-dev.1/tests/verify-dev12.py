@@ -52,4 +52,11 @@ assert 'appの再起動' not in corners
 assert '変更はアプリの再起動後に反映されます' in corners
 assert '->applyDetails(Landroid/view/View;)V' in build
 assert 'Missing playback mini-thumbnail' in build
+assert 'Missing exit method:' in build
+assert 'ExitModeOptions.mode(this,ExitModeOptions.LIVE_KEY)' in a
+assert 'ExitModeOptions.doubleBack(this,' in a
+exit_modes = (R/"java/e/e/a/ExitModeOptions.java").read_text()
+assert 'public static final int DOUBLE_BACK = 2' in exit_modes
+assert 'nicoid_exit_mode' in exit_modes and 'nicolive_exit_mode' in exit_modes
+assert 'ExitBackPolicy.isSecondPress(first, now)' in exit_modes
 print("PASS: live features, thumbnail-shape option and source-only contracts")

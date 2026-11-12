@@ -15,7 +15,10 @@ for needle in (
 # Never blank the video list or move through partial pages merely to load more.
 for forbidden in ("setForeground(", "setVisibility(", "class Mask", "setSelectionFromTop(next,", "ScrollRestorePolicy204.next("):
  assert forbidden not in source,forbidden
-assert source.count("list.setSelectionFromTop(position,top);")==2
+assert source.count("apply(list,position,top);")==2
+assert 'list.setSelectionFromTop(p,t);' in source
+assert 'if(previous!=null&&previous.position==position&&previous.top==top)return;' in source
+assert 'if(justApplied(list,position,top))return;' in source
 assert 'VERSION = "2.0.1-dev.5"' in builder
 assert 'const/16 v12, 0x8' in builder
 assert "Unexpected native tab cache limit" in builder

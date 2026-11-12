@@ -121,5 +121,11 @@ assert 'Live HLS has no user-seekable duration' in service
 assert 'host.endsWith(".nimg.jp")' in artwork
 assert 'host.endsWith(".nicovideo.jp")' in artwork
 assert 'connection.setInstanceFollowRedirects(false)' in artwork
+assert 'LiveStreamUpdatePolicy.reuse(activeStreamUri,nextUri,activeStreamQuality,selected,activeMedia)' in service
+assert 'JSONArray currentCookies=mediaCookies;' in service
+assert 'new CookieSource();' in service
+assert 'activeStreamUri=nextUri;activeStreamQuality=selected;' in service
+assert 'Stream credentials updated without player reset' in service
+assert 'final JSONArray cookies;CookieSource(JSONArray cookies)' not in service
 assert 'out.size()+n>LIMIT' in artwork
 print("PASS: live features, thumbnail artwork, media controls and manual playlist sorting contracts")

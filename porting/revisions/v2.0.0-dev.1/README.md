@@ -84,3 +84,10 @@ Android実機での起動、実配信、認証済みコメント投稿、長時�
 - Work around Media3 AES-128 key caching by assigning a unique fragment-only identity to each key URI on playlist refresh. The HTTP endpoint, signed query, key bytes, encryption IV, segment data, cookies, and user-facing controls remain unchanged.
 - Allow the exact suspicious fMP4 atom-length error to use bounded encrypted-HLS watch-session recovery, and only after an AES-128 playlist has been seen. All unrelated parse errors remain terminal to prevent retry loops.
 - Source contracts and Java-level tests validate signed URL preservation, AES-128-only rewriting, encrypted fMP4 recovery gating, and unchanged UI. Device playback over multiple key rotation intervals remains unverified.
+
+## v2.0.0-dev.1-24: prevent redundant live stream reset (release remains blocked)
+
+- Read server-supplied live cookies dynamically on each HLS HTTP request, not from the initial WebSocket stream message, so credential renewal does not require restarting playback.
+- For repeated stream messages with the *same* signed media URI and selected quality, keep the healthy Media3 player, buffered segments and AES key parser instead of calling setMediaSource/prepare.
+- Replace the media source only when the stream URL or quality actually changes, or when the existing player is idle/ended/errored. No credentials or signed URLs are written to debug logs.
+- Retain the v2.0.0-dev.1-23 HLS AES-128 key-cache invalidation and bounded fallback recovery. This version specifically reduces avoidable player resets; actual 10+ minute uninterrupted playback still requires device verification.

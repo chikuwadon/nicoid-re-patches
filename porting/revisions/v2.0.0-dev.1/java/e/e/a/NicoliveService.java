@@ -12,7 +12,7 @@ public class NicoliveService extends android.app.Service {
  final ArrayDeque<NicoliveData.Chat> history=new ArrayDeque<NicoliveData.Chat>();final ArrayDeque<NicoliveData.Chat> incoming=new ArrayDeque<NicoliveData.Chat>();
  final PriorityQueue<NicoliveData.Chat> scheduled=new PriorityQueue<NicoliveData.Chat>(32,new Comparator<NicoliveData.Chat>(){public int compare(NicoliveData.Chat a,NicoliveData.Chat b){return Long.compare(a.vpos,b.vpos);}});
  final Timeline.Window window=new Timeline.Window();ExoPlayer player;NicoliveSession session;NicoliveNg ng;NicoliveData.Program program;
- String id="",status="",selected="abr";List<String> qualities=new ArrayList<String>();JSONArray mediaCookies=new JSONArray();volatile int serial;volatile boolean stopped;boolean commentsConnected,commentVisible=true,audioOnly,terminal,userPaused,cryptoRecoveryPending;HlsKeyRefreshingPlaylistParser keyParser;int cryptoRecoveryCount;long cryptoRecoveryStart;float aspect=16f/9;long pausedAt,deliveredCount;
+ String id="",status="",selected="abr";List<String> qualities=new ArrayList<String>();volatile JSONArray mediaCookies=new JSONArray();String activeStreamUri="",activeStreamQuality="";volatile int serial;volatile boolean stopped;boolean commentsConnected,commentVisible=true,audioOnly,terminal,userPaused,cryptoRecoveryPending;HlsKeyRefreshingPlaylistParser keyParser;int cryptoRecoveryCount;long cryptoRecoveryStart;float aspect=16f/9;long pausedAt,deliveredCount;
  NicolivePlayerFrame frame,popup;WindowManager manager;WindowManager.LayoutParams popupParams;android.media.session.MediaSession mediaSession;
  final ExecutorService artworkWork=Executors.newSingleThreadExecutor();
  Future<?> artworkTask;Bitmap mediaArtwork;int artworkToken;
@@ -70,7 +70,7 @@ public class NicoliveService extends android.app.Service {
   status="映像を再生できませんでした。再接続をお試しください";
   notifyObservers();updateNotification();
  }
- void open(String newId){if(stopped||player==null)return;keyParser=null;clearArtwork();cryptoRecoveryPending=false;cryptoRecoveryCount=0;cryptoRecoveryStart=0;final int token=++serial;main.removeCallbacks(tick);main.post(tick);NicoliveEntry.beforeLive(this);if(session!=null)session.close();id=newId;program=null;terminal=false;status="接続中…";qualities.clear();selected="abr";audioOnly=false;userPaused=false;deliveredCount=0;commentsConnected=false;pausedAt=0;player.setTrackSelectionParameters(player.getTrackSelectionParameters().buildUpon().setTrackTypeDisabled(C.TRACK_TYPE_VIDEO,false).build());history.clear();scheduled.clear();synchronized(incoming){incoming.clear();}if(frame!=null)frame.comments.clear();ng.reload();player.stop();
+ void open(String newId){if(stopped||player==null)return;activeStreamUri="";activeStreamQuality="";keyParser=null;clearArtwork();cryptoRecoveryPending=false;cryptoRecoveryCount=0;cryptoRecoveryStart=0;final int token=++serial;main.removeCallbacks(tick);main.post(tick);NicoliveEntry.beforeLive(this);if(session!=null)session.close();id=newId;program=null;terminal=false;status="接続中…";qualities.clear();selected="abr";audioOnly=false;userPaused=false;deliveredCount=0;commentsConnected=false;pausedAt=0;player.setTrackSelectionParameters(player.getTrackSelectionParameters().buildUpon().setTrackTypeDisabled(C.TRACK_TYPE_VIDEO,false).build());history.clear();scheduled.clear();synchronized(incoming){incoming.clear();}if(frame!=null)frame.comments.clear();ng.reload();player.stop();
   String cookie="";try{cookie=SessionCookies194.cookie(this,null);}catch(Exception ignored){}
   session=new NicoliveSession(id,cookie,new NicoliveSession.Listener(){
    void dispatch(final Runnable r){main.post(new Runnable(){public void run(){if(!stopped&&token==serial)r.run();}});}
@@ -83,14 +83,29 @@ public class NicoliveService extends android.app.Service {
   });foreground();session.start();notifyObservers();
  }
  void applyStream(JSONObject stream){try{cryptoRecoveryPending=false;mediaCookies=stream.optJSONArray("cookies");if(mediaCookies==null)mediaCookies=new JSONArray();qualities.clear();JSONArray q=stream.optJSONArray("availableQualities");if(q!=null)for(int i=0;i<q.length();i++)qualities.add(q.optString(i));
-    final JSONArray streamCookies=mediaCookies;Uri uri=Uri.parse(stream.getString("uri"));DataSource.Factory factory=new DataSource.Factory(){public DataSource createDataSource(){return new CookieSource(streamCookies);}};
+    String nextUri=stream.getString("uri");
+    int state=player.getPlaybackState();
+    boolean activeMedia=player.getCurrentMediaItem()!=null&&player.getPlayerError()==null
+            &&(state==Player.STATE_READY||state==Player.STATE_BUFFERING);
+    boolean retain=LiveStreamUpdatePolicy.reuse(activeStreamUri,nextUri,activeStreamQuality,selected,activeMedia);
+    if(retain){
+     // A live watch socket can resend stream credentials. Keep the existing
+     // playlist/chunks/decoder alive; subsequent HTTP opens read mediaCookies.
+     android.util.Log.i("nicoid-live","Stream credentials updated without player reset");
+     terminal=false;notifyObservers();return;
+    }
+    android.util.Log.i("nicoid-live","Stream source updated, sameUri="+nextUri.equals(activeStreamUri)+", qualityChanged="+!selected.equals(activeStreamQuality)+", active="+activeMedia);
+    Uri uri=Uri.parse(nextUri);
+    DataSource.Factory factory=new DataSource.Factory(){public DataSource createDataSource(){return new CookieSource();}};
     MediaItem item=new MediaItem.Builder().setUri(uri).setMimeType(MimeTypes.APPLICATION_M3U8).setLiveConfiguration(new MediaItem.LiveConfiguration.Builder().setMaxPlaybackSpeed(1.0f).setMinPlaybackSpeed(1.0f).build()).build();
-    keyParser=new HlsKeyRefreshingPlaylistParser();player.setMediaSource(new HlsMediaSource.Factory(factory).setPlaylistParserFactory(keyParser).createMediaSource(item));player.prepare();player.setPlayWhenReady(!userPaused);terminal=false;notifyObservers();
+    keyParser=new HlsKeyRefreshingPlaylistParser();player.setMediaSource(new HlsMediaSource.Factory(factory).setPlaylistParserFactory(keyParser).createMediaSource(item));player.prepare();player.setPlayWhenReady(!userPaused);
+    activeStreamUri=nextUri;activeStreamQuality=selected;terminal=false;notifyObservers();
   }catch(Exception e){status="配信情報を読み取れませんでした";notifyObservers();}}
  final class CookieSource implements DataSource {
-  final JSONArray cookies;CookieSource(JSONArray cookies){this.cookies=cookies;}
+  // Snapshot the newest server-provided cookies for each HTTP request.
+  // Never hold the original stream callback's stale cookie set indefinitely.
   final DefaultHttpDataSource delegate=new DefaultHttpDataSource.Factory().setUserAgent("nicoid Re live / Media3").setConnectTimeoutMs(15000).setReadTimeoutMs(20000).createDataSource();
-  public long open(DataSpec spec)throws IOException{String host=spec.uri.getHost();StringBuilder cookies=new StringBuilder();for(int i=0;i<this.cookies.length();i++){JSONObject c=this.cookies.optJSONObject(i);if(c==null||host==null)continue;String domain=c.optString("domain");if(domain.startsWith("."))domain=domain.substring(1);String path=spec.uri.getPath();if(!(host.equals(domain)||host.endsWith("."+domain))||path==null||!path.startsWith(c.optString("path","/")))continue;String name=c.optString("name"),value=c.optString("value");if(!name.matches("[A-Za-z0-9_-]+")||value.indexOf('\r')>=0||value.indexOf('\n')>=0)continue;if(cookies.length()>0)cookies.append("; ");cookies.append(name).append('=').append(value);}
+  public long open(DataSpec spec)throws IOException{String host=spec.uri.getHost();JSONArray currentCookies=mediaCookies;StringBuilder cookies=new StringBuilder();for(int i=0;i<currentCookies.length();i++){JSONObject c=currentCookies.optJSONObject(i);if(c==null||host==null)continue;String domain=c.optString("domain");if(domain.startsWith("."))domain=domain.substring(1);String path=spec.uri.getPath();if(!(host.equals(domain)||host.endsWith("."+domain))||path==null||!path.startsWith(c.optString("path","/")))continue;String name=c.optString("name"),value=c.optString("value");if(!name.matches("[A-Za-z0-9_-]+")||value.indexOf('\r')>=0||value.indexOf('\n')>=0)continue;if(cookies.length()>0)cookies.append("; ");cookies.append(name).append('=').append(value);}
    if(!"https".equals(spec.uri.getScheme()))throw new IOException("Insecure media URI");delegate.clearRequestProperty("Cookie");if(cookies.length()>0)delegate.setRequestProperty("Cookie",cookies.toString());delegate.setRequestProperty("Referer","https://live.nicovideo.jp/");delegate.setRequestProperty("Origin","https://live.nicovideo.jp");return delegate.open(spec);
   }
   public int read(byte[] b,int off,int len)throws IOException{return delegate.read(b,off,len);}public Uri getUri(){return delegate.getUri();}public Map<String,List<String>> getResponseHeaders(){return delegate.getResponseHeaders();}public void close()throws IOException{delegate.close();}public void addTransferListener(TransferListener listener){delegate.addTransferListener(listener);}

@@ -460,7 +460,11 @@ jobs:
           python3 -c 'from zipfile import ZipFile;ZipFile("/tmp/stable-nicoid.mpp").extract("nicoid/helpers.mpe","/tmp")'
           java -cp "$revision/deps/*" com.googlecode.dex2jar.tools.Dex2jarCmd -o /tmp/nicoid-v2-helpers.jar /tmp/nicoid/helpers.mpe
           mkdir -p /tmp/nicoid-v2-android-classes
-          cp="$revision/tools/android-all-16-robolectric-13921718.jar:/tmp/nicoid-v2-helpers.jar"
+          # NicoLiveSession uses OkHttp from the native APK. CI has no private
+          # APK, so supply pinned, API-compatible OkHttp solely for compilation.
+          curl -fLs --retry 2 https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp/3.14.9/okhttp-3.14.9.jar -o /tmp/nicoid-v2-okhttp.jar
+          curl -fLs --retry 2 https://repo.maven.apache.org/maven2/com/squareup/okio/okio/1.17.2/okio-1.17.2.jar -o /tmp/nicoid-v2-okio.jar
+          cp="$revision/tools/android-all-16-robolectric-13921718.jar:/tmp/nicoid-v2-helpers.jar:/tmp/nicoid-v2-okhttp.jar:/tmp/nicoid-v2-okio.jar"
           for jar in "$revision"/deps/*.jar; do cp="$cp:$jar"; done
           java -jar "$revision/tools/ecj.jar" -8 -proc:none -nowarn -cp "$cp" \
             -d /tmp/nicoid-v2-android-classes \

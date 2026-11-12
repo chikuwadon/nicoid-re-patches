@@ -429,7 +429,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - name: Check source-only v2.0.0-dev.1-12 regression contracts
+      - name: Check source-only v2 live regression contracts
         run: python3 porting/revisions/v2.0.0-dev.1/tests/verify-dev12.py
       - name: Run NicoLive data/API contract JUnit tests
         shell: bash

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Source-level regression contracts for the local v2.0.0-dev.1-12 candidate.
+"""Source-level regression contracts for the current v2.0.0-dev candidate.
 
 Does not replace compilation of the Android UI/Media3 sources or an APK run.
 """
 from pathlib import Path
+import re
 R=Path(__file__).resolve().parents[1]
 src={name:(R/"java/e/e/a"/(name+".java")).read_text(encoding="utf-8")
      for name in ("NicoliveUi","NicoliveActivity","NicoliveBrowser","NicoliveData","NicoliveCatalog")}
@@ -34,7 +35,16 @@ assert 'if(status>=200&&status<300){refresh();result.done("");}' in b
 assert 'NicoliveData.accessLabel(p)' in src["NicoliveData"]
 assert 'static String accessLabel(JSONObject info)' in src["NicoliveData"]
 assert "if(!program.canWatch)" not in a, "do not preemptively block the live listing"
-assert 'v2.0.0-dev.1-12' not in (R/"build_mpp.py").read_text().replace('VERSION = "2.0.0-dev.1-12"',''), "unexpected hardcoded version"
-assert 'VERSION = "2.0.0-dev.1-12"' in (R/"build_mpp.py").read_text()
-assert "2.0.0-dev.1-12" in (R/"verify_mpp.py").read_text()
-print("PASS: 5 requested v2 features and pre-build risk checks")
+build=(R/"build_mpp.py").read_text()
+version=re.search(r'^VERSION = "(2\\.0\\.0-dev\\.1-\\d+)"
+,build,re.MULTILINE)
+assert version, "unexpected development version"
+assert f'Version: {version.group(1)}' in (R/"verify_mpp.py").read_text()
+corners=(R/"java/e/e/a/ThumbnailCorners.java").read_text()
+entry=(R/"java/e/e/a/NicoliveEntry.java").read_text()
+for marker in ('rounded.setDefaultValue(true)', 'OriginalOutline original = ORIGINALS.remove(view)',
+               'view.setClipToOutline(original.clip)', 'applyFrame(View frame)'):
+    assert marker in corners, marker
+assert 'ThumbnailCorners.settings(activity, other)' in entry
+assert 'ThumbnailCorners.applyFrame(artwork)' in a
+print("PASS: live features, thumbnail-shape option and source-only contracts")

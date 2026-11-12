@@ -48,65 +48,7 @@ jobs:
         run: ./gradlew clean :patches:buildAndroid :patches:generatePatchesList --no-daemon
       - name: Verify release candidate MPP and regressions
         run: |
-          if grep -Eq '^version[[:space:]]*=[[:space:]]*2[.]0[.]0[[:space:]]*
-          python3 porting/tests/regression141.py
-          python3 porting/tests/regression155.py
-          python3 porting/tests/retained-notification-regression.py
-          python3 porting/tests/tap-regions-regression.py
-          python3 porting/tests/tap-region-ui-regression.py
-      - name: Verify MPP was produced
-        shell: bash
-        run: |
-          set -euo pipefail
-          shopt -s nullglob
-          bundles=(patches/build/libs/*.mpp)
-          test "${#bundles[@]}" -ge 1
-          for bundle in "${bundles[@]}"; do
-            test -s "$bundle"
-            echo "Verified generated MPP: $bundle"
-          done
-
-  audit:
-    name: Report build-tool dependency vulnerabilities
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: '24'
-          cache: npm
-      - name: Audit fixed npm and locked build dependencies
-        shell: bash
-        run: |
-          set -euo pipefail
-          npm ci --ignore-scripts
-          node .github/scripts/verify-release-npm.cjs
-          node --input-type=module -e "await import('semantic-release'); console.log('Release CLI import successful')"
-          npm audit --json > /tmp/nicoid-npm-audit.json || true
-          python3 - <<'PY'
-          import json, os
-          with open("/tmp/nicoid-npm-audit.json", encoding="utf-8") as f:
-              data = json.load(f)
-          counts = data.get("metadata", {}).get("vulnerabilities", {})
-          text = "Build-tool npm audit (not an APK runtime audit): " + ", ".join(
-              f"{key}={counts.get(key, 0)}"
-              for key in ("critical", "high", "moderate", "low")
-          )
-          print(text)
-          for name, info in sorted(data.get("vulnerabilities", {}).items()):
-              if info.get("severity") in ("critical", "high"):
-                  print(f"Security advisory: {name}: {info.get('severity')}, "
-                        f"affected={info.get('range')}, fixAvailable={info.get('fixAvailable')}")
-          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
-              f.write("## Build-tool dependency audit\n\n" + text + "\n\n")
-          PY
-
- gradle.properties; then
+          if grep -Fq "version = 2.0.0" gradle.properties; then
             NICOID_OFFICIAL_RELEASE_APPROVED=VERIFY bash .github/scripts/stage-v2.0.0-mpp.sh
           else
             python3 porting/revisions/v1.11.1/verify-mpp.py 1.11.1

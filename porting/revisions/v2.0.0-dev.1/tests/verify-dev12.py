@@ -28,7 +28,11 @@ assert 'prefs().getInt(TAP_BEHAVIOR,0)==1' in a
 assert '.putInt(TAP_BEHAVIOR,selections[2])' in a
 assert 'preferences.edit().putString("nicolive_history",retained.toString()).commit()' in a
 b=src["NicoliveBrowser"]
-assert 'request.setRequestMethod("DELETE")' in b
+assert 'mutateReservation(id,cookie,"DELETE",' in b
+assert 'mutateReservation(id,cookie,"POST",' in b
+assert 'request.setRequestMethod(method)' in b
+assert 'reservationWork.execute' in b
+assert 'reservationWork.shutdown()' in b
 assert 'timeshift/reservations?programIds=' in b
 assert 'if(status>=200&&status<300){refresh();result.done("");}' in b
 assert 'NicoliveData.accessLabel(p)' in src["NicoliveData"]
@@ -38,7 +42,7 @@ build=(R/"build_mpp.py").read_text()
 version=next((line.split('"')[1] for line in build.splitlines()
               if line.startswith('VERSION = "')), None)
 assert version and version.startswith("2.0.0-dev.1-"), "unexpected development version"
-assert f'Version: {version}' in (R/"verify_mpp.py").read_text()
+assert 'f"Version: {version}' in (R/"verify_mpp.py").read_text()
 corners=(R/"java/e/e/a/ThumbnailCorners.java").read_text()
 entry=(R/"java/e/e/a/NicoliveEntry.java").read_text()
 for marker in ('rounded.setDefaultValue(true)', 'OriginalOutline original = ORIGINALS.remove(view)',
@@ -83,4 +87,15 @@ assert 'void saveLocation()' in local
 assert 'saveLocation();' in local
 assert 'if(folder.isEmpty())group="@unfiled";' in local
 assert 'group=parent.isEmpty()?"@unfiled":parent;' in local
+assert 'public static boolean home(Activity a,MenuItem item){return Dev116.drawer(a,item);}' in local
+assert 'item.getItemId()==android.R.id.home&&back(a)' not in local
+service=(R/"java/e/e/a/NicoliveService.java").read_text()
+policy=(R/"java/e/e/a/LiveRecoveryPolicy.java").read_text()
+assert 'handlePlaybackError(error);' in service
+assert 'LiveRecoveryPolicy.isAes128Failure(error)' in service
+assert 'session.reconnect();' in service
+assert 'cryptoRecoveryCount<LiveRecoveryPolicy.MAX_ATTEMPTS' in service
+assert 'cryptoRecoveryPending=false;session.reconnect();' in service
+assert 'instanceof BadPaddingException' in policy
+assert 'MAX_ATTEMPTS=3' in policy
 print("PASS: live features, optional thumbnails and manual playlist sorting contracts")

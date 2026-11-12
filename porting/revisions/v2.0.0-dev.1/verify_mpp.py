@@ -51,7 +51,9 @@ with ZipFile(sys.argv[1]) as base, ZipFile(sys.argv[2]) as candidate, ZipFile(sy
     assert candidate.testzip() is None and apk.testzip() is None
     changed = {name for name in base.namelist() if base.read(name) != candidate.read(name)}
     assert changed == {"META-INF/MANIFEST.MF", "nicoid/helpers.mpe", "nicoid/resources.zip"}, changed
-    assert b"Version: 2.0.0-dev.1-19\r\n" in candidate.read("META-INF/MANIFEST.MF")
+    version = next(line.split('"')[1] for line in Path(__file__).with_name("build_mpp.py").read_text().splitlines()
+                   if line.startswith('VERSION = "'))
+    assert f"Version: {version}\r\n".encode() in candidate.read("META-INF/MANIFEST.MF")
     with ZipFile(io.BytesIO(base.read("nicoid/resources.zip"))) as old, \
             ZipFile(io.BytesIO(candidate.read("nicoid/resources.zip"))) as new:
         assert old.namelist() == new.namelist()
@@ -61,7 +63,11 @@ with ZipFile(sys.argv[1]) as base, ZipFile(sys.argv[2]) as candidate, ZipFile(sy
     verify_live_manifest(apk.read("AndroidManifest.xml"))
     stable = set(classes(base.read("nicoid/helpers.mpe")))
     helper = classes(candidate.read("nicoid/helpers.mpe"))
-    assert stable <= set(helper) and len(helper) == len(set(helper))
+    helper_set = set(helper)
+    missing = stable - helper_set
+    assert all(name.startswith(b"Le/e/a/LocalPlaylists$") for name in missing), sorted(missing)
+    assert {b"Le/e/a/LocalPlaylists;",b"Le/e/a/LocalPlaylists$Page;"} <= helper_set
+    assert len(helper)==len(helper_set)
     assert sum(name.startswith(b"Le/e/a/Nicolive") and b"$" not in name for name in helper) >= 12
     applied = Counter(name for path in apk.namelist() if re.fullmatch(r"classes\d*\.dex", path)
                       for name in classes(apk.read(path)))

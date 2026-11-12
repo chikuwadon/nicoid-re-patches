@@ -3,6 +3,9 @@ import android.content.*;import android.graphics.*;import android.os.*;import an
 
 class NicoliveBrowser {
  final ThreadPoolExecutor work=new ThreadPoolExecutor(1,1,0,TimeUnit.MILLISECONDS,new ArrayBlockingQueue<Runnable>(1),new ThreadPoolExecutor.DiscardOldestPolicy());final ExecutorService imageWork=new ThreadPoolExecutor(2,2,0,TimeUnit.MILLISECONDS,new ArrayBlockingQueue<Runnable>(32),new ThreadPoolExecutor.AbortPolicy());final Handler main=new Handler(Looper.getMainLooper());final Set<HttpURLConnection> requests=Collections.synchronizedSet(new HashSet<HttpURLConnection>());volatile boolean closed,imagesPaused;volatile HttpURLConnection feedConnection;
+ // Reservation writes must survive feed cancellation and are serialized.
+ final ExecutorService reservationWork=new ThreadPoolExecutor(1,1,0,TimeUnit.MILLISECONDS,
+   new ArrayBlockingQueue<Runnable>(8),new ThreadPoolExecutor.AbortPolicy());
  volatile int generation,imageGeneration;Future<?> loading;
  static final class Feed {final String html;final long at=System.currentTimeMillis();Feed(String s){html=s;}}
  final LinkedHashMap<String,Feed> feeds=new LinkedHashMap<String,Feed>();
@@ -16,57 +19,37 @@ class NicoliveBrowser {
   if(cached!=null&&System.currentTimeMillis()-cached.at<30000){main.post(()->{if(!closed&&token==generation)result.done(cached.html);});return;}
   loading=work.submit(()->{if(closed||token!=generation)return;try{final String html=new String(bytes(url,cookie,2097152,true),"UTF-8");main.post(()->{if(!closed&&token==generation){feeds.put(key,new Feed(html));while(feeds.size()>3)feeds.remove(feeds.keySet().iterator().next());result.done(html);}});}catch(Exception e){main.post(()->{if(!closed&&token==generation)result.error();});}});
  }
+ private static final String RESERVATION_API="https://live2.nicovideo.jp/api/v2/";
  void cancelReservation(String id,String cookie,Result result){
-  if(!id.matches("lv[0-9]+")||cookie.isEmpty()||closed){result.error();return;}
-  NicoliveIo.execute(()->{
-   HttpURLConnection request=null;
-   try{
-    // Delete the remote reservation; do not mutate the local list on failure.
-    request=(HttpURLConnection)new URL("https://live2.nicovideo.jp/api/v2/timeshift/reservations?programIds="+id).openConnection();
-    synchronized(requests){if(closed)return;requests.add(request);}
-    request.setInstanceFollowRedirects(false);
-    request.setConnectTimeout(15000);request.setReadTimeout(15000);
-    request.setRequestMethod("DELETE");
-    request.setRequestProperty("Cookie",cookie);
-    request.setRequestProperty("User-Agent",NicoliveData.UA);
-    request.setRequestProperty("X-Frontend-Id","9");
-    request.setRequestProperty("Origin","https://live.nicovideo.jp");
-    request.setRequestProperty("Accept","application/json");
-    int status=request.getResponseCode();
-    main.post(()->{if(closed)return;if(status>=200&&status<300){refresh();result.done("");}else result.error();});
-   }catch(IOException failure){main.post(()->{if(!closed)result.error();});}
-   finally{if(request!=null){requests.remove(request);request.disconnect();}}
-  });
+  mutateReservation(id,cookie,"DELETE","timeshift/reservations?programIds="+id,result);
  }
-
  void reserve(String id,String cookie,Result result){
-  if(!id.matches("lv[0-9]+")||cookie.isEmpty()||closed){result.error();return;}
-  NicoliveIo.execute(()->{
-   HttpURLConnection request=null;
-   try{
-    request=(HttpURLConnection)new URL("https://live2.nicovideo.jp/api/v2/programs/"+id+"/timeshift/reservation").openConnection();
-    synchronized(requests){if(closed)return;requests.add(request);}
-    request.setInstanceFollowRedirects(false);
-    request.setConnectTimeout(15000);
-    request.setReadTimeout(15000);
-    request.setRequestMethod("POST");
-    request.setRequestProperty("Cookie",cookie);
-    request.setRequestProperty("User-Agent",NicoliveData.UA);
-    request.setRequestProperty("X-Frontend-Id","9");
-    request.setRequestProperty("Origin","https://live.nicovideo.jp");
-    request.setRequestProperty("Accept","application/json");
-    int status=request.getResponseCode();
-    main.post(()->{
-     if(closed)return;
-     if(status>=200&&status<300){refresh();result.done("");}
-     else result.error();
-    });
-   }catch(IOException failure){
-    main.post(()->{if(!closed)result.error();});
-   }finally{
-    if(request!=null){requests.remove(request);request.disconnect();}
-   }
-  });
+  mutateReservation(id,cookie,"POST","programs/"+id+"/timeshift/reservation",result);
+ }
+ HttpURLConnection openReservationConnection(String url)throws IOException{
+  return (HttpURLConnection)new URL(url).openConnection();
+ }
+ private void mutateReservation(String id,String cookie,String method,String path,Result result){
+  if(closed||id==null||!id.matches("lv[0-9]+")||cookie==null||cookie.isEmpty()){result.error();return;}
+  try{
+   reservationWork.execute(()->{
+    HttpURLConnection request=null;
+    try{
+     request=openReservationConnection(RESERVATION_API+path);
+     request.setInstanceFollowRedirects(false);
+     request.setConnectTimeout(15000);request.setReadTimeout(15000);
+     request.setRequestMethod(method);
+     request.setRequestProperty("Cookie",cookie);
+     request.setRequestProperty("User-Agent",NicoliveData.UA);
+     request.setRequestProperty("X-Frontend-Id","9");
+     request.setRequestProperty("Origin","https://live.nicovideo.jp");
+     request.setRequestProperty("Accept","application/json");
+     int status=request.getResponseCode();
+     main.post(()->{if(closed)return;if(status>=200&&status<300){refresh();result.done("");}else result.error();});
+    }catch(IOException failure){main.post(()->{if(!closed)result.error();});}
+    finally{if(request!=null)request.disconnect();}
+   });
+  }catch(RejectedExecutionException full){result.error();}
  }
  void refresh(){feeds.clear();}
  byte[] bytes(String original,String cookie,int max,boolean feed)throws IOException{
@@ -126,5 +109,5 @@ class NicoliveBrowser {
  void disconnectRequests(){final ArrayList<HttpURLConnection> closing;synchronized(requests){closing=new ArrayList<HttpURLConnection>(requests);}if(closing.isEmpty())return;NicoliveIo.execute(()->{for(HttpURLConnection c:closing)c.disconnect();});}
  void pauseImages(){imagesPaused=true;++imageGeneration;++generation;if(loading!=null)loading.cancel(true);work.getQueue().clear();pending.clear();((ThreadPoolExecutor)imageWork).getQueue().clear();disconnectRequests();}
  void resumeImages(){imagesPaused=false;}
- void close(){closed=true;++generation;++imageGeneration;pending.clear();feeds.clear();main.removeCallbacksAndMessages(null);disconnectRequests();work.shutdownNow();imageWork.shutdownNow();}
+ void close(){closed=true;++generation;++imageGeneration;pending.clear();feeds.clear();main.removeCallbacksAndMessages(null);disconnectRequests();work.shutdownNow();imageWork.shutdownNow();reservationWork.shutdown();}
 }

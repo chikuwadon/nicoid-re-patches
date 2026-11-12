@@ -621,7 +621,7 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
       reserving.remove(program.id);
       if(isFinishing()||isDestroyed())return;
       Toast.makeText(NicoliveActivity.this,"タイムシフト予約を取り消しました",Toast.LENGTH_SHORT).show();
-      if(hubTab==RESERVATIONS&&!watching){browser.refresh();load();}
+      refreshReservationsAfterWrite();
      }
      public void error(){
       reserving.remove(program.id);
@@ -632,6 +632,11 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
    }).setNegativeButton("キャンセル",null).create());
  }
 
+ private void refreshReservationsAfterWrite(){
+  if(hubTab!=RESERVATIONS||watching)return;
+  if(browser.imagesPaused){loading=true;resumeLoad=true;}
+  else load();
+ }
  private void loadReservations(int token){
   String cookie=NicoliveBrowser.cookie(this);
   if(cookie.isEmpty()){showResults("タイムシフト予約を見るにはログインしてください");return;}
@@ -662,7 +667,7 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
        reserving.remove(program.id);
        if(isFinishing())return;
        Toast.makeText(NicoliveActivity.this,"タイムシフトを予約しました",Toast.LENGTH_SHORT).show();
-       if(hubTab==RESERVATIONS&&!watching)refreshFeed();
+       refreshReservationsAfterWrite();
       }
       @Override public void error(){
        reserving.remove(program.id);
@@ -1009,7 +1014,8 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
     tag.setColor(0xd9252525);
     entitlement.setBackground(tag);
     FrameLayout.LayoutParams tagLayout=(FrameLayout.LayoutParams)entitlement.getLayoutParams();
-    tagLayout.topMargin=NicoliveUi.dp(NicoliveActivity.this,live||scheduled?25:4);
+    int accessLabelOffset=live||scheduled?25:4;
+    tagLayout.topMargin=NicoliveUi.dp(NicoliveActivity.this,accessLabelOffset);
     entitlement.setLayoutParams(tagLayout);
    }
    if(hubTab==2)browser.historyImage(p,thumbnail);else browser.image(p.thumbnail,thumbnail);

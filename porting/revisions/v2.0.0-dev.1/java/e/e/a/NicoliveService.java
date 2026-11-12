@@ -12,7 +12,7 @@ public class NicoliveService extends android.app.Service {
  final ArrayDeque<NicoliveData.Chat> history=new ArrayDeque<NicoliveData.Chat>();final ArrayDeque<NicoliveData.Chat> incoming=new ArrayDeque<NicoliveData.Chat>();
  final PriorityQueue<NicoliveData.Chat> scheduled=new PriorityQueue<NicoliveData.Chat>(32,new Comparator<NicoliveData.Chat>(){public int compare(NicoliveData.Chat a,NicoliveData.Chat b){return Long.compare(a.vpos,b.vpos);}});
  final Timeline.Window window=new Timeline.Window();ExoPlayer player;NicoliveSession session;NicoliveNg ng;NicoliveData.Program program;
- String id="",status="",selected="abr";List<String> qualities=new ArrayList<String>();JSONArray mediaCookies=new JSONArray();volatile int serial;volatile boolean stopped;boolean commentsConnected,commentVisible=true,audioOnly,terminal,userPaused;float aspect=16f/9;long pausedAt,deliveredCount;
+ String id="",status="",selected="abr";List<String> qualities=new ArrayList<String>();JSONArray mediaCookies=new JSONArray();volatile int serial;volatile boolean stopped;boolean commentsConnected,commentVisible=true,audioOnly,terminal,userPaused,cryptoRecoveryPending;int cryptoRecoveryCount;long cryptoRecoveryStart;float aspect=16f/9;long pausedAt,deliveredCount;
  NicolivePlayerFrame frame,popup;WindowManager manager;WindowManager.LayoutParams popupParams;android.media.session.MediaSession mediaSession;
  final Runnable tick=new Runnable(){public void run(){if(stopped)return;boolean changed=false;long now=playbackEpoch();synchronized(incoming){while(!incoming.isEmpty()){NicoliveData.Chat c=incoming.removeFirst();scheduled.add(c);while(scheduled.size()>2000)scheduled.poll();}}
   if(playing()&&now>0&&program!=null){while(!scheduled.isEmpty()){
@@ -23,7 +23,7 @@ public class NicoliveService extends android.app.Service {
   if(Build.VERSION.SDK_INT>=26){NotificationChannel channel=new NotificationChannel("nicoid_live", "生放送の再生",NotificationManager.IMPORTANCE_LOW);channel.setShowBadge(false);((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).createNotificationChannel(channel);}
   mediaSession=new android.media.session.MediaSession(this,"nicoid-live");mediaSession.setCallback(new android.media.session.MediaSession.Callback(){public void onPlay(){resume();}public void onPause(){pause();}public void onStop(){stopPlayback();}},main);mediaSession.setActive(true);
   foreground();player=new ExoPlayer.Builder(this).build();player.setAudioAttributes(new AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(),true);player.setHandleAudioBecomingNoisy(true);
-  player.addListener(new Player.Listener(){public void onPlayerError(PlaybackException error){status="映像を再生できませんでした。再接続をお試しください";notifyObservers();}public void onIsPlayingChanged(boolean value){if(frame!=null){frame.updateControls();if(value)frame.comments.postInvalidateOnAnimation();}}public void onEvents(Player source,Player.Events events){
+  player.addListener(new Player.Listener(){public void onPlayerError(PlaybackException error){handlePlaybackError(error);}public void onIsPlayingChanged(boolean value){if(frame!=null){frame.updateControls();if(value)frame.comments.postInvalidateOnAnimation();}}public void onEvents(Player source,Player.Events events){
    if(events.containsAny(Player.EVENT_IS_PLAYING_CHANGED,Player.EVENT_PLAY_WHEN_READY_CHANGED,Player.EVENT_PLAYBACK_STATE_CHANGED))updateNotification();
   }public void onVideoSizeChanged(VideoSize size){if(size.height>0){aspect=size.width*size.pixelWidthHeightRatio/size.height;if(frame!=null)frame.aspect(aspect);if(popup!=null)resizePopup(popupParams.width);}}});main.post(tick);
  }
@@ -34,7 +34,39 @@ public class NicoliveService extends android.app.Service {
  @Override public IBinder onBind(Intent intent){return new LocalBinder();}
  public void observe(Observer o){observers.add(o);o.changed();}public void unobserve(Observer o){observers.remove(o);}
  void notifyObservers(){for(Observer o:new ArrayList<Observer>(observers))o.changed();}
- void open(String newId){if(stopped||player==null)return;final int token=++serial;main.removeCallbacks(tick);main.post(tick);NicoliveEntry.beforeLive(this);if(session!=null)session.close();id=newId;program=null;terminal=false;status="接続中…";qualities.clear();selected="abr";audioOnly=false;userPaused=false;deliveredCount=0;commentsConnected=false;pausedAt=0;player.setTrackSelectionParameters(player.getTrackSelectionParameters().buildUpon().setTrackTypeDisabled(C.TRACK_TYPE_VIDEO,false).build());history.clear();scheduled.clear();synchronized(incoming){incoming.clear();}if(frame!=null)frame.comments.clear();ng.reload();player.stop();
+ /**
+  * Refresh watch-session credentials, HLS playlists and AES keys after a
+  * decryption failure. A single segment retry is insufficient when the server
+  * has rotated its signed HLS URL or key. Never retry unrelated player errors.
+  * Keep a bounded 5-minute retry window so a permanently invalid stream does
+  * not spin through reconnects forever.
+  */
+ void handlePlaybackError(PlaybackException error){
+  long now=android.os.SystemClock.elapsedRealtime();
+  if(LiveRecoveryPolicy.isAes128Failure(error)&&session!=null&&!terminal&&!userPaused&&!stopped){
+   if(cryptoRecoveryStart==0||now<cryptoRecoveryStart||now-cryptoRecoveryStart>LiveRecoveryPolicy.WINDOW_MS){
+    cryptoRecoveryStart=now;cryptoRecoveryCount=0;
+   }
+   if(cryptoRecoveryCount<LiveRecoveryPolicy.MAX_ATTEMPTS&&!cryptoRecoveryPending){
+    final int attempt=++cryptoRecoveryCount, token=serial;
+    cryptoRecoveryPending=true;
+    status="HLS暗号化エラー。配信情報を再取得しています…";
+    android.util.Log.w("nicoid-live","HLS AES-128 decryption failure; refreshing watch session "+attempt+"/"+LiveRecoveryPolicy.MAX_ATTEMPTS);
+    notifyObservers();updateNotification();
+    main.postDelayed(()->{
+     if(!stopped&&token==serial&&session!=null&&!terminal&&!userPaused&&cryptoRecoveryPending){
+      cryptoRecoveryPending=false;session.reconnect();
+     }
+    },LiveRecoveryPolicy.retryDelayMs(attempt));
+    return;
+   }
+  }
+  cryptoRecoveryPending=false;
+  android.util.Log.w("nicoid-live","Unrecoverable media playback error, code="+error.errorCodeName);
+  status="映像を再生できませんでした。再接続をお試しください";
+  notifyObservers();updateNotification();
+ }
+ void open(String newId){if(stopped||player==null)return;cryptoRecoveryPending=false;cryptoRecoveryCount=0;cryptoRecoveryStart=0;final int token=++serial;main.removeCallbacks(tick);main.post(tick);NicoliveEntry.beforeLive(this);if(session!=null)session.close();id=newId;program=null;terminal=false;status="接続中…";qualities.clear();selected="abr";audioOnly=false;userPaused=false;deliveredCount=0;commentsConnected=false;pausedAt=0;player.setTrackSelectionParameters(player.getTrackSelectionParameters().buildUpon().setTrackTypeDisabled(C.TRACK_TYPE_VIDEO,false).build());history.clear();scheduled.clear();synchronized(incoming){incoming.clear();}if(frame!=null)frame.comments.clear();ng.reload();player.stop();
   String cookie="";try{cookie=SessionCookies194.cookie(this,null);}catch(Exception ignored){}
   session=new NicoliveSession(id,cookie,new NicoliveSession.Listener(){
    void dispatch(final Runnable r){main.post(new Runnable(){public void run(){if(!stopped&&token==serial)r.run();}});}
@@ -46,7 +78,7 @@ public class NicoliveService extends android.app.Service {
    public void posted(final boolean success,final String message){dispatch(new Runnable(){public void run(){for(Observer o:new ArrayList<Observer>(observers))o.posted(success,message);}});}
   });foreground();session.start();notifyObservers();
  }
- void applyStream(JSONObject stream){try{mediaCookies=stream.optJSONArray("cookies");if(mediaCookies==null)mediaCookies=new JSONArray();qualities.clear();JSONArray q=stream.optJSONArray("availableQualities");if(q!=null)for(int i=0;i<q.length();i++)qualities.add(q.optString(i));
+ void applyStream(JSONObject stream){try{cryptoRecoveryPending=false;mediaCookies=stream.optJSONArray("cookies");if(mediaCookies==null)mediaCookies=new JSONArray();qualities.clear();JSONArray q=stream.optJSONArray("availableQualities");if(q!=null)for(int i=0;i<q.length();i++)qualities.add(q.optString(i));
     final JSONArray streamCookies=mediaCookies;Uri uri=Uri.parse(stream.getString("uri"));DataSource.Factory factory=new DataSource.Factory(){public DataSource createDataSource(){return new CookieSource(streamCookies);}};
     MediaItem item=new MediaItem.Builder().setUri(uri).setMimeType(MimeTypes.APPLICATION_M3U8).setLiveConfiguration(new MediaItem.LiveConfiguration.Builder().setMaxPlaybackSpeed(1.0f).setMinPlaybackSpeed(1.0f).build()).build();
     player.setMediaSource(new HlsMediaSource.Factory(factory).createMediaSource(item));player.prepare();player.setPlayWhenReady(!userPaused);terminal=false;notifyObservers();

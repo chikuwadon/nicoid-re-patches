@@ -456,6 +456,14 @@ jobs:
           mkdir -p /tmp/nicoid-exit-policy-tests
           javac --release 8 -d /tmp/nicoid-exit-policy-tests "$revision/java/e/e/a/ExitBackPolicy.java" "$revision/tests/ExitBackPolicyTest.java"
           java -cp /tmp/nicoid-exit-policy-tests e.e.a.ExitBackPolicyTest
+      - name: Test bounded HLS AES-128 recovery policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          revision=porting/revisions/v2.0.0-dev.1
+          mkdir -p /tmp/nicoid-live-recovery-tests
+          javac --release 8 -d /tmp/nicoid-live-recovery-tests "$revision/java/e/e/a/LiveRecoveryPolicy.java" "$revision/tests/LiveRecoveryPolicyTest.java"
+          java -cp /tmp/nicoid-live-recovery-tests e.e.a.LiveRecoveryPolicyTest
       - name: Compile complete Android live source against official MPP
         shell: bash
         run: |
@@ -488,7 +496,7 @@ jobs:
         run: |
           set -euo pipefail
           revision=porting/revisions/v2.0.0-dev.1
-          output=/tmp/nicoid-re-2.0.0-dev.1-19.mpp
+          output=/tmp/nicoid-re-2.0.0-dev.1-21.mpp
           python3 "$revision/build_mpp.py" \
             --base /tmp/stable-nicoid.mpp \
             --tools "$revision/tools" --media "$revision/deps" \
@@ -500,7 +508,7 @@ jobs:
           mkdir -p /tmp/nicoid-v2-delivery
           cp "$output" /tmp/nicoid-v2-delivery/
           {
-            echo "nicoid Re v2.0.0-dev.1-19"
+            echo "nicoid Re v2.0.0-dev.1-21"
             echo "Branch: v2.0.0-dev"
             echo "Source commit: $GITHUB_SHA"
             echo "Original nicoid APK SHA-256 checked separately: 17fc6b46228af184437ade7e6f5573915bc655b86996307ff3270fdf35279cce"
@@ -513,13 +521,13 @@ jobs:
           } > /tmp/nicoid-v2-delivery/verification.txt
           # upload-artifact already creates a ZIP; upload the two files directly.
           # This avoids a ZIP inside the downloadable Actions artifact.
-          test -s /tmp/nicoid-v2-delivery/nicoid-re-2.0.0-dev.1-19.mpp
+          test -s /tmp/nicoid-v2-delivery/nicoid-re-2.0.0-dev.1-21.mpp
           test -s /tmp/nicoid-v2-delivery/verification.txt
           test "$(find /tmp/nicoid-v2-delivery -maxdepth 1 -type f | wc -l)" -eq 2
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: nicoid-re-v2.0.0-dev.1-19-mpp
+          name: nicoid-re-v2.0.0-dev.1-21-mpp
           path: /tmp/nicoid-v2-delivery/*
           compression-level: 0
           if-no-files-found: error
@@ -530,14 +538,14 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/nicoid-v2-source
-          git archive --format=zip --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.0-dev.1-19-source.zip HEAD
-          git archive --format=tar.gz --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.0-dev.1-19-source.tar.gz HEAD
-          unzip -tq /tmp/nicoid-v2-source/nicoid-re-v2.0.0-dev.1-19-source.zip
-          tar -tzf /tmp/nicoid-v2-source/nicoid-re-v2.0.0-dev.1-19-source.tar.gz > /dev/null
+          git archive --format=zip --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.0-dev.1-21-source.zip HEAD
+          git archive --format=tar.gz --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.0-dev.1-21-source.tar.gz HEAD
+          unzip -tq /tmp/nicoid-v2-source/nicoid-re-v2.0.0-dev.1-21-source.zip
+          tar -tzf /tmp/nicoid-v2-source/nicoid-re-v2.0.0-dev.1-21-source.tar.gz > /dev/null
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: nicoid-re-v2.0.0-dev.1-19-source
+          name: nicoid-re-v2.0.0-dev.1-21-source
           path: /tmp/nicoid-v2-source/*
           if-no-files-found: error
           retention-days: 2

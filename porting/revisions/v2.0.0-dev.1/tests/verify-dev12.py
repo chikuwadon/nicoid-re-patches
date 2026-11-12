@@ -98,4 +98,18 @@ assert 'cryptoRecoveryCount<LiveRecoveryPolicy.MAX_ATTEMPTS' in service
 assert 'cryptoRecoveryPending=false;session.reconnect();' in service
 assert 'instanceof BadPaddingException' in policy
 assert 'MAX_ATTEMPTS=3' in policy
-print("PASS: live features, optional thumbnails and manual playlist sorting contracts")
+artwork=(R/"java/e/e/a/NicoliveArtwork.java").read_text()
+assert 'NicoliveArtwork.isTrusted(p.thumbnail)' in service
+assert 'NicoliveArtwork.fetch(url)' in service
+assert 'mediaArtwork=bitmap;' in service
+assert '.setLargeIcon(mediaArtwork)' in service
+assert 'MediaMetadata.METADATA_KEY_ALBUM_ART,mediaArtwork' in service
+assert 'MediaMetadata.METADATA_KEY_DISPLAY_ICON,mediaArtwork' in service
+assert 'PlaybackState.PLAYBACK_POSITION_UNKNOWN' in service
+assert 'PlaybackState.STATE_ERROR' in service
+assert 'Live HLS has no user-seekable duration' in service
+assert 'host.endsWith(".nimg.jp")' in artwork
+assert 'host.endsWith(".nicovideo.jp")' in artwork
+assert 'connection.setInstanceFollowRedirects(false)' in artwork
+assert 'out.size()+n>LIMIT' in artwork
+print("PASS: live features, thumbnail artwork, media controls and manual playlist sorting contracts")

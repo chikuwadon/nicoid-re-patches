@@ -1,7 +1,7 @@
 package e.e.a;
 
 import android.app.*;import android.content.*;import android.graphics.Color;import android.media.session.*;import android.media.MediaMetadata;import android.net.Uri;import android.os.*;import android.preference.PreferenceManager;import android.text.TextUtils;import android.view.*;import android.widget.*;
-import androidx.media3.common.*;import androidx.media3.datasource.*;import androidx.media3.exoplayer.*;import androidx.media3.exoplayer.hls.HlsMediaSource;import java.io.*;import java.net.URI;import java.util.*;import org.json.*;
+import androidx.media3.common.*;import androidx.media3.datasource.*;import androidx.media3.exoplayer.*;import androidx.media3.exoplayer.hls.HlsMediaSource;import java.io.*;import java.net.URI;import java.util.*;import java.util.concurrent.*;import android.graphics.Bitmap;import org.json.*;
 
 /** One process-local owner across the activity, popup and audio background modes. */
 public class NicoliveService extends android.app.Service {
@@ -14,6 +14,10 @@ public class NicoliveService extends android.app.Service {
  final Timeline.Window window=new Timeline.Window();ExoPlayer player;NicoliveSession session;NicoliveNg ng;NicoliveData.Program program;
  String id="",status="",selected="abr";List<String> qualities=new ArrayList<String>();JSONArray mediaCookies=new JSONArray();volatile int serial;volatile boolean stopped;boolean commentsConnected,commentVisible=true,audioOnly,terminal,userPaused,cryptoRecoveryPending;int cryptoRecoveryCount;long cryptoRecoveryStart;float aspect=16f/9;long pausedAt,deliveredCount;
  NicolivePlayerFrame frame,popup;WindowManager manager;WindowManager.LayoutParams popupParams;android.media.session.MediaSession mediaSession;
+ final ExecutorService artworkWork=Executors.newSingleThreadExecutor();
+ Future<?> artworkTask;Bitmap mediaArtwork;int artworkToken;
+ String artworkProgramId="";
+
  final Runnable tick=new Runnable(){public void run(){if(stopped)return;boolean changed=false;long now=playbackEpoch();synchronized(incoming){while(!incoming.isEmpty()){NicoliveData.Chat c=incoming.removeFirst();scheduled.add(c);while(scheduled.size()>2000)scheduled.poll();}}
   if(playing()&&now>0&&program!=null){while(!scheduled.isEmpty()){
    NicoliveData.Chat c=scheduled.peek();long target=program.vposBase*1000+c.vpos*10;if(target>now+150)break;scheduled.poll();if(target<now-15000||ng.blocked(c))continue;history.addLast(c);deliveredCount++;while(history.size()>2000)history.removeFirst();if(frame!=null&&commentVisible&&!audioOnly)frame.comments.add(c,target);changed=true;
@@ -66,11 +70,11 @@ public class NicoliveService extends android.app.Service {
   status="映像を再生できませんでした。再接続をお試しください";
   notifyObservers();updateNotification();
  }
- void open(String newId){if(stopped||player==null)return;cryptoRecoveryPending=false;cryptoRecoveryCount=0;cryptoRecoveryStart=0;final int token=++serial;main.removeCallbacks(tick);main.post(tick);NicoliveEntry.beforeLive(this);if(session!=null)session.close();id=newId;program=null;terminal=false;status="接続中…";qualities.clear();selected="abr";audioOnly=false;userPaused=false;deliveredCount=0;commentsConnected=false;pausedAt=0;player.setTrackSelectionParameters(player.getTrackSelectionParameters().buildUpon().setTrackTypeDisabled(C.TRACK_TYPE_VIDEO,false).build());history.clear();scheduled.clear();synchronized(incoming){incoming.clear();}if(frame!=null)frame.comments.clear();ng.reload();player.stop();
+ void open(String newId){if(stopped||player==null)return;clearArtwork();cryptoRecoveryPending=false;cryptoRecoveryCount=0;cryptoRecoveryStart=0;final int token=++serial;main.removeCallbacks(tick);main.post(tick);NicoliveEntry.beforeLive(this);if(session!=null)session.close();id=newId;program=null;terminal=false;status="接続中…";qualities.clear();selected="abr";audioOnly=false;userPaused=false;deliveredCount=0;commentsConnected=false;pausedAt=0;player.setTrackSelectionParameters(player.getTrackSelectionParameters().buildUpon().setTrackTypeDisabled(C.TRACK_TYPE_VIDEO,false).build());history.clear();scheduled.clear();synchronized(incoming){incoming.clear();}if(frame!=null)frame.comments.clear();ng.reload();player.stop();
   String cookie="";try{cookie=SessionCookies194.cookie(this,null);}catch(Exception ignored){}
   session=new NicoliveSession(id,cookie,new NicoliveSession.Listener(){
    void dispatch(final Runnable r){main.post(new Runnable(){public void run(){if(!stopped&&token==serial)r.run();}});}
-   public void program(final NicoliveData.Program p){dispatch(new Runnable(){public void run(){program=p;saveHistory(p);notifyObservers();updateNotification();}});}
+   public void program(final NicoliveData.Program p){dispatch(new Runnable(){public void run(){program=p;requestArtwork(p);saveHistory(p);notifyObservers();updateNotification();}});}
    public void stream(final JSONObject stream){dispatch(new Runnable(){public void run(){applyStream(stream);}});}
    public void status(final String text,final boolean end){dispatch(new Runnable(){public void run(){status=text;terminal=end;if(end){++serial;commentsConnected=false;if(session!=null){session.close();session=null;}player.pause();main.removeCallbacks(tick);stopForeground(true);stopSelf();}notifyObservers();updateNotification();}});}
    public void comment(NicoliveData.Chat chat){if(stopped||token!=serial||ng.blocked(chat))return;synchronized(incoming){if(stopped||token!=serial)return;incoming.addLast(chat);while(incoming.size()>2000)incoming.removeFirst();}}
@@ -113,9 +117,28 @@ public class NicoliveService extends android.app.Service {
  void closePopup(){if(popup==null)return;NicolivePlayerFrame old=popup;popup=null;detach(old);try{manager.removeView(old);}catch(Exception ignored){}popupParams=null;}
  void returnToFrame(NicolivePlayerFrame next){NicolivePlayerFrame old=popup;attach(next);if(old!=null){popup=null;try{manager.removeView(old);}catch(IllegalArgumentException ignored){}popupParams=null;}}
  void returnToActivity(){Intent intent=new Intent(this,NicoliveActivity.class).putExtra("program",id).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP);startActivity(intent);}
- void stopPlayback(){if(stopped)return;stopped=true;++serial;closePopup();if(frame!=null)detach(frame);if(session!=null){session.close();session=null;}main.removeCallbacksAndMessages(null);if(player!=null){player.release();player=null;}stopForeground(true);stopSelf();for(Observer o:new ArrayList<Observer>(observers))o.changed();}
+ void stopPlayback(){if(stopped)return;stopped=true;clearArtwork();artworkWork.shutdownNow();++serial;closePopup();if(frame!=null)detach(frame);if(session!=null){session.close();session=null;}main.removeCallbacksAndMessages(null);if(player!=null){player.release();player=null;}stopForeground(true);stopSelf();for(Observer o:new ArrayList<Observer>(observers))o.changed();}
  void foreground(){
   if(!stopped)startForeground(2000,notification());
+ }
+ void clearArtwork(){
+  ++artworkToken;mediaArtwork=null;artworkProgramId="";
+  if(artworkTask!=null){artworkTask.cancel(true);artworkTask=null;}
+ }
+ void requestArtwork(NicoliveData.Program p){
+  clearArtwork();
+  if(p==null||p.thumbnail==null||!NicoliveArtwork.isTrusted(p.thumbnail))return;
+  final int token=artworkToken;
+  final String programId=p.id,url=p.thumbnail;
+  artworkProgramId=programId;
+  artworkTask=artworkWork.submit(()->{
+   final Bitmap bitmap=NicoliveArtwork.fetch(url);
+   main.post(()->{
+    if(stopped||token!=artworkToken||program==null||!programId.equals(program.id))return;
+    mediaArtwork=bitmap;
+    if(bitmap!=null)updateNotification();
+   });
+  });
  }
  PendingIntent action(String action,int code){
   return PendingIntent.getService(this,code,new Intent(this,NicoliveService.class).setAction(action),
@@ -129,23 +152,34 @@ public class NicoliveService extends android.app.Service {
   String title=program==null||TextUtils.isEmpty(program.title)?"nicoid Re / 生放送":program.title;
   String subtitle=program==null||TextUtils.isEmpty(program.owner)?status:program.owner;
   boolean requested=playRequested();
+  boolean error=player!=null&&player.getPlayerError()!=null&&!cryptoRecoveryPending;
+  boolean loading=player==null||player.getPlaybackState()==Player.STATE_IDLE||player.getPlaybackState()==Player.STATE_BUFFERING||cryptoRecoveryPending;
+  int icon=getApplicationInfo().icon!=0?getApplicationInfo().icon:android.R.drawable.ic_media_play;
   Notification.Builder builder=new Notification.Builder(this,"nicoid_live")
-          .setSmallIcon(android.R.drawable.ic_media_play).setContentTitle(title).setContentText(subtitle)
+          .setSmallIcon(icon).setContentTitle(title).setContentText(subtitle)
           .setContentIntent(content).setOngoing(true).setOnlyAlertOnce(true)
           .setCategory(Notification.CATEGORY_TRANSPORT).setVisibility(Notification.VISIBILITY_PUBLIC)
-          .addAction(requested?android.R.drawable.ic_media_pause:android.R.drawable.ic_media_play,
-                  requested?"一時停止":"再生",action("toggle",2001))
+          .addAction(error?android.R.drawable.ic_popup_sync:requested?android.R.drawable.ic_media_pause:android.R.drawable.ic_media_play,
+                  error?"再接続":requested?"一時停止":"再生",action(error?"reconnect":"toggle",2001))
           .addAction(android.R.drawable.ic_menu_close_clear_cancel,"終了",action("stop",2002));
+  if(mediaArtwork!=null)builder.setLargeIcon(mediaArtwork);
   if(mediaSession!=null){
    mediaSession.setSessionActivity(content);
-   mediaSession.setMetadata(new MediaMetadata.Builder().putString(MediaMetadata.METADATA_KEY_TITLE,title)
+   MediaMetadata.Builder metadata=new MediaMetadata.Builder().putString(MediaMetadata.METADATA_KEY_TITLE,title)
            .putString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE,title)
            .putString(MediaMetadata.METADATA_KEY_ARTIST,subtitle)
-           .putString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE,subtitle).build());
-   int state=playing()?PlaybackState.STATE_PLAYING:PlaybackState.STATE_PAUSED;
-   if(requested&&player!=null&&player.getPlaybackState()==Player.STATE_BUFFERING)state=PlaybackState.STATE_BUFFERING;
+           .putString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE,subtitle);
+   if(mediaArtwork!=null){
+    metadata.putBitmap(MediaMetadata.METADATA_KEY_ART,mediaArtwork);
+    metadata.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART,mediaArtwork);
+    metadata.putBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON,mediaArtwork);
+   }
+   mediaSession.setMetadata(metadata.build());
+   int state=error?PlaybackState.STATE_ERROR:playing()?PlaybackState.STATE_PLAYING:
+             requested&&loading?PlaybackState.STATE_BUFFERING:PlaybackState.STATE_PAUSED;
    mediaSession.setPlaybackState(new PlaybackState.Builder()
            .setActions(PlaybackState.ACTION_PLAY|PlaybackState.ACTION_PAUSE|PlaybackState.ACTION_PLAY_PAUSE|PlaybackState.ACTION_STOP)
+           // Live HLS has no user-seekable duration; deliberately do not expose SEEK_TO.
            .setState(state,PlaybackState.PLAYBACK_POSITION_UNKNOWN,playing()?1f:0f).build());
    builder.setStyle(new Notification.MediaStyle().setMediaSession(mediaSession.getSessionToken())
            .setShowActionsInCompactView(0,1));

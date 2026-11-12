@@ -27,7 +27,7 @@ with ZipFile(base_path) as base,ZipFile(candidate_path) as new:
         assert original.read("AndroidManifest.xml")!=updated.read("AndroidManifest.xml")
         manifest=updated.read("AndroidManifest.xml")
         for name in ("NicoliveActivity","NicoliveService"):
-            assert name.encode() in manifest, name
+            assert name.encode("utf-16le") in manifest or name.encode("utf-8") in manifest, name
     before=set(dex_classes(base.read("nicoid/helpers.mpe")))
     classes=dex_classes(new.read("nicoid/helpers.mpe"))
     assert len(classes)==len(set(classes)), "Duplicate helper class"

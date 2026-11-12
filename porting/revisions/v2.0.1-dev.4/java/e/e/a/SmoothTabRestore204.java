@@ -36,7 +36,7 @@ public final class SmoothTabRestore204 {
   }catch(Exception e){android.util.Log.w("nicoid-tabs","Cannot restore saved tab",e);}
  }
  public static void restoreList(ListView list,int index,int top){
-  if(list==null||index<0)return;
+  if(list==null||index<0||(index==0&&top==0))return;
   if(Looper.myLooper()!=Looper.getMainLooper()){
    WeakReference<ListView> target=new WeakReference<>(list);
    MAIN.post(()->restoreList(target.get(),index,top));return;

@@ -6,6 +6,7 @@ builder=(root/"build_mpp.py").read_text()
 workflow=(root.parents[2]/".github/workflows/private-build.yml").read_text()
 for requirement in (
  "getFirstVisiblePosition()","getForeground()","setForeground(mask)",
+ "index==0&&top==0",
  "JOBS.get(list)==this","JOBS.remove(list)","setSelectionFromTop(index,top)",
  "ScrollRestorePolicy204.next","SystemClock.uptimeMillis()-started>12000L",
  "list.isShown()","previous.get()","existing.index==index&&existing.top==top"

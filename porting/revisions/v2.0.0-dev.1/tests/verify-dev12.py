@@ -59,4 +59,5 @@ exit_modes = (R/"java/e/e/a/ExitModeOptions.java").read_text()
 assert 'public static final int DOUBLE_BACK = 2' in exit_modes
 assert 'nicoid_exit_mode' in exit_modes and 'nicolive_exit_mode' in exit_modes
 assert 'ExitBackPolicy.isSecondPress(first, now)' in exit_modes
+assert 'exitSummary' not in a, 'NicoLive exit mode should not display a separate description'
 print("PASS: live features, thumbnail-shape option and source-only contracts")

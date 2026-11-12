@@ -224,10 +224,6 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
   options.setPadding(inset,0,inset,0);
   CheckBox refresh=settingSwitch(options,"右下に更新ボタンを表示",preferences.getBoolean(FLOAT_REFRESH,true));
   Button exitChoice=settingChoiceRow(options,refresh.getCompoundPaddingStart());
-  TextView exitSummary=NicoliveUi.text(options.getContext(),"",12);
-  exitSummary.setTextColor(DynamicTheme.secondaryTextColor(exitSummary));
-  exitSummary.setPadding(refresh.getCompoundPaddingStart(),0,0,NicoliveUi.dp(this,4));
-  options.addView(exitSummary,new LinearLayout.LayoutParams(-1,-2));
   Button launch=settingChoiceRow(options,refresh.getCompoundPaddingStart());
   Button time=settingChoiceRow(options,refresh.getCompoundPaddingStart());
   Button tap=settingChoiceRow(options,refresh.getCompoundPaddingStart());
@@ -245,13 +241,11 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
   bindSettingChoice(time,"放送中の時刻表示",timeOptions,selections,1);
   bindSettingChoice(tap,"タップ時の動作",new String[]{"通常再生","ポップアップ再生"},selections,2);
   showChoiceValue(exitChoice,"ニコ生を閉じるときの確認",ExitModeOptions.labels(this)[selections[3]]);
-  exitSummary.setText(ExitModeOptions.summary(this,selections[3],true));
   exitChoice.setOnClickListener(v->NicoliveUi.dialog(UiDialogs.builder(this)
    .setTitle("ニコ生を閉じるときの確認")
    .setSingleChoiceItems(ExitModeOptions.labels(this),selections[3],(dialog,which)->{
     selections[3]=which;
     showChoiceValue(exitChoice,"ニコ生を閉じるときの確認",ExitModeOptions.labels(this)[which]);
-    exitSummary.setText(ExitModeOptions.summary(this,which,true));
     dialog.dismiss();
    }).setNegativeButton(android.R.string.cancel,null).create()));
   ScrollView scroll=new ScrollView(options.getContext());

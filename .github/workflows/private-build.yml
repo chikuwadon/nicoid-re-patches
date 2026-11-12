@@ -17,6 +17,7 @@ jobs:
   build:
     if: >-
       github.ref != 'refs/heads/v2.0.0-dev' &&
+      github.ref != 'refs/heads/dev' &&
       (github.event_name != 'push' ||
        (!startsWith(github.event.head_commit.message, 'docs: update release notes') &&
         !startsWith(github.event.head_commit.message, 'chore(maintenance):')))
@@ -418,7 +419,7 @@ jobs:
 
   v2-source-test:
     name: Validate v2 live source changes (no APK)
-    if: github.ref == 'refs/heads/v2.0.0-dev'
+    if: github.ref == 'refs/heads/v2.0.0-dev' || github.ref == 'refs/heads/dev'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -431,6 +432,24 @@ jobs:
           java-version: '21'
       - name: Check source-only v2 live regression contracts
         run: python3 porting/revisions/v2.0.0-dev.1/tests/verify-dev12.py
+      - name: Verify local playlist gesture policy and shared regressions
+        if: github.ref == 'refs/heads/dev'
+        shell: bash
+        run: |
+          set -euo pipefail
+          revision=porting/revisions/v2.0.1-dev.1
+          python3 "$revision/tests/verify.py"
+          mkdir -p /tmp/nicoid-playlist-gesture-tests
+          javac --release 8 -d /tmp/nicoid-playlist-gesture-tests \
+            "$revision/java/e/e/a/PlaylistGesturePolicy.java" \
+            "$revision/tests/PlaylistGesturePolicyTest.java"
+          java -cp /tmp/nicoid-playlist-gesture-tests PlaylistGesturePolicyTest
+          python3 porting/tests/regression136.py
+          python3 porting/tests/regression141.py
+          python3 porting/tests/regression155.py
+          python3 porting/tests/retained-notification-regression.py
+          python3 porting/tests/tap-regions-regression.py
+          python3 porting/tests/tap-region-ui-regression.py
       - name: Run NicoLive data/API contract JUnit tests
         shell: bash
         run: |
@@ -522,38 +541,38 @@ jobs:
         run: |
           set -euo pipefail
           revision=porting/revisions/v2.0.0-dev.1
-          output=/tmp/nicoid-re-2.0.0-dev.1-27.mpp
-          python3 "$revision/build_mpp.py" \
+          builder="$revision"
+          version=2.0.0-dev.1-27
+          if [[ "$GITHUB_REF" == "refs/heads/dev" ]]; then
+            builder=porting/revisions/v2.0.1-dev.1
+            version=2.0.1-dev.1
+          fi
+          output="/tmp/nicoid-re-$version.mpp"
+          python3 "$builder/build_mpp.py" \
             --base /tmp/stable-nicoid.mpp \
             --tools "$revision/tools" --media "$revision/deps" \
             --ci-without-apk \
             --compile-jar /tmp/nicoid-v2-okhttp.jar \
             --compile-jar /tmp/nicoid-v2-okio.jar \
             --output "$output"
-          python3 "$revision/verify_ci_candidate.py" /tmp/stable-nicoid.mpp "$output"
+          python3 "$builder/verify_ci_candidate.py" /tmp/stable-nicoid.mpp "$output"
           mkdir -p /tmp/nicoid-v2-delivery
           cp "$output" /tmp/nicoid-v2-delivery/
           {
-            echo "nicoid Re v2.0.0-dev.1-27"
-            echo "Branch: v2.0.0-dev"
-            echo "Source commit: $GITHUB_SHA"
-            echo "Original nicoid APK SHA-256 checked separately: 17fc6b46228af184437ade7e6f5573915bc655b86996307ff3270fdf35279cce"
-            echo "MPP build: completed (stable MPP and pinned source dependencies)"
-            echo "No original APK was included in this build."
-            echo "Source contract / Java compile: successful."
-            echo "Morphe application and Android runtime: NOT VERIFIED in this job."
+            echo "nicoid Re $version — development verification only"
+            echo "Branch: $GITHUB_REF"
+            echo "Commit: $GITHUB_SHA"
+            echo "Source compilation and MPP structure verified"
+            echo "Original APK not distributed. Morphe application and Android runtime: NOT VERIFIED."
             echo
             sha256sum "$output"
           } > /tmp/nicoid-v2-delivery/verification.txt
-          # upload-artifact already creates a ZIP; upload the two files directly.
-          # This avoids a ZIP inside the downloadable Actions artifact.
-          test -s /tmp/nicoid-v2-delivery/nicoid-re-2.0.0-dev.1-27.mpp
-          test -s /tmp/nicoid-v2-delivery/verification.txt
+          test -s "$output"
           test "$(find /tmp/nicoid-v2-delivery -maxdepth 1 -type f | wc -l)" -eq 2
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: nicoid-re-v2.0.0-dev.1-27-mpp
+          name: nicoid-re-v2-development-mpp
           path: /tmp/nicoid-v2-delivery/*
           compression-level: 0
           if-no-files-found: error
@@ -564,14 +583,14 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/nicoid-v2-source
-          git archive --format=zip --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.0-dev.1-27-source.zip HEAD
-          git archive --format=tar.gz --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.0-dev.1-27-source.tar.gz HEAD
-          unzip -tq /tmp/nicoid-v2-source/nicoid-re-v2.0.0-dev.1-27-source.zip
-          tar -tzf /tmp/nicoid-v2-source/nicoid-re-v2.0.0-dev.1-27-source.tar.gz > /dev/null
+          git archive --format=zip --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.1-source.zip HEAD
+          git archive --format=tar.gz --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.1-source.tar.gz HEAD
+          unzip -tq /tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.1-source.zip
+          tar -tzf /tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.1-source.tar.gz > /dev/null
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: nicoid-re-v2.0.0-dev.1-27-source
+          name: nicoid-re-v2.0.1-dev.1-source
           path: /tmp/nicoid-v2-source/*
           if-no-files-found: error
           retention-days: 2

@@ -12,6 +12,22 @@ public final class LocalPlaylists {
  interface Edit extends PlaylistStorage.Edit {}
  static void change(Context host,Edit edit,java.util.function.Consumer<Boolean> done){Context app=host.getApplicationContext();WRITES.execute(()->{boolean saved=false;try{android.content.SharedPreferences prefs=PreferenceManager.getDefaultSharedPreferences(app);saved=PlaylistStorage.update(new PlaylistStorage.Persistence(){public String read(){return prefs.getString(KEY,"{}");}public boolean write(String value){return prefs.edit().putString(KEY,value).commit();}public void restore(String value){prefs.edit().putString(KEY,value).apply();}},edit);}catch(Exception error){android.util.Log.w("nicoid-playlist","Playlist update failed; original snapshot retained",error);}final boolean ok=saved;MAIN.post(()->{if(host instanceof Activity&&(((Activity)host).isFinishing()||((Activity)host).isDestroyed()))return;if(!ok)Toast.makeText(host,tr(host,"保存に失敗しました。保存済みのデータは保持しています","Unable to save. Stored data has been retained.","儲存失敗，原有資料已保留"),1).show();done.accept(ok);});});}
 
+ /**
+  * The native adapter's image fetch can be lost when its enclosing playlist
+  * adapter is rebuilt for manual sorting. Bind the stored URL explicitly
+  * through the existing bounded/cached image loader instead of relying on
+  * an Activity-specific native loader callback.
+  */
+ static void bindArtwork(View row,JSONObject video){
+  if(row==null||video==null)return;
+  String url=video.optString("thumbnail","");
+  if(!url.startsWith("https://"))return;
+  View candidate=row.findViewById(0x7f0800cd);
+  if(!(candidate instanceof ImageView))return;
+  ImageView image=(ImageView)candidate;
+  if(!url.equals(image.getTag()))image.setImageDrawable(null);
+  ThumbnailCorners.load(url,image,null);
+ }
  static void reorderFolder(LocalPlaylistData data,String folder,List<String> ids)throws JSONException{
   if(folder==null||ids==null)throw new JSONException("Missing reorder target");
   Set<String> requested=new HashSet<>(ids);
@@ -85,7 +101,8 @@ public final class LocalPlaylists {
   FrameLayout frame=old instanceof FrameLayout&&("nicoid_playlist_selection".equals(old.getTag())||"nicoid_playlist_reorder".equals(old.getTag()))?(FrameLayout)old:null;
   View recycled=(selecting||reordering)?(frame==null?null:frame.getChildAt(0)):(frame==null?old:null);
   View row=nativeRows.getView(n,recycled,parent);JSONObject video=identities.get(rows.get(n));
-  if(!selecting&&!reordering){ListActions.bind(row,nativeRows,n);return row;}
+  if(!selecting&&!reordering){ListActions.bind(row,nativeRows,n);bindArtwork(row,video);return row;}
+  bindArtwork(row,video);
   disable(row);
   if(reordering){
    if(frame==null||!"nicoid_playlist_reorder".equals(frame.getTag())){

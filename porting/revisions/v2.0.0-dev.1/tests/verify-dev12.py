@@ -132,7 +132,7 @@ assert 'host.endsWith(".nimg.jp")' in artwork
 assert 'host.endsWith(".nicovideo.jp")' in artwork
 assert 'connection.setInstanceFollowRedirects(false)' in artwork
 assert 'LiveStreamUpdatePolicy.reuse(activeStreamUri,nextUri,activeStreamQuality,selected,activeMedia)' in service
-assert 'JSONArray currentCookies=mediaCookies;' in service
+assert 'JSONArray current=mediaCookies;' in service
 assert 'if(updatedCookies!=null)mediaCookies=updatedCookies;' in service
 assert 'mediaCookies=new JSONArray();keyParser=null;' in service
 assert 'new CookieSource();' in service

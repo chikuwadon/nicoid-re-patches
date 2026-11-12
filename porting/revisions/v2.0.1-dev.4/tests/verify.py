@@ -13,7 +13,7 @@ for requirement in (
  assert requirement in source,requirement
 assert 'SmoothTabRestore204;->restoreList' in builder
 assert 'SmoothTabRestore204;->restore' in builder
-assert 'count!=1' in builder
+assert 'if count != 1' in builder
 assert 'nicoid-re-v2.0.1-dev.4-mpp' in workflow
 assert 'nicoid-re-v2-development-mpp' not in workflow
 assert 'VERSION = "2.0.1-dev.4"' in builder

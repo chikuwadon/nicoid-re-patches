@@ -466,6 +466,18 @@ jobs:
           python3 -m py_compile porting/revisions/v2.0.1-dev.3/patch_203.py
           python3 porting/revisions/v2.0.1-dev.3/tests/verify.py
 
+      - name: Verify stable scroll restoration and versioned MPP artifacts
+        if: github.ref == 'refs/heads/dev'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 porting/revisions/v2.0.1-dev.4/tests/verify.py
+          mkdir -p /tmp/nicoid-scroll-restore-tests
+          javac --release 8 -d /tmp/nicoid-scroll-restore-tests \
+            porting/revisions/v2.0.1-dev.4/java/e/e/a/ScrollRestorePolicy204.java \
+            porting/revisions/v2.0.1-dev.4/tests/ScrollRestorePolicy204Test.java
+          java -cp /tmp/nicoid-scroll-restore-tests ScrollRestorePolicy204Test
+
       - name: Run NicoLive data/API contract JUnit tests
         shell: bash
         run: |
@@ -580,8 +592,8 @@ jobs:
           builder="$revision"
           version=2.0.0-dev.1-27
           if [[ "$GITHUB_REF" == "refs/heads/dev" ]]; then
-            builder=porting/revisions/v2.0.1-dev.3
-            version=2.0.1-dev.3
+            builder=porting/revisions/v2.0.1-dev.4
+            version=2.0.1-dev.4
           fi
           output="/tmp/nicoid-re-$version.mpp"
           python3 "$builder/build_mpp.py" \
@@ -608,7 +620,7 @@ jobs:
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: nicoid-re-v2-development-mpp
+          name: nicoid-re-v2.0.1-dev.4-mpp
           path: /tmp/nicoid-v2-delivery/*
           compression-level: 0
           if-no-files-found: error
@@ -619,14 +631,14 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/nicoid-v2-source
-          git archive --format=zip --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.3-source.zip HEAD
-          git archive --format=tar.gz --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.3-source.tar.gz HEAD
-          unzip -tq /tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.3-source.zip
-          tar -tzf /tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.3-source.tar.gz > /dev/null
+          git archive --format=zip --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.4-source.zip HEAD
+          git archive --format=tar.gz --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.4-source.tar.gz HEAD
+          unzip -tq /tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.4-source.zip
+          tar -tzf /tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.4-source.tar.gz > /dev/null
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: nicoid-re-v2.0.1-dev.3-source
+          name: nicoid-re-v2.0.1-dev.4-source
           path: /tmp/nicoid-v2-source/*
           if-no-files-found: error
           retention-days: 2

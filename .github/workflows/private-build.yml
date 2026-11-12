@@ -458,6 +458,14 @@ jobs:
           python3 -m py_compile porting/revisions/v2.0.1-dev.2/patch_sources.py
           python3 porting/revisions/v2.0.1-dev.2/tests/verify.py
 
+      - name: Verify media notifications and themed UI against complete staged sources
+        if: github.ref == 'refs/heads/dev'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile porting/revisions/v2.0.1-dev.3/patch_203.py
+          python3 porting/revisions/v2.0.1-dev.3/tests/verify.py
+
       - name: Run NicoLive data/API contract JUnit tests
         shell: bash
         run: |
@@ -572,8 +580,8 @@ jobs:
           builder="$revision"
           version=2.0.0-dev.1-27
           if [[ "$GITHUB_REF" == "refs/heads/dev" ]]; then
-            builder=porting/revisions/v2.0.1-dev.2
-            version=2.0.1-dev.2
+            builder=porting/revisions/v2.0.1-dev.3
+            version=2.0.1-dev.3
           fi
           output="/tmp/nicoid-re-$version.mpp"
           python3 "$builder/build_mpp.py" \
@@ -611,14 +619,14 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/nicoid-v2-source
-          git archive --format=zip --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.2-source.zip HEAD
-          git archive --format=tar.gz --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.2-source.tar.gz HEAD
-          unzip -tq /tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.2-source.zip
-          tar -tzf /tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.2-source.tar.gz > /dev/null
+          git archive --format=zip --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.3-source.zip HEAD
+          git archive --format=tar.gz --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.3-source.tar.gz HEAD
+          unzip -tq /tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.3-source.zip
+          tar -tzf /tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.3-source.tar.gz > /dev/null
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: nicoid-re-v2.0.1-dev.2-source
+          name: nicoid-re-v2.0.1-dev.3-source
           path: /tmp/nicoid-v2-source/*
           if-no-files-found: error
           retention-days: 2

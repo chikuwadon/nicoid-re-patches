@@ -215,14 +215,13 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
  private void showHubSettings(){
   SharedPreferences preferences=prefs();
   LinearLayout options=NicoliveUi.column(UiTheme191.context(this));
+  options.setBackgroundColor(Color.TRANSPARENT);
   int inset=NicoliveUi.dp(this,20);
   options.setPadding(inset,0,inset,0);
   CheckBox confirm=settingSwitch(options,"ニコ生を閉じる前に確認する",preferences.getBoolean(EXIT_CONFIRM,true));
   CheckBox refresh=settingSwitch(options,"右下に更新ボタンを表示",preferences.getBoolean(FLOAT_REFRESH,true));
-  Button launch=NicoliveUi.button(options.getContext(),"");
-  Button time=NicoliveUi.button(options.getContext(),"");
-  options.addView(launch,new LinearLayout.LayoutParams(-1,NicoliveUi.dp(this,48)));
-  options.addView(time,new LinearLayout.LayoutParams(-1,NicoliveUi.dp(this,48)));
+  Button launch=settingChoiceRow(options,confirm.getCompoundPaddingStart());
+  Button time=settingChoiceRow(options,confirm.getCompoundPaddingStart());
   String[] startOptions=Arrays.copyOf(HUB_LABELS,HUB_LABELS.length+1);
   startOptions[HUB_LABELS.length]="前回開いたタブ";
   int saved=preferences.getInt(START_TAB,0);
@@ -262,12 +261,47 @@ public class NicoliveActivity extends Activity implements NicoliveService.Observ
   feedAdapter.notifyDataSetChanged();
  }
 
+ private Button settingChoiceRow(LinearLayout options,int startPadding){
+  Button button=NicoliveUi.button(options.getContext(),"");
+  button.setGravity(Gravity.START|Gravity.CENTER_VERTICAL);
+  button.setTextSize(14);
+  button.setMinHeight(NicoliveUi.dp(this,48));
+  button.setPaddingRelative(startPadding,0,0,0);
+  options.addView(button,new LinearLayout.LayoutParams(-1,-2));
+  return button;
+ }
+
+ private void showChoiceValue(Button button,String label,String value){
+  android.text.SpannableString text=new android.text.SpannableString(label+" / "+value);
+  text.setSpan(new android.text.style.ForegroundColorSpan(DynamicTheme.textColor(button)),
+   0,label.length()+3,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+  text.setSpan(new android.text.style.ForegroundColorSpan(settingValueColor(button.getContext())),
+   label.length()+3,text.length(),android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+  button.setText(text);
+ }
+
+ private int settingValueColor(Context context){
+  int accent=NicoliveUi.accent(context);
+  float surface=Color.luminance(UiDialogs.surface(this));
+  int target=surface>.179f?0:255;
+  int color=accent;
+  // Keep the theme hue and adjust its lightness only when needed against the dialog surface.
+  for(int step=1;step<=32;step++){
+   float luminance=Color.luminance(color);
+   if((Math.max(luminance,surface)+.05f)/(Math.min(luminance,surface)+.05f)>=4.5f)break;
+   color=Color.rgb((Color.red(accent)*(32-step)+target*step)/32,
+    (Color.green(accent)*(32-step)+target*step)/32,
+    (Color.blue(accent)*(32-step)+target*step)/32);
+  }
+  return color;
+ }
+
  private void bindSettingChoice(Button button,String label,String[] choices,int[] selections,int index){
-  button.setText(label+" / "+choices[selections[index]]);
+  showChoiceValue(button,label,choices[selections[index]]);
   button.setOnClickListener(v->NicoliveUi.dialog(UiDialogs.builder(this).setTitle(label)
    .setSingleChoiceItems(choices,selections[index],(dialog,which)->{
     selections[index]=which;
-    button.setText(label+" / "+choices[which]);
+    showChoiceValue(button,label,choices[which]);
     dialog.dismiss();
    }).setNegativeButton(android.R.string.cancel,null).create()));
  }

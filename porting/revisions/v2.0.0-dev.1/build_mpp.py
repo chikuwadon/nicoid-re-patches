@@ -14,7 +14,7 @@ from patch_manifest import patch_manifest
 
 ROOT = Path(__file__).resolve().parent
 BASE_HASH = "8920e9cdc9fc49178be5bc78cdb990627f4e7a7be83fef782eece3e7c443bcce"
-VERSION = "2.0.0-dev.1-9"
+VERSION = "2.0.0-dev.1-10"
 
 
 def run(*args):
@@ -190,13 +190,14 @@ def build(args, work):
             "    iget-object v2, v0, Le/e/a/MultiTabs227$Host;->parent:Landroid/widget/LinearLayout;\n"
             "    iget-object v3, v0, Le/e/a/MultiTabs227$Host;->bar:Landroid/view/View;\n"
             "    invoke-static {v2, v3}, Le/e/a/MultiTabPlacement;->update(Landroid/widget/LinearLayout;Landroid/view/View;)V\n\n" + cached_bar))
-        tab_file = "MultiTabs227.smali"
-        tabs = (disassembled / "e/e/a" / tab_file).read_text()
-        add_preference = "    invoke-virtual {v1, v3}, Landroid/preference/PreferenceGroup;->addPreference(Landroid/preference/Preference;)Z"
-        if tabs.count(add_preference) != 1:
-            raise ValueError("Missing multiple tab settings insertion")
-        (hooks / tab_file).write_text(tabs.replace(add_preference, add_preference +
-            "\n\n    invoke-static {v1, v3}, Le/e/a/MultiTabPlacement;->settings(Landroid/preference/PreferenceGroup;Landroid/preference/Preference;)V"))
+        order_file = "Dev111.smali"
+        order = (disassembled / "e/e/a" / order_file).read_text()
+        desired = '    .local v9, "desired":[Ljava/lang/String;'
+        if order.count(desired) != 1:
+            raise ValueError("Missing general settings order")
+        (hooks / order_file).write_text(order.replace(desired, desired +
+            "\n    invoke-static {v2, v9}, Le/e/a/MultiTabPlacement;->settingsOrder(Landroid/preference/PreferenceGroup;[Ljava/lang/String;)[Ljava/lang/String;\n"
+            "    move-result-object v9\n"))
 
         ink_file = "CommentInk192.smali"
         ink = (disassembled / "e/e/a" / ink_file).read_text()

@@ -35,6 +35,7 @@ public class NicoliveUiTest {
    ServiceController<NicoliveService> serviceController=Robolectric.buildService(NicoliveService.class);NicoliveService service=serviceController.create().get();try{a.service=service;a.watching=true;a.requested=service.id="lv123";NicoliveData.Program p=new NicoliveData.Program("lv123");p.title="放送中の番組 / ゆっくり雑談";p.owner="放送者";p.provider="user";p.status="ON_AIR";p.begin=System.currentTimeMillis()/1000-5400;p.loggedIn=true;p.views=1234;p.comments=5678;p.description="番組情報のテキストです。";service.program=p;service.status="LIVE";String[] sample={"こんばんは","音声も聞こえています","今日はどんなお話ですか？","コメント表示の確認です","よろしくお願いします"};for(int i=0;i<sample.length;i++){NicoliveData.Chat c=new NicoliveData.Chat();c.text=sample[i];c.vpos=540000+i*100;service.history.add(c);}service.deliveredCount=sample.length;service.player.play();a.viewer();a.input.setText("コメントの下書き");layout(a.root,360,760);a.fitViewer();layout(a.root,360,760);
     int background=((android.graphics.drawable.ColorDrawable)a.root.getBackground()).getColor();assertEquals("Theme brightness",night,luminance(background)<.5);assertTrue("Primary text contrast",contrast(a.title.getCurrentTextColor(),background)>=4.5);assertEquals(NicoliveUi.accent(a),a.input.getBackgroundTintList().getDefaultColor());assertEquals(NicoliveUi.accent(a),a.anonymous.getButtonTintList().getDefaultColor());assertTrue(a.playerFrame.live.getText().toString().startsWith("LIVE"));assertNotNull(a.playerFrame.live.getLayout());String suffix=(material?"material":"classic")+(night?"-dark":"-light");snapshot(a.root,suffix);
     a.hub();for(int i=0;i<4;i++){NicoliveData.Program item=new NicoliveData.Program("lv"+(100+i));item.title=new String[]{"のんびりゲーム配信 / 続きから","新しい作品について話します","今週のニュースと解説","音楽を聴きながら雑談"}[i];item.owner="放送者 "+(i+1);item.status="ON_AIR";item.provider=i==2?"official":i==1?"channel":"user";item.begin=System.currentTimeMillis()/1000-(i+1)*1260;item.views=123*(i+1);item.comments=54*(i+1);a.programs.add(item);}a.feedAdapter.notifyDataSetChanged();layout(a.root,360,760);snapshot(a.root,"hub-"+suffix);
+    assertLiveSettingsChoices();
    }finally{a.service=null;serviceController.destroy();}
   }
  }
@@ -316,6 +317,108 @@ public class NicoliveUiTest {
   assertTrue(a.isFinishing());
  }
 
+ @Test public void generalSettingsSortPlacesTabHeightImmediatelyAfterPlacement(){
+  ActivityController<TestSettings> owner=Robolectric.buildActivity(TestSettings.class).setup();
+  try{
+   TestSettings settings=owner.get();
+   android.preference.PreferenceScreen screen=settings.getPreferenceManager().createPreferenceScreen(settings);
+   settings.setPreferenceScreen(screen);
+   android.preference.PreferenceCategory general=new android.preference.PreferenceCategory(settings);
+   general.setKey("setting_whole");
+   screen.addPreference(general);
+   android.preference.CheckBoxPreference enabled=new android.preference.CheckBoxPreference(settings);
+   enabled.setKey("multiple_video_tabs");
+   general.addPreference(enabled);
+   enabled.setChecked(true);
+   android.preference.Preference mode=new android.preference.Preference(settings);
+   mode.setKey("play_mode");
+   general.addPreference(mode);
+   Dev111.settings(settings);
+   Dev111.settings(settings);
+   ArrayList<String> keys=new ArrayList<>();
+   for(int i=0;i<general.getPreferenceCount();i++)keys.add(general.getPreference(i).getKey());
+   int index=keys.indexOf("multiple_video_tabs");
+   assertEquals("multiple_video_tabs_at_bottom",keys.get(index+1));
+   assertEquals("multiple_video_tabs_height_dp",keys.get(index+2));
+   assertEquals("nicoid_tab_bar_buttons",keys.get(index+3));
+   assertEquals(1,Collections.frequency(keys,"multiple_video_tabs_height_dp"));
+   android.preference.Preference height=settings.findPreference("multiple_video_tabs_height_dp");
+   assertTrue(height.getSummary().toString().contains("32 dp"));
+   height.getOnPreferenceClickListener().onPreferenceClick(height);
+   AlertDialog dialog=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();
+   SeekBar slider=findSeekBar(dialog.getWindow().getDecorView());
+   assertNotNull(slider);
+   slider.setProgress(50-MultiTabPlacement.MIN_HEIGHT);
+   dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+   Shadows.shadowOf(Looper.getMainLooper()).idle();
+   assertTrue(height.getSummary().toString().contains("50 dp"));
+   height.getOnPreferenceClickListener().onPreferenceClick(height);
+   dialog=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();
+   slider=findSeekBar(dialog.getWindow().getDecorView());
+   assertEquals(50-MultiTabPlacement.MIN_HEIGHT,slider.getProgress());
+   dialog.getButton(AlertDialog.BUTTON_NEUTRAL).performClick();
+   assertTrue(dialog.isShowing());
+   assertEquals(32-MultiTabPlacement.MIN_HEIGHT,slider.getProgress());
+   dialog.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
+   Shadows.shadowOf(Looper.getMainLooper()).idle();
+   assertTrue(height.getSummary().toString().contains("50 dp"));
+   height.getOnPreferenceClickListener().onPreferenceClick(height);
+   dialog=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();
+   dialog.getButton(AlertDialog.BUTTON_NEUTRAL).performClick();
+   dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+   Shadows.shadowOf(Looper.getMainLooper()).idle();
+   assertTrue(height.getSummary().toString().contains("32 dp"));
+  }finally{owner.pause().stop().destroy();}
+ }
+
+ private SeekBar findSeekBar(View view){
+  if(view instanceof SeekBar)return (SeekBar)view;
+  if(view instanceof ViewGroup){
+   ViewGroup group=(ViewGroup)view;
+   for(int i=0;i<group.getChildCount();i++){
+    SeekBar slider=findSeekBar(group.getChildAt(i));
+    if(slider!=null)return slider;
+   }
+  }
+  return null;
+ }
+
+ @Test public void liveSettingsChoicesAreStartAlignedAndColorOnlyTheCurrentValue(){
+  assertLiveSettingsChoices();
+ }
+
+ private void assertLiveSettingsChoices(){
+  a.root.findViewWithTag("nicoid-live-menu").performClick();
+  AlertDialog menu=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();
+  menu.getListView().performItemClick(null,1,1);
+  AlertDialog settings=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();
+  View decor=settings.getWindow().getDecorView();
+  for(String title:new String[]{"最初に開くタブ","放送中の時刻表示"}){
+   ArrayList<View> found=new ArrayList<>();
+   decor.findViewsWithText(found,title,View.FIND_VIEWS_WITH_TEXT);
+   assertEquals(1,found.size());
+   Button button=(Button)found.get(0);
+   assertEquals(Gravity.START,button.getGravity()&Gravity.RELATIVE_HORIZONTAL_GRAVITY_MASK);
+   android.text.Spanned text=(android.text.Spanned)button.getText();
+   android.text.style.ForegroundColorSpan[] colors=text.getSpans(0,text.length(),android.text.style.ForegroundColorSpan.class);
+   assertEquals(2,colors.length);
+   android.text.style.ForegroundColorSpan label=text.getSpanStart(colors[0])==0?colors[0]:colors[1];
+   android.text.style.ForegroundColorSpan value=label==colors[0]?colors[1]:colors[0];
+   assertEquals(0,text.getSpanStart(label));
+   assertEquals(title.length()+3,text.getSpanEnd(label));
+   assertEquals(DynamicTheme.textColor(button),label.getForegroundColor());
+   assertEquals(title.length()+3,text.getSpanStart(value));
+   assertEquals(text.length(),text.getSpanEnd(value));
+   int surface=UiDialogs.surface(a);
+   int accent=NicoliveUi.accent(button.getContext());
+   if(contrast(accent,surface)>=4.5)assertEquals(accent,value.getForegroundColor());
+   assertNotEquals(label.getForegroundColor(),value.getForegroundColor());
+   assertTrue(contrast(label.getForegroundColor(),surface)>=4.5);
+   assertTrue(contrast(value.getForegroundColor(),surface)>=4.49);
+  }
+  settings.dismiss();
+ }
+
  @Test public void multipleTabPlacementKeepsExistingBarAndListInSelectedOrder(){
   SharedPreferences preferences=PreferenceManager.getDefaultSharedPreferences(a);
   LinearLayout root=new LinearLayout(a);
@@ -331,7 +434,16 @@ public class NicoliveUiTest {
   assertSame(list,root.getChildAt(0));
   assertSame(bar,root.getChildAt(1));
   assertSame(barParams,bar.getLayoutParams());
-  preferences.edit().remove("multiple_video_tabs_at_bottom").commit();
+  preferences.edit().putInt("multiple_video_tabs_height_dp",48).commit();
+  MultiTabPlacement.update(root,bar);
+  assertEquals(PanelUi.dp(a,48),bar.getLayoutParams().height);
+  assertSame(bar,root.getChildAt(1));
+  preferences.edit().putBoolean("multiple_video_tabs_at_bottom",false)
+   .putInt("multiple_video_tabs_height_dp",100).commit();
+  MultiTabPlacement.update(root,bar);
+  assertEquals(PanelUi.dp(a,64),bar.getLayoutParams().height);
+  assertSame(bar,root.getChildAt(0));
+  preferences.edit().remove("multiple_video_tabs_at_bottom").remove("multiple_video_tabs_height_dp").commit();
  }
 
  @Test @Config(sdk=36) @GraphicsMode(GraphicsMode.Mode.NATIVE)

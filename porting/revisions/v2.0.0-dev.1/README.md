@@ -11,11 +11,11 @@ python3 bootstrap_tools.py
 python3 bootstrap_live.py
 python3 build_mpp.py --base /path/to/patches-1.11.1.mpp \
   --apk /path/to/nicoid-6.49.apk --tools tools --media deps \
-  --output /path/to/nicoid-re-2.0.0-dev.1-9.mpp
+  --output /path/to/nicoid-re-2.0.0-dev.1-10.mpp
 java -jar tools/morphe.jar patch --unsigned \
-  -p /path/to/nicoid-re-2.0.0-dev.1-9.mpp -o /path/to/test.apk /path/to/nicoid-6.49.apk
+  -p /path/to/nicoid-re-2.0.0-dev.1-10.mpp -o /path/to/test.apk /path/to/nicoid-6.49.apk
 python3 verify_mpp.py /path/to/patches-1.11.1.mpp \
-  /path/to/nicoid-re-2.0.0-dev.1-9.mpp /path/to/test.apk
+  /path/to/nicoid-re-2.0.0-dev.1-10.mpp /path/to/test.apk
 ```
 
 ビルドは配布済みMPPのハッシュと入力APKのDEXを照合する。既存Gradleタスクは正規版ベースのビルド経路。ニコ生入り開発版には上記のコマンドを使う。

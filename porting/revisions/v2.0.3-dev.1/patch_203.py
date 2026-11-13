@@ -142,7 +142,7 @@ def patch_live(source):
    miniFrame=null;miniTitle=null;miniPlay=null;
    viewer();Intent start=""",
         "detach mini before watching")
-   old = '''   nowPlayingBar=NicoliveUi.row(this);
+    old = '''  nowPlayingBar=NicoliveUi.row(this);
   Button resume=NicoliveUi.button(this,"再生中の生放送に戻る");
   nowPlayingBar.addView(resume,new LinearLayout.LayoutParams(0,NicoliveUi.dp(this,48),1));
   resume.setOnClickListener(v->{NicoliveService playing=activeBroadcast();if(playing!=null)watch(playing.id);});

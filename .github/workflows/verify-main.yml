@@ -50,6 +50,8 @@ jobs:
         run: |
           if grep -Fq "version = 2.0.0" gradle.properties; then
             NICOID_OFFICIAL_RELEASE_APPROVED=VERIFY bash .github/scripts/stage-v2.0.0-mpp.sh
+          elif grep -Fq "version = 2.0.1" gradle.properties; then
+            NICOID_OFFICIAL_RELEASE_APPROVED=VERIFY bash .github/scripts/stage-v2.0.1-mpp.sh
           else
             python3 porting/revisions/v1.11.1/verify-mpp.py 1.11.1
           fi

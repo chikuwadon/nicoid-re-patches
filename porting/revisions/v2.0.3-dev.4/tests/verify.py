@@ -40,6 +40,6 @@ for term in ("from patch_206 import OVERRIDES, stage",
 a=builder.index("fragment_file.write_text(fragment.replace(next_launch")
 b=builder.index("next_launch))",a)
 assert builder.find("FullscreenHandoff206;",a,b)>0
-assert builder.find("FullscreenHandoff206;",a,b)<builder.find("+ next_launch",a,b)
+assert builder.find("FullscreenHandoff206;",a,b)<builder.find("+ next_launch))",a)
 print("PASS: drawer native geometry, startup spinner, original popup corner math, fullscreen pre-launch and persistent seek-duration checks")
 print("UNVERIFIED: in-app frames, hardware transitions, Android 16 notification gesture behavior")

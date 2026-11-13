@@ -10,7 +10,8 @@ permissions:
   packages: read
 
 concurrency:
-  group: private-build-${{ github.ref }}
+  # Separate the v2.0.3-dev.7 validation queue from a stale uncancellable dev run.
+  group: private-build-v203dev7-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:

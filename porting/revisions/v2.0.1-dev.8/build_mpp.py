@@ -15,6 +15,7 @@ BASE_ROOT = Path(__file__).resolve().parent.parent / "v2.0.0-dev.1"
 sys.path.insert(0, str(BASE_ROOT))
 from patch_manifest import patch_manifest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "v2.0.1-dev.3"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "v2.0.1-dev.7"))
 from patch_207 import OVERRIDES, stage
 PREVIOUS_ROOT = Path(__file__).resolve().parent.parent / "v2.0.1-dev.1"
 

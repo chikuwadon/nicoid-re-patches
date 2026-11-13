@@ -55,7 +55,14 @@ final class AppBarPlacement202 {
     static void refreshCurrent() {
         synchronized (CONTROLLERS) {
             for (Controller controller : CONTROLLERS.values()) {
-                if (controller != null) controller.apply();
+                if (controller == null) continue;
+                LinearLayout parent = controller.parent == null ? null : controller.parent.get();
+                View strip = controller.tab == null ? null : controller.tab.get();
+                // Apply saved height and child order as well as positioning,
+                // without recreating the Fragment or refetching its data.
+                if (parent != null && strip != null && strip.getParent() == parent)
+                    MultiTabPlacement.update(parent, strip);
+                controller.apply();
             }
         }
     }

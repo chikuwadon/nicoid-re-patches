@@ -31,8 +31,8 @@ public final class FullscreenHandoff208 {
    // even when the currently displayed fragment is immersive fullscreen.
    boolean full=intent.getBooleanExtra("isFullScreen",false)
        ||intent.getBooleanExtra("isLandscape",false)
-       ||Boolean.TRUE.equals(Playback214.get(fragment,"B0"))
-       ||Boolean.TRUE.equals(Playback214.get(fragment,"C0"));
+       ||flag(fragment,"B0")
+       ||flag(fragment,"C0");
    Window window=a.getWindow();
    // The fullscreen player uses immersive landscape without always setting
    // FLAG_FULLSCREEN. Reading only the flag missed the real navigation path.
@@ -45,6 +45,11 @@ public final class FullscreenHandoff208 {
   }catch(Exception e){android.util.Log.w("nicoid-fullscreen","Unable to mark next video",e);}
  }
 
+ private static boolean flag(Object owner,String field){
+  if(owner==null)return false;
+  try{return Boolean.TRUE.equals(Playback214.get(owner,field));}
+  catch(Exception ignored){return false;}
+ }
  private static Activity activity(Object source){
   if(source instanceof Activity)return (Activity)source;
   if(source==null)return null;

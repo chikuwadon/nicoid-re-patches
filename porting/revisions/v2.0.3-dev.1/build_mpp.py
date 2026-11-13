@@ -77,6 +77,7 @@ def build(args, work):
     overrides = work / "source-overrides/e/e/a"
     stage(BASE_ROOT / "java/e/e/a", overrides)
     excluded = (OVERRIDES | {p.name for p in (ROOT / "java").rglob("*.java")}
+                | {p.name for p in (ROOT.parent / "v2.0.2-dev.4/java").rglob("*.java")}
                 | {p.name for p in (ROOT.parent / "v2.0.1-dev.2/java").rglob("*.java")})
     classpath = os.pathsep.join(map(str, [android, helpers, *compile_only, *libs]))
     classes = work / "classes"

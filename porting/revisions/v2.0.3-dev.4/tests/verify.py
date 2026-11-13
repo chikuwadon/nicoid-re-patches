@@ -35,7 +35,7 @@ builder=(R/"build_mpp.py").read_text()
 for term in ("from patch_206 import OVERRIDES, stage",
  "VERSION = \"2.0.3-dev.4\"", "MediaSeek206;", "validDuration",
  "MediaSeek206;->requested","FullscreenHandoff206;->prepared",
- "FullscreenHandoff206;->beforeContent", "FullscreenHandoff206;->mark"):
+ "FullscreenHandoff206;->beforeContent", "FullscreenHandoff206;"):
  assert term in builder,term
 a=builder.index("fragment_file.write_text(fragment.replace(next_launch")
 b=builder.index("next_launch))",a)

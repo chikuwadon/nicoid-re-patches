@@ -50,14 +50,14 @@ def patch_activity(source):
         'AlertDialog menu=UiDialogs.builder(this)',
         "remove redundant NicoLive menu heading")
     source=once(source,
-        '''   if(window!=null){
-    window.setGravity(Gravity.TOP|Gravity.END);
-    WindowManager.LayoutParams layout=window.getAttributes();
-    layout.y=NicoliveUi.dp(this,48);
-    window.setAttributes(layout);
-    window.setLayout(Math.min(getResources().getDisplayMetrics().widthPixels,NicoliveUi.dp(this,288)),
-     ViewGroup.LayoutParams.WRAP_CONTENT);
-   }''',
+        '''  if(window!=null){
+   window.setGravity(Gravity.TOP|Gravity.END);
+   WindowManager.LayoutParams layout=window.getAttributes();
+   layout.y=NicoliveUi.dp(this,48);
+   window.setAttributes(layout);
+   window.setLayout(Math.min(getResources().getDisplayMetrics().widthPixels,NicoliveUi.dp(this,288)),
+    ViewGroup.LayoutParams.WRAP_CONTENT);
+  }''',
         '''   if(window!=null){
     android.graphics.Rect visible=new android.graphics.Rect();
     getWindow().getDecorView().getWindowVisibleDisplayFrame(visible);

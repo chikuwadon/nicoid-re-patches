@@ -54,9 +54,9 @@ jobs:
       - name: Check published source baseline and metadata
         run: |
           python3 porting/tests/VerifyReleaseBaseline.py
-          if grep -Eq '^version[[:space:]]*=[[:space:]]*2\\.0\\.1[[:space:]]*$' gradle.properties; then
+          if grep -Eq '^version[[:space:]]*=[[:space:]]*2\.0\.1[[:space:]]*$' gradle.properties; then
             python3 porting/revisions/v2.0.1-release/test_release.py
-          elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\\.0\\.2[[:space:]]*$' gradle.properties; then
+          elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.0\.2[[:space:]]*$' gradle.properties; then
             python3 porting/revisions/v2.0.2-release/test_release.py
           else
             echo "Unsupported official release version" >&2

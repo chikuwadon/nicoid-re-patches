@@ -20,6 +20,7 @@ public final class PlayerStart208 {
    if(!watch.hasControls())return;
    ACTIVE.put(root,watch);
    watch.begin();
+   ModernDebug.record("player-center awaiting TextureView first frame");
   }
  }
  private static View find(View root,String id){
@@ -105,6 +106,7 @@ public final class PlayerStart208 {
    try{
     hook=new Hook(this,t.getSurfaceTextureListener());
     t.setSurfaceTextureListener(hook);
+    ModernDebug.record("player-center TextureView frame observer attached");
    }catch(RuntimeException error){
     Log.w("nicoid-start","Could not observe decoded output",error);
     source=null;hook=null;
@@ -126,6 +128,7 @@ public final class PlayerStart208 {
    }
    synchronized(ACTIVE){ACTIVE.remove(r);}
    Log.i("nicoid-start","Center controls released on decoded first frame");
+   ModernDebug.record("player-center released after decoded first frame");
   }
   void unbind(){
    TextureView t=source;Hook h=hook;

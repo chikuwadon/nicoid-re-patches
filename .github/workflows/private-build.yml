@@ -2,7 +2,7 @@ name: Private patch build
 
 on:
   push:
-    branches: [dev, 'audit/**', 'v2.0.0-dev', 'fix/v2.0.3-dev.4-regressions']
+    branches: [dev, 'audit/**', 'v2.0.0-dev', 'fix/v2.0.3-dev.5-regression-root-causes']
   workflow_dispatch:
 
 permissions:
@@ -18,7 +18,7 @@ jobs:
     if: >-
       github.ref != 'refs/heads/v2.0.0-dev' &&
       github.ref != 'refs/heads/dev' &&
-      github.ref != 'refs/heads/fix/v2.0.3-dev.4-regressions' &&
+      github.ref != 'refs/heads/fix/v2.0.3-dev.5-regression-root-causes' &&
       (github.event_name != 'push' ||
        (!startsWith(github.event.head_commit.message, 'docs: update release notes') &&
         !startsWith(github.event.head_commit.message, 'chore(maintenance):')))
@@ -418,7 +418,7 @@ jobs:
 
   v2-source-test:
     name: Validate v2 live source changes (no APK)
-    if: github.ref == 'refs/heads/v2.0.0-dev' || github.ref == 'refs/heads/dev' || startsWith(github.ref, 'refs/heads/audit/') || github.ref == 'refs/heads/fix/v2.0.3-dev.4-regressions'
+    if: github.ref == 'refs/heads/v2.0.0-dev' || github.ref == 'refs/heads/dev' || startsWith(github.ref, 'refs/heads/audit/') || github.ref == 'refs/heads/fix/v2.0.3-dev.5-regression-root-causes'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -569,17 +569,20 @@ jobs:
             e.e.a.NicoliveThumbnailFallbackTest
 
       - name: Validate v2.0.3 regression patches for all reported issues
-        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/fix/v2.0.3-dev.4-regressions'
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/fix/v2.0.3-dev.5-regression-root-causes'
         run: python3 porting/revisions/v2.0.3-dev.1/tests/verify.py
       - name: Verify v2.0.3-dev.2 real-time playback, floating comments and drawer contracts
-        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/fix/v2.0.3-dev.4-regressions'
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/fix/v2.0.3-dev.5-regression-root-causes'
         run: python3 porting/revisions/v2.0.3-dev.2/tests/verify.py
       - name: Verify v2.0.3-dev.3 fullscreen, NicoLive mini and media controls regression contracts
-        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/fix/v2.0.3-dev.4-regressions'
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/fix/v2.0.3-dev.5-regression-root-causes'
         run: python3 porting/revisions/v2.0.3-dev.3/tests/verify.py
       - name: Verify v2.0.3-dev.4 native drawer, mini corners, fullscreen and seek contracts
-        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/fix/v2.0.3-dev.4-regressions'
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/fix/v2.0.3-dev.5-regression-root-causes'
         run: python3 porting/revisions/v2.0.3-dev.4/tests/verify.py
+      - name: Verify v2.0.3-dev.5 drawer, loading glyph, ambient and retained seek contracts
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/fix/v2.0.3-dev.5-regression-root-causes'
+        run: python3 porting/revisions/v2.0.3-dev.5/tests/verify.py
       - name: Test double-Back timing boundaries
         shell: bash
         run: |
@@ -650,16 +653,16 @@ jobs:
           echo "Complete live Java source compiled. No original APK was used or distributed."
 
       - name: Build guarded v2 candidate MPP from stable release and validated sources
-        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/v2.0.0-dev' || github.ref == 'refs/heads/fix/v2.0.3-dev.4-regressions'
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/v2.0.0-dev' || github.ref == 'refs/heads/fix/v2.0.3-dev.5-regression-root-causes'
         shell: bash
         run: |
           set -euo pipefail
           revision=porting/revisions/v2.0.0-dev.1
           builder="$revision"
           version=2.0.0-dev.1-27
-          if [[ "$GITHUB_REF" == "refs/heads/dev" || "$GITHUB_REF" == "refs/heads/fix/v2.0.3-dev.4-regressions" ]]; then
-            builder=porting/revisions/v2.0.3-dev.4
-            version=2.0.3-dev.4
+          if [[ "$GITHUB_REF" == "refs/heads/dev" || "$GITHUB_REF" == "refs/heads/fix/v2.0.3-dev.5-regression-root-causes" ]]; then
+            builder=porting/revisions/v2.0.3-dev.5
+            version=2.0.3-dev.5
           fi
           output="/tmp/nicoid-re-$version.mpp"
           python3 "$builder/build_mpp.py" \
@@ -686,9 +689,9 @@ jobs:
           test "$(find /tmp/nicoid-v2-delivery -maxdepth 1 -type f | wc -l)" -eq 2
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/v2.0.0-dev' || github.ref == 'refs/heads/fix/v2.0.3-dev.4-regressions'
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/v2.0.0-dev' || github.ref == 'refs/heads/fix/v2.0.3-dev.5-regression-root-causes'
         with:
-          name: nicoid-re-v2.0.3-dev.4-mpp
+          name: nicoid-re-v2.0.3-dev.5-mpp
           path: /tmp/nicoid-v2-delivery/*
           compression-level: 0
           if-no-files-found: error
@@ -699,14 +702,14 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/nicoid-v2-source
-          git archive --format=zip --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.3-dev.4-source.zip HEAD
-          git archive --format=tar.gz --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.3-dev.4-source.tar.gz HEAD
-          unzip -tq /tmp/nicoid-v2-source/nicoid-re-v2.0.3-dev.4-source.zip
-          tar -tzf /tmp/nicoid-v2-source/nicoid-re-v2.0.3-dev.4-source.tar.gz > /dev/null
+          git archive --format=zip --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.3-dev.5-source.zip HEAD
+          git archive --format=tar.gz --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.3-dev.5-source.tar.gz HEAD
+          unzip -tq /tmp/nicoid-v2-source/nicoid-re-v2.0.3-dev.5-source.zip
+          tar -tzf /tmp/nicoid-v2-source/nicoid-re-v2.0.3-dev.5-source.tar.gz > /dev/null
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: nicoid-re-v2.0.3-dev.4-source
+          name: nicoid-re-v2.0.3-dev.5-source
           path: /tmp/nicoid-v2-source/*
           if-no-files-found: error
           retention-days: 2

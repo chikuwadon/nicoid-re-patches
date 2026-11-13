@@ -17,7 +17,7 @@ EXPECTED=(OLD.replace('from patch_207 import OVERRIDES, stage',
              .replace('"    const/16 v12, 0x8\\n"',
                       '"    const/16 v12, 0xc\\n"')
              .replace('        *sorted((ROOT / "java").rglob("*.java")),',
-                      '        ROOT.parent / "v2.0.1-dev.7/java/e/e/a/SmoothTabRestore204.java",\\n'
+                      '        ROOT.parent / "v2.0.1-dev.7/java/e/e/a/SmoothTabRestore204.java",\n'
                       '        *sorted((ROOT / "java").rglob("*.java")),'))
 assert NEW==EXPECTED,"Unexpected change beyond version, tab-cache limit, and preserved restore class"
 assert 'native_arity = "    const/4 v12, 0x3"' in NEW

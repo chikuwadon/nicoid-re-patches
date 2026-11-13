@@ -15,12 +15,17 @@ EXPECTED=(OLD.replace('from patch_207 import OVERRIDES, stage',
              .replace('VERSION = "2.0.1-dev.7"',
                       'VERSION = "2.0.1-dev.8"')
              .replace('"    const/16 v12, 0x8\\n"',
-                      '"    const/16 v12, 0xc\\n"'))
-assert NEW==EXPECTED,"Unexpected change beyond the version and tab-cache limit"
+                      '"    const/16 v12, 0xc\\n"')
+             .replace('        *sorted((ROOT / "java").rglob("*.java")),',
+                      '        ROOT.parent / "v2.0.1-dev.7/java/e/e/a/SmoothTabRestore204.java",\\n'
+                      '        *sorted((ROOT / "java").rglob("*.java")),'))
+assert NEW==EXPECTED,"Unexpected change beyond version, tab-cache limit, and preserved restore class"
 assert 'native_arity = "    const/4 v12, 0x3"' in NEW
 assert 'tab_host.count(array_use) != 2' in NEW
 assert 'tab_host.replace(lru_anchor' in NEW
 assert '    const/16 v12, 0xc' in NEW
+assert NEW.count('ROOT.parent / "v2.0.1-dev.7/java/e/e/a/SmoothTabRestore204.java"')==1
+assert (REVISIONS/"v2.0.1-dev.7/java/e/e/a/SmoothTabRestore204.java").is_file()
 
 # Run the exact source-level replacement against the native tab host smali,
 # checking both reflection constructor arrays and the subsequent LRU loop.

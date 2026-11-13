@@ -16,27 +16,27 @@ def once(source,old,new,label):
 
 def patch_activity(source):
     source=once(source,
-        '   body.addView(hubNavigation());\n   updateNowPlaying();',
+        '  body.addView(hubNavigation());\n  updateNowPlaying();',
         '   body.addView(hubNavigation());\n'
         '   NicoliveAppBarPlacement.place(root,body,header,NicoliveAppBarPlacement.position(prefs()));\n'
         '   updateNowPlaying();',"hub navigation placement")
     source=once(source,
-        '   Button tap=settingChoiceRow(options,refresh.getCompoundPaddingStart());',
-        '   Button tap=settingChoiceRow(options,refresh.getCompoundPaddingStart());\n'
+        '  Button tap=settingChoiceRow(options,refresh.getCompoundPaddingStart());',
+        '  Button tap=settingChoiceRow(options,refresh.getCompoundPaddingStart());\n'
         '   Button appBar=settingChoiceRow(options,refresh.getCompoundPaddingStart());',
         "new app bar choice")
     source=once(source,
-        '    ExitModeOptions.mode(this,ExitModeOptions.LIVE_KEY)};',
+        '   ExitModeOptions.mode(this,ExitModeOptions.LIVE_KEY)};',
         '    ExitModeOptions.mode(this,ExitModeOptions.LIVE_KEY),\n'
         '    NicoliveAppBarPlacement.position(preferences)};',
         "app bar state")
     source=once(source,
-        '   bindSettingChoice(tap,"タップ時の動作",new String[]{"通常再生","ポップアップ再生"},selections,2);',
-        '   bindSettingChoice(tap,"タップ時の動作",new String[]{"通常再生","ポップアップ再生"},selections,2);\n'
+        '  bindSettingChoice(tap,"タップ時の動作",new String[]{"通常再生","ポップアップ再生"},selections,2);',
+        '  bindSettingChoice(tap,"タップ時の動作",new String[]{"通常再生","ポップアップ再生"},selections,2);\n'
         '   bindSettingChoice(appBar,"アプリバーの配置",NicoliveAppBarPlacement.LABELS,selections,4);',
         "new setting choice")
     source=once(source,
-        '.putBoolean(START_TIME,selections[1]==1).putInt(TAP_BEHAVIOR,selections[2]).apply();\n     updateHubDisplayOptions();',
+        '.putBoolean(START_TIME,selections[1]==1).putInt(TAP_BEHAVIOR,selections[2]).apply();\n    updateHubDisplayOptions();',
         '.putBoolean(START_TIME,selections[1]==1).putInt(TAP_BEHAVIOR,selections[2])\n'
         '      .putInt(NicoliveAppBarPlacement.KEY,selections[4]).apply();\n'
         '     if(!watching)NicoliveAppBarPlacement.place(root,body,header,selections[4]);\n'

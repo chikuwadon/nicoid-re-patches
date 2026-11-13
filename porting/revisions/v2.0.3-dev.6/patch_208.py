@@ -71,6 +71,9 @@ def change_ambient(source):
                         removeNormalGlowLayer();
                         normalGlowLayer = new NormalGlowLayer208(root.getContext(), perimeterGlow);
                         normalGlowLayer.setTag("nicoid-normal-ambient-underlay");
+                        AmbientGeometryTrace.record("normal ambient underlay parent="
+                                + parent.getClass().getSimpleName()
+                                + " texture-index=" + parent.indexOfChild(lastSource));
                         int index = parent.indexOfChild(lastSource);
                         parent.addView(normalGlowLayer, index >= 0 ? index + 1 : parent.getChildCount(),
                                 new ViewGroup.LayoutParams(-1, -1));

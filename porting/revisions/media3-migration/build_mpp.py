@@ -8,7 +8,7 @@ import shutil
 import sys
 from tempfile import TemporaryDirectory
 
-VERSION = "2.1.0-dev.2"
+VERSION = "2.1.0-dev.3"
 DEVELOPMENT_REF = "refs/heads/feature/media3-migration"
 ROOT = Path(__file__).resolve().parent
 BASELINE = ROOT.parent / "v2.0.2-dev.4"

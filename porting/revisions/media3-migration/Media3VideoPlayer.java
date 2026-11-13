@@ -19,10 +19,12 @@ import androidx.media3.common.VideoSize;
 import androidx.media3.datasource.DefaultDataSource;
 import androidx.media3.datasource.HttpDataSource;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.analytics.AnalyticsListener;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
 import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.video.ClearableSurface;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,7 +34,13 @@ public final class Media3VideoPlayer implements Player.Listener {
     private final Context context;
     private final ExoPlayer player;
     private final Handler main = new Handler(Looper.getMainLooper());
-    private final boolean ownsSurface;
+    private boolean ownsViewSurface;
+    private boolean ownsCurrentSurface;
+    private boolean waitingForDestination;
+    private Surface handoffOutput;
+    private Object renderedOutput;
+    private Runnable popupReady;
+    private final Runnable popupReadyTimeout = () -> completePopupOutput("frame callback timeout");
     private ListenerMux listeners;
     private volatile long sampledPosition;
     private volatile long sampledDuration;
@@ -73,25 +81,45 @@ public final class Media3VideoPlayer implements Player.Listener {
 
     public Media3VideoPlayer(Context context, boolean ownsSurface) {
         this.context = context.getApplicationContext();
-        this.ownsSurface = ownsSurface;
+        this.ownsViewSurface = ownsSurface;
+        ownsCurrentSurface = ownsSurface;
         player = new ExoPlayer.Builder(this.context)
             .setLooper(Looper.getMainLooper())
             .setAudioAttributes(new AudioAttributes.Builder().setUsage(C.USAGE_MEDIA)
                 .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(), false)
             .build();
         player.addListener(this);
+        player.addAnalyticsListener(new AnalyticsListener() {
+            @Override
+            public void onRenderedFirstFrame(EventTime eventTime, Object output, long renderTimeMs) {
+                renderedOutput = output;
+                if (popupReady != null && handoffOutput != null && output == handoffOutput) {
+                    completePopupOutput("first frame");
+                }
+            }
+        });
     }
 
     public void setListenerMux(ListenerMux listeners) {
         this.listeners = listeners;
     }
 
-    boolean canMoveTo(Media3VideoPlayer target) {
-        return !released && listeners != null && listeners.isPrepared()
+    boolean hasPlaybackSession() {
+        return !released
             && player.getPlayerError() == null && player.getCurrentMediaItem() != null
-            && player.getPlaybackState() == Player.STATE_READY
-            && !target.released && target.listeners != null
-            && target.player.getCurrentMediaItem() == null && ownsSurface == target.ownsSurface;
+            && (player.getPlaybackState() == Player.STATE_READY
+                || (player.getPlaybackState() == Player.STATE_BUFFERING
+                    && listeners != null && listeners.isPrepared()));
+    }
+
+    Uri currentUri() {
+        MediaItem item = player.getCurrentMediaItem();
+        return item == null || item.localConfiguration == null ? null : item.localConfiguration.uri;
+    }
+
+    boolean canMoveTo(Media3VideoPlayer target) {
+        return hasPlaybackSession() && target != null && !target.released && target.listeners != null
+            && target.player.getCurrentMediaItem() == null;
     }
 
     void moveTo(Media3VideoPlayer target) {
@@ -101,16 +129,64 @@ public final class Media3VideoPlayer implements Player.Listener {
         Surface output = target.surface;
         target.player.clearVideoSurface();
         target.surface = null;
-        setVideoOutput(output);
         listeners = target.listeners;
         progressBar = null;
         bindingRetainedView = true;
         skipPopupAutoStart = true;
+        ownsViewSurface = target.ownsViewSurface;
+        waitingForDestination = true;
+        handoffOutput = null;
+        if (output != null) {
+            setSurface(output);
+        }
         target.release();
+    }
+
+    void awaitPopupOutput(boolean visible, Runnable ready) {
+        if (!visible) {
+            // The destination may be audio-only until its view is first attached.
+            if (waitingForDestination) {
+                setVideoOutput(null, false);
+            }
+            waitingForDestination = false;
+            ready.run();
+            return;
+        }
+        popupReady = ready;
+        if (handoffOutput != null && renderedOutput == handoffOutput) {
+            completePopupOutput("first frame");
+        } else {
+            main.postDelayed(popupReadyTimeout, 700);
+        }
+    }
+
+    private void completePopupOutput(String result) {
+        Runnable ready = popupReady;
+        popupReady = null;
+        main.removeCallbacks(popupReadyTimeout);
+        if (ready != null && !released) {
+            if (waitingForDestination) {
+                waitingForDestination = false;
+                setVideoOutput(null, false);
+            }
+            ModernDebug.record("Media3 popup output: " + result);
+            ready.run();
+        }
     }
 
     boolean isBindingRetainedView() {
         return bindingRetainedView;
+    }
+
+    Object bindReturnedView(Method callback, Object listener, Object[] arguments)
+            throws ReflectiveOperationException {
+        boolean previous = bindingRetainedView;
+        bindingRetainedView = true;
+        try {
+            return callback.invoke(listener, arguments);
+        } finally {
+            bindingRetainedView = previous;
+        }
     }
 
     boolean skipPopupAutoStart() {
@@ -135,6 +211,11 @@ public final class Media3VideoPlayer implements Player.Listener {
         pendingSeek = false;
         bindingRetainedView = false;
         skipPopupAutoStart = false;
+        main.removeCallbacks(popupReadyTimeout);
+        popupReady = null;
+        waitingForDestination = false;
+        handoffOutput = null;
+        renderedOutput = null;
         endScrubbing();
         sampledPosition = 0;
         sampledDuration = 0;
@@ -209,6 +290,8 @@ public final class Media3VideoPlayer implements Player.Listener {
             released = true;
             main.removeCallbacks(updateBuffer);
             main.removeCallbacks(sampleWhilePlaying);
+            main.removeCallbacks(popupReadyTimeout);
+            popupReady = null;
             sampledPosition = 0;
             sampledDuration = 0;
             sampledPlaying = false;
@@ -216,7 +299,7 @@ public final class Media3VideoPlayer implements Player.Listener {
             sampledBuffer = 0;
             player.removeListener(this);
             player.release();
-            releaseSurface(surface);
+            releaseSurface(surface, ownsCurrentSurface);
             surface = null;
             listeners = null;
         }
@@ -228,23 +311,30 @@ public final class Media3VideoPlayer implements Player.Listener {
 
     public void setSurface(Surface output) {
         if (released) {
-            releaseSurface(output);
+            releaseSurface(output, ownsViewSurface);
             return;
         }
-        setVideoOutput(output);
+        if (waitingForDestination && (output == null || !output.isValid())) {
+            releaseSurface(output, ownsViewSurface);
+            return;
+        }
+        waitingForDestination = false;
+        handoffOutput = output;
+        setVideoOutput(output, ownsViewSurface);
     }
 
-    private void setVideoOutput(Surface output) {
+    private void setVideoOutput(Surface output, boolean ownsOutput) {
         Surface previous = surface;
         if (previous != output) {
             player.setVideoSurface(output);
             surface = output;
-            releaseSurface(previous);
+            releaseSurface(previous, ownsCurrentSurface);
+            ownsCurrentSurface = ownsOutput;
         }
     }
 
-    private void releaseSurface(Surface output) {
-        if (ownsSurface && output != null) {
+    private void releaseSurface(Surface output, boolean owned) {
+        if (owned && output != null) {
             output.release();
         }
     }
@@ -466,7 +556,7 @@ public final class Media3VideoPlayer implements Player.Listener {
             return;
         }
         if (events.containsAny(Player.EVENT_PLAYBACK_STATE_CHANGED, Player.EVENT_PLAY_WHEN_READY_CHANGED)) {
-            if (listeners != null) {
+            if (listeners != null && !bindingRetainedView) {
                 int state = source.getPlaybackState();
                 if (state != Player.STATE_ENDED || source.getCurrentMediaItem() != null) {
                     listeners.onStateChanged(source.getPlayWhenReady(), state);

@@ -1,4 +1,4 @@
-"""Verify the candidate MPP and require the new recovery helper in the shipped DEX."""
+"""Verify the installed Media3 helpers and native hooks in the candidate MPP."""
 from pathlib import Path
 import runpy
 import sys
@@ -20,6 +20,11 @@ with ZipFile(Path(candidate)) as archive:
     assert b"Le/e/a/Media3SeekPreview;" in delta
     assert b"media3Player" in helpers
     assert b"Le/e/a/Media3PlaybackHandoff;" in delta
+    assert "Lcom/sauzask/nicoid/NicoidPopupViewService;" in method_classes
+    assert b"addPopupWindow\0" in delta
+    assert b"bindReturnedView\0" in helpers
+    assert VERSION.encode() + b"\0" in helpers, "Missing installed patch version"
+    assert b"2.0.2-dev.4\0" not in helpers, "Stale installed patch version"
     for name in ("LiveWindowRecovery", "Media3VideoPlayer", "VideoHttpSource", "Dev139",
                  "Media3SeekPreview", "Media3ControlStyle", "Media3PlaybackHandoff"):
         assert "Le/e/a/" + name + ";" in classes, "Missing Media3 helper: " + name

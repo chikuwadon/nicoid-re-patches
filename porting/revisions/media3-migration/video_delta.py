@@ -21,9 +21,13 @@ def patch_popup(path):
     source = path.read_text(encoding="utf-8")
     source = replace_once(
         source, "    invoke-virtual {p1}, Ljava/lang/Thread;->start()V",
-        f"    invoke-static {{p0, p1}}, {HANDOFF}->adopt(Ljava/lang/Object;Ljava/lang/Thread;)Z\n"
+        f"    invoke-static {{p0, p1}}, {HANDOFF}->adopt(Landroid/app/Service;Ljava/lang/Thread;)Z\n"
         "    move-result p2\n"
-        "    if-nez p2, :cond_56e\n"
+        "    if-eqz p2, :nicoid_popup_load_new_video\n"
+        "    const/4 p2, 0x0\n"
+        f"    invoke-virtual {{p0, p2}}, {POPUP}->c(Ljava/lang/String;)V\n"
+        "    goto :cond_56e\n"
+        "    :nicoid_popup_load_new_video\n"
         "    invoke-virtual {p1}, Ljava/lang/Thread;->start()V")
     setup = "    :goto_1e\n    iget-boolean v0, p0, " + POPUP + "->directPopup:Z"
     source = replace_once(
@@ -38,6 +42,10 @@ def patch_popup(path):
     source = replace_once(
         source, ready,
         ready + f"\n\n    invoke-static {{p0}}, {HANDOFF}->notifyRetained(Landroid/app/Service;)V")
+    source = replace_once(
+        source, "    invoke-interface {p2, p3, p1}, Landroid/view/WindowManager;->addView(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V",
+        f"    invoke-static {{p0, p2, p3, p1}}, {HANDOFF}->addPopupWindow("
+        "Landroid/app/Service;Landroid/view/WindowManager;Landroid/view/View;Landroid/view/WindowManager$LayoutParams;)V")
     initial_start = f"    invoke-virtual {{v0}}, {VIDEO_VIEW}->start()V\n\n    :cond_8d"
     source = replace_once(
         source, initial_start,
@@ -93,6 +101,16 @@ def patch_helpers(stable, hooks):
         "    return-void\n"
         "    :nicoid_prepare_new_player")
     (hooks / transfer).write_text(source, encoding="utf-8")
+    popup_return = "PopupReturn244.smali"
+    source = (stable / "e/e/a" / popup_return).read_text(encoding="utf-8")
+    anchor = ("    invoke-virtual {v0, v1, v3}, Ljava/lang/reflect/Method;->invoke(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;\n\n"
+              "    iget-object v0, p0, Le/e/a/PopupReturn244$Pending;->video:Landroid/view/View;")
+    source = replace_once(
+        source, anchor,
+        f"    invoke-static {{p0, v0, v1, v3}}, {HANDOFF}->bindReturnedView("
+        "Ljava/lang/Object;Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;\n\n"
+        "    iget-object v0, p0, Le/e/a/PopupReturn244$Pending;->video:Landroid/view/View;")
+    (hooks / popup_return).write_text(source, encoding="utf-8")
     media_controls = "MediaControls.smali"
     source = (stable / "e/e/a" / media_controls).read_text(encoding="utf-8")
     anchor = "    new-instance v8, Landroid/app/Notification$MediaStyle;"

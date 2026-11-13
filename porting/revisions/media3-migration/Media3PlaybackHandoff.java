@@ -1,8 +1,9 @@
 package e.e.a;
 
-import android.app.Service;
+import android.app.Activity;
 import android.app.Notification;
 import android.app.PendingIntent;
+import android.app.Service;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -17,32 +18,27 @@ import java.lang.reflect.Method;
 public final class Media3PlaybackHandoff {
     private Media3PlaybackHandoff() {}
 
-    public static boolean adopt(Object service, Thread loader) {
+    public static boolean adopt(Service service, Thread loader) {
         Media3VideoPlayer source;
         Media3VideoPlayer target;
         Object sourceDelegate;
         Object targetDelegate;
         Field engine;
         View targetView;
-        Method setup;
         try {
             Class<?> transfers = Class.forName("e.e.a.PlaybackTransfer221");
             Object transfer = Dev139.field(transfers, "pending").get(null);
             if (transfer == null || Dev139.get(transfer, "target") != service
                     || !Boolean.TRUE.equals(Dev139.get(transfer, "toPopup"))
-                    || !Dev139.get(transfer, "id").equals(Dev139.get(service, "f"))) {
+                    || !HistoryRules.same((String) Dev139.get(transfer, "id"), Dev139.get(service, "f"))) {
                 return false;
             }
             Object fragment = Dev139.get(transfer, "source");
+            Activity activity = (Activity) Dev139.get(fragment, "A1");
             View sourceView = (View) Dev139.get(transfer, "sourcePlayer");
-            if (sourceView != Dev139.get(fragment, "a0")) {
-                return false;
-            }
-            Object previousLoader = Dev139.get(fragment, "h1");
-            Bundle metadata = previousLoader == null ? null : (Bundle) Dev139.get(previousLoader, "m");
-            Uri uri = (Uri) Dev139.get(sourceView, "videoUri");
-            // The original screen can own the loopback cache server.
-            if (metadata == null || metadata.isEmpty() || uri == null || !"https".equals(uri.getScheme())) {
+            if (activity == null || activity.isFinishing() || activity.isDestroyed()
+                    || sourceView != Dev139.get(fragment, "a0")
+                    || !HistoryRules.same((String) Dev139.get(fragment, "b0"), Dev139.get(service, "f"))) {
                 return false;
             }
             targetView = (View) Dev139.get(service, "e");
@@ -51,15 +47,33 @@ public final class Media3PlaybackHandoff {
             engine = Dev139.field(sourceDelegate.getClass(), "media3Player");
             source = (Media3VideoPlayer) engine.get(sourceDelegate);
             target = (Media3VideoPlayer) engine.get(targetDelegate);
-            if (!source.canMoveTo(target)) {
+            if (source == null || !source.canMoveTo(target)) {
+                ModernDebug.record("Media3 popup handoff unavailable: playback or destination not prepared");
                 return false;
             }
-            setup = service.getClass().getMethod("c", String.class);
-            Bundle info = new Bundle(metadata);
+            Uri uri = source.currentUri();
+            // Loopback media may belong to the source screen's cache server.
+            if (uri == null || "127.0.0.1".equals(uri.getHost()) || "localhost".equals(uri.getHost())
+                    || "::1".equals(uri.getHost()) || "[::1]".equals(uri.getHost())) {
+                ModernDebug.record("Media3 popup handoff unavailable: screen-owned cache");
+                return false;
+            }
+            Object previousLoader = Dev139.get(fragment, "h1");
+            Bundle metadata = FeedbackMedia.bundle(fragment);
+            Bundle info = metadata == null ? new Bundle() : new Bundle(metadata);
+            if (info.isEmpty()) {
+                info.putString("videoTitle", (String) Dev139.get(fragment, "b0"));
+            }
             Dev139.field(loader.getClass(), "m").set(loader, info);
-            Dev139.field(loader.getClass(), "I").set(loader, Dev139.get(previousLoader, "I"));
+            if (previousLoader != null) {
+                Dev139.field(loader.getClass(), "I").set(loader, Dev139.get(previousLoader, "I"));
+            }
             Object listener = Dev139.get(loader, "k");
-            listener.getClass().getMethod("a", Bundle.class).invoke(listener, info);
+            try {
+                listener.getClass().getMethod("a", Bundle.class).invoke(listener, info);
+            } catch (ReflectiveOperationException | RuntimeException failure) {
+                Log.w("nicoid-transfer", "Cannot refresh popup metadata", failure);
+            }
 
             Dev139.field(targetView.getClass(), "videoUri").set(targetView, uri);
             Dev139.field(service.getClass(), "t0").setInt(null, 0);
@@ -71,12 +85,7 @@ public final class Media3PlaybackHandoff {
         }
         source.moveTo(target);
         targetView.setKeepScreenOn(source.isPlaying());
-        try {
-            setup.invoke(service, (Object) null);
-        } catch (ReflectiveOperationException failure) {
-            Log.w("nicoid-transfer", "Cannot install popup playback callbacks", failure);
-        }
-        RetainedPlayback137.popupAdopted((Service) service);
+        RetainedPlayback137.popupAdopted(service);
         return true;
     }
 
@@ -122,16 +131,66 @@ public final class Media3PlaybackHandoff {
         }
     }
 
-    public static void notifyRetained(Service service) {
+    public static void addPopupWindow(Service service, WindowManager windows, View root,
+            WindowManager.LayoutParams params) {
+        Media3VideoPlayer player = retainedPopupPlayer(service);
+        if (player == null) {
+            windows.addView(root, params);
+            return;
+        }
+        float alpha = params.alpha;
+        params.alpha = 0f;
         try {
-            Media3VideoPlayer player = player((View) Dev139.get(service, "e"));
-            if (player != null && player.isBindingRetainedView()) {
-                player.notifyRetainedView();
-                ModernDebug.record("Media3 transferred the active media item to the popup service");
+            windows.addView(root, params);
+        } finally {
+            params.alpha = alpha;
+        }
+        Runnable reveal = () -> {
+            if (root.isAttachedToWindow()) {
+                windows.updateViewLayout(root, params);
+            }
+        };
+        root.postDelayed(reveal, 750);
+        player.awaitPopupOutput(true, () -> {
+            root.removeCallbacks(reveal);
+            reveal.run();
+            player.notifyRetainedView();
+        });
+    }
+
+    public static void notifyRetained(Service service) {
+        Media3VideoPlayer player = retainedPopupPlayer(service);
+        if (player == null) {
+            return;
+        }
+        try {
+            ModernDebug.record("Media3 transferred the active media item to the popup service");
+            View loading = (View) Dev139.get(service, "H");
+            if (loading != null) {
+                loading.setVisibility(View.GONE);
+            }
+            if (Dev139.field(service.getClass(), "p0").getBoolean(null)) {
+                player.awaitPopupOutput(false, player::notifyRetainedView);
             }
         } catch (ReflectiveOperationException failure) {
             Log.w("nicoid-transfer", "Cannot notify retained playback", failure);
         }
+    }
+
+    private static Media3VideoPlayer retainedPopupPlayer(Service service) {
+        try {
+            Media3VideoPlayer player = player((View) Dev139.get(service, "e"));
+            return player != null && player.isBindingRetainedView() ? player : null;
+        } catch (ReflectiveOperationException failure) {
+            return null;
+        }
+    }
+
+    public static Object bindReturnedView(Object pending, Method callback, Object listener, Object[] arguments)
+            throws ReflectiveOperationException {
+        Media3VideoPlayer player = player((View) Dev139.get(pending, "video"));
+        return player == null ? callback.invoke(listener, arguments)
+            : player.bindReturnedView(callback, listener, arguments);
     }
 
     public static boolean showPopup(Service service, Intent request) {
@@ -152,7 +211,7 @@ public final class Media3PlaybackHandoff {
             WindowManager.LayoutParams params = (WindowManager.LayoutParams) Dev139.get(service, "U");
             Media3VideoPlayer player = player(video);
             if (root == null || root.isAttachedToWindow() || windows == null || params == null
-                    || player == null || player.getDuration() <= 0) {
+                    || player == null || !player.hasPlaybackSession()) {
                 return false;
             }
             Object mini = Dev139.field(Class.forName("e.e.a.DirectBackground235"), "active").get(null);

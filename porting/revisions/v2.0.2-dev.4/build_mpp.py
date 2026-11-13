@@ -127,7 +127,7 @@ def build(args, work, *, stage_sources=stage, version=None, development_ref="ref
         for name in ("PatchVersion237", "ModernShorts"):
             file = name + ".smali"
             source = (disassembled / "e/e/a" / file).read_text()
-            updated, count = re.subn(r'(?<=["v])1\.11\.1(?=[" ])', VERSION, source)
+            updated, count = re.subn(r'(?<=["v])1\.11\.1(?=[" ])', version, source)
             if not count:
                 raise ValueError(f"Missing stable version in {name}")
             if name == "ModernShorts":

@@ -44,7 +44,7 @@ def player(src):
 
 def normal_ambient(src):
  src=one(src,
-   "            content.set(0, 0, size, size);\n            if (mode == FULL) {",
+   "            content.set(0, 0, size, size);\n",
    """            content.set(0, 0, size, size);
             if (mode == NORMAL) {
                 // TextureView fills the container even when its decoded picture
@@ -55,7 +55,7 @@ def normal_ambient(src):
                 if (left >= 2 && left < size / 2) content.left = left;
                 if (right >= 2 && right < size / 2) content.right -= right;
             }
-            if (mode == FULL) {""",
+            """,
    "sample stable normal-mode interior video edges")
  src=one(src,"    private static int darkMargin(Bitmap b, int edge) {",
    """    private static int normalBlackBand(Bitmap b,int edge) {

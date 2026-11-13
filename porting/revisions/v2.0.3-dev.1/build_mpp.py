@@ -194,7 +194,7 @@ def build(args, work):
         playback = (disassembled / "e/e/a" / playback_file).read_text()
         playback = add_hook(playback,
             ".method public static prepared(Ljava/lang/Object;Z)V",
-            "invoke-static {p0, p1}, Le/e/a/PlaybackContinuation203;->prepared(Ljava/lang/Object;Z)V")
+            "invoke-static/range {p0 .. p1}, Le/e/a/PlaybackContinuation203;->prepared(Ljava/lang/Object;Z)V")
         (hooks / playback_file).write_text(playback)
 
         # Preserve the native Back hook while replacing the old checkbox with a mode chooser.
@@ -481,7 +481,7 @@ def build(args, work):
         hook_dex = work / "hooks.dex"
         run("java", "-cp", smali, "org.jf.smali.Main", "assemble", work / "hooks", "-o", hook_dex)
         merged = work / "helpers.mpe"
-        run("java", "-jar", tools / "ecj.jar", "-21", "-proc:none", "-cp", smali_compile, "-d", work, ROOT / "MergeLiveDex.java")
+        run("java", "-jar", tools / "ecj.jar", "-21", "-proc:none", "-cp", smali_compile, "-d", work, ROOT.parent / "v2.0.2-dev.4/MergeLiveDex.java")
         run("java", "-cp", str(work) + os.pathsep + smali, "MergeLiveDex",
             original, hook_dex, live_dex, merged)
 

@@ -492,7 +492,7 @@ jobs:
         run: |
           set -euo pipefail
           revision=porting/revisions/v2.0.1-dev.5
-          python3 porting/revisions/v2.0.1-dev.8/tests/verify.py
+          # Native tab arity and v2.0.2 LRU assertions run in the earlier source contract step.
           mkdir -p /tmp/nicoid-scroll-restore205
           javac --release 8 -d /tmp/nicoid-scroll-restore205 \
             "$revision/java/e/e/a/ScrollRestorePolicy205.java" \

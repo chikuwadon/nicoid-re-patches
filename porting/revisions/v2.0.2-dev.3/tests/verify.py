@@ -50,7 +50,7 @@ print("PASS: settings initialization dependency registration order (Android 16 c
 assert "multiple_video_tabs_at_bottom" in tab and "multiple_video_tabs_height_dp" in tab
 assert "nicoid_app_tab_layout" in tab and "AppBarPlacement202.attach" in tab
 assert "MultiTabPlacement.layout" in app and "ContentFrameLayout" in app
-assert "ActionBarContainer" in app and "MotionEvent.obtain(event)" in app
+assert "ActionBarContainer" in app and "static boolean touch(Activity activity, MotionEvent event) { return false; }" in app
 assert "NicoliveAppBarPlacement.place" in patch_activity(
     (ROOT/"porting/revisions/v2.0.0-dev.1/java/e/e/a/NicoliveActivity.java").read_text())
 assert "下部：ナビゲーションの上" in live and "下部：ナビゲーションの下" in live

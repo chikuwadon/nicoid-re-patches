@@ -418,7 +418,7 @@ def build(args, work):
         gesture_path = "TabGestures228.smali"
         gestures = (disassembled / "e/e/a" / gesture_path).read_text()
         signature = ".method public static touch(Landroid/app/Activity;Landroid/view/MotionEvent;)Z"
-        gesture_pattern = re.escape(signature) + r".*?\\.end method"
+        gesture_pattern = re.escape(signature) + r".*?\.end method"
         match = re.search(gesture_pattern, gestures, flags=re.DOTALL)
         if not match or match.group().count("Le/e/a/TabPager233;->touch(Landroid/app/Activity;Landroid/view/MotionEvent;)Z") != 1:
             raise ValueError("Unexpected native tab gesture bridge")

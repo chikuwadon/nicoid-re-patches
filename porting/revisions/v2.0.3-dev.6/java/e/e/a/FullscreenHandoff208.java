@@ -42,6 +42,7 @@ public final class FullscreenHandoff208 {
    intent.putExtra("isFullScreen",true).putExtra("isLandscape",true)
        .putExtra(EXTRA,true).addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
    android.util.Log.i("nicoid-fullscreen","Next-video fullscreen marked before launch");
+   ModernDebug.record("fullscreen-next intent marked before launch");
   }catch(Exception e){android.util.Log.w("nicoid-fullscreen","Unable to mark next video",e);}
  }
 
@@ -73,6 +74,7 @@ public final class FullscreenHandoff208 {
   if(previous==null)return;
   previous.overridePendingTransition(0,0);
   android.util.Log.i("nicoid-fullscreen","Fullscreen next-video launch uses no transition");
+  ModernDebug.record("fullscreen-next Activity launched without transition");
  }
 
  public static void beforeContent(Activity a){
@@ -85,6 +87,7 @@ public final class FullscreenHandoff208 {
   WindowManager.LayoutParams attr=w.getAttributes();
   attr.alpha=0f;w.setAttributes(attr);
   Gate gate=new Gate();GATES.put(a,gate);
+  ModernDebug.record("fullscreen-next early landscape window initialized");
   WeakReference<Activity> ref=new WeakReference<>(a);
   MAIN.postDelayed(()->{
    Activity activity=ref.get();
@@ -123,5 +126,6 @@ public final class FullscreenHandoff208 {
   p.alpha=1f;a.getWindow().setAttributes(p);
   a.overridePendingTransition(0,0);
   android.util.Log.i("nicoid-fullscreen","Fullscreen first-frame reveal "+reason);
+  ModernDebug.record("fullscreen-next reveal "+reason);
  }
 }

@@ -621,7 +621,7 @@ jobs:
           version=2.0.0-dev.1-27
           if [[ "$GITHUB_REF" == "refs/heads/dev" ]]; then
             builder=porting/revisions/v2.0.2-dev.2
-            version=2.0.2-dev.1
+            version=2.0.2-dev.2
           fi
           output="/tmp/nicoid-re-$version.mpp"
           python3 "$builder/build_mpp.py" \

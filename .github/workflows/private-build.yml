@@ -491,6 +491,18 @@ jobs:
             porting/revisions/v2.0.2-dev.4/tests/e/e/a/AppBarLayoutMath202Test.java
           java -cp /tmp/nicoid-layout-math-tests e.e.a.AppBarLayoutMath202Test
 
+      - name: Verify NicoLive popup edge sizing and guarded tap sequences
+        if: github.ref == 'refs/heads/dev'
+        run: |
+          mkdir -p /tmp/nicoid-live-popup-tests
+          javac --release 8 -d /tmp/nicoid-live-popup-tests \
+            porting/revisions/v2.0.2-dev.4/java/e/e/a/NicolivePopupCorner202.java \
+            porting/revisions/v2.0.2-dev.4/tests/e/e/a/NicolivePopupCorner202Test.java \
+            porting/revisions/v1.10.6/java/e/e/a/PopupTouchPolicy125.java \
+            porting/revisions/v2.0.2-dev.4/tests/e/e/a/NicolivePopupTap202Test.java
+          java -cp /tmp/nicoid-live-popup-tests e.e.a.NicolivePopupCorner202Test
+          java -cp /tmp/nicoid-live-popup-tests e.e.a.NicolivePopupTap202Test
+
       - name: Verify v2.0.2 layout previews, presets, and source compatibility
         if: github.ref == 'refs/heads/dev'
         run: python3 porting/revisions/v2.0.2-dev.4/tests/verify.py

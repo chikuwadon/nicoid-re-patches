@@ -25,8 +25,13 @@ assert "new String[order.length + 1]" in tab
 assert "上部：アプリバー・下部：タブバー" in tab
 assert "上部：タブバー・下部：アプリバー" in tab
 assert 'heightValue.setText("初期値 "' in tab
-assert 'border.setStroke' in tab and 'new GradientDrawable()' in tab
+assert 'row.setBackgroundColor(sampleBackground)' in tab and 'border.setStroke' not in tab
 assert '▣　動画情報' in tab and '▣　動画一覧' not in tab
+assert 'for (int i=0; i<3; i++)' in tab
+assert 'titles.addView(part(c,"サンプル",13,Color.WHITE))' in tab
+assert 'defaultMark.setBackgroundColor(0xffffffff)' in tab
+assert 'PanelUi.dp(c, 38)' in tab and 'slider.post(updateDefaultTick)' in tab
+assert 'minus.setTextColor(color)' in tab and 'plus.setTextColor(color)' in tab
 assert 'titleParams.leftMargin' in tab and 'LayoutParams(0,-1,1)' in tab
 assert 'panel.setPadding(pad, PanelUi.dp(c, 8)' in tab
 assert 'bar.getParent() == parent' in tab
@@ -71,5 +76,19 @@ with tempfile.TemporaryDirectory() as tmp:
     result=(target/"NicoliveActivity.java").read_text()
     assert 'NicoliveAppBarPlacement.place(root,body,header' in result
     assert 'NicoliveAppBarPlacement.KEY,selections[4]' in result
+    player=(target/"NicolivePlayerFrame.java").read_text()
+    service=(target/"NicoliveService.java").read_text()
+    stats=(target/"NicoliveUi.java").read_text()
+    assert 'top.addView(handle' not in player and 'addView(top,' not in player
+    assert 'PopupTouchPolicy125.State tapPolicy' in player
+    assert 'PopupTouchPolicy125.DOUBLE_TAP' in player and 'owner.stopPlayback()' in player
+    assert 'ViewConfiguration.getDoubleTapTimeout()' in player
+    assert 'NicolivePopupCorner202.hit' in player and 'owner.cornerResizePopup' in player
+    assert 'pendingTap!=null){removeCallbacks(pendingTap)' in player
+    assert 'NicolivePopupCorner202.bounds' in service
+    assert 'new NicoliveStatSpan202(g)' in stats
+    assert 'ALIGN_BASELINE' not in stats
+print("PASS: live popup has no top handle, uses native double-tap guard and corner resize")
+print("PASS: live viewer/comment glyph alignment and three-row placement preview")
 print("PASS: 6 app/tab layouts, 28-64dp editor, 3 live placements and ambient presets")
 print("PASS: staged NicoLive source overlay, original tab cache arity and source routing")

@@ -89,6 +89,8 @@ def build(args, work):
         *sorted(p for p in (ROOT.parent / "v2.0.1-dev.5/java").rglob("*.java")
                 if p.name != "SmoothTabRestore204.java"),
         ROOT.parent / "v2.0.1-dev.7/java/e/e/a/SmoothTabRestore204.java",
+        *sorted(p for p in (ROOT.parent / "v2.0.2-dev.4/java").rglob("*.java")
+                if p.name not in {"AmbientLight.java","AppBarPlacement202.java"}),
         *sorted((ROOT / "java").rglob("*.java")),
         *sorted(overrides.rglob("*.java")))
     live_jar = work / "live.jar"

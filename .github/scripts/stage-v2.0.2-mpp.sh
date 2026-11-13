@@ -9,7 +9,7 @@ set -euo pipefail
    "${NICOID_OFFICIAL_RELEASE_APPROVED:-}" == "VERIFY" ]] || {
   echo "::error::Explicit official build approval required"; exit 1;
 }
-grep -Eq '^version[[:space:]]*=[[:space:]]*2\.0\.1[[:space:]]*$' gradle.properties || {
+grep -Eq '^version[[:space:]]*=[[:space:]]*2\.0\.2[[:space:]]*$' gradle.properties || {
   echo "::error::Expected the official v2.0.2 version"; exit 1;
 }
 revision=porting/revisions/v2.0.0-dev.1

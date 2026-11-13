@@ -197,6 +197,25 @@ def build(args, work):
             "\n    :nicoid_skip_mini203")
         (hooks / queue_file).write_text(queue)
 
+        # Manual / cached queues short-circuit the tab-owned queue.
+        # Preserve in-app background mode before the next Activity starts.
+        manual_file = "ManualQueue119.smali"
+        manual = (disassembled / "e/e/a" / manual_file).read_text()
+        start = manual.index(".method public static move(Ljava/lang/Object;ZZ)Z")
+        end = manual.index(".end method", start)
+        body = manual[start:end]
+        marker = "    sput-boolean v2, Le/e/a/ManualQueue119;->opening:Z"
+        if body.count(marker) != 1:
+            raise ValueError("Missing manual queue transition anchor")
+        body = body.replace(marker,
+            "    if-nez v1, :nicoid_manual_skip_mini203\n"
+            "    move-object/from16 v11, p0\n"
+            "    invoke-static {v11, v10}, Le/e/a/PlaybackContinuation203;"
+            "->mark(Ljava/lang/Object;Landroid/content/Intent;)V\n"
+            "    :nicoid_manual_skip_mini203\n" + marker)
+        manual = manual[:start] + body + manual[end:]
+        (hooks / manual_file).write_text(manual)
+
         # Preserve the native Back hook while replacing the old checkbox with a mode chooser.
         dev112_file = "Dev112.smali"
         dev112 = (disassembled / "e/e/a" / dev112_file).read_text()

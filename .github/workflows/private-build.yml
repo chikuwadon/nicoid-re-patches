@@ -643,7 +643,7 @@ jobs:
           revision=porting/revisions/v2.0.0-dev.1
           builder="$revision"
           version=2.0.0-dev.1-27
-          if [[ "$GITHUB_REF" == "refs/heads/dev" ]]; then
+          if [[ "$GITHUB_REF" == "refs/heads/dev" || "$GITHUB_REF" == refs/heads/audit/* ]]; then
             builder=porting/revisions/v2.0.2-dev.4
             version=2.0.2-dev.4
           fi

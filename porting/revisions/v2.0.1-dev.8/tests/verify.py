@@ -10,7 +10,9 @@ REVISIONS=REVISION.parent
 REPOSITORY=REVISION.parents[2]
 NEW=(REVISION/"build_mpp.py").read_text()
 OLD=(REVISIONS/"v2.0.1-dev.7/build_mpp.py").read_text()
-EXPECTED=(OLD.replace('VERSION = "2.0.1-dev.7"',
+EXPECTED=(OLD.replace('from patch_207 import OVERRIDES, stage',
+                      'sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "v2.0.1-dev.7"))\nfrom patch_207 import OVERRIDES, stage')
+             .replace('VERSION = "2.0.1-dev.7"',
                       'VERSION = "2.0.1-dev.8"')
              .replace('"    const/16 v12, 0x8\\n"',
                       '"    const/16 v12, 0xc\\n"'))

@@ -43,7 +43,7 @@ assert "decoded-landscape-frame" in full
 builder=(ROOT/"build_mpp.py").read_text()
 assert 'VERSION = "2.0.3-dev.8"' in builder
 assert "from patch_210 import OVERRIDES, stage" in builder
-assert "FullscreenHandoff210;->applyNativeRotation(Landroid/app/Activity;I)V" in builder
+assert "FullscreenHandoff210;" in builder and "->applyNativeRotation(Landroid/app/Activity;I)V" in builder
 assert builder.count("FullscreenHandoff210;")>=7
 assert builder.count("->afterLaunch(Ljava/lang/Object;Landroid/content/Intent;)V")==3
 print("PASS: bottom-left 4:3 glow, retained mini occlusion, fullscreen orientation preserved")

@@ -630,7 +630,7 @@ jobs:
           version=2.0.0-dev.1-27
           if [[ "$GITHUB_REF" == "refs/heads/dev" ]]; then
             builder=porting/revisions/v2.0.2-dev.3
-            version=2.0.2-dev.2
+            version=2.0.2-dev.3
           fi
           output="/tmp/nicoid-re-$version.mpp"
           python3 "$builder/build_mpp.py" \
@@ -641,6 +641,7 @@ jobs:
             --compile-jar /tmp/nicoid-v2-okio.jar \
             --output "$output"
           python3 "$builder/verify_ci_candidate.py" /tmp/stable-nicoid.mpp "$output"
+          unzip -p "$output" META-INF/MANIFEST.MF | grep -Fq "Version: $version"
           mkdir -p /tmp/nicoid-v2-delivery
           cp "$output" /tmp/nicoid-v2-delivery/
           {

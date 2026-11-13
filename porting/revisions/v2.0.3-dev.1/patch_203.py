@@ -53,22 +53,33 @@ def patch_appbar(source):
                 return false;
             }
         }
-        // The mini player lives in the native content frame, whose bottom is
-        // covered when the app bar/tab strip is visually moved to the bottom.
-        // Shift only the mini pane; avoid changing the native pager geometry.
+        // Calculate the actual occlusion, not a hardcoded app/tab height:
+        // the content frame is already translated for several arrangements.
+        // Geometry based docking keeps the mini visible without a blank gap.
         private void avoidMiniOverlap(Activity host, int mode, int appH, int tabH) {
             ViewGroup contentHost = host.findViewById(android.R.id.content);
             if (contentHost == null) return;
             View mini = contentHost.findViewWithTag("nicoid-retained-mini-player");
-            if (mini == null) return;
-            int inset = mode == 2 ? tabH : mode == 3 ? appH :
-                (mode == 4 || mode == 5 ? appH + tabH : 0);
-            int minHeight = PanelUi.dp(host, 64);
-            float collapsed = Math.max(0f, Math.min(1f,
-                1f - Math.max(0, mini.getHeight() - minHeight) /
-                    (float) PanelUi.dp(host, 180)));
-            float offset = -inset * collapsed;
-            if (mini.getTranslationY() != offset) mini.setTranslationY(offset);
+            if (mini == null || mini.getHeight() < 2) return;
+            if (mini.getHeight() > PanelUi.dp(host, 76)) {
+                if (mini.getTranslationY() != 0) mini.setTranslationY(0);
+                return;
+            }
+            if (mini.getTranslationY() != 0) mini.setTranslationY(0);
+            int[] xy = new int[2], position = new int[2];
+            mini.getLocationOnScreen(position);
+            int miniTop = position[1], miniBottom = miniTop + mini.getHeight();
+            int overlap = 0;
+            View nativeApp = appBar == null ? null : appBar.get();
+            View tabs = strip == null ? null : strip.get();
+            for (View fixed : new View[]{nativeApp, tabs}) {
+                if (fixed == null || fixed.getVisibility() != View.VISIBLE
+                    || fixed.getHeight() <= 0) continue;
+                fixed.getLocationOnScreen(xy);
+                if (xy[1] < miniBottom && xy[1] + fixed.getHeight() > miniTop)
+                    overlap = Math.max(overlap, miniBottom - xy[1]);
+            }
+            if (overlap > 0) mini.setTranslationY(-overlap);
         }""","drawer and mini helpers")
     source = once(source,
         """            decor.getViewTreeObserver().addOnGlobalLayoutListener(this);

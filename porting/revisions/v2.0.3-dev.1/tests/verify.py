@@ -20,7 +20,8 @@ with tempfile.TemporaryDirectory() as tmp:
     assert 'getMethod("isDrawerVisible", int.class)' in app
     assert "View.INVISIBLE : View.VISIBLE" in app
     assert 'findViewWithTag("nicoid-retained-mini-player")' in app
-    assert "mode == 4 || mode == 5" in app
+    assert 'int overlap = 0' in app
+    assert 'mini.getLocationOnScreen(position)' in app
     assert "content.left = darkMargin(sample" not in ambient
     assert "Use the measured visible Surface/Texture bounds" in ambient
     assert "miniFrame.compact(true)" in live

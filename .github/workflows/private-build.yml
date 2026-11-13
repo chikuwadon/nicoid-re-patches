@@ -432,6 +432,10 @@ jobs:
           java-version: '21'
       - name: Check source-only v2 live regression contracts
         run: python3 porting/revisions/v2.0.0-dev.1/tests/verify-dev12.py
+      - name: Verify v2.0.1 stable release configuration without publishing
+        if: github.ref == 'refs/heads/dev'
+        run: python3 porting/revisions/v2.0.1-release/test_release.py
+
       - name: Verify local playlist gesture policy and shared regressions
         if: github.ref == 'refs/heads/dev'
         shell: bash

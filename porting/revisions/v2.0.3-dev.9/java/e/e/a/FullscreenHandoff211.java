@@ -1,5 +1,7 @@
 package e.e.a;
 import android.app.Activity;
+import android.app.Application;
+import android.os.Bundle;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
@@ -24,6 +26,22 @@ public final class FullscreenHandoff211 {
  // Hold the previous landscape display orientation across Activity switch.
  // This is distinct from blocking a user-initiated rotation in normal play.
  private static final WeakHashMap<Activity,Integer> OUTGOING=new WeakHashMap<>();
+ private static boolean trackingOutgoing;
+ private static synchronized void watchOutgoing(Activity sample){
+  if(trackingOutgoing)return;
+  trackingOutgoing=true;
+  sample.getApplication().registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks(){
+   public void onActivityCreated(Activity a,Bundle state){}
+   public void onActivityStarted(Activity a){}
+   public void onActivityResumed(Activity a){restoreOutgoing(a,"resumed");}
+   public void onActivityPaused(Activity a){}
+   public void onActivityStopped(Activity a){}
+   public void onActivitySaveInstanceState(Activity a,Bundle state){}
+   public void onActivityDestroyed(Activity a){
+    synchronized(OUTGOING){OUTGOING.remove(a);}
+   }
+  });
+ }
  static final class Gate {
   final long started=SystemClock.uptimeMillis();
   boolean finished, decoded;
@@ -54,12 +72,19 @@ public final class FullscreenHandoff211 {
     synchronized(OUTGOING){
      if(!OUTGOING.containsKey(a)){
       OUTGOING.put(a,a.getRequestedOrientation());
+      watchOutgoing(a);
       // Without this the Android task can resolve its next Activity to the
       // default portrait orientation between startActivity and onCreate.
       a.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
       ModernDebug.record("fullscreen-next outgoing display orientation locked");
       WeakReference<Activity> weak=new WeakReference<>(a);
-      MAIN.postDelayed(()->restoreOutgoing(weak.get(),"fallback"),6500);
+      MAIN.postDelayed(()->{
+       Activity outgoing=weak.get();
+       // Failed launch: old Activity is still focused. Otherwise keep the
+       // previous orientation locked until it becomes foreground again.
+       if(outgoing!=null&&outgoing.hasWindowFocus())
+        restoreOutgoing(outgoing,"failed-launch-fallback");
+      },6500);
      }
     }
    }
@@ -140,12 +165,6 @@ public final class FullscreenHandoff211 {
    android.util.Log.w("nicoid-fullscreen","Could not restore outgoing orientation",e);
   }
  }
- private static void restoreAllOutgoing(){
-  java.util.ArrayList<Activity> previous;
-  synchronized(OUTGOING){previous=new java.util.ArrayList<>(OUTGOING.keySet());}
-  for(Activity old:previous)restoreOutgoing(old,"next-window-ready");
- }
-
  // Called immediately after startActivity on each independent queue path.
  // Remove the old Activity transition instead of letting it briefly show its
  // portrait content while Android switches to the new fullscreen window.
@@ -216,7 +235,6 @@ public final class FullscreenHandoff211 {
   WindowManager.LayoutParams p=a.getWindow().getAttributes();
   p.alpha=1f;a.getWindow().setAttributes(p);
   a.overridePendingTransition(0,0);
-  restoreAllOutgoing();
   android.util.Log.i("nicoid-fullscreen","Fullscreen first-frame reveal "+reason);
   ModernDebug.record("fullscreen-next reveal "+reason);
  }

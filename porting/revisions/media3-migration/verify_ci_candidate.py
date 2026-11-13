@@ -23,6 +23,9 @@ with ZipFile(Path(candidate)) as archive:
     assert "Lcom/sauzask/nicoid/NicoidPopupViewService;" in method_classes
     assert b"addPopupWindow\0" in delta
     assert b"bindReturnedView\0" in helpers
+    assert "Le/e/a/q0;" in method_classes, "Missing native popup button override"
+    assert b"returnToNormal\0" in helpers, "Missing retained return from the native popup button"
+    assert b"tryRestorePopup\0" in helpers, "Missing retained return from custom popup controls"
     assert VERSION.encode() + b"\0" in helpers, "Missing installed patch version"
     assert b"2.0.2-dev.4\0" not in helpers, "Stale installed patch version"
     for name in ("LiveWindowRecovery", "Media3VideoPlayer", "VideoHttpSource", "Dev139",

@@ -100,7 +100,25 @@ def patch_helpers(stable, hooks):
         "    invoke-static {v1}, Le/e/a/PlaybackTransfer221;->complete(Le/e/a/PlaybackTransfer221$Transfer;)V\n"
         "    return-void\n"
         "    :nicoid_prepare_new_player")
+    anchor = "    invoke-static {p0}, Le/e/a/PopupReturn244;->restore(Ljava/lang/Object;)Z"
+    source = replace_once(
+        source, anchor,
+        f"    invoke-static {{p0}}, {HANDOFF}->tryRestorePopup(Ljava/lang/Object;)Z")
     (hooks / transfer).write_text(source, encoding="utf-8")
+    legacy_return = "PlaybackReturn.smali"
+    source = (stable / "e/e/a" / legacy_return).read_text(encoding="utf-8")
+    anchor = ("    sput-object v1, Le/e/a/PlaybackReturn;->automaticVideo:Ljava/lang/String;\n\n"
+              "    .line 38\n    const/4 v2, 0x0")
+    source = replace_once(
+        source, anchor,
+        "    sput-object v1, Le/e/a/PlaybackReturn;->automaticVideo:Ljava/lang/String;\n\n"
+        f"    invoke-static {{v0}}, {HANDOFF}->returnToNormal(Landroid/app/Service;)Z\n"
+        "    move-result v2\n"
+        "    if-eqz v2, :nicoid_reload_popup_return\n"
+        "    return-void\n"
+        "    :nicoid_reload_popup_return\n"
+        "    .line 38\n    const/4 v2, 0x0")
+    (hooks / legacy_return).write_text(source, encoding="utf-8")
     popup_return = "PopupReturn244.smali"
     source = (stable / "e/e/a" / popup_return).read_text(encoding="utf-8")
     anchor = ("    invoke-virtual {v0, v1, v3}, Ljava/lang/reflect/Method;->invoke(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;\n\n"

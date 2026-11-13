@@ -120,6 +120,43 @@ public final class Media3PlaybackHandoff {
         }
     }
 
+    public static boolean returnToNormal(Service service) {
+        try {
+            View video = (View) Dev139.get(service, "e");
+            Media3VideoPlayer player = player(video);
+            Object loader = Dev139.get(service, "z");
+            if (player == null || !player.hasPlaybackSession() || loader == null) {
+                return false;
+            }
+            Field metadata = Dev139.field(loader.getClass(), "m");
+            Bundle info = (Bundle) metadata.get(loader);
+            if (info == null || info.isEmpty()) {
+                info = (Bundle) Dev139.field(service.getClass(), "s0").get(null);
+                if (info == null || info.isEmpty()) {
+                    info = new Bundle();
+                    info.putString("videoTitle", (String) Dev139.get(service, "M"));
+                }
+                metadata.set(loader, new Bundle(info));
+            }
+            player.endScrubbing();
+            return Dev115.seamlessReturn(service);
+        } catch (ReflectiveOperationException failure) {
+            Log.w("nicoid-transfer", "Cannot prepare the active popup for return", failure);
+            return false;
+        }
+    }
+
+    public static boolean tryRestorePopup(Object owner) {
+        if (!(owner instanceof Service)) {
+            return false;
+        }
+        Service service = (Service) owner;
+        if (owns(service)) {
+            return returnToNormal(service);
+        }
+        return PopupReturn244.restore(owner);
+    }
+
     public static void startPopup(View video) {
         Media3VideoPlayer player = player(video);
         if (player == null || !player.skipPopupAutoStart()) {

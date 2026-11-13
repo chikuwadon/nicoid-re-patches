@@ -33,7 +33,7 @@ assert "WeakHashMap<Object,Snapshot>" in media
 assert "onSeekTo" in media
 builder=(R/"build_mpp.py").read_text()
 for term in ("from patch_206 import OVERRIDES, stage",
- "VERSION = \"2.0.3-dev.4\"", "MediaSeek206;->validDuration",
+ "VERSION = \"2.0.3-dev.4\"", "MediaSeek206;", "validDuration",
  "MediaSeek206;->requested","FullscreenHandoff206;->prepared",
  "FullscreenHandoff206;->beforeContent", "FullscreenHandoff206;->mark"):
  assert term in builder,term

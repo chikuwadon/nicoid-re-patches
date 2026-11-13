@@ -30,19 +30,16 @@ public final class Dev139 {
    this.output=new WeakReference<>(output);
   }
  }
- private static Object get(Object owner,String field)throws Exception {
+ private static Object get(Object owner,String field)throws ReflectiveOperationException {
   for(Class<?> c=owner.getClass();c!=null;c=c.getSuperclass())try{
    Field f=c.getDeclaredField(field);f.setAccessible(true);return f.get(owner);
   }catch(NoSuchFieldException ignored){}
   throw new NoSuchFieldException(field);
  }
- private static Object exoplayer(View video)throws Exception {
+ static Media3VideoPlayer player(View video)throws ReflectiveOperationException {
   Object impl=get(video,"videoViewImpl");
   Object delegate=get(impl,"delegate");
-  return get(delegate,"media3Player");
- }
- private static Surface currentSurface(Object player)throws Exception {
-  return ((Media3VideoPlayer)player).getSurface();
+  return (Media3VideoPlayer)get(delegate,"media3Player");
  }
  private static TextureView texture(View root){
   if(root instanceof TextureView &&
@@ -69,7 +66,7 @@ public final class Dev139 {
   if(video==null||texture==null||!texture.isAvailable())return;
   synchronized(BOUND){if(BOUND.containsKey(video))return;}
   try{
-   Surface current=currentSurface(exoplayer(video));
+   Surface current=player(video).getSurface();
    SurfaceTexture image=texture.getSurfaceTexture();
    if(current!=null&&current.isValid()&&image!=null){
     synchronized(BOUND){BOUND.put(video,new Binding(image,current));}
@@ -90,8 +87,8 @@ public final class Dev139 {
   SurfaceTexture surfaceTexture=texture.getSurfaceTexture();
   if(surfaceTexture==null)return;
   try{
-   Object player=exoplayer(video);
-   Surface existing=currentSurface(player);
+   Media3VideoPlayer player=player(video);
+   Surface existing=player.getSurface();
    Binding before;
    synchronized(BOUND){before=BOUND.get(video);}
    if(before!=null && before.texture.get()==surfaceTexture &&
@@ -103,7 +100,7 @@ public final class Dev139 {
    // output change remains necessary in that case.
    Surface next=new Surface(surfaceTexture);
    try {
-    ((Media3VideoPlayer)player).setSurface(next);
+    player.setSurface(next);
    }catch(RuntimeException failure){
     next.release();
     Log.w(TAG,"Output switch rejected; preserving existing playback",failure);

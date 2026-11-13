@@ -660,7 +660,7 @@ jobs:
             version=2.0.2-dev.4
           elif [[ "$GITHUB_REF" == "refs/heads/feature/media3-migration" ]]; then
             builder=porting/revisions/media3-migration
-            version=2.0.3-media3.2
+            version=2.0.3-media3.3
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
           output="/tmp/nicoid-re-$version.mpp"
@@ -713,5 +713,6 @@ jobs:
           path: /tmp/nicoid-v2-source/*
           if-no-files-found: error
           retention-days: 2
+
 
 

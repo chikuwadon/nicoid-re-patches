@@ -8,7 +8,7 @@ import shutil
 import sys
 from tempfile import TemporaryDirectory
 
-VERSION = "2.0.3-media3.2"
+VERSION = "2.0.3-media3.3"
 DEVELOPMENT_REF = "refs/heads/feature/media3-migration"
 ROOT = Path(__file__).resolve().parent
 BASELINE = ROOT.parent / "v2.0.2-dev.4"
@@ -49,7 +49,7 @@ def stage(base, destination):
         'liveWindowRecovery.reset();NicoliveDiagnostics.record("WATCH","begin-new-session");',
         "live-window retry reset")
     service.write_text(source, encoding="utf-8")
-    for name in ("LiveWindowRecovery", "Media3VideoPlayer", "VideoHttpSource", "Dev139"):
+    for name in ("LiveWindowRecovery", "Media3VideoPlayer", "VideoHttpSource", "Dev139", "Media3SeekPreview"):
         shutil.copyfile(ROOT / f"{name}.java", destination / f"{name}.java")
 
 

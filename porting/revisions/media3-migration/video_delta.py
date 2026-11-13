@@ -52,6 +52,26 @@ def build_delta(run, base, work, tools, output, apk):
     source = source.replace(raw_log, "    invoke-static {v1, v3}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;)I")
     error_callback.write_text(source, encoding="utf-8")
 
+    for filename, listener, seekbar, callback, owner, player_field in (
+        ("NicoidVideoFragment", "l1", "v1", "v2", "p0", "a0"),
+        ("NicoidPopupViewService", "o0", "v2", "v3", "p0", "e"),
+    ):
+        path = smali / "com/sauzask/nicoid" / (filename + ".smali")
+        source = path.read_text(encoding="utf-8")
+        owner_type = f"Lcom/sauzask/nicoid/{filename};"
+        view_type = "Lcom/devbrackets/android/exomedia/ui/widget/VideoView;"
+        callback_type = "Landroid/widget/SeekBar$OnSeekBarChangeListener;"
+        anchor = (f"    invoke-direct {{{callback}, {owner}}}, Le/e/a/{listener};-><init>({owner_type})V\n\n"
+                  f"    invoke-virtual {{{seekbar}, {callback}}}, "
+                  f"Landroid/widget/SeekBar;->setOnSeekBarChangeListener({callback_type})V")
+        if source.count(anchor) != 1:
+            raise ValueError(f"Unexpected seek bar listener in {filename}")
+        replacement = (anchor.split("\n", 1)[0] + "\n\n"
+                       f"    iget-object v4, {owner}, {owner_type}->{player_field}:{view_type}\n\n"
+                       f"    invoke-static {{{seekbar}, {callback}, v4}}, Le/e/a/Media3SeekPreview;"
+                       f"->attach(Landroid/widget/SeekBar;{callback_type}Landroid/view/View;)V")
+        path.write_text(source.replace(anchor, replacement), encoding="utf-8")
+
     run("java", "-cp", classpath, "org.jf.smali.Main", "assemble", "--api", 28, smali, "-o", output)
     if apk is not None:
         native = work / "original.dex"

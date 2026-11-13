@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.view.Surface;
 import androidx.media3.common.AudioAttributes;
 import androidx.media3.common.C;
@@ -31,6 +32,19 @@ public final class Media3VideoPlayer implements Player.Listener {
     private final Handler main = new Handler(Looper.getMainLooper());
     private final boolean ownsSurface;
     private ListenerMux listeners;
+    private volatile long sampledPosition;
+    private volatile long sampledDuration;
+    private volatile boolean sampledPlaying;
+    private final Runnable sampleWhilePlaying = new Runnable() {
+        @Override
+        public void run() {
+            refreshClock();
+            if (sampledPlaying && player.isPlaying()) {
+                main.postDelayed(this, 200);
+            }
+        }
+    };
+    private boolean scrubbing;
     private Surface surface;
     private boolean released;
     private boolean pendingSeek;
@@ -68,7 +82,10 @@ public final class Media3VideoPlayer implements Player.Listener {
             return;
         }
         pendingSeek = false;
-        firstFrameStartedAt = uri == null ? -1 : android.os.SystemClock.elapsedRealtime();
+        endScrubbing();
+        sampledPosition = 0;
+        sampledDuration = 0;
+        firstFrameStartedAt = uri == null ? -1 : SystemClock.elapsedRealtime();
         resetListeners();
         if (uri == null) {
             player.stop();
@@ -107,7 +124,7 @@ public final class Media3VideoPlayer implements Player.Listener {
             return false;
         }
         resetListeners();
-        firstFrameStartedAt = android.os.SystemClock.elapsedRealtime();
+        firstFrameStartedAt = SystemClock.elapsedRealtime();
         player.seekTo(0);
         player.prepare();
         player.play();
@@ -125,7 +142,8 @@ public final class Media3VideoPlayer implements Player.Listener {
         if (!released) {
             pendingSeek = false;
             firstFrameStartedAt = -1;
-                player.pause();
+            endScrubbing();
+            player.pause();
             if (clear && listeners != null && player.getPlaybackState() != Player.STATE_IDLE) {
                 listeners.clearSurfaceWhenReady(clearable);
             }
@@ -137,6 +155,10 @@ public final class Media3VideoPlayer implements Player.Listener {
         if (!released) {
             released = true;
             main.removeCallbacks(updateBuffer);
+            main.removeCallbacks(sampleWhilePlaying);
+            sampledPosition = 0;
+            sampledDuration = 0;
+            sampledPlaying = false;
             player.removeListener(this);
             player.release();
             releaseSurface(surface);
@@ -168,10 +190,37 @@ public final class Media3VideoPlayer implements Player.Listener {
         }
     }
 
+    boolean isScrubbing() {
+        return scrubbing;
+    }
+
+    boolean startScrubbing() {
+        if (released || !player.isCurrentMediaItemSeekable() || player.getPlaybackState() != Player.STATE_READY) {
+            return false;
+        }
+        scrubbing = true;
+        player.setScrubbingModeEnabled(true);
+        return true;
+    }
+
+    void previewPosition(long position) {
+        if (scrubbing && !released) {
+            player.seekTo(Math.max(0, position));
+        }
+    }
+
+    void endScrubbing() {
+        if (scrubbing && !released) {
+            scrubbing = false;
+            player.setScrubbingModeEnabled(false);
+        }
+    }
+
     public void seekTo(long position) {
         if (!released && player.getCurrentMediaItem() != null) {
             pendingSeek = true;
             player.seekTo(Math.max(0, position));
+            finishSeek();
         }
     }
 
@@ -192,15 +241,26 @@ public final class Media3VideoPlayer implements Player.Listener {
         }
     }
 
+    // Original video and popup TimerTasks read the clock off the application looper.
+    private void refreshClock() {
+        boolean ready = !released && listeners != null && listeners.isPrepared();
+        sampledPosition = ready ? player.getCurrentPosition() : 0;
+        sampledDuration = ready ? Math.max(0, player.getDuration()) : 0;
+        sampledPlaying = !released && player.getPlayWhenReady();
+    }
+
     public long getCurrentPosition() {
-        return released || listeners == null || !listeners.isPrepared() ? 0 : player.getCurrentPosition();
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            refreshClock();
+        }
+        return sampledPosition;
     }
 
     public long getDuration() {
-        if (released || listeners == null || !listeners.isPrepared()) {
-            return 0;
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            refreshClock();
         }
-        return Math.max(0, player.getDuration());
+        return sampledDuration;
     }
 
     public int getBufferedPercent() {
@@ -208,7 +268,8 @@ public final class Media3VideoPlayer implements Player.Listener {
     }
 
     public boolean isPlaying() {
-        return !released && player.getPlayWhenReady();
+        return Looper.myLooper() == Looper.getMainLooper()
+            ? !released && player.getPlayWhenReady() : sampledPlaying;
     }
 
     public boolean setPlaybackSpeed(float speed) {
@@ -331,6 +392,8 @@ public final class Media3VideoPlayer implements Player.Listener {
             main.removeCallbacks(updateBuffer);
             main.post(updateBuffer);
         }
+        main.removeCallbacks(sampleWhilePlaying);
+        sampleWhilePlaying.run();
         finishSeek();
     }
 
@@ -344,7 +407,7 @@ public final class Media3VideoPlayer implements Player.Listener {
     @Override
     public void onRenderedFirstFrame() {
         if (firstFrameStartedAt >= 0) {
-            long elapsed = android.os.SystemClock.elapsedRealtime() - firstFrameStartedAt;
+            long elapsed = SystemClock.elapsedRealtime() - firstFrameStartedAt;
             firstFrameStartedAt = -1;
             ModernDebug.record("Media3 first video frame: " + elapsed + " ms");
         }
@@ -353,6 +416,7 @@ public final class Media3VideoPlayer implements Player.Listener {
     @Override
     public void onPlayerError(PlaybackException error) {
         pendingSeek = false;
+        endScrubbing();
         if (!released && listeners != null) {
             listeners.onError(null, error);
         }

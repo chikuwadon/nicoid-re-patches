@@ -53,9 +53,10 @@ public final class DrawerFront210 {
    miniBody=null;miniPanel=null;miniRaised=false;
   }
   void raiseMini(View root,View contentView){
-   ViewGroup appContent=null;
+   ViewGroup appContent=contentView.getId()==android.R.id.content
+       &&contentView instanceof ViewGroup?(ViewGroup)contentView:null;
    View node=contentView;
-   while(node!=null&&node.getParent() instanceof View){
+   while(appContent==null&&node!=null&&node.getParent() instanceof View){
     View p=(View)node.getParent();
     if(p.getId()==android.R.id.content&&p instanceof ViewGroup){appContent=(ViewGroup)p;break;}
     node=p;
@@ -67,6 +68,16 @@ public final class DrawerFront210 {
     if("nicoid-retained-mini-player".equals(child.getTag())){currentPanel=child;break;}
    }
    View body=directChild(appContent,contentView);
+   if(body==null&&appContent==contentView){
+    // AppCompat ContentFrameLayout IS android.R.id.content. The retained
+    // mini panel and application body are direct siblings inside this host.
+    for(int i=0;i<appContent.getChildCount();i++){
+     View child=appContent.getChildAt(i);
+     if(child!=currentPanel&&child.getHeight()>=appContent.getHeight()*.5f){
+      body=child;break;
+     }
+    }
+   }
    if(currentPanel==null||body==null||body==currentPanel){restoreMini();return;}
    if(miniRaised&&(miniPanel!=currentPanel||miniBody!=body))restoreMini();
    if(!miniRaised){

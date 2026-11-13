@@ -19,7 +19,7 @@ def dex_classes(blob):
 with ZipFile(base_path) as base,ZipFile(candidate_path) as new:
     assert base.testzip() is None and new.testzip() is None
     changed={k for k in base.namelist() if base.read(k)!=new.read(k)}
-    assert changed=={"META-INF/MANIFEST.MF","nicoid/helpers.mpe","nicoid/resources.zip"},changed
+    assert changed=={"META-INF/MANIFEST.MF","nicoid/helpers.mpe","nicoid/method-delta.dex","nicoid/resources.zip"},changed
     expected=next((line.split('"')[1] for line in (Path(__file__).parent/"build_mpp.py").read_text().splitlines()
                    if line.startswith('VERSION = "')), None)
     assert expected and expected == "2.0.3-dev.1", expected
@@ -55,6 +55,11 @@ with ZipFile(base_path) as base,ZipFile(candidate_path) as new:
                   "NicolivePopupCorner202", "NicoliveStatSpan202",
                   "AmbientSettings", "AmbientLight", "MultiTabPlacement"):
         assert "Le/e/a/" + added + ";" in classes, "Missing updated helper: " + added
+    for added in ("MenuVisible203","FullscreenContinuity203","PlaybackContinuation203"):
+        assert "Le/e/a/"+added+";" in classes, added
+    delta=dex_classes(new.read("nicoid/method-delta.dex"))
+    assert "Lcom/sauzask/nicoid/NicoidVideoActivity;" in delta
+    assert "Lcom/sauzask/nicoid/NicoidVideoFragment;" in delta
     for fixed in ("RetainedPlayback137","PlayerIcons","PlayerTheme","NicoliveEntry","NicoliveService"):
         assert "Le/e/a/"+fixed+";" in classes, fixed
     for x in ("ThumbnailCorners","NicoliveUi","NicoliveActivity","NicoliveBrowser","NicoliveData","NicoliveService","NicoliveCatalog","NicoliveSession"):

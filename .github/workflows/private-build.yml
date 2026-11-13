@@ -434,7 +434,12 @@ jobs:
         run: python3 porting/revisions/v2.0.0-dev.1/tests/verify-dev12.py
       - name: Verify v2.0.1 stable release configuration without publishing
         if: github.ref == 'refs/heads/dev'
-        run: python3 porting/revisions/v2.0.1-release/test_release.py
+        run: |
+          if grep -Eq '^version[[:space:]]*=[[:space:]]*2\\.0\\.1[[:space:]]*$' gradle.properties; then
+            python3 porting/revisions/v2.0.1-release/test_release.py
+          elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\\.0\\.2[[:space:]]*$' gradle.properties; then
+            python3 porting/revisions/v2.0.2-release/test_release.py
+          fi
 
       - name: Verify local playlist gesture policy and shared regressions
         if: github.ref == 'refs/heads/dev'

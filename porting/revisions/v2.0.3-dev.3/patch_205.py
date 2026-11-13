@@ -79,7 +79,7 @@ def live_activity(src):
       'NicoliveFloatingMini205 miniWindow; boolean miniTouchSequence, autoMiniPopup;',
       "mini app switch flag")
     src=once(src,
-      '''  @Override protected void onResume(){super.onResume();refreshAccount();updateNowPlaying();}''',
+      ''' @Override protected void onResume(){super.onResume();refreshAccount();updateNowPlaying();}''',
       '''  @Override protected void onResume(){
     super.onResume();refreshAccount();
     if(autoMiniPopup&&service!=null&&service.popup!=null&&miniFrame!=null){

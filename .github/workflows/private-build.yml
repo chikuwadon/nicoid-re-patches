@@ -585,7 +585,7 @@ jobs:
         if: github.ref == 'refs/heads/dev' || (github.ref == 'refs/heads/fix/v2.0.3-dev.5-regression-root-causes' || github.ref == 'refs/heads/fix/v2.0.3-dev.6-visual-regressions')
         run: python3 porting/revisions/v2.0.3-dev.5/tests/verify.py
       - name: Verify v2.0.3-dev.6 actual first-frame controls and correct draw order
-        if: github.ref == 'refs/heads/fix/v2.0.3-dev.6-visual-regressions'
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/fix/v2.0.3-dev.6-visual-regressions'
         run: python3 porting/revisions/v2.0.3-dev.6/tests/verify.py
       - name: Test double-Back timing boundaries
         shell: bash
@@ -668,7 +668,7 @@ jobs:
             builder=porting/revisions/v2.0.3-dev.5
             version=2.0.3-dev.5
           fi
-          if [[ "$GITHUB_REF" == "refs/heads/fix/v2.0.3-dev.6-visual-regressions" ]]; then
+          if [[ "$GITHUB_REF" == "refs/heads/dev" || "$GITHUB_REF" == "refs/heads/fix/v2.0.3-dev.6-visual-regressions" ]]; then
             builder=porting/revisions/v2.0.3-dev.6
             version=2.0.3-dev.6
           fi
@@ -699,7 +699,7 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/v2.0.0-dev' || (github.ref == 'refs/heads/fix/v2.0.3-dev.5-regression-root-causes' || github.ref == 'refs/heads/fix/v2.0.3-dev.6-visual-regressions')
         with:
-          name: ${{ github.ref == 'refs/heads/fix/v2.0.3-dev.6-visual-regressions' && 'nicoid-re-v2.0.3-dev.6-mpp' || 'nicoid-re-v2.0.3-dev.5-mpp' }}
+          name: ${{ (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/fix/v2.0.3-dev.6-visual-regressions') && 'nicoid-re-v2.0.3-dev.6-mpp' || 'nicoid-re-v2.0.3-dev.5-mpp' }}
           path: /tmp/nicoid-v2-delivery/*
           compression-level: 0
           if-no-files-found: error
@@ -711,7 +711,7 @@ jobs:
           set -euo pipefail
           mkdir -p /tmp/nicoid-v2-source
           version=2.0.3-dev.5
-          if [[ "$GITHUB_REF" == "refs/heads/fix/v2.0.3-dev.6-visual-regressions" ]]; then version=2.0.3-dev.6; fi
+          if [[ "$GITHUB_REF" == "refs/heads/dev" || "$GITHUB_REF" == "refs/heads/fix/v2.0.3-dev.6-visual-regressions" ]]; then version=2.0.3-dev.6; fi
           git archive --format=zip --output="/tmp/nicoid-v2-source/nicoid-re-$version-source.zip" HEAD
           git archive --format=tar.gz --output="/tmp/nicoid-v2-source/nicoid-re-$version-source.tar.gz" HEAD
           unzip -tq "/tmp/nicoid-v2-source/nicoid-re-$version-source.zip"
@@ -719,7 +719,7 @@ jobs:
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: ${{ github.ref == 'refs/heads/fix/v2.0.3-dev.6-visual-regressions' && 'nicoid-re-v2.0.3-dev.6-source' || 'nicoid-re-v2.0.3-dev.5-source' }}
+          name: ${{ (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/fix/v2.0.3-dev.6-visual-regressions') && 'nicoid-re-v2.0.3-dev.6-source' || 'nicoid-re-v2.0.3-dev.5-source' }}
           path: /tmp/nicoid-v2-source/*
           if-no-files-found: error
           retention-days: 2

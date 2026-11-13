@@ -5,6 +5,9 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
+import android.widget.FrameLayout;
 import android.preference.Preference;
 import android.preference.PreferenceGroup;
 import android.preference.PreferenceManager;
@@ -30,8 +33,8 @@ final class MultiTabPlacement {
     static final String[] LABELS = {
         "上部：アプリバー → タブバー",
         "上部：タブバー → アプリバー",
-        "アプリバーは上部・タブバーは下部",
-        "タブバーは上部・アプリバーは下部",
+        "上部：アプリバー・下部：タブバー",
+        "上部：タブバー・下部：アプリバー",
         "下部：アプリバー → タブバー",
         "下部：タブバー → アプリバー"
     };
@@ -97,8 +100,11 @@ final class MultiTabPlacement {
         Context c = UiTheme191.context(preference.getContext());
         final int[] selected = {layout(p)}, height = {heightDp(p)};
         LinearLayout panel = new LinearLayout(c);
-        panel.setPadding(PanelUi.dp(c, 18), 0, PanelUi.dp(c, 18), PanelUi.dp(c, 12));
+        int pad = PanelUi.dp(c, 16);
+        // Leave a small breathing gap below the AlertDialog's title.
+        panel.setPadding(pad, PanelUi.dp(c, 8), pad, PanelUi.dp(c, 12));
         panel.setOrientation(LinearLayout.VERTICAL);
+
         RadioGroup choices = new RadioGroup(c);
         choices.setOrientation(LinearLayout.VERTICAL);
         for (int i = 0; i < LABELS.length; i++) {
@@ -107,40 +113,80 @@ final class MultiTabPlacement {
             radio.setText(LABELS[i]);
             radio.setTextSize(13);
             radio.setTag(i);
-            radio.setMinHeight(PanelUi.dp(c, 40));
+            radio.setMinHeight(PanelUi.dp(c, 38));
             choices.addView(radio);
             if (i == selected[0]) radio.setChecked(true);
-            radio.setOnClickListener(v -> {
-                selected[0] = (Integer) v.getTag();
-            });
         }
         panel.addView(choices);
-        TextView heightLabel = label(c, "タブバーの高さ：" + height[0] + " dp");
-        panel.addView(heightLabel);
+
+        // Match the compact, flat comment-style adjustment rows:
+        // title on the left, "initial | current" on the right, and
+        // simple teal - / slider / + controls without filled buttons.
+        LinearLayout headingRow = new LinearLayout(c);
+        headingRow.setGravity(Gravity.CENTER_VERTICAL);
+        TextView heading = label(c, "タブバーの高さ");
+        headingRow.addView(heading, new LinearLayout.LayoutParams(0, -2, 1));
+        TextView heightValue = label(c, "");
+        heightValue.setTextSize(12);
+        heightValue.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+        headingRow.addView(heightValue, new LinearLayout.LayoutParams(-2, -2));
+        panel.addView(headingRow);
+
         LinearLayout sliderRow = new LinearLayout(c);
         sliderRow.setGravity(Gravity.CENTER_VERTICAL);
-        Button minus = button(c, "−"), plus = button(c, "＋");
+        TextView minus = button(c, "−"), plus = button(c, "＋");
         SeekBar slider = new SeekBar(c);
         slider.setTag("nicoid-managed-input");
-        slider.setProgressTintList(ColorStateList.valueOf(UiDialogs.accent(c)));
-        slider.setThumbTintList(ColorStateList.valueOf(UiDialogs.accent(c)));
+        ColorStateList accent = ColorStateList.valueOf(UiDialogs.accent(c));
+        slider.setProgressTintList(accent);
+        slider.setThumbTintList(accent);
         slider.setMax(MAX_HEIGHT - MIN_HEIGHT);
         slider.setProgress(height[0] - MIN_HEIGHT);
-        sliderRow.addView(minus, new LinearLayout.LayoutParams(PanelUi.dp(c, 40), PanelUi.dp(c, 44)));
-        sliderRow.addView(slider, new LinearLayout.LayoutParams(0, PanelUi.dp(c, 44), 1));
-        sliderRow.addView(plus, new LinearLayout.LayoutParams(PanelUi.dp(c, 40), PanelUi.dp(c, 44)));
+        FrameLayout sliderContainer = new FrameLayout(c);
+        sliderContainer.addView(slider, new FrameLayout.LayoutParams(-1, PanelUi.dp(c, 48)));
+        // The small vertical mark indicates the current default (32 dp).
+        View defaultMark = new View(c);
+        defaultMark.setBackgroundColor(DynamicTheme.textColor(defaultMark));
+        defaultMark.setAlpha(.65f);
+        defaultMark.setClickable(false);
+        FrameLayout.LayoutParams markParams = new FrameLayout.LayoutParams(
+                PanelUi.dp(c, 2), PanelUi.dp(c, 17), Gravity.TOP | Gravity.START);
+        markParams.topMargin = PanelUi.dp(c, 15);
+        sliderContainer.addView(defaultMark, markParams);
+        slider.addOnLayoutChangeListener((v,left,top,right,bottom,ol,ot,oright,obottom) -> {
+            if (right - left == oright - ol) return;
+            int track = Math.max(0, slider.getWidth() - slider.getPaddingLeft()
+                    - slider.getPaddingRight());
+            int defaultX = slider.getLeft() + slider.getPaddingLeft()
+                    + Math.round(track * (DEFAULT_HEIGHT - MIN_HEIGHT)
+                    / (float)(MAX_HEIGHT - MIN_HEIGHT));
+            FrameLayout.LayoutParams layoutParams =
+                    (FrameLayout.LayoutParams)defaultMark.getLayoutParams();
+            layoutParams.leftMargin = Math.max(0, defaultX - PanelUi.dp(c, 1));
+            defaultMark.setLayoutParams(layoutParams);
+        });
+        sliderRow.addView(minus, new LinearLayout.LayoutParams(
+                PanelUi.dp(c, 44), PanelUi.dp(c, 48)));
+        sliderRow.addView(sliderContainer, new LinearLayout.LayoutParams(
+                0, PanelUi.dp(c, 48), 1));
+        sliderRow.addView(plus, new LinearLayout.LayoutParams(
+                PanelUi.dp(c, 44), PanelUi.dp(c, 48)));
         panel.addView(sliderRow);
+
         TextView previewLabel = label(c, "配置プレビュー");
         panel.addView(previewLabel);
         LinearLayout preview = new LinearLayout(c);
         preview.setOrientation(LinearLayout.VERTICAL);
         preview.setBackgroundColor(UiDialogs.surface(c));
         panel.addView(preview, new LinearLayout.LayoutParams(-1, -2));
+
         Runnable refresh = () -> {
-            heightLabel.setText("タブバーの高さ：" + height[0] + " dp");
+            heightValue.setText("初期値 " + DEFAULT_HEIGHT + " dp  │  " + height[0] + " dp");
             drawPreview(c, preview, selected[0], height[0]);
             minus.setEnabled(height[0] > MIN_HEIGHT);
             plus.setEnabled(height[0] < MAX_HEIGHT);
+            minus.setAlpha(minus.isEnabled() ? 1f : .35f);
+            plus.setAlpha(plus.isEnabled() ? 1f : .35f);
         };
         for (int i = 0; i < choices.getChildCount(); i++) {
             choices.getChildAt(i).setOnClickListener(v -> {
@@ -149,7 +195,8 @@ final class MultiTabPlacement {
             });
         }
         minus.setOnClickListener(v -> slider.setProgress(Math.max(0, slider.getProgress() - 1)));
-        plus.setOnClickListener(v -> slider.setProgress(Math.min(slider.getMax(), slider.getProgress() + 1)));
+        plus.setOnClickListener(v -> slider.setProgress(Math.min(slider.getMax(),
+                slider.getProgress() + 1)));
         slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override public void onProgressChanged(SeekBar b, int progress, boolean fromUser) {
                 height[0] = progress + MIN_HEIGHT;
@@ -159,7 +206,9 @@ final class MultiTabPlacement {
             @Override public void onStopTrackingTouch(SeekBar b) {}
         });
         refresh.run();
+
         ScrollView scroll = new ScrollView(c);
+        scroll.setFillViewport(false);
         scroll.addView(panel);
         AlertDialog dialog = UiDialogs.builder(c).setTitle(preference.getTitle()).setView(scroll)
                 .setNeutralButton("初期値に戻す", null)
@@ -182,53 +231,93 @@ final class MultiTabPlacement {
     }
 
     private static TextView label(Context c, String value) {
-        TextView t = new TextView(c);
-        t.setText(value);
-        t.setTextColor(DynamicTheme.textColor(t));
-        t.setTextSize(14);
-        t.setPadding(0, PanelUi.dp(c, 7), 0, PanelUi.dp(c, 5));
-        return t;
+        TextView text = new TextView(c);
+        text.setText(value);
+        text.setTextColor(DynamicTheme.textColor(text));
+        text.setTextSize(14);
+        text.setPadding(0, PanelUi.dp(c, 7), 0, PanelUi.dp(c, 5));
+        return text;
     }
-    private static Button button(Context c, String text) {
-        Button b = new Button(c);
-        b.setText(text);
-        b.setTextSize(16);
-        b.setPadding(0, 0, 0, 0);
-        b.setMinWidth(0);
-        b.setMinimumWidth(0);
-        return b;
+
+    private static TextView button(Context c, String label) {
+        TextView text = new TextView(c);
+        text.setText(label);
+        text.setGravity(Gravity.CENTER);
+        text.setTextColor(UiDialogs.accent(c));
+        text.setTextSize(24);
+        text.setMinWidth(PanelUi.dp(c, 44));
+        text.setMinHeight(PanelUi.dp(c, 44));
+        text.setContentDescription(label.equals("＋") ? "高さを1dp増やす" : "高さを1dp減らす");
+        return text;
     }
 
     private static void drawPreview(Context c, LinearLayout target, int mode, int tabDp) {
         target.removeAllViews();
-        boolean topApp = mode == 0 || mode == 2;
-        boolean topTab = mode == 1 || mode == 3;
         if (mode == 0) { previewBar(c,target,false,tabDp); previewBar(c,target,true,tabDp); }
         else if (mode == 1) { previewBar(c,target,true,tabDp); previewBar(c,target,false,tabDp); }
-        else if (topApp) previewBar(c,target,false,tabDp);
-        else if (topTab) previewBar(c,target,true,tabDp);
-        TextView list = label(c, "▣　動画一覧\n\n▣　動画情報\n\n▣　動画一覧");
-        list.setTextColor(DynamicTheme.secondaryTextColor(list));
-        list.setGravity(Gravity.CENTER_VERTICAL);
-        list.setPadding(PanelUi.dp(c, 12), 0, 0, 0);
-        target.addView(list, new LinearLayout.LayoutParams(-1, PanelUi.dp(c, 110)));
+        else if (mode == 2) previewBar(c,target,false,tabDp);
+        else if (mode == 3) previewBar(c,target,true,tabDp);
+
+        TextView videoInfo = label(c, "▣　動画情報");
+        videoInfo.setTextColor(DynamicTheme.secondaryTextColor(videoInfo));
+        videoInfo.setGravity(Gravity.CENTER_VERTICAL);
+        videoInfo.setPadding(PanelUi.dp(c, 12), 0, 0, 0);
+        target.addView(videoInfo, new LinearLayout.LayoutParams(-1, PanelUi.dp(c, 95)));
+
         if (mode == 2) previewBar(c,target,true,tabDp);
         else if (mode == 3) previewBar(c,target,false,tabDp);
         else if (mode == 4) {previewBar(c,target,false,tabDp); previewBar(c,target,true,tabDp);}
         else if (mode == 5) {previewBar(c,target,true,tabDp); previewBar(c,target,false,tabDp);}
     }
 
-    private static void previewBar(Context c, LinearLayout parent, boolean tabs, int dp) {
-        TextView bar = label(c, tabs ? "⌕ 検索　│　履歴　│　マイリスト　＋"
-                : "☰　動画タイトル　　　　　　　 ⌕　⋮");
-        bar.setTextSize(12);
-        bar.setSingleLine(true);
-        bar.setGravity(Gravity.CENTER_VERTICAL);
-        bar.setPadding(PanelUi.dp(c, 9), 0, PanelUi.dp(c, 9), 0);
-        bar.setTextColor(tabs ? DynamicTheme.textColor(bar) : 0xffffffff);
-        if (!tabs) bar.setBackgroundColor(0xff203454);
-        else bar.setBackgroundColor(UiDialogs.surface(c));
-        parent.addView(bar, new LinearLayout.LayoutParams(-1, PanelUi.dp(c, tabs ? dp : 56)));
+    private static TextView part(Context c, String text, int size, int color) {
+        TextView t = new TextView(c);
+        t.setText(text);
+        t.setTextSize(size);
+        t.setTextColor(color);
+        t.setGravity(Gravity.CENTER_VERTICAL);
+        t.setSingleLine(true);
+        return t;
+    }
+
+    private static void previewBar(Context c, LinearLayout parent, boolean tabs, int tabDp) {
+        int height = PanelUi.dp(c, tabs ? tabDp : 56);
+        LinearLayout row = new LinearLayout(c);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(PanelUi.dp(c, 9), 0, PanelUi.dp(c, 9), 0);
+        if (tabs) {
+            GradientDrawable border = new GradientDrawable();
+            border.setColor(UiDialogs.surface(c));
+            border.setStroke(PanelUi.dp(c, 1), UiDialogs.accent(c));
+            row.setBackground(border);
+            row.addView(part(c, "⌕ 検索", 12, DynamicTheme.textColor(row)),
+                    new LinearLayout.LayoutParams(0, -1, 1));
+            row.addView(part(c, "履歴", 12, DynamicTheme.textColor(row)),
+                    new LinearLayout.LayoutParams(0, -1, 1));
+            row.addView(part(c, "マイリスト", 12, DynamicTheme.textColor(row)),
+                    new LinearLayout.LayoutParams(0, -1, 1));
+            row.addView(part(c, "＋", 16, UiDialogs.accent(c)),
+                    new LinearLayout.LayoutParams(-2, -1));
+        } else {
+            row.setBackgroundColor(0xff203454);
+            TextView hamburger=part(c,"☰",19,Color.WHITE);
+            row.addView(hamburger,new LinearLayout.LayoutParams(PanelUi.dp(c,28),-1));
+            LinearLayout titles = new LinearLayout(c);
+            titles.setOrientation(LinearLayout.VERTICAL);
+            titles.setGravity(Gravity.CENTER_VERTICAL);
+            titles.addView(part(c,"名作淫夢",13,Color.WHITE));
+            titles.addView(part(c,"タグ検索 コメントが新しい順",10,0xffbdc7d7));
+            LinearLayout.LayoutParams titleParams=new LinearLayout.LayoutParams(0,-1,1);
+            titleParams.leftMargin=PanelUi.dp(c,7);
+            row.addView(titles,titleParams);
+            TextView search=part(c,"⌕",20,Color.WHITE);
+            search.setGravity(Gravity.CENTER);
+            row.addView(search,new LinearLayout.LayoutParams(PanelUi.dp(c,27),-1));
+            TextView more=part(c,"⋮",22,Color.WHITE);
+            more.setGravity(Gravity.CENTER);
+            row.addView(more,new LinearLayout.LayoutParams(PanelUi.dp(c,23),-1));
+        }
+        parent.addView(row,new LinearLayout.LayoutParams(-1,height));
     }
 
     static void insert(LinearLayout parent, View bar, int topIndex, ViewGroup.LayoutParams params) {
@@ -239,18 +328,22 @@ final class MultiTabPlacement {
     }
 
     static void update(LinearLayout parent, View bar) {
-        if (parent == null || bar == null || bar.getParent() != parent) return;
-        SharedPreferences p = prefs(bar.getContext());
-        int index = tabAtBottom(layout(p)) ? parent.getChildCount() - 1 : 0;
-        ViewGroup.LayoutParams params = bar.getLayoutParams();
-        int height = PanelUi.dp(bar.getContext(), heightDp(p));
-        if (parent.indexOfChild(bar) != index) {
-            params.height = height;
-            parent.removeView(bar);
-            parent.addView(bar, index, params);
-        } else if (params.height != height) {
-            params.height = height;
-            bar.setLayoutParams(params);
+        if (parent == null || bar == null) return;
+        // The actual bar can live inside the transparent decor overlay;
+        // AppBarPlacement202 owns its native height-preserving spacer.
+        if (bar.getParent() == parent) {
+            SharedPreferences p = prefs(bar.getContext());
+            int index = tabAtBottom(layout(p)) ? parent.getChildCount() - 1 : 0;
+            ViewGroup.LayoutParams params = bar.getLayoutParams();
+            int height = PanelUi.dp(bar.getContext(), heightDp(p));
+            if (parent.indexOfChild(bar) != index) {
+                params.height = height;
+                parent.removeView(bar);
+                parent.addView(bar, index, params);
+            } else if (params.height != height) {
+                params.height = height;
+                bar.setLayoutParams(params);
+            }
         }
         AppBarPlacement202.attach(parent, bar);
     }

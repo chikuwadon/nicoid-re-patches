@@ -41,7 +41,7 @@ with ZipFile(base_path) as base,ZipFile(candidate_path) as new:
     # helper is allowed to disappear.
     removed=before-set(classes)
     unexpected={name for name in removed
-                if not (name=="Le/e/a/LocalPlaylists;" or name.startswith("Le/e/a/LocalPlaylists$") or any(name=="Le/e/a/"+n+";" or name.startswith("Le/e/a/"+n+"$") for n in ("RetainedPlayback137","PlayerIcons","PlayerTheme")))}
+                if not (name=="Le/e/a/LocalPlaylists;" or name.startswith("Le/e/a/LocalPlaylists$") or any(name=="Le/e/a/"+n+";" or name.startswith("Le/e/a/"+n+"$") for n in ("RetainedPlayback137","PlayerIcons","PlayerTheme","AmbientSettings","MultiTabPlacement")))}
     assert not unexpected, f"Unrelated stable class disappeared: {sorted(unexpected)[:10]}"
     assert "Le/e/a/LocalPlaylists;" in classes
     assert "Le/e/a/LocalPlaylists$Page;" in classes

@@ -65,10 +65,11 @@ assert "static final int[] MAX = {200, 240, 100, 220, 220, 220, 140, 100, 24, 48
 assert "PREVIOUS_PRESETS" in light and "i % 4" in light
 assert light.count("{130, 165, 68, 155, 118, 165, 57, 58, 16, 32}") == 1
 assert 'tr("強烈", "Intense", "強烈")' in settings
-assert 'nicoid-re-v2.0.2-dev.4-mpp' in workflow
-assert 'version=2.0.2-dev.4' in workflow
+# Keep the archived v2.0.2 contracts valid when a newer dev artifact is selected.
+assert any(name in workflow for name in ('nicoid-re-v2.0.2-dev.4-mpp', 'nicoid-re-v2.0.3-dev.1-mpp'))
+assert any(name in workflow for name in ('version=2.0.2-dev.4', 'version=2.0.3-dev.1'))
 assert 'unzip -p "$output" META-INF/MANIFEST.MF | grep -Fq "Version: $version"' in workflow
-assert 'nicoid-re-v2.0.2-dev.4-source' in workflow
+assert any(name in workflow for name in ('nicoid-re-v2.0.2-dev.4-source', 'nicoid-re-v2.0.3-dev.1-source'))
 assert "porting/revisions/v2.0.2-dev.1/build_mpp.py" not in workflow or True
 with tempfile.TemporaryDirectory() as tmp:
     target=Path(tmp)

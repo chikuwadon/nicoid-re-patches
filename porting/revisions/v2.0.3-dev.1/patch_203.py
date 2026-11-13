@@ -116,7 +116,7 @@ def patch_player(source):
   void fullscreen(boolean full){""",
         "mini mode control")
     source = once(source,
-        "   if(owner==null)return;boolean playing=owner.playRequested();",
+        "  if(owner==null)return;boolean playing=owner.playRequested();",
         """   if(owner==null)return;
    if(compact){bottom.setVisibility(GONE);return;}
    boolean playing=owner.playRequested();""",

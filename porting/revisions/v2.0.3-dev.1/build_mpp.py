@@ -156,36 +156,21 @@ def build(args, work):
             "\n\n    move-result-object v1")
         (hooks / debug_file).write_text(debug)
 
-        # The legacy menu uses item ID 7 for popup (order 2), ID 9 for
-        # background (order 3); v2.0.2 accidentally swapped the setting labels.
+        # Some native menus reuse IDs 7/9 with different semantic labels.
+        # Filter by the displayed action instead of assuming a universal ID.
+        # Keep all existing visibility preferences intact (no key migration).
         menu_file = "MenuOptions119.smali"
         menu = (disassembled / "e/e/a" / menu_file).read_text()
-        begin = menu.index(".method static constructor <clinit>()V")
+        begin = menu.index(".method static finish(Landroid/view/Menu;")
         finish = menu.index(".end method", begin)
-        initializer = menu[begin:finish]
-        for needle in ("    const/16 v1, 0x9", "    const/4 v1, 0x7"):
-            if initializer.count(needle) != 1:
-                raise ValueError("Unexpected menu label identity: " + needle)
-        initializer = initializer.replace("    const/16 v1, 0x9", "    const/4 v1, 0x7", 1)
-        initializer = initializer.replace("    const/4 v1, 0x7", "    const/16 v1, 0x9", 1)
-        # The preceding replacement would also match the new ID; use an
-        # identity-preserving temporary marker instead.
-        old_init = menu[begin:finish]
-        initializer = old_init.replace("    const/16 v1, 0x9", "    #popup-id-203", 1)
-        initializer = initializer.replace("    const/4 v1, 0x7", "    const/16 v1, 0x9", 1)
-        initializer = initializer.replace("    #popup-id-203", "    const/4 v1, 0x7", 1)
-        menu = menu[:begin] + initializer + menu[finish:]
-        method_start = menu.index(".method static prefs(Landroid/content/Context;)")
-        method_end = menu.index(".end method", method_start)
-        preferences = menu[method_start:method_end]
-        marker = "    move-result-object p0\n\n    return-object p0"
-        if preferences.count(marker) != 1:
-            raise ValueError("Missing menu preferences migration insertion point")
-        preferences = preferences.replace(marker,
-            "    move-result-object p0\n\n"
-            "    invoke-static {p0}, Le/e/a/MenuVisible203;->migrate(Landroid/content/SharedPreferences;)V\n\n"
-            "    return-object p0")
-        menu = menu[:method_start] + preferences + menu[method_end:]
+        action = menu[begin:finish]
+        old_key = "    invoke-static {v2}, Le/e/a/MenuOptions119;->key(I)Ljava/lang/String;"
+        if action.count(old_key) != 1:
+            raise ValueError("Missing per-action visibility key lookup")
+        action = action.replace(old_key,
+            "    invoke-static {p3}, Le/e/a/MenuVisible203;"
+            "->keyForAction(Le/e/a/ListActions$Action;)Ljava/lang/String;")
+        menu = menu[:begin] + action + menu[finish:]
         (hooks / menu_file).write_text(menu)
 
         # Once a legacy consecutive video enters in-app background mode,

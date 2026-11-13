@@ -1,23 +1,18 @@
 package e.e.a;
-import android.content.SharedPreferences;
+import java.util.Locale;
 
-/** One-time migration of v2.0.2's reversed popup/background menu labels. */
+/** Resolve visibility by action title; preserve original stored preferences. */
 public final class MenuVisible203 {
- private static final String MARK="video_menu_semantic_203_migrated";
- private static final String POPUP="video_menu_visible_7";       // native order 2
- private static final String BACKGROUND="video_menu_visible_9";  // native order 3
  private MenuVisible203(){}
- public static void migrate(SharedPreferences prefs) {
-  if(prefs==null||prefs.getBoolean(MARK,false))return;
-  synchronized(MenuVisible203.class) {
-   if(prefs.getBoolean(MARK,false))return;
-   boolean oldPopup=prefs.contains(BACKGROUND), oldBackground=prefs.contains(POPUP);
-   boolean popup=prefs.getBoolean(BACKGROUND,true);
-   boolean background=prefs.getBoolean(POPUP,true);
-   SharedPreferences.Editor edit=prefs.edit();
-   if(oldPopup)edit.putBoolean(POPUP,popup);else edit.remove(POPUP);
-   if(oldBackground)edit.putBoolean(BACKGROUND,background);else edit.remove(BACKGROUND);
-   edit.putBoolean(MARK,true).commit();
-  }
+ public static String keyForAction(ListActions.Action action) {
+  if (action==null) return "";
+  String title=action.title==null?"":action.title.toLowerCase(Locale.ROOT);
+  if (title.contains("ポップアップ再生")||title.contains("popup playback")||
+      title.contains("懸浮播放")||title.contains("浮動播放"))
+   return "video_menu_visible_9";
+  if (title.contains("バックグラウンド再生")||
+      title.contains("background playback")||title.contains("背景播放"))
+   return "video_menu_visible_7";
+  return "video_menu_visible_"+action.id;
  }
 }

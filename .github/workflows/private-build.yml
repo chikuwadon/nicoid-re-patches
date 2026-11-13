@@ -435,9 +435,9 @@ jobs:
       - name: Verify v2.0.1 stable release configuration without publishing
         if: github.ref == 'refs/heads/dev'
         run: |
-          if grep -Eq '^version[[:space:]]*=[[:space:]]*2\\.0\\.1[[:space:]]*$' gradle.properties; then
+          if grep -Eq '^version[[:space:]]*=[[:space:]]*2\.0\.1[[:space:]]*$' gradle.properties; then
             python3 porting/revisions/v2.0.1-release/test_release.py
-          elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\\.0\\.2[[:space:]]*$' gradle.properties; then
+          elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.0\.2[[:space:]]*$' gradle.properties; then
             python3 porting/revisions/v2.0.2-release/test_release.py
           fi
 

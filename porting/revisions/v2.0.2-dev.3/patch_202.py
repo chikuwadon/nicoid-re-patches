@@ -42,6 +42,45 @@ def patch_activity(source):
         '     if(!watching)NicoliveAppBarPlacement.place(root,body,header,selections[4]);\n'
         '     updateHubDisplayOptions();',
         "apply without network reload")
+    # The NicoLive overflow is a compact action menu, not a settings page.
+    # Keep its placement attached to the actual 3-dot button even when
+    # the live app bar is moved around the bottom navigation.
+    source=once(source,
+        'AlertDialog menu=UiDialogs.builder(this).setTitle("ニコ生")',
+        'AlertDialog menu=UiDialogs.builder(this)',
+        "remove redundant NicoLive menu heading")
+    source=once(source,
+        '''   if(window!=null){
+    window.setGravity(Gravity.TOP|Gravity.END);
+    WindowManager.LayoutParams layout=window.getAttributes();
+    layout.y=NicoliveUi.dp(this,48);
+    window.setAttributes(layout);
+    window.setLayout(Math.min(getResources().getDisplayMetrics().widthPixels,NicoliveUi.dp(this,288)),
+     ViewGroup.LayoutParams.WRAP_CONTENT);
+   }''',
+        '''   if(window!=null){
+    android.graphics.Rect visible=new android.graphics.Rect();
+    getWindow().getDecorView().getWindowVisibleDisplayFrame(visible);
+    int[] anchor=new int[2];
+    header.getLocationOnScreen(anchor);
+    int location=NicoliveAppBarPlacement.position(prefs());
+    if(location==0){
+     window.setGravity(Gravity.TOP|Gravity.END);
+    }else{
+     window.setGravity(Gravity.BOTTOM|Gravity.END);
+    }
+    WindowManager.LayoutParams layout=window.getAttributes();
+    layout.x=NicoliveUi.dp(this,8);
+    layout.y=location==0
+     ? Math.max(0,anchor[1]+header.getHeight()-visible.top)
+     : Math.max(0,visible.bottom-anchor[1]);
+    window.setAttributes(layout);
+    int available=Math.max(NicoliveUi.dp(this,200),
+     getResources().getDisplayMetrics().widthPixels-NicoliveUi.dp(this,24));
+    window.setLayout(Math.min(available,NicoliveUi.dp(this,244)),
+     ViewGroup.LayoutParams.WRAP_CONTENT);
+   }''',
+        "overflow aligned with current app bar and sized to actions")
     return source
 
 def stage(base,destination):

@@ -41,10 +41,10 @@ val nicoidBaksmali = configurations.create("nicoidBaksmali")
 val nicoidTestJson = configurations.create("nicoidTestJson")
 
 dependencies {
-    add(nicoidTestJson.name, "org.json:json:20240303")
+    add(nicoidTestJson.name, "org.json:json:20260814")
     compileOnly(libs.gson)
     patchListGeneratorClasspath(libs.gson)
-    add(nicoidD8.name, "com.android.tools:r8:9.4.28")
+    add(nicoidD8.name, "com.android.tools:r8:9.5.29")
     add(nicoidSmali.name, "org.smali:smali:2.5.2")
     add(nicoidBaksmali.name, "org.smali:baksmali:2.5.2")
 }

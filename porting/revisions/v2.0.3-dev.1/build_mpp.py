@@ -62,7 +62,7 @@ def build(args, work):
         native_dex.write_bytes(native)
         sources.append((native_dex, network))
     elif not args.ci_without_apk or os.environ.get("GITHUB_ACTIONS") != "true" or not (
-         os.environ.get("GITHUB_REF") == "refs/heads/dev" or (
+         os.environ.get("GITHUB_REF") in ("refs/heads/dev", "refs/heads/fix/v2.0.3-ui-playback") or (
          args.official_release and os.environ.get("GITHUB_REF") == "refs/heads/main"
          and os.environ.get("NICOID_OFFICIAL_RELEASE_APPROVED") in ("APPROVE","VERIFY"))):
         raise ValueError("The original nicoid 6.49 APK is required outside the guarded CI build")

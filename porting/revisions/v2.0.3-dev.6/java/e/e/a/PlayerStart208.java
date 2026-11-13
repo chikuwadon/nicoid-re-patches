@@ -4,6 +4,7 @@ import android.util.Log;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import java.lang.ref.WeakReference;
 import java.util.WeakHashMap;
 
@@ -36,12 +37,13 @@ public final class PlayerStart208 {
   }
   return null;
  }
- static final class Watch implements Runnable,View.OnAttachStateChangeListener {
+ static final class Watch implements Runnable,View.OnAttachStateChangeListener,ViewTreeObserver.OnPreDrawListener {
   final WeakReference<View> root;
   final WeakReference<View>[] buttons;
   final boolean[] wanted=new boolean[3];
   TextureView source;
   Hook hook;
+  ViewTreeObserver observer;
   boolean finished;
   @SuppressWarnings("unchecked") Watch(View r){
    root=new WeakReference<>(r);
@@ -59,6 +61,7 @@ public final class PlayerStart208 {
    if(r==null)return;
    hide();
    r.addOnAttachStateChangeListener(this);
+   observe(r);
    r.post(this);
   }
   void hide(){
@@ -75,11 +78,25 @@ public final class PlayerStart208 {
    View r=root.get();
    if(r==null||finished)return;
    hide();
-   if(source==null||!source.isAttachedToWindow()){
+   if(source==null||!source.isAttachedToWindow()||source.getSurfaceTextureListener()!=hook){
     TextureView t=texture(r);
     if(t!=null&&t.isAttachedToWindow())bind(t);
    }
    if(!finished)r.postDelayed(this,32);
+  }
+  void observe(View root){
+   ViewTreeObserver next=root.getViewTreeObserver();
+   if(next==observer)return;
+   unobserve();
+   if(next.isAlive()){next.addOnPreDrawListener(this);observer=next;}
+  }
+  void unobserve(){
+   if(observer!=null&&observer.isAlive())observer.removeOnPreDrawListener(this);
+   observer=null;
+  }
+  @Override public boolean onPreDraw(){
+   if(!finished)hide();
+   return true;
   }
   void bind(TextureView t){
    if(source==t&&hook!=null&&t.getSurfaceTextureListener()==hook)return;
@@ -100,6 +117,7 @@ public final class PlayerStart208 {
    finished=true;
    r.removeCallbacks(this);
    r.removeOnAttachStateChangeListener(this);
+   unobserve();
    unbind();
    for(int i=0;i<3;i++){
     View b=buttons[i].get();
@@ -115,9 +133,10 @@ public final class PlayerStart208 {
     t.setSurfaceTextureListener(h.previous);
    source=null;hook=null;
   }
-  @Override public void onViewAttachedToWindow(View v){v.removeCallbacks(this);v.post(this);}
+  @Override public void onViewAttachedToWindow(View v){observe(v);v.removeCallbacks(this);v.post(this);}
   @Override public void onViewDetachedFromWindow(View v){
    v.removeCallbacks(this);
+   unobserve();
    unbind();
   }
  }

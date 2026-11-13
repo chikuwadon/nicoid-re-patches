@@ -2,7 +2,7 @@ name: Private patch build
 
 on:
   push:
-    branches: [dev, 'audit/**', 'v2.0.0-dev']
+    branches: [dev, 'audit/**', 'v2.0.0-dev', 'feature/media3-migration']
   workflow_dispatch:
 
 permissions:
@@ -18,6 +18,7 @@ jobs:
     if: >-
       github.ref != 'refs/heads/v2.0.0-dev' &&
       github.ref != 'refs/heads/dev' &&
+      github.ref != 'refs/heads/feature/media3-migration' &&
       (github.event_name != 'push' ||
        (!startsWith(github.event.head_commit.message, 'docs: update release notes') &&
         !startsWith(github.event.head_commit.message, 'chore(maintenance):')))
@@ -419,7 +420,9 @@ jobs:
 
   v2-source-test:
     name: Validate v2 live source changes (no APK)
-    if: github.ref == 'refs/heads/v2.0.0-dev' || github.ref == 'refs/heads/dev'
+    if: >-
+      github.ref == 'refs/heads/v2.0.0-dev' || github.ref == 'refs/heads/dev' ||
+      github.ref == 'refs/heads/feature/media3-migration'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -638,7 +641,16 @@ jobs:
           test -s /tmp/nicoid-v2-android-classes/e/e/a/NicoliveData.class
           echo "Complete live Java source compiled. No original APK was used or distributed."
 
+      - name: Test Media3 live-window recovery retry limits
+        if: github.ref == 'refs/heads/feature/media3-migration'
+        run: |
+          revision=porting/revisions/media3-migration
+          mkdir -p /tmp/nicoid-media3-tests
+          javac --release 8 -d /tmp/nicoid-media3-tests "$revision/LiveWindowRecovery.java" "$revision/LiveWindowRecoveryTest.java"
+          java -cp /tmp/nicoid-media3-tests e.e.a.LiveWindowRecoveryTest
+
       - name: Build guarded v2 candidate MPP from stable release and validated sources
+        id: candidate
         shell: bash
         run: |
           set -euo pipefail
@@ -648,7 +660,11 @@ jobs:
           if [[ "$GITHUB_REF" == "refs/heads/dev" ]]; then
             builder=porting/revisions/v2.0.2-dev.4
             version=2.0.2-dev.4
+          elif [[ "$GITHUB_REF" == "refs/heads/feature/media3-migration" ]]; then
+            builder=porting/revisions/media3-migration
+            version=2.0.3-media3.1
           fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
           output="/tmp/nicoid-re-$version.mpp"
           python3 "$builder/build_mpp.py" \
             --base /tmp/stable-nicoid.mpp \
@@ -675,7 +691,7 @@ jobs:
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: nicoid-re-v2.0.2-dev.4-mpp
+          name: ${{ github.ref == 'refs/heads/feature/media3-migration' && format('nicoid-re-v{0}-mpp', steps.candidate.outputs.version) || 'nicoid-re-v2.0.2-dev.4-mpp' }}
           path: /tmp/nicoid-v2-delivery/*
           compression-level: 0
           if-no-files-found: error
@@ -686,15 +702,18 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/nicoid-v2-source
-          git archive --format=zip --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.2-dev.4-source.zip HEAD
-          git archive --format=tar.gz --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.2-dev.4-source.tar.gz HEAD
-          unzip -tq /tmp/nicoid-v2-source/nicoid-re-v2.0.2-dev.4-source.zip
-          tar -tzf /tmp/nicoid-v2-source/nicoid-re-v2.0.2-dev.4-source.tar.gz > /dev/null
+          version="${{ steps.candidate.outputs.version }}"
+          archive="/tmp/nicoid-v2-source/nicoid-re-v$version-source"
+          git archive --format=zip --output="$archive.zip" HEAD
+          git archive --format=tar.gz --output="$archive.tar.gz" HEAD
+          unzip -tq "$archive.zip"
+          tar -tzf "$archive.tar.gz" > /dev/null
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: nicoid-re-v2.0.2-dev.4-source
+          name: ${{ github.ref == 'refs/heads/feature/media3-migration' && format('nicoid-re-v{0}-source', steps.candidate.outputs.version) || 'nicoid-re-v2.0.2-dev.4-source' }}
           path: /tmp/nicoid-v2-source/*
           if-no-files-found: error
           retention-days: 2
+
 

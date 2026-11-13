@@ -23,7 +23,9 @@ with ZipFile(base_path) as base,ZipFile(candidate_path) as new:
     expected=next((line.split('"')[1] for line in (Path(__file__).parent/"build_mpp.py").read_text().splitlines()
                    if line.startswith('VERSION = "')), None)
     assert expected and expected == "2.0.2-dev.4", expected
-    if b"Version: 2.0.0\r\n" in new.read("META-INF/MANIFEST.MF"):
+    if len(sys.argv) == 4:
+        expected = sys.argv[3]
+    elif b"Version: 2.0.0\r\n" in new.read("META-INF/MANIFEST.MF"):
         expected = "2.0.0"
     assert b"Version: "+expected.encode()+bytes((13,10)) in new.read("META-INF/MANIFEST.MF")
     with ZipFile(io.BytesIO(base.read("nicoid/resources.zip"))) as original,ZipFile(io.BytesIO(new.read("nicoid/resources.zip"))) as updated:
@@ -63,3 +65,4 @@ with ZipFile(base_path) as base,ZipFile(candidate_path) as new:
     print(f"PASS: version, resources, manifest & helper class checks")
     print("NOT TESTED: Morphe applying to original APK; runtime playback on Android")
 print("MPP SHA-256",hashlib.sha256(candidate_path.read_bytes()).hexdigest())
+

@@ -38,7 +38,8 @@ def add_hook(source, signature, instruction):
     return updated
 
 
-def build(args, work):
+def build(args, work, *, stage_sources=stage, version=None, development_ref="refs/heads/dev"):
+    version = VERSION if version is None else version
     tools = args.tools.resolve()
     android = tools / "android-all-16-robolectric-13921718.jar"
     smali = os.pathsep.join(str(tools / name) for name in ("assemble/*", "dexlib2.jar", "guava.jar"))
@@ -62,7 +63,7 @@ def build(args, work):
         native_dex.write_bytes(native)
         sources.append((native_dex, network))
     elif not args.ci_without_apk or os.environ.get("GITHUB_ACTIONS") != "true" or not (
-         os.environ.get("GITHUB_REF") == "refs/heads/dev" or (
+         os.environ.get("GITHUB_REF") == development_ref or (
          args.official_release and os.environ.get("GITHUB_REF") == "refs/heads/main"
          and os.environ.get("NICOID_OFFICIAL_RELEASE_APPROVED") in ("APPROVE","VERIFY"))):
         raise ValueError("The original nicoid 6.49 APK is required outside the guarded CI build")
@@ -75,7 +76,7 @@ def build(args, work):
         raise ValueError("Missing compiler classpath JAR")
     # Stage only changed Java sources; keep the released source snapshot intact.
     overrides = work / "source-overrides/e/e/a"
-    stage(BASE_ROOT / "java/e/e/a", overrides)
+    stage_sources(BASE_ROOT / "java/e/e/a", overrides)
     excluded = (OVERRIDES | {p.name for p in (ROOT / "java").rglob("*.java")}
                 | {p.name for p in (ROOT.parent / "v2.0.1-dev.2/java").rglob("*.java")})
     classpath = os.pathsep.join(map(str, [android, helpers, *compile_only, *libs]))
@@ -450,7 +451,7 @@ def build(args, work):
         if manifest.count(b"Version: 1.11.1\r\n") != 1:
             raise ValueError("Expected the stable patch version")
         overrides = {
-            "META-INF/MANIFEST.MF": manifest.replace(b"Version: 1.11.1\r\n", f"Version: {VERSION}\r\n".encode()),
+            "META-INF/MANIFEST.MF": manifest.replace(b"Version: 1.11.1\r\n", f"Version: {version}\r\n".encode()),
             "nicoid/helpers.mpe": merged.read_bytes(),
             "nicoid/resources.zip": resources.getvalue(),
         }
@@ -490,3 +491,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

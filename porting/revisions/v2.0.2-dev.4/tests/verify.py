@@ -66,10 +66,10 @@ assert "PREVIOUS_PRESETS" in light and "i % 4" in light
 assert light.count("{130, 165, 68, 155, 118, 165, 57, 58, 16, 32}") == 1
 assert 'tr("強烈", "Intense", "強烈")' in settings
 # Keep the archived v2.0.2 contracts valid when a newer dev artifact is selected.
-assert any(name in workflow for name in ('nicoid-re-v2.0.2-dev.4-mpp', 'nicoid-re-v2.0.3-dev.1-mpp', 'nicoid-re-v2.0.3-dev.2-mpp'))
-assert any(name in workflow for name in ('version=2.0.2-dev.4', 'version=2.0.3-dev.1', 'version=2.0.3-dev.2'))
+assert any(name in workflow for name in ('nicoid-re-v2.0.2-dev.4-mpp', 'nicoid-re-v2.0.3-dev.1-mpp', 'nicoid-re-v2.0.3-dev.2-mpp', 'nicoid-re-v2.0.3-dev.3-mpp'))
+assert any(name in workflow for name in ('version=2.0.2-dev.4', 'version=2.0.3-dev.1', 'version=2.0.3-dev.2', 'version=2.0.3-dev.3'))
 assert 'unzip -p "$output" META-INF/MANIFEST.MF | grep -Fq "Version: $version"' in workflow
-assert any(name in workflow for name in ('nicoid-re-v2.0.2-dev.4-source', 'nicoid-re-v2.0.3-dev.1-source', 'nicoid-re-v2.0.3-dev.2-source'))
+assert any(name in workflow for name in ('nicoid-re-v2.0.2-dev.4-source', 'nicoid-re-v2.0.3-dev.1-source', 'nicoid-re-v2.0.3-dev.2-source', 'nicoid-re-v2.0.3-dev.3-source'))
 assert "porting/revisions/v2.0.2-dev.1/build_mpp.py" not in workflow or True
 with tempfile.TemporaryDirectory() as tmp:
     target=Path(tmp)

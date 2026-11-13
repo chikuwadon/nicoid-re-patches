@@ -2,7 +2,7 @@ name: Private patch build
 
 on:
   push:
-    branches: [dev, 'audit/**', 'v2.0.0-dev', 'fix/v2.0.3-dev.2-regressions']
+    branches: [dev, 'audit/**', 'v2.0.0-dev', 'fix/v2.0.3-dev.3-ui-and-transitions']
   workflow_dispatch:
 
 permissions:
@@ -18,7 +18,7 @@ jobs:
     if: >-
       github.ref != 'refs/heads/v2.0.0-dev' &&
       github.ref != 'refs/heads/dev' &&
-      github.ref != 'refs/heads/fix/v2.0.3-dev.2-regressions' &&
+      github.ref != 'refs/heads/fix/v2.0.3-dev.3-ui-and-transitions' &&
       (github.event_name != 'push' ||
        (!startsWith(github.event.head_commit.message, 'docs: update release notes') &&
         !startsWith(github.event.head_commit.message, 'chore(maintenance):')))
@@ -418,7 +418,7 @@ jobs:
 
   v2-source-test:
     name: Validate v2 live source changes (no APK)
-    if: github.ref == 'refs/heads/v2.0.0-dev' || github.ref == 'refs/heads/dev' || startsWith(github.ref, 'refs/heads/audit/') || github.ref == 'refs/heads/fix/v2.0.3-dev.2-regressions'
+    if: github.ref == 'refs/heads/v2.0.0-dev' || github.ref == 'refs/heads/dev' || startsWith(github.ref, 'refs/heads/audit/') || github.ref == 'refs/heads/fix/v2.0.3-dev.3-ui-and-transitions'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -569,11 +569,14 @@ jobs:
             e.e.a.NicoliveThumbnailFallbackTest
 
       - name: Validate v2.0.3 regression patches for all reported issues
-        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/fix/v2.0.3-dev.2-regressions'
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/fix/v2.0.3-dev.3-ui-and-transitions'
         run: python3 porting/revisions/v2.0.3-dev.1/tests/verify.py
       - name: Verify v2.0.3-dev.2 real-time playback, floating comments and drawer contracts
-        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/fix/v2.0.3-dev.2-regressions'
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/fix/v2.0.3-dev.3-ui-and-transitions'
         run: python3 porting/revisions/v2.0.3-dev.2/tests/verify.py
+      - name: Verify v2.0.3-dev.3 fullscreen, NicoLive mini and media controls regression contracts
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/fix/v2.0.3-dev.3-ui-and-transitions'
+        run: python3 porting/revisions/v2.0.3-dev.3/tests/verify.py
       - name: Test double-Back timing boundaries
         shell: bash
         run: |
@@ -644,16 +647,16 @@ jobs:
           echo "Complete live Java source compiled. No original APK was used or distributed."
 
       - name: Build guarded v2 candidate MPP from stable release and validated sources
-        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/v2.0.0-dev' || github.ref == 'refs/heads/fix/v2.0.3-dev.2-regressions'
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/v2.0.0-dev' || github.ref == 'refs/heads/fix/v2.0.3-dev.3-ui-and-transitions'
         shell: bash
         run: |
           set -euo pipefail
           revision=porting/revisions/v2.0.0-dev.1
           builder="$revision"
           version=2.0.0-dev.1-27
-          if [[ "$GITHUB_REF" == "refs/heads/dev" || "$GITHUB_REF" == "refs/heads/fix/v2.0.3-dev.2-regressions" ]]; then
-            builder=porting/revisions/v2.0.3-dev.2
-            version=2.0.3-dev.2
+          if [[ "$GITHUB_REF" == "refs/heads/dev" || "$GITHUB_REF" == "refs/heads/fix/v2.0.3-dev.3-ui-and-transitions" ]]; then
+            builder=porting/revisions/v2.0.3-dev.3
+            version=2.0.3-dev.3
           fi
           output="/tmp/nicoid-re-$version.mpp"
           python3 "$builder/build_mpp.py" \
@@ -680,9 +683,9 @@ jobs:
           test "$(find /tmp/nicoid-v2-delivery -maxdepth 1 -type f | wc -l)" -eq 2
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/v2.0.0-dev' || github.ref == 'refs/heads/fix/v2.0.3-dev.2-regressions'
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/v2.0.0-dev' || github.ref == 'refs/heads/fix/v2.0.3-dev.3-ui-and-transitions'
         with:
-          name: nicoid-re-v2.0.3-dev.2-mpp
+          name: nicoid-re-v2.0.3-dev.3-mpp
           path: /tmp/nicoid-v2-delivery/*
           compression-level: 0
           if-no-files-found: error
@@ -693,14 +696,14 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/nicoid-v2-source
-          git archive --format=zip --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.3-dev.2-source.zip HEAD
-          git archive --format=tar.gz --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.3-dev.2-source.tar.gz HEAD
-          unzip -tq /tmp/nicoid-v2-source/nicoid-re-v2.0.3-dev.2-source.zip
-          tar -tzf /tmp/nicoid-v2-source/nicoid-re-v2.0.3-dev.2-source.tar.gz > /dev/null
+          git archive --format=zip --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.3-dev.3-source.zip HEAD
+          git archive --format=tar.gz --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.3-dev.3-source.tar.gz HEAD
+          unzip -tq /tmp/nicoid-v2-source/nicoid-re-v2.0.3-dev.3-source.zip
+          tar -tzf /tmp/nicoid-v2-source/nicoid-re-v2.0.3-dev.3-source.tar.gz > /dev/null
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: nicoid-re-v2.0.3-dev.2-source
+          name: nicoid-re-v2.0.3-dev.3-source
           path: /tmp/nicoid-v2-source/*
           if-no-files-found: error
           retention-days: 2

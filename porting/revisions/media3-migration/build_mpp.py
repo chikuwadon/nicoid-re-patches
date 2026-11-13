@@ -2,12 +2,13 @@
 import argparse
 import hashlib
 import importlib.util
+import os
 from pathlib import Path
 import shutil
 import sys
 from tempfile import TemporaryDirectory
 
-VERSION = "2.0.3-media3.1"
+VERSION = "2.0.3-media3.2"
 DEVELOPMENT_REF = "refs/heads/feature/media3-migration"
 ROOT = Path(__file__).resolve().parent
 BASELINE = ROOT.parent / "v2.0.2-dev.4"
@@ -17,6 +18,7 @@ spec = importlib.util.spec_from_file_location("nicoid_v202_builder", BASELINE / 
 baseline = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(baseline)
 from patch_202 import once
+from video_delta import build_delta
 
 
 def stage(base, destination):
@@ -35,6 +37,7 @@ def stage(base, destination):
      &&session!=null&&!terminal&&!userPaused&&!stopped
      &&liveWindowRecovery.claimAttempt(now)){
    NicoliveDiagnostics.record("PLAYER_RECOVERY","seek-to-live-default");
+   scheduled.clear();
    if(frame!=null)frame.comments.clear();
    player.seekToDefaultPosition();
    player.prepare();
@@ -46,7 +49,8 @@ def stage(base, destination):
         'liveWindowRecovery.reset();NicoliveDiagnostics.record("WATCH","begin-new-session");',
         "live-window retry reset")
     service.write_text(source, encoding="utf-8")
-    shutil.copyfile(ROOT / "LiveWindowRecovery.java", destination / "LiveWindowRecovery.java")
+    for name in ("LiveWindowRecovery", "Media3VideoPlayer", "VideoHttpSource", "Dev139"):
+        shutil.copyfile(ROOT / f"{name}.java", destination / f"{name}.java")
 
 
 def main():
@@ -66,9 +70,24 @@ def main():
         parser.error("Choose a separate output path")
     if hashlib.sha256(args.base.read_bytes()).hexdigest() != baseline.BASE_HASH:
         parser.error("Expected the official v1.11.1 MPP used to rebuild v2.0.2")
-    with TemporaryDirectory(prefix="nicoid-media3-") as work:
-        baseline.build(args, Path(work), stage_sources=stage, version=VERSION,
-                       development_ref=DEVELOPMENT_REF)
+    if args.apk is None and (os.environ.get("GITHUB_ACTIONS") != "true"
+                            or os.environ.get("GITHUB_REF") != DEVELOPMENT_REF):
+        parser.error("CI-only compiler JARs require the Media3 feature branch workflow")
+    with TemporaryDirectory(prefix="nicoid-media3-") as folder:
+        work = Path(folder)
+        method_delta = work / "media3-method-delta.dex"
+        build_delta(baseline.run, args.base, work, args.tools.resolve(), method_delta, args.apk)
+        extra_compile_jars = []
+        if args.apk is None:
+            api = work / "native-api"
+            api.mkdir()
+            baseline.run("javac", "--release", "8", "-d", api, *sorted((ROOT / "api").glob("*.java")))
+            api_jar = work / "native-api.jar"
+            baseline.run("jar", "cf", api_jar, "-C", api, ".")
+            extra_compile_jars.append(api_jar)
+        baseline.build(args, work, stage_sources=stage, version=VERSION,
+                       development_ref=DEVELOPMENT_REF, extra_compile_jars=extra_compile_jars,
+                       method_delta=method_delta)
 
 
 if __name__ == "__main__":

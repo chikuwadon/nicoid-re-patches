@@ -19,11 +19,14 @@ def dex_classes(blob):
 with ZipFile(base_path) as base,ZipFile(candidate_path) as new:
     assert base.testzip() is None and new.testzip() is None
     changed={k for k in base.namelist() if base.read(k)!=new.read(k)}
-    assert changed=={"META-INF/MANIFEST.MF","nicoid/helpers.mpe","nicoid/resources.zip"},changed
+    expected_changes = {"META-INF/MANIFEST.MF", "nicoid/helpers.mpe", "nicoid/resources.zip"}
+    if len(sys.argv) == 5 and sys.argv[4] == "--media3-video":
+        expected_changes.add("nicoid/method-delta.dex")
+    assert changed == expected_changes, changed
     expected=next((line.split('"')[1] for line in (Path(__file__).parent/"build_mpp.py").read_text().splitlines()
                    if line.startswith('VERSION = "')), None)
     assert expected and expected == "2.0.2-dev.4", expected
-    if len(sys.argv) == 4:
+    if len(sys.argv) >= 4:
         expected = sys.argv[3]
     elif b"Version: 2.0.0\r\n" in new.read("META-INF/MANIFEST.MF"):
         expected = "2.0.0"

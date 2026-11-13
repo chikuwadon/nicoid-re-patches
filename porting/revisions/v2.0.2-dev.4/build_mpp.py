@@ -38,7 +38,8 @@ def add_hook(source, signature, instruction):
     return updated
 
 
-def build(args, work, *, stage_sources=stage, version=None, development_ref="refs/heads/dev"):
+def build(args, work, *, stage_sources=stage, version=None, development_ref="refs/heads/dev", extra_compile_jars=(),
+          method_delta=None):
     version = VERSION if version is None else version
     tools = args.tools.resolve()
     android = tools / "android-all-16-robolectric-13921718.jar"
@@ -71,7 +72,7 @@ def build(args, work, *, stage_sources=stage, version=None, development_ref="ref
         run("java", "-cp", str(args.media / "*"), "com.googlecode.dex2jar.tools.Dex2jarCmd",
             "-o", target, source)
     helpers = work / "helpers.jar"
-    compile_only = [network] if args.apk is not None else args.compile_jar
+    compile_only = [network] if args.apk is not None else [*args.compile_jar, *extra_compile_jars]
     if not all(jar.is_file() for jar in compile_only):
         raise ValueError("Missing compiler classpath JAR")
     # Stage only changed Java sources; keep the released source snapshot intact.
@@ -455,6 +456,8 @@ def build(args, work, *, stage_sources=stage, version=None, development_ref="ref
             "nicoid/helpers.mpe": merged.read_bytes(),
             "nicoid/resources.zip": resources.getvalue(),
         }
+        if method_delta is not None:
+            overrides["nicoid/method-delta.dex"] = method_delta.read_bytes()
         with ZipFile(args.output, "w", ZIP_DEFLATED) as output:
             for item in base.infolist():
                 output.writestr(item, overrides[item.filename] if item.filename in overrides else base.read(item))

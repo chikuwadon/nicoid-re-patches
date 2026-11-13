@@ -436,7 +436,7 @@ jobs:
       - name: Check source-only v2 live regression contracts
         run: python3 porting/revisions/v2.0.0-dev.1/tests/verify-dev12.py
       - name: Verify v2.0.1 stable release configuration without publishing
-        if: github.ref == 'refs/heads/dev'
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/feature/media3-migration'
         run: |
           if grep -Eq '^version[[:space:]]*=[[:space:]]*2\.0\.1[[:space:]]*$' gradle.properties; then
             python3 porting/revisions/v2.0.1-release/test_release.py
@@ -445,7 +445,7 @@ jobs:
           fi
 
       - name: Verify local playlist gesture policy and shared regressions
-        if: github.ref == 'refs/heads/dev'
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/feature/media3-migration'
         shell: bash
         run: |
           set -euo pipefail
@@ -463,7 +463,7 @@ jobs:
           python3 porting/tests/tap-regions-regression.py
           python3 porting/tests/tap-region-ui-regression.py
       - name: Verify NicoLive gesture traces, history pictures and short messages
-        if: github.ref == 'refs/heads/dev'
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/feature/media3-migration'
         shell: bash
         run: |
           set -euo pipefail
@@ -471,7 +471,7 @@ jobs:
           python3 porting/revisions/v2.0.1-dev.2/tests/verify.py
 
       - name: Verify media notifications and themed UI against complete staged sources
-        if: github.ref == 'refs/heads/dev'
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/feature/media3-migration'
         shell: bash
         run: |
           set -euo pipefail
@@ -479,7 +479,7 @@ jobs:
           python3 porting/revisions/v2.0.1-dev.3/tests/verify.py
 
       - name: Verify stable scroll restoration and versioned MPP artifacts
-        if: github.ref == 'refs/heads/dev'
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/feature/media3-migration'
         shell: bash
         run: |
           set -euo pipefail
@@ -491,7 +491,7 @@ jobs:
           java -cp /tmp/nicoid-scroll-restore-tests ScrollRestorePolicy204Test
 
       - name: Verify all six app/tab placements stay visible at each tab height
-        if: github.ref == 'refs/heads/dev'
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/feature/media3-migration'
         run: |
           mkdir -p /tmp/nicoid-layout-math-tests
           javac --release 8 -d /tmp/nicoid-layout-math-tests \
@@ -500,7 +500,7 @@ jobs:
           java -cp /tmp/nicoid-layout-math-tests e.e.a.AppBarLayoutMath202Test
 
       - name: Verify NicoLive popup edge sizing and guarded tap sequences
-        if: github.ref == 'refs/heads/dev'
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/feature/media3-migration'
         run: |
           mkdir -p /tmp/nicoid-live-popup-tests
           javac --release 8 -d /tmp/nicoid-live-popup-tests \
@@ -512,11 +512,11 @@ jobs:
           java -cp /tmp/nicoid-live-popup-tests e.e.a.NicolivePopupTap202Test
 
       - name: Verify v2.0.2 layout previews, presets, and source compatibility
-        if: github.ref == 'refs/heads/dev'
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/feature/media3-migration'
         run: python3 porting/revisions/v2.0.2-dev.4/tests/verify.py
 
       - name: Verify tab creation arity, visible-list restore and twelve-page LRU
-        if: github.ref == 'refs/heads/dev'
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/feature/media3-migration'
         shell: bash
         run: |
           set -euo pipefail
@@ -529,7 +529,7 @@ jobs:
           java -cp /tmp/nicoid-scroll-restore205 ScrollRestorePolicy205Test
 
       - name: Test runtime scroll cancellation, frame progress and diagnostic flush
-        if: github.ref == 'refs/heads/dev'
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/feature/media3-migration'
         shell: bash
         run: |
           set -euo pipefail
@@ -553,7 +553,7 @@ jobs:
           echo "MPP generation and device/runtime playback were NOT performed by this source-only job."
 
       - name: Test history thumbnail fallback and trusted metadata
-        if: github.ref == 'refs/heads/dev'
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/feature/media3-migration'
         shell: bash
         run: |
           set -euo pipefail
@@ -662,7 +662,7 @@ jobs:
             version=2.0.2-dev.4
           elif [[ "$GITHUB_REF" == "refs/heads/feature/media3-migration" ]]; then
             builder=porting/revisions/media3-migration
-            version=2.0.3-media3.1
+            version=2.0.3-media3.2
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
           output="/tmp/nicoid-re-$version.mpp"

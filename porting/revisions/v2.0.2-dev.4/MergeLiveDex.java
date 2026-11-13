@@ -49,11 +49,16 @@ final class MergeLiveDex {
         if (!livePlaylist.contains("Le/e/a/LocalPlaylists;")
                 || !livePlaylist.contains("Le/e/a/LocalPlaylists$Page;"))
             throw new IOException("Missing local playlist replacement classes");
+        Set<String> surfaceHelper = new HashSet<>();
+        for (ClassDef cls : live.getClasses()) {
+            String type = cls.getType();
+            if (type.equals("Le/e/a/Dev139;") || type.startsWith("Le/e/a/Dev139$")) surfaceHelper.add(type);
+        }
         Set<String> types = new HashSet<>();
         for (ClassDef cls : baseline.getClasses()) {
             String type = cls.getType();
             types.add(type);
-            if (!replacements.contains(type) && !liveAmbient.contains(type)
+            if (!replacements.contains(type) && !liveAmbient.contains(type) && !surfaceHelper.contains(type)
                     && !type.equals("Le/e/a/LocalPlaylists;")
                     && !type.startsWith("Le/e/a/LocalPlaylists$")
                     && !updatedHelper(type)) pool.internClass(cls);
@@ -73,7 +78,8 @@ final class MergeLiveDex {
 
         for (ClassDef cls : live.getClasses()) {
             String type = cls.getType();
-            if (types.add(type) || liveAmbient.contains(type) || livePlaylist.contains(type) || updatedHelper(type)) {
+            if (types.add(type) || liveAmbient.contains(type) || livePlaylist.contains(type) || updatedHelper(type)
+                    || surfaceHelper.contains(type)) {
                 pool.internClass(cls);
             } else if (!type.startsWith("Lcom/android/tools/r8/annotations/")) {
                 throw new IOException("Live dependency collides with stable helper: " + type);
@@ -88,3 +94,4 @@ final class MergeLiveDex {
         System.out.println("Verified helper classes: " + types.size());
     }
 }
+

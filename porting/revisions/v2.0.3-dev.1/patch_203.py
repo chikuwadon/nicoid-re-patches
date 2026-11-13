@@ -90,7 +90,7 @@ def patch_appbar(source):
             listening = true;""",
         "drawer on-pre-draw check")
     source = once(source,
-        """                 lastMode = mode;""",
+        """                lastMode = mode;""",
         """                 avoidMiniOverlap(host, mode, h, t);
                  lastMode = mode;""",
         "position mini above bottom bars")
@@ -142,19 +142,19 @@ def patch_live(source):
    miniFrame=null;miniTitle=null;miniPlay=null;
    viewer();Intent start=""",
         "detach mini before watching")
-    old = '''   nowPlayingBar=NicoliveUi.row(this);
-   Button resume=NicoliveUi.button(this,"再生中の生放送に戻る");
-   nowPlayingBar.addView(resume,new LinearLayout.LayoutParams(0,NicoliveUi.dp(this,48),1));
-   resume.setOnClickListener(v->{NicoliveService playing=activeBroadcast();if(playing!=null)watch(playing.id);});
-   ImageButton close=NicoliveUi.icon(this,"close","再生中の生放送を閉じる");
-   close.setTag("nicoid-live-close-broadcast");
-   nowPlayingBar.addView(close);
-   close.setOnClickListener(v->{
-    NicoliveService playing=activeBroadcast();
-    if(playing!=null)playing.stopPlayback();
-    updateNowPlaying();
-   });
-   body.addView(nowPlayingBar,new LinearLayout.LayoutParams(-1,NicoliveUi.dp(this,48)));'''
+   old = '''   nowPlayingBar=NicoliveUi.row(this);
+  Button resume=NicoliveUi.button(this,"再生中の生放送に戻る");
+  nowPlayingBar.addView(resume,new LinearLayout.LayoutParams(0,NicoliveUi.dp(this,48),1));
+  resume.setOnClickListener(v->{NicoliveService playing=activeBroadcast();if(playing!=null)watch(playing.id);});
+  ImageButton close=NicoliveUi.icon(this,"close","再生中の生放送を閉じる");
+  close.setTag("nicoid-live-close-broadcast");
+  nowPlayingBar.addView(close);
+  close.setOnClickListener(v->{
+   NicoliveService playing=activeBroadcast();
+   if(playing!=null)playing.stopPlayback();
+   updateNowPlaying();
+  });
+  body.addView(nowPlayingBar,new LinearLayout.LayoutParams(-1,NicoliveUi.dp(this,48)));'''
     new = '''   // YouTube-style in-app mini player: reuse the one Media3 Service
    // session and move only its video TextureView output.
    nowPlayingBar=NicoliveUi.row(this);
@@ -190,9 +190,9 @@ def patch_live(source):
    body.addView(nowPlayingBar,new LinearLayout.LayoutParams(-1,NicoliveUi.dp(this,68)));'''
     source = once(source, old, new, "real live mini player replaces text-only bar")
     source = once(source,
-        """  void updateNowPlaying(){
-   if(!watching&&nowPlayingBar!=null)nowPlayingBar.setVisibility(activeBroadcast()==null?View.GONE:View.VISIBLE);
-  }""",
+        """ void updateNowPlaying(){
+  if(!watching&&nowPlayingBar!=null)nowPlayingBar.setVisibility(activeBroadcast()==null?View.GONE:View.VISIBLE);
+ }""",
         """  void updateNowPlaying(){
    if(watching||nowPlayingBar==null)return;
    NicoliveService live=activeBroadcast();

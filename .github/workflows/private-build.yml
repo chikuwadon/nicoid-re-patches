@@ -391,7 +391,7 @@ jobs:
           node --input-type=module <<'NODE'
           import semanticRelease from 'semantic-release';
           if (typeof semanticRelease !== 'function') throw Error('semantic-release CLI invalid');
-          console.log('PASS: npm 11.21.2, bundled undici 6.29.1, Node 26, semantic-release import');
+          console.log('PASS: pinned npm 12.2.2 dependency, bundled undici 6.29.1, Node 26, semantic-release import');
           NODE
 
   actions-lock-verify:

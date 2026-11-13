@@ -21,7 +21,7 @@ build version, MPP payload, historical tags, or published releases.
   semantic-release from creating comments, issues, or released-label changes.
 - Disable unneeded npm caching in the privileged release job and install
   lockfile-pinned npm dependencies with lifecycle scripts disabled.
-  Pin release-tool Node.js to supported LTS 24 rather than a moving alias.
+  Pin release-tool Node.js to active LTS 26 rather than a moving alias.
 - Replace the same-process semantic-release backmerge with a separate,
   clean-runner, fast-forward-only sync job. A divergent or protected `dev`
   is left untouched and warned about, never force-pushed or rebased.
@@ -65,3 +65,12 @@ build version, MPP payload, historical tags, or published releases.
   `gh actions-lock --relock` when intentionally advancing upstream refs).
 - A lockfile is not a vulnerability scanner. Audit third-party actions and
   npm/Gradle dependencies separately. Never hand-edit a generated lockfile.
+
+## Toolchain refresh candidate (2026-11-13)
+
+- Move the CI Gradle distribution and checked-in wrapper JAR to Gradle 9.9.1,
+  retaining Gradle's official binary SHA-256 verification.
+- Use JDK 25 LTS and Node.js 26 LTS in the build, verification and release
+  workflows. Action versions and `actions.lock` remain unchanged.
+- Run this candidate through the private-build workflow before integrating
+  with `dev` or `main`. This change does not publish a release.

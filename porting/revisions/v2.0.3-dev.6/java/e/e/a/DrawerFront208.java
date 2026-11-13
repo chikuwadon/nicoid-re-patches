@@ -51,6 +51,7 @@ public final class DrawerFront208 {
     else if(Boolean.TRUE.equals(last))t.setVisibility(initial);
     last=open;
     Log.i("nicoid-drawer","Drawer visible="+open+" floatingTab="+t.getVisibility());
+    ModernDebug.record("native-drawer visible="+open+" floating-tab-visibility="+t.getVisibility());
    }
    return true;
   }

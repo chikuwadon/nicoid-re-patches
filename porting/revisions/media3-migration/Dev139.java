@@ -30,16 +30,20 @@ public final class Dev139 {
    this.output=new WeakReference<>(output);
   }
  }
- private static Object get(Object owner,String field)throws ReflectiveOperationException {
-  for(Class<?> c=owner.getClass();c!=null;c=c.getSuperclass())try{
-   Field f=c.getDeclaredField(field);f.setAccessible(true);return f.get(owner);
+ static Field field(Class<?> type,String name)throws NoSuchFieldException {
+  for(Class<?> c=type;c!=null;c=c.getSuperclass())try{
+   Field f=c.getDeclaredField(name);f.setAccessible(true);return f;
   }catch(NoSuchFieldException ignored){}
-  throw new NoSuchFieldException(field);
+  throw new NoSuchFieldException(name);
+ }
+ static Object get(Object owner,String name)throws ReflectiveOperationException {
+  return field(owner.getClass(),name).get(owner);
+ }
+ static Object delegate(View video)throws ReflectiveOperationException {
+  return get(get(video,"videoViewImpl"),"delegate");
  }
  static Media3VideoPlayer player(View video)throws ReflectiveOperationException {
-  Object impl=get(video,"videoViewImpl");
-  Object delegate=get(impl,"delegate");
-  return (Media3VideoPlayer)get(delegate,"media3Player");
+  return (Media3VideoPlayer)get(delegate(video),"media3Player");
  }
  private static TextureView texture(View root){
   if(root instanceof TextureView &&

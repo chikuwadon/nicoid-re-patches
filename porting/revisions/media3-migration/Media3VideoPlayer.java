@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.view.Surface;
+import android.widget.SeekBar;
 import androidx.media3.common.AudioAttributes;
 import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
@@ -21,6 +22,7 @@ import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
 import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.video.ClearableSurface;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +37,11 @@ public final class Media3VideoPlayer implements Player.Listener {
     private volatile long sampledPosition;
     private volatile long sampledDuration;
     private volatile boolean sampledPlaying;
+    private volatile float sampledSpeed = 1f;
+    private volatile int sampledBuffer;
+    private boolean bindingRetainedView;
+    private boolean skipPopupAutoStart;
+    private WeakReference<SeekBar> progressBar;
     private final Runnable sampleWhilePlaying = new Runnable() {
         @Override
         public void run() {
@@ -57,7 +64,9 @@ public final class Media3VideoPlayer implements Player.Listener {
                     || player.getPlaybackState() == Player.STATE_ENDED) {
                 return;
             }
-            listeners.onBufferingUpdate(player.getBufferedPercentage());
+            sampledBuffer = player.getBufferedPercentage();
+            listeners.onBufferingUpdate(sampledBuffer);
+            updateBufferedPosition();
             main.postDelayed(this, 1000);
         }
     };
@@ -77,11 +86,55 @@ public final class Media3VideoPlayer implements Player.Listener {
         this.listeners = listeners;
     }
 
+    boolean canMoveTo(Media3VideoPlayer target) {
+        return !released && listeners != null && listeners.isPrepared()
+            && player.getPlayerError() == null && player.getCurrentMediaItem() != null
+            && player.getPlaybackState() == Player.STATE_READY
+            && !target.released && target.listeners != null
+            && target.player.getCurrentMediaItem() == null && ownsSurface == target.ownsSurface;
+    }
+
+    void moveTo(Media3VideoPlayer target) {
+        endScrubbing();
+        pendingSeek = false;
+        // Detach the target's empty engine before handing its output to the running engine.
+        Surface output = target.surface;
+        target.player.clearVideoSurface();
+        target.surface = null;
+        setVideoOutput(output);
+        listeners = target.listeners;
+        progressBar = null;
+        bindingRetainedView = true;
+        skipPopupAutoStart = true;
+        target.release();
+    }
+
+    boolean isBindingRetainedView() {
+        return bindingRetainedView;
+    }
+
+    boolean skipPopupAutoStart() {
+        return bindingRetainedView || skipPopupAutoStart;
+    }
+
+    void notifyRetainedView() {
+        if (!released && bindingRetainedView && listeners != null) {
+            listeners.onStateChanged(player.getPlayWhenReady(), Player.STATE_READY);
+            refreshClock();
+            onVideoSizeChanged(player.getVideoSize());
+            main.removeCallbacks(updateBuffer);
+            main.post(updateBuffer);
+            main.post(() -> bindingRetainedView = false);
+        }
+    }
+
     public void setVideoUri(Uri uri) {
         if (released) {
             return;
         }
         pendingSeek = false;
+        bindingRetainedView = false;
+        skipPopupAutoStart = false;
         endScrubbing();
         sampledPosition = 0;
         sampledDuration = 0;
@@ -101,7 +154,7 @@ public final class Media3VideoPlayer implements Player.Listener {
     }
 
     public void start() {
-        if (!released) {
+        if (!released && !bindingRetainedView) {
             if (listeners != null) {
                 listeners.setNotifiedCompleted(false);
             }
@@ -110,7 +163,7 @@ public final class Media3VideoPlayer implements Player.Listener {
     }
 
     public void pause() {
-        if (!released) {
+        if (!released && !bindingRetainedView) {
             player.pause();
         }
     }
@@ -159,6 +212,8 @@ public final class Media3VideoPlayer implements Player.Listener {
             sampledPosition = 0;
             sampledDuration = 0;
             sampledPlaying = false;
+            sampledSpeed = 1f;
+            sampledBuffer = 0;
             player.removeListener(this);
             player.release();
             releaseSurface(surface);
@@ -176,6 +231,10 @@ public final class Media3VideoPlayer implements Player.Listener {
             releaseSurface(output);
             return;
         }
+        setVideoOutput(output);
+    }
+
+    private void setVideoOutput(Surface output) {
         Surface previous = surface;
         if (previous != output) {
             player.setVideoSurface(output);
@@ -217,7 +276,7 @@ public final class Media3VideoPlayer implements Player.Listener {
     }
 
     public void seekTo(long position) {
-        if (!released && player.getCurrentMediaItem() != null) {
+        if (!released && !bindingRetainedView && player.getCurrentMediaItem() != null) {
             pendingSeek = true;
             player.seekTo(Math.max(0, position));
             finishSeek();
@@ -247,6 +306,8 @@ public final class Media3VideoPlayer implements Player.Listener {
         sampledPosition = ready ? player.getCurrentPosition() : 0;
         sampledDuration = ready ? Math.max(0, player.getDuration()) : 0;
         sampledPlaying = !released && player.getPlayWhenReady();
+        sampledSpeed = released ? 1f : player.getPlaybackParameters().speed;
+        sampledBuffer = released ? 0 : player.getBufferedPercentage();
     }
 
     public long getCurrentPosition() {
@@ -264,7 +325,24 @@ public final class Media3VideoPlayer implements Player.Listener {
     }
 
     public int getBufferedPercent() {
-        return released ? 0 : player.getBufferedPercentage();
+        return Looper.myLooper() == player.getApplicationLooper()
+            ? (released ? 0 : player.getBufferedPercentage()) : sampledBuffer;
+    }
+
+    long getBufferedPosition() {
+        return released ? 0 : player.getBufferedPosition();
+    }
+
+    void bindProgress(SeekBar bar) {
+        progressBar = new WeakReference<>(bar);
+        updateBufferedPosition();
+    }
+
+    private void updateBufferedPosition() {
+        SeekBar bar = progressBar == null ? null : progressBar.get();
+        if (bar != null && bar.isAttachedToWindow()) {
+            bar.setSecondaryProgress((int) Math.min(bar.getMax(), getBufferedPosition()));
+        }
     }
 
     public boolean isPlaying() {
@@ -276,12 +354,17 @@ public final class Media3VideoPlayer implements Player.Listener {
         if (released || !Float.isFinite(speed) || speed <= 0) {
             return false;
         }
-        player.setPlaybackSpeed(speed);
+        if (!bindingRetainedView) {
+            player.setPlaybackSpeed(speed);
+            sampledSpeed = player.getPlaybackParameters().speed;
+        }
         return true;
     }
 
     public float getPlaybackSpeed() {
-        return released ? 1f : player.getPlaybackParameters().speed;
+        // CommentClock calls this through VideoView from its drawing thread.
+        return Looper.myLooper() == player.getApplicationLooper()
+            ? (released ? 1f : player.getPlaybackParameters().speed) : sampledSpeed;
     }
 
     public boolean setVolume(float volume) {
@@ -297,7 +380,7 @@ public final class Media3VideoPlayer implements Player.Listener {
     }
 
     public void setRepeatMode(int repeatMode) {
-        if (!released) {
+        if (!released && !bindingRetainedView) {
             player.setRepeatMode(repeatMode);
         }
     }

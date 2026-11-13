@@ -19,7 +19,9 @@ with ZipFile(Path(candidate)) as archive:
     assert b"Le/e/a/Media3VideoPlayer;" in delta
     assert b"Le/e/a/Media3SeekPreview;" in delta
     assert b"media3Player" in helpers
-    for name in ("LiveWindowRecovery", "Media3VideoPlayer", "VideoHttpSource", "Dev139", "Media3SeekPreview"):
+    assert b"Le/e/a/Media3PlaybackHandoff;" in delta
+    for name in ("LiveWindowRecovery", "Media3VideoPlayer", "VideoHttpSource", "Dev139",
+                 "Media3SeekPreview", "Media3ControlStyle", "Media3PlaybackHandoff"):
         assert "Le/e/a/" + name + ";" in classes, "Missing Media3 helper: " + name
     assert "Lcom/devbrackets/android/exomedia/core/ListenerMux;" not in classes, "Packaged compiler stub"
     assert "Landroidx/media3/exoplayer/ExoPlayer;" in classes, "Missing Media3 engine"

@@ -6,6 +6,102 @@ from zipfile import ZipFile
 
 ROOT = Path(__file__).resolve().parent
 DELEGATE = "Lcom/devbrackets/android/exomedia/core/video/exo/ExoVideoDelegate;"
+VIDEO_VIEW = "Lcom/devbrackets/android/exomedia/ui/widget/VideoView;"
+POPUP = "Lcom/sauzask/nicoid/NicoidPopupViewService;"
+HANDOFF = "Le/e/a/Media3PlaybackHandoff;"
+
+
+def replace_once(source, old, new):
+    if source.count(old) != 1:
+        raise ValueError(f"Expected one Media3 hook: {old!r}")
+    return source.replace(old, new)
+
+
+def patch_popup(path):
+    source = path.read_text(encoding="utf-8")
+    source = replace_once(
+        source, "    invoke-virtual {p1}, Ljava/lang/Thread;->start()V",
+        f"    invoke-static {{p0, p1}}, {HANDOFF}->adopt(Ljava/lang/Object;Ljava/lang/Thread;)Z\n"
+        "    move-result p2\n"
+        "    if-nez p2, :cond_56e\n"
+        "    invoke-virtual {p1}, Ljava/lang/Thread;->start()V")
+    setup = "    :goto_1e\n    iget-boolean v0, p0, " + POPUP + "->directPopup:Z"
+    source = replace_once(
+        source, setup,
+        "    :goto_1e\n"
+        f"    iget-object v0, p0, {POPUP}->e:{VIDEO_VIEW}\n"
+        f"    invoke-static {{v0}}, {HANDOFF}->isBinding(Ljava/lang/Object;)Z\n"
+        "    move-result v0\n"
+        "    if-nez v0, :goto_6f\n"
+        f"    iget-boolean v0, p0, {POPUP}->directPopup:Z")
+    ready = "    invoke-static {p0}, Le/e/a/ModernEnhancements;->attach(Ljava/lang/Object;)V"
+    source = replace_once(
+        source, ready,
+        ready + f"\n\n    invoke-static {{p0}}, {HANDOFF}->notifyRetained(Landroid/app/Service;)V")
+    initial_start = f"    invoke-virtual {{v0}}, {VIDEO_VIEW}->start()V\n\n    :cond_8d"
+    source = replace_once(
+        source, initial_start,
+        f"    invoke-static {{v0}}, {HANDOFF}->startPopup(Landroid/view/View;)V\n\n    :cond_8d")
+    start = "    invoke-static/range {p0 .. p1}, Le/e/a/DirectBackground235;->begin(Ljava/lang/Object;Landroid/content/Intent;)V"
+    source = replace_once(
+        source, start,
+        f"    invoke-static/range {{p0 .. p1}}, {HANDOFF}->showPopup(Landroid/app/Service;Landroid/content/Intent;)Z\n"
+        "    move-result v0\n"
+        "    if-eqz v0, :nicoid_check_popup_request\n"
+        "    const/4 v0, 0x2\n"
+        "    return v0\n"
+        "    :nicoid_check_popup_request\n"
+        "    if-eqz p1, :nicoid_popup_native_start\n"
+        "    invoke-virtual {p1}, Landroid/content/Intent;->getAction()Ljava/lang/String;\n"
+        "    move-result-object v0\n"
+        '    const-string v1, "com.sauzask.nicoid.MEDIA3_SHOW_POPUP"\n'
+        "    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z\n"
+        "    move-result v0\n"
+        "    if-eqz v0, :nicoid_popup_native_start\n"
+        "    const/4 v0, 0x2\n"
+        "    return v0\n"
+        "    :nicoid_popup_native_start\n" + start)
+    path.write_text(source, encoding="utf-8")
+
+
+def patch_popup_prepared(path):
+    source = path.read_text(encoding="utf-8")
+    anchor = f"    sget-boolean v0, {POPUP}->p0:Z\n\n    if-eqz v0, :cond_62"
+    source = replace_once(
+        source, anchor,
+        f"    sget-boolean v0, {POPUP}->p0:Z\n"
+        "    if-nez v0, :cond_5d\n"
+        f"    iget-object v0, p0, Lcom/sauzask/nicoid/NicoidPopupViewService$c;->a:{POPUP}\n"
+        f"    iget-object v0, v0, {POPUP}->e:{VIDEO_VIEW}\n"
+        f"    invoke-static {{v0}}, {HANDOFF}->isBinding(Ljava/lang/Object;)Z\n"
+        "    move-result v0\n"
+        "    if-eqz v0, :cond_62")
+    path.write_text(source, encoding="utf-8")
+
+
+def patch_helpers(stable, hooks):
+    transfer = "PlaybackTransfer221.smali"
+    source = (stable / "e/e/a" / transfer).read_text(encoding="utf-8")
+    target = "    :goto_39\n    invoke-static {p0, p1}, Le/e/a/PlaybackTransfer221;->get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;\n\n    move-result-object p0"
+    source = replace_once(
+        source, target,
+        target + "\n\n"
+        f"    invoke-static {{p0}}, {HANDOFF}->isBinding(Ljava/lang/Object;)Z\n"
+        "    move-result p1\n"
+        "    if-eqz p1, :nicoid_prepare_new_player\n"
+        "    invoke-static {v1}, Le/e/a/PlaybackTransfer221;->complete(Le/e/a/PlaybackTransfer221$Transfer;)V\n"
+        "    return-void\n"
+        "    :nicoid_prepare_new_player")
+    (hooks / transfer).write_text(source, encoding="utf-8")
+    media_controls = "MediaControls.smali"
+    source = (stable / "e/e/a" / media_controls).read_text(encoding="utf-8")
+    anchor = "    new-instance v8, Landroid/app/Notification$MediaStyle;"
+    source = replace_once(
+        source, anchor,
+        "    iget-object v8, v0, Le/e/a/MediaControls$State;->owner:Ljava/lang/Object;\n"
+        f"    invoke-static {{v1, v8}}, {HANDOFF}->addPopupAction(Landroid/app/Notification$Builder;Ljava/lang/Object;)V\n\n"
+        + anchor)
+    (hooks / media_controls).write_text(source, encoding="utf-8")
 
 
 def verify_original(apk_path, stable_path, destination):
@@ -71,6 +167,9 @@ def build_delta(run, base, work, tools, output, apk):
                        f"    invoke-static {{{seekbar}, {callback}, v4}}, Le/e/a/Media3SeekPreview;"
                        f"->attach(Landroid/widget/SeekBar;{callback_type}Landroid/view/View;)V")
         path.write_text(source.replace(anchor, replacement), encoding="utf-8")
+
+    patch_popup(smali / "com/sauzask/nicoid/NicoidPopupViewService.smali")
+    patch_popup_prepared(smali / "com/sauzask/nicoid/NicoidPopupViewService$c.smali")
 
     run("java", "-cp", classpath, "org.jf.smali.Main", "assemble", "--api", 28, smali, "-o", output)
     if apk is not None:

@@ -39,7 +39,7 @@ def add_hook(source, signature, instruction):
 
 
 def build(args, work, *, stage_sources=stage, version=None, development_ref="refs/heads/dev", extra_compile_jars=(),
-          method_delta=None):
+          method_delta=None, stage_hooks=None):
     version = VERSION if version is None else version
     tools = args.tools.resolve()
     android = tools / "android-all-16-robolectric-13921718.jar"
@@ -436,6 +436,8 @@ def build(args, work, *, stage_sources=stage, version=None, development_ref="ref
         gestures = gestures[:match.start()] + replacement + gestures[match.end():]
         (hooks / gesture_path).write_text(gestures)
 
+        if stage_hooks is not None:
+            stage_hooks(disassembled, hooks)
         hook_dex = work / "hooks.dex"
         run("java", "-cp", smali, "org.jf.smali.Main", "assemble", work / "hooks", "-o", hook_dex)
         merged = work / "helpers.mpe"

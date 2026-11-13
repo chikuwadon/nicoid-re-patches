@@ -38,6 +38,8 @@ public final class Media3SeekPreview implements SeekBar.OnSeekBarChangeListener,
         bar.setOnSeekBarChangeListener(preview);
         bar.setOnTouchListener(preview);
         bar.addOnAttachStateChangeListener(preview);
+        Media3ControlStyle.apply(bar, bar.getRootView());
+        preview.bindProgress(bar);
     }
 
     @Override
@@ -107,8 +109,18 @@ public final class Media3SeekPreview implements SeekBar.OnSeekBarChangeListener,
         }
     }
 
+    private void bindProgress(SeekBar bar) {
+        try {
+            Dev139.player(video).bindProgress(bar);
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            // Native playback continues to drive its original progress listener.
+        }
+    }
+
     @Override
-    public void onViewAttachedToWindow(View view) {}
+    public void onViewAttachedToWindow(View view) {
+        bindProgress((SeekBar) view);
+    }
 
     @Override
     public void onViewDetachedFromWindow(View view) {

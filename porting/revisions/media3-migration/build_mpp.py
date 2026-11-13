@@ -8,7 +8,7 @@ import shutil
 import sys
 from tempfile import TemporaryDirectory
 
-VERSION = "2.1.0-dev.1"
+VERSION = "2.1.0-dev.2"
 DEVELOPMENT_REF = "refs/heads/feature/media3-migration"
 ROOT = Path(__file__).resolve().parent
 BASELINE = ROOT.parent / "v2.0.2-dev.4"
@@ -18,7 +18,7 @@ spec = importlib.util.spec_from_file_location("nicoid_v202_builder", BASELINE / 
 baseline = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(baseline)
 from patch_202 import once
-from video_delta import build_delta
+from video_delta import build_delta, patch_helpers
 
 
 def stage(base, destination):
@@ -49,7 +49,46 @@ def stage(base, destination):
         'liveWindowRecovery.reset();NicoliveDiagnostics.record("WATCH","begin-new-session");',
         "live-window retry reset")
     service.write_text(source, encoding="utf-8")
-    for name in ("LiveWindowRecovery", "Media3VideoPlayer", "VideoHttpSource", "Dev139", "Media3SeekPreview"):
+    retained = destination / "RetainedPlayback137.java"
+    source = retained.read_text(encoding="utf-8")
+    source = once(source, " public static synchronized void serviceDestroyed(Service service){",
+        """ public static synchronized void popupAdopted(Service service) {
+  Session s=current;
+  if(s==null||s.service!=service)return;
+  s.service=null;
+  finish(s,false);
+ }
+ public static synchronized void serviceDestroyed(Service service){""", "retire original notification keeper")
+    source = once(source, '  if(!usable(s)){\n   // No active playback owns this keeper.',
+        '''  if(!usable(s)){
+   if(Media3PlaybackHandoff.owns(service))return true;
+   // No active playback owns this keeper.''', "ignore commands from retired notification keeper")
+    source = once(source, '   if("show".equals(operation)){',
+        '''   if("popup".equals(operation)){
+    Media3PlaybackHandoff.requestPopup(s.fragment);
+    return true;
+   }
+   if("show".equals(operation)){''', "open popup from retained audio")
+    source = once(source, '  if(!s.foreground){service.startForeground(NOTIFICATION,n.build());s.foreground=true;}',
+        '''  if(android.provider.Settings.canDrawOverlays(service)){
+   n.addAction(new Notification.Action.Builder(android.R.drawable.ic_menu_view,
+     UiStrings.translate("ポップアップ再生"),action(service,s,"popup",5)).build());
+  }
+  if(!s.foreground){service.startForeground(NOTIFICATION,n.build());s.foreground=true;}''',
+        "retain popup action while the Activity is in the background")
+    retained.write_text(source, encoding="utf-8")
+    icons = destination / "PlayerIcons.java"
+    source = icons.read_text(encoding="utf-8")
+    source = once(source, 'p.moveTo(6,3);p.lineTo(20,12);p.lineTo(6,21);',
+        'p.moveTo(8,5);p.lineTo(19,12);p.lineTo(8,19);', "Media3 play glyph")
+    pause = 'c.drawRoundRect(6,3,10,21,1,1,paint);c.drawRoundRect(14,3,18,21,1,1,paint);'
+    if source.count(pause) != 2:
+        raise ValueError("Expected the play controls' pause outline and fill")
+    source = source.replace(pause,
+        'c.drawRoundRect(6,5,10,19,1,1,paint);c.drawRoundRect(14,5,18,19,1,1,paint);')
+    icons.write_text(source, encoding="utf-8")
+    for name in ("LiveWindowRecovery", "Media3VideoPlayer", "VideoHttpSource", "Dev139",
+                 "Media3SeekPreview", "Media3ControlStyle", "Media3PlaybackHandoff"):
         shutil.copyfile(ROOT / f"{name}.java", destination / f"{name}.java")
 
 
@@ -87,7 +126,7 @@ def main():
             extra_compile_jars.append(api_jar)
         baseline.build(args, work, stage_sources=stage, version=VERSION,
                        development_ref=DEVELOPMENT_REF, extra_compile_jars=extra_compile_jars,
-                       method_delta=method_delta)
+                       method_delta=method_delta, stage_hooks=patch_helpers)
 
 
 if __name__ == "__main__":

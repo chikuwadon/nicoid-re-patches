@@ -660,7 +660,7 @@ jobs:
             version=2.0.2-dev.4
           elif [[ "$GITHUB_REF" == "refs/heads/feature/media3-migration" ]]; then
             builder=porting/revisions/media3-migration
-            version=2.1.0-dev.1
+            version=2.1.0-dev.2
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
           output="/tmp/nicoid-re-$version.mpp"

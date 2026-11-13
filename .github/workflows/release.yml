@@ -52,7 +52,9 @@ jobs:
         run: python3 porting/tests/VerifyGithubActionsSecurity.py
 
       - name: Check published source baseline and metadata
-        run: python3 porting/tests/VerifyReleaseBaseline.py
+        run: |
+          python3 porting/tests/VerifyReleaseBaseline.py
+          python3 porting/revisions/v2.0.1-release/test_release.py
 
       - name: Check legacy list interactions and download history
         run: |
@@ -228,6 +230,13 @@ jobs:
           else
             echo "new_release_published=false" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Backfill Issue #115 in previously published v2.0.0 release notes
+        if: steps.release.outputs.new_release_published == 'true' && steps.release.outputs.new_release_git_tag == 'v2.0.1'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 porting/revisions/v2.0.1-release/backfill_issue_115.py
 
       - name: Attest
         if: steps.release.outputs.new_release_published == 'true' && github.event.repository.private == false

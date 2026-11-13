@@ -197,6 +197,21 @@ def build(args, work):
             "invoke-static/range {p0 .. p1}, Le/e/a/PlaybackContinuation203;->prepared(Ljava/lang/Object;Z)V")
         (hooks / playback_file).write_text(playback)
 
+        # Tab-owned queue navigation bypasses the native fragment's next
+        # handler. Carry in-app mini state on this path as well.
+        queue_file = "TabPlayback110.smali"
+        queue = (disassembled / "e/e/a" / queue_file).read_text()
+        transfer_marker = ("    invoke-static {p0, v5, p2}, Le/e/a/TabPlayback110;"
+                           "->transfer(Ljava/lang/Object;Landroid/content/Intent;Z)V")
+        if queue.count(transfer_marker) != 1:
+            raise ValueError("Missing stable tab-owned next-video transfer")
+        queue = queue.replace(transfer_marker, transfer_marker +
+            "\n    if-nez p2, :nicoid_skip_mini203"
+            "\n    invoke-static {p0, v5}, Le/e/a/PlaybackContinuation203;"
+            "->mark(Ljava/lang/Object;Landroid/content/Intent;)V"
+            "\n    :nicoid_skip_mini203")
+        (hooks / queue_file).write_text(queue)
+
         # Preserve the native Back hook while replacing the old checkbox with a mode chooser.
         dev112_file = "Dev112.smali"
         dev112 = (disassembled / "e/e/a" / dev112_file).read_text()

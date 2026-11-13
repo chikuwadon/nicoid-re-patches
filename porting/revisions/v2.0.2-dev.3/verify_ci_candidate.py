@@ -51,7 +51,7 @@ with ZipFile(base_path) as base,ZipFile(candidate_path) as new:
     assert "Le/e/a/ScrollRestorePolicy204;" in classes
     assert "Le/e/a/ScrollRestorePolicy205;" in classes
     assert "Le/e/a/NicoliveDiagnostics;" in classes
-    for added in ("AppBarPlacement202", "NicoliveAppBarPlacement", "AmbientSettings", "AmbientLight", "MultiTabPlacement"):
+    for added in ("AppBarPlacement202", "AppBarLayoutMath202", "NicoliveAppBarPlacement", "AmbientSettings", "AmbientLight", "MultiTabPlacement"):
         assert "Le/e/a/" + added + ";" in classes, "Missing updated helper: " + added
     for fixed in ("RetainedPlayback137","PlayerIcons","PlayerTheme","NicoliveEntry","NicoliveService"):
         assert "Le/e/a/"+fixed+";" in classes, fixed

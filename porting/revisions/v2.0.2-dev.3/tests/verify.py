@@ -22,6 +22,22 @@ assert 'const/16 v12, 0xc' in builder
 assert 'native_arity = "    const/4 v12, 0x3"' in builder
 assert 'TabGestures228.smali' in builder and 'AppBarPlacement202;->touch' in builder
 assert "new String[order.length + 1]" in tab
+assert "上部：アプリバー・下部：タブバー" in tab
+assert "上部：タブバー・下部：アプリバー" in tab
+assert 'heightValue.setText("初期値 "' in tab
+assert 'border.setStroke' in tab and 'new GradientDrawable()' in tab
+assert '▣　動画情報' in tab and '▣　動画一覧' not in tab
+assert 'titleParams.leftMargin' in tab and 'LayoutParams(0,-1,1)' in tab
+assert 'panel.setPadding(pad, PanelUi.dp(c, 8)' in tab
+assert 'bar.getParent() == parent' in tab
+assert 'setClipChildren(false)' in app and 'nicoid-tab-decor-layer' in app
+assert 'nativeParent.addView(placeholder' in app and 'layer.addView(bar' in app
+assert 'AppBarLayoutMath202.calculate' in app
+assert '"ActionBarContainer"' in app and '"ContentFrameLayout"' in app
+patched_live = patch_activity((ROOT/"porting/revisions/v2.0.0-dev.1/java/e/e/a/NicoliveActivity.java").read_text())
+assert 'setTitle("ニコ生")' not in patched_live[patched_live.index("private void showHubMenu"):patched_live.index("private void showHubSettings")]
+assert 'window.setGravity(Gravity.BOTTOM|Gravity.END);' in patched_live
+assert 'window.setLayout(Math.min(available,NicoliveUi.dp(this,244))' in patched_live
 # Regression: the user log from Android 16 failed because setDependency()
 # ran before the new preference had a PreferenceManager attached.
 start=tab.index("private static void addConfiguration(PreferenceGroup group)")

@@ -34,12 +34,12 @@ def retained_media(src):
         "a.isFinishing()||(!explicitBack&&!enabled(a)))return null;",
         "guard normal app-switch preference")
     src=once(src,
-        "  /** Skip native PlaybackLifecycle219.retain() pause for our VideoView. */",
+        " /** Skip native PlaybackLifecycle219.retain() pause for our VideoView. */",
         """  public static synchronized void cancelExternal(Activity a) {
     Session s=current;
     if(s!=null&&s.source==a&&!s.committed)finish(s,false);
   }
-  /** Skip native PlaybackLifecycle219.retain() pause for our VideoView. */""",
+ /** Skip native PlaybackLifecycle219.retain() pause for our VideoView. */""",
         "abort background capture on failed task move")
     src=once(src,
         "   s.media.setActive(true);",

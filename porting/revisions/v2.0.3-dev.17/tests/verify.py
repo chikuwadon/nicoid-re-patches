@@ -20,15 +20,18 @@ with tempfile.TemporaryDirectory() as temp:
 builder=(ROOT/"build_mpp.py").read_text(encoding="utf-8")
 assert 'VERSION = "2.0.3-dev.17"' in builder
 assert "from patch_220 import OVERRIDES, stage" in builder
-start=builder.index('order_file = "Dev111.smali"')
-end=builder.index('ink_file = "CommentInk192.smali"',start)
-last_writer=builder[start:end]
-assert 'order = add_hook(order,' in last_writer
-assert 'Le/e/a/SettingsSummary217;' in last_writer
-assert '(hooks / order_file).write_text(order)' in last_writer
-assert 'order.count("Le/e/a/SettingsSummary217;->install") != 1' in last_writer
-assert builder.count('(hooks / order_file).write_text(')==1
-assert builder.count('(hooks/settings_summary_file).write_text(')==0
+start=builder.index('settings = (disassembled / "e/e/a/SettingsTools.smali").read_text()')
+end=builder.index('debug_file = "ModernDebug.smali"',start)
+settings_writer=builder[start:end]
+assert 'settings = settings.replace(anchor, anchor +' in settings_writer
+assert 'Le/e/a/NicoliveEntry;' in settings_writer
+assert 'Le/e/a/SettingsSummary217;' in settings_writer
+assert '->install(Landroid/preference/PreferenceActivity;)V' in settings_writer
+assert '(hooks / "SettingsTools.smali").write_text(settings)' in settings_writer
+assert builder.count('(hooks / "SettingsTools.smali").write_text(')==1
+late=builder[builder.index('order_file = "Dev111.smali"'):builder.index('ink_file = "CommentInk192.smali"')]
+assert '(hooks / order_file).write_text(order)' in late
+assert 'SettingsSummary217;' not in late, "Do not edit unstable Dev111 bytecode"
 assert 'SettingsSummary216;->install' not in builder
 assert "nicoid_native_mp4_fallback213" not in builder
 

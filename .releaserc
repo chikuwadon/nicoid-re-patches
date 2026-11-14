@@ -144,12 +144,6 @@
         "assets": [
           {
             "path": "patches/build/libs/patches-!(*sources*|*javadoc*).mpp?(.asc)"
-          },
-          {
-            "path": "release-assets/nicoid-re-v2.0.3-source.zip"
-          },
-          {
-            "path": "release-assets/nicoid-re-v2.0.3-source.tar.gz"
           }
         ],
         "successCommentCondition": false,

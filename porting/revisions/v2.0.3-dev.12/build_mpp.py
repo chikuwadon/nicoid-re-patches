@@ -49,7 +49,7 @@ def build_pinned_java_lame(work):
         code/"net/sourceforge/lame/mp3/Lame.java")
     library=work/"lame-core.jar"
     run("jar","cf",library,"-C",binary,".")
-    test_source=ROOT/"tests/LameSmoke213.java"
+    test_source=ROOT.parent/"v2.0.3-dev.11/tests/LameSmoke213.java"
     smoke=work/"lame-smoke"
     smoke.mkdir()
     run("javac","--release","8","-cp",library,"-d",smoke,test_source)

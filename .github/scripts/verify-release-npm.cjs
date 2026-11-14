@@ -39,9 +39,9 @@ console.log('PASS: fixed npm 12.2.2, bundled undici 6.29.1, integrity-pinned loc
 // advisory is fixed by a top-level override. Fail if another affected copy
 // enters the graph, or if the unused npm-publishing plugin becomes active.
 const isAffectedMinimatch = version => {
-  const match = /^(\\d+)\\.(\\d+)\\.(\\d+)/.exec(version || '');
-  if (!match) return true; // Unknown version must never be silently accepted.
-  const [, major, minor, patch] = match.map(Number);
+  const parts = (version || '').split('.').map(Number);
+  if (parts.length < 3 || parts.slice(0, 3).some(n => !Number.isInteger(n))) return true;
+  const [major, minor, patch] = parts;
   return major >= 7 && (major < 11 || (major === 11 && (minor === 0 && patch < 1)));
 };
 const affectedMinimatchPaths = Object.entries(lock.packages)

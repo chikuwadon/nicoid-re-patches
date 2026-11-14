@@ -58,6 +58,8 @@ jobs:
             python3 porting/revisions/v2.0.1-release/test_release.py
           elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.0\.2[[:space:]]*$' gradle.properties; then
             python3 porting/revisions/v2.0.2-release/test_release.py
+          elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.0\.3[[:space:]]*$' gradle.properties; then
+            python3 porting/revisions/v2.0.3-release/test_release.py
           else
             echo "Unsupported official release version" >&2
             exit 1
@@ -202,6 +204,8 @@ jobs:
             NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.1-mpp.sh
           elif grep -Fq "version = 2.0.2" gradle.properties; then
             NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.2-mpp.sh
+          elif grep -Fq "version = 2.0.3" gradle.properties; then
+            NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.3-mpp.sh
           else
             python3 porting/revisions/v1.11.1/verify-mpp.py 1.11.1
           fi
@@ -211,6 +215,19 @@ jobs:
           python3 porting/tests/retained-notification-regression.py
           python3 porting/tests/tap-regions-regression.py
           python3 porting/tests/tap-region-ui-regression.py
+
+      - name: Package v2.0.3 source archives
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -Eq '^version[[:space:]]*=[[:space:]]*2\.0\.3[[:space:]]*$' gradle.properties; then
+            mkdir -p release-assets
+            git archive --format=zip --output=release-assets/nicoid-re-v2.0.3-source.zip HEAD
+            git archive --format=tar.gz --output=release-assets/nicoid-re-v2.0.3-source.tar.gz HEAD
+            test -s release-assets/nicoid-re-v2.0.3-source.zip
+            test -s release-assets/nicoid-re-v2.0.3-source.tar.gz
+          fi
 
       # Use the verified project dependency tree, not an action that installs
       # its own separate (unpatched) semantic-release toolchain.

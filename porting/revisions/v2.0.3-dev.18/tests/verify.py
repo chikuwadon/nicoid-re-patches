@@ -69,7 +69,7 @@ merge=(ROOT/"MergeLiveDex.java").read_text()
 assert 'type.equals("Le/e/a/AppSwitchGuard;")' in merge
 assert 'type.startsWith("Le/e/a/AppSwitchGuard$")' in merge
 assert 'expectedHelpers.add("Le/e/a/AppSwitchGuard;");' in merge
-assert 'throw new IOException("Live dependency collides with stable helper:"' in merge
+assert 'throw new IOException("Live dependency collides with stable helper: "' in merge
 assert 'assert "Le/e/a/ExternalBack218;" in classes' in (ROOT/"verify_ci_candidate.py").read_text()
 print("PASS: actual external ACTION_VIEW Activity recognized, including task-root origin")
 print("PASS: Stop destroys the media controls before Activity finish")

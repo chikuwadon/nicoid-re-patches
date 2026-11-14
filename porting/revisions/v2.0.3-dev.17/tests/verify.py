@@ -23,9 +23,7 @@ assert "from patch_220 import OVERRIDES, stage" in builder
 start=builder.index('order_file = "Dev111.smali"')
 end=builder.index('ink_file = "CommentInk192.smali"',start)
 last_writer=builder[start:end]
-assert 'last_round = method.index("Le/e/a/Dev135;->roundSettings")' in last_writer
-assert 'final_return = method.rfind("    return-void")' in last_writer
-assert 'method[:final_return] + hook + method[final_return:]' in last_writer
+assert 'order = add_hook(order,' in last_writer
 assert 'Le/e/a/SettingsSummary217;' in last_writer
 assert '(hooks / order_file).write_text(order)' in last_writer
 assert 'order.count("Le/e/a/SettingsSummary217;->install") != 1' in last_writer
@@ -36,7 +34,8 @@ assert "nicoid_native_mp4_fallback213" not in builder
 
 settings=(ROOT/"java/e/e/a/SettingsSummary217.java").read_text()
 assert 'attach(a);' in settings.split("public static void install",1)[1].split("static PreferenceGroup parent",1)[0]
-assert 'a.getListView().post(()->attach(a))' not in settings
+assert 'a.getListView().post(()->{' in settings
+assert 'if(a.isFinishing()||a.isDestroyed())return;' in settings
 assert 'option.setDefaultValue("inherit")' in settings
 assert 'option.setOrder(order)' in settings
 assert 'link.getOrder()+1' in settings
@@ -54,7 +53,7 @@ assert 'android.util.Log.w("nicoid-settings217"' in settings
 verify=(ROOT/"verify_ci_candidate.py").read_text()
 assert '"Le/e/a/SettingsSummary217;" in classes' in verify
 print("PASS: SettingsSummary217 is installed at Dev111's final writer after sorting")
-print("PASS: initial preference and all six summaries populated synchronously")
+print("PASS: preference and six summaries populated after Dev111 sorts existing entries")
 print("PASS: preference change observer persists and preserves saved user choices")
 print("PASS: prior verified playback, audio, ambient and notification features remain")
 print("NOT VERIFIED: on-device appearance and settings preference framework timing")

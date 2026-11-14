@@ -134,6 +134,7 @@ def build(args, work):
         *sorted((ROOT.parent / "v2.0.3-dev.12/java").rglob("*.java")),
         *sorted((ROOT.parent / "v2.0.3-dev.15/java").rglob("*.java")),
         *sorted((ROOT.parent / "v2.0.3-dev.16/java").rglob("*.java")),
+        *sorted((ROOT.parent / "v2.0.3-dev.17/java").rglob("*.java")),
         *sorted((ROOT / "java").rglob("*.java")),
         *sorted(overrides.rglob("*.java")))
     live_jar = work / "live.jar"

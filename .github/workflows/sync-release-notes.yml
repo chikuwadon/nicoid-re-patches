@@ -1,7 +1,9 @@
-name: Sync edited release notes
+name: Release notes and artifact maintenance
 
 # Never rewrite a published release automatically on a branch push.
 on:
+  schedule:
+    - cron: '0 18 * * *' # Every day at 03:00 JST
   workflow_dispatch:
     inputs:
       tag:
@@ -49,3 +51,85 @@ jobs:
             cat "$note" >> /tmp/edited-release-body
           fi
           gh release edit "$TAG" --notes-file /tmp/edited-release-body
+
+  cleanup_artifacts:
+    name: Remove superseded development artifacts
+    # Never alter release notes in scheduled runs; the edit job remains manual.
+    if: github.event_name == 'schedule' && github.ref == 'refs/heads/main'
+    permissions:
+      actions: write
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Retain new and recent successful builds; delete only stale development outputs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          # We intentionally do not modify workflow runs, branches, source,
+          # or GitHub Release assets. Only artifacts with known dev-build names.
+          now=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          cutoff=$(date -u -d '24 hours ago' +'%Y-%m-%dT%H:%M:%SZ')
+          temp=$(mktemp -d)
+          trap 'rm -rf "$temp"' EXIT
+
+          gh api --paginate "repos/$GH_REPO/branches?per_page=100" --jq '.[].name' > "$temp/active_branches"
+          # Fail closed if branch discovery failed or returned nothing.
+          test -s "$temp/active_branches"
+
+          # Keep the latest two successful workflow runs of EACH active branch
+          # even when their artifacts are more than 24 hours old.
+          : > "$temp/protected_runs"
+          while IFS= read -r branch; do
+            [[ -n "$branch" ]] || continue
+            gh api --method GET "repos/$GH_REPO/actions/runs" \
+              -f branch="$branch" -f status='success' -F per_page=2 \
+              --jq '.workflow_runs[].id' >> "$temp/protected_runs"
+          done < "$temp/active_branches"
+          sort -u "$temp/protected_runs" -o "$temp/protected_runs"
+
+          gh api --paginate "repos/$GH_REPO/actions/artifacts?per_page=100" \
+            --jq '.artifacts[] | select(.expired == false) |
+              [(.id|tostring), .name, (.size_in_bytes|tostring),
+               (.workflow_run.head_branch // ""), ((.workflow_run.id // 0)|tostring),
+               .created_at] | @tsv' > "$temp/artifacts"
+
+          count=0
+          reclaimed=0
+          while IFS=$'\t' read -r id name bytes branch run_id created; do
+            [[ -n "$id" ]] || continue
+            # Do not touch official main, unknown, or deleted branches.
+            [[ -n "$branch" && "$branch" != "main" ]] || continue
+            grep -Fxq -- "$branch" "$temp/active_branches" || continue
+            # These are the only approved artifact name patterns.
+            if [[ ! "$name" =~ ^nicoid-re-v[0-9]+\.[0-9]+\.[0-9]+-dev\.[0-9]+-(mpp|source|source-targz|source-verification)$ &&
+                  "$name" != 'nicoid-re-v2-development-mpp' ]]; then
+              continue
+            fi
+            [[ "$created" < "$cutoff" ]] || continue
+            if grep -Fxq -- "$run_id" "$temp/protected_runs"; then
+              continue
+            fi
+
+            # Revalidate existence and exact name before deletion.
+            current_name=$(gh api "repos/$GH_REPO/actions/artifacts/$id" --jq '.name')
+            [[ "$current_name" == "$name" ]] || { echo "::error::Artifact $id changed"; exit 1; }
+            echo "Deleting $id : $name from $branch ($bytes bytes)"
+            gh api --method DELETE "repos/$GH_REPO/actions/artifacts/$id"
+            ((count+=1))
+            ((reclaimed+=bytes))
+          done < "$temp/artifacts"
+
+          echo "Removed $count superseded artifacts; reclaimed $reclaimed bytes"
+          {
+            echo "### Scheduled artifact cleanup"
+            echo "- Run: $now (UTC)"
+            echo "- Policy: retain artifacts younger than 24 hours, and the last two successful runs per active branch"
+            echo "- Removed: $count artifacts"
+            echo "- Reclaimed: $((reclaimed / 1024 / 1024)) MiB"
+            echo "- Unchanged: published releases, branches, workflow history, unrelated artifact types"
+          } >> "$GITHUB_STEP_SUMMARY"

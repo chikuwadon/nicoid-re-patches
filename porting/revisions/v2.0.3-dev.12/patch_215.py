@@ -83,6 +83,10 @@ def stage(base,destination):
                 '"動画・音声を保存","Save video or audio","儲存影片或音訊"',
                 "player unified save option")
         elif name=="DownloadWorker115.java":
+            # Resolve Android Service explicitly when compiling with Android 16.
+            source=once(source,"import android.app.*;",
+                        "import android.app.*;import android.app.Service;",
+                        "unambiguous native Android Service")
             source=once(source,
               'public static boolean start(Object owner,Intent input){if(!(owner instanceof Service)',
               'public static boolean start(Object owner,Intent input){if(Mp3Save214.start(owner,input))return true;if(!(owner instanceof Service)',

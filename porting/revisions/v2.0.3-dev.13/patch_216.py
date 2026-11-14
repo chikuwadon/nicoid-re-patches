@@ -146,6 +146,9 @@ def stage(base,destination):
     data=destination/"NicoliveData.java"
     data.write_text(live_program(data.read_text(encoding="utf-8")),encoding="utf-8")
     service=destination/"NicoliveService.java"
-    service.write_text(live_service((base/"NicoliveService.java").read_text(encoding="utf-8")),
+    # Previous stage already applies NicoLive popup-corner/resize fixes.
+    # Always extend the staged service, never the older v2.0.0 base class.
+    existing=service if service.is_file() else base/"NicoliveService.java"
+    service.write_text(live_service(existing.read_text(encoding="utf-8")),
                        encoding="utf-8")
     return tuple(sorted(destination.glob("*.java")))

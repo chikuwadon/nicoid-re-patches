@@ -44,11 +44,16 @@ def live_program(src):
    // The media notification tries actual broadcast artwork before avatars.
    public final ArrayList<String> mediaThumbnails=new ArrayList<String>();''',
        "program notification artwork candidates")
-    marker='''    v.programThumbnail=!v.thumbnail.isEmpty();'''
-    src=once(src,marker,marker+'''
-    // User broadcasts often omit thumbnail.huge. Previous code preferred
-    // thumbnail.small over large; small can be a placeholder or 80px avatar.
-    // The already-validated history resolver also handles OGP fallback.
+    # Do not assume the internals of Program.watch are unchanged by the
+    # previous releases; insert immediately before this method's return.
+    begin=src.index("public static Program watch(String html,String expected)")
+    finish=src.index("static Program listing",begin)
+    method=src[begin:finish]
+    if method.count("return v;")!=1:
+        raise AssertionError("NicoLive watch return anchor changed")
+    addition='''
+    // User broadcasts may have no huge thumbnail. Prefer larger program
+    // art or OGP over the default user avatar for media notifications.
     try{
      String preferred=NicoliveData.historyThumbnail(html,expected);
      addMediaArtwork(v,preferred);
@@ -58,7 +63,9 @@ def live_program(src):
      for(String field:new String[]{"large","middle","thumbnailUrl","url","small"})
       addMediaArtwork(v,thumb.optString(field,""));
     }
-''',"user program media fallback")
+    '''
+    method=method.replace("return v;",addition+"return v;")
+    src=src[:begin]+method+src[finish:]
     marker='''  /** Only explicit flags from official response data are interpreted; absence is unknown. */'''
     methods='''  static void addMediaArtwork(Program p,String url){
    if(p==null||!NicoliveArtwork.isTrusted(url)||p.mediaThumbnails.contains(url))return;

@@ -6,7 +6,7 @@ on:
       - .github/workflows/codeql-advanced.yml
       - .github/workflows/codeql-manual-probe.yml
 permissions:
-  contents: write
+  contents: read
 jobs:
   generate:
     runs-on: ubuntu-latest
@@ -23,13 +23,8 @@ jobs:
           gh actions-lock --no-narrow
           gh actions-lock --verify
           gh actions-lock --verify-local
-      - name: Commit generated lockfile
+      - name: Emit generated lockfile for reviewed repository update
         run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add .github/workflows/actions.lock
-          if ! git diff --cached --quiet; then
-            git commit -m 'ci(codeql): regenerate official workflow lockfile'
-            git push origin "HEAD:${GITHUB_REF_NAME}"
-          fi
+          echo 'CODEQL_LOCK_BEGIN'
+          cat .github/workflows/actions.lock
+          echo 'CODEQL_LOCK_END'

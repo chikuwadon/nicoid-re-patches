@@ -131,7 +131,12 @@ def live_service(src):
     });
    });
   }'''
-    return once(src,before,after,"notification media artwork retry")
+    begin=src.index("void requestArtwork(NicoliveData.Program p){")
+    end=src.index("PendingIntent action(",begin)
+    current=src[begin:end]
+    if current.count("artworkWork.submit(")!=1 or current.count("clearArtwork()")!=1:
+        raise AssertionError("NicoLive requestArtwork structure changed")
+    return src[:begin]+after.strip()+"\n  "+src[end:]
 
 def stage(base,destination):
     base,destination=Path(base),Path(destination)

@@ -637,25 +637,15 @@ def build(args, work):
         order = order.replace(desired, desired +
             "\n    invoke-static {v2, v9}, Le/e/a/MultiTabPlacement;->settingsOrder(Landroid/preference/PreferenceGroup;[Ljava/lang/String;)[Ljava/lang/String;\n"
             "    move-result-object v9\n")
-        # CRITICAL: This is the LAST writer of Dev111.smali. Inject the
-        # settings hook after the normal settings sorting + summaries, before
-        # the final return. Never place it in an earlier writer.
-        settings_signature = ".method public static settings(Landroid/preference/PreferenceActivity;)V"
-        begin = order.index(settings_signature)
-        end = order.index(".end method", begin)
-        method = order[begin:end]
-        if method.count("Le/e/a/Dev135;->roundSettings") != 1:
-            raise ValueError("Dev111 settings layout changed; refusing an unsafe hook")
-        last_round = method.index("Le/e/a/Dev135;->roundSettings")
-        final_return = method.rfind("    return-void")
-        if final_return < last_round or final_return < 0:
-            raise ValueError("No final settings return after sorting")
-        hook = ("    invoke-static {p0}, Le/e/a/SettingsSummary217;"
-                "->install(Landroid/preference/PreferenceActivity;)V\n\n")
-        method = method[:final_return] + hook + method[final_return:]
-        order = order[:begin] + method + order[end:]
+        # CRITICAL: Dev111 is written only once, after its tab order patch.
+        # Appending the hook in an earlier writer loses it. Use the proven
+        # add_hook method entry, which has safe register layout in stable DEX.
+        order = add_hook(order,
+            ".method public static settings(Landroid/preference/PreferenceActivity;)V",
+            "invoke-static {p0}, Le/e/a/SettingsSummary217;"
+            "->install(Landroid/preference/PreferenceActivity;)V")
         if order.count("Le/e/a/SettingsSummary217;->install") != 1:
-            raise ValueError("Settings installer must be invoked exactly once")
+            raise ValueError("Final Dev111 settings hook missing or duplicated")
         (hooks / order_file).write_text(order)
 
         ink_file = "CommentInk192.smali"

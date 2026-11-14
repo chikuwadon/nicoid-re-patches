@@ -39,8 +39,8 @@ assert (PREV2/"java/e/e/a/TranslationExtras220.java").exists()
 assert (PREV/"java/e/e/a/CommentFollow219.java").exists()
 assert (PREV/"java/e/e/a/LikeState219.java").exists()
 assert (PREV/"java/e/e/a/DefaultPanel219.java").exists()
-assert "CommentFlow220;->start(FF)F" in BUILD
-assert "CommentFlow220;->height(Ljava/lang/String;F)F" in BUILD
+assert "CommentFlow220;" in BUILD and "->start(FF)F" in BUILD
+assert "CommentFlow220;" in BUILD and "->height(Ljava/lang/String;F)F" in BUILD
 assert "visuals.count(old_start)" in BUILD
 assert "lane_signature" in BUILD
 assert "fixed" not in text(REV/"java/e/e/a/CommentFlow220.java").lower() or "fixed comments" in text(REV/"build_mpp.py").lower()

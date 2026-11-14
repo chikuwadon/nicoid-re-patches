@@ -23,7 +23,7 @@ with ZipFile(base_path) as base,ZipFile(candidate_path) as new:
     expected=next((line.split('"')[1] for line in (Path(__file__).parent/"build_mpp.py").read_text().splitlines()
                    if line.startswith('VERSION = "')), None)
     assert expected and expected == "2.0.4", expected
-    assert b"Version: 2.0.4-dev.18\r\n" not in new.read("META-INF/MANIFEST.MF"), "Development version leaked into release"
+    assert b"Version: 2.0.4-dev.1\r\n" not in new.read("META-INF/MANIFEST.MF"), "Development version leaked into release"
     assert b"Version: "+expected.encode()+bytes((13,10)) in new.read("META-INF/MANIFEST.MF")
     with ZipFile(io.BytesIO(base.read("nicoid/resources.zip"))) as original,ZipFile(io.BytesIO(new.read("nicoid/resources.zip"))) as updated:
         assert original.namelist()==updated.namelist()

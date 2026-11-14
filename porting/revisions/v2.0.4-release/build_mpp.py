@@ -9,7 +9,7 @@ from tempfile import TemporaryDirectory
 
 VERSION = "2.0.4"
 ROOT = Path(__file__).resolve().parent
-DEVELOPMENT = ROOT.parent / "v2.0.4-dev.18"
+DEVELOPMENT = ROOT.parent / "v2.0.3-dev.18"
 sys.path.insert(0, str(DEVELOPMENT))
 spec = importlib.util.spec_from_file_location("nicoid_approved_dev18_builder", DEVELOPMENT / "build_mpp.py")
 builder = importlib.util.module_from_spec(spec)

@@ -65,7 +65,10 @@ public final class ExternalBack218 {
     public static synchronized void resumed(Activity a){CHOSEN.remove(a);}
     private static synchronized void mark(Activity a,String action){CHOSEN.put(a,action);}
     public static boolean back(Activity a){
-        if(!isExternalVideo(a))return false;
+        boolean external=isExternalVideo(a);
+        Log.i("nicoid-external-back","Back intercepted activity="+
+              (a==null?"null":a.getClass().getName())+" external="+external);
+        if(!external)return false;
         String action=PreferenceManager.getDefaultSharedPreferences(a).getString(KEY,"inherit");
         Log.i("nicoid-external-back","external Back policy="+action+" activity="+a.getClass().getName()
               +" taskRoot="+a.isTaskRoot());

@@ -739,7 +739,18 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ github.ref == 'refs/heads/dev' && 'nicoid-re-v2.0.3-dev.14-source' || 'nicoid-re-v2.0.0-dev-source' }}
-          path: /tmp/nicoid-v2-source/*
+          path: /tmp/nicoid-v2-source/*-source.zip
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 2
+
+      # Keep both source formats, but avoid forcing every user to download
+      # both copies when only ZIP or tar.gz is required.
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ github.ref == 'refs/heads/dev' && 'nicoid-re-v2.0.3-dev.14-source-targz' || 'nicoid-re-v2.0.0-dev-source-targz' }}
+          path: /tmp/nicoid-v2-source/*-source.tar.gz
+          compression-level: 0
           if-no-files-found: error
           retention-days: 2
 

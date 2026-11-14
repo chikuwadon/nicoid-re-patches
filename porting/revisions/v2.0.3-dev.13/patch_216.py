@@ -66,7 +66,7 @@ def live_program(src):
     '''
     method=method.replace("return v;",addition+"return v;")
     src=src[:begin]+method+src[finish:]
-    marker='''  /** Only explicit flags from official response data are interpreted; absence is unknown. */'''
+    marker="public static final class Program {"
     methods='''  static void addMediaArtwork(Program p,String url){
    if(p==null||!NicoliveArtwork.isTrusted(url)||p.mediaThumbnails.contains(url))return;
    if(p.mediaThumbnails.size()<8)p.mediaThumbnails.add(url);

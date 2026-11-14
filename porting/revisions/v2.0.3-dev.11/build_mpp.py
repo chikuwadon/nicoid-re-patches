@@ -209,6 +209,37 @@ def build(args, work):
             "\n    :nicoid_native_mp4_fallback213")
         (hooks/worker_file).write_text(mp4_worker)
 
+        # Saved MP3 files use audio/mpeg, while all MP4 jobs retain the
+        # original video/mp4 opening path and download-manager behavior.
+        download_ui_file="DownloadUi115.smali"
+        download_ui=(disassembled/"e/e/a"/download_ui_file).read_text()
+        download_ui=add_hook(download_ui,
+            ".method static open(Landroid/app/Activity;Le/e/a/DownloadJobs115$Job;Z)V",
+            "invoke-static/range {p0 .. p2}, Le/e/a/Mp3Save213;"
+            "->openIfMp3(Landroid/app/Activity;Le/e/a/DownloadJobs115$Job;Z)Z"
+            "\n    move-result v0"
+            "\n    if-eqz v0, :nicoid_native_mp4_open213"
+            "\n    return-void"
+            "\n    :nicoid_native_mp4_open213")
+        (hooks/download_ui_file).write_text(download_ui)
+        manager_file="DownloadUi115$Manager.smali"
+        manager=(disassembled/"e/e/a"/manager_file).read_text()
+        signature=".method public getView(ILandroid/view/View;Landroid/view/ViewGroup;)Landroid/view/View;"
+        start=manager.index(signature)
+        end=manager.index(".end method",start)
+        method=manager[start:end]
+        match=re.search(r"(?m)^    return-object ([vp][0-9]+)$",method)
+        if match is None or len(re.findall(r"(?m)^    return-object [vp][0-9]+$",method))!=1:
+            raise ValueError("Cannot identify saved download row return")
+        result_register=match.group(1)
+        method=method.replace(match.group(0),
+             "    invoke-static {"+result_register+", p0, p1}, Le/e/a/Mp3Save213;"
+             "->decorateRow(Landroid/view/View;Ljava/lang/Object;I)V\n\n"
+             +match.group(0))
+        manager=manager[:start]+method+manager[end:]
+        manager=manager.replace("MP4を削除しますか？","保存済みファイルを削除しますか？")
+        (hooks/manager_file).write_text(manager)
+
         # Include live playback diagnostics in the existing Debug > Share output.
         # Preserve the stable debug UI and save location.
         debug_file = "ModernDebug.smali"

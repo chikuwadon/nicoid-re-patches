@@ -694,6 +694,12 @@ jobs:
           test -s /tmp/nicoid-v2-android-classes/e/e/a/NicoliveData.class
           echo "Complete live Java source compiled. No original APK was used or distributed."
 
+      - name: Build current Morphe Kotlin patch classes for v2.0.4-dev.1
+        if: github.ref == 'refs/heads/dev'
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid --no-daemon
       - name: Build guarded v2 candidate MPP from stable release and validated sources
         if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/v2.0.0-dev'
         shell: bash
@@ -716,7 +722,11 @@ jobs:
             --compile-jar /tmp/nicoid-v2-okio.jar \
             --output "$payload"
           python3 "$builder/verify_ci_candidate.py" /tmp/stable-nicoid.mpp "$payload"
-          python3 "$builder/combine_mpp.py" "patches/build/libs/patches-$version.mpp" "$payload" "$output"
+          if [[ "$GITHUB_REF" == "refs/heads/dev" ]]; then
+            python3 "$builder/combine_mpp.py" "patches/build/libs/patches-$version.mpp" "$payload" "$output"
+          else
+            cp "$payload" "$output"
+          fi
           unzip -p "$output" META-INF/MANIFEST.MF | grep -Fq "Version: $version"
           mkdir -p /tmp/nicoid-v2-delivery
           cp "$output" /tmp/nicoid-v2-delivery/

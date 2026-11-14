@@ -45,6 +45,7 @@ with tempfile.TemporaryDirectory() as temporary:
     assert 'if(bitmap!=null)updateNotification()' in service
     assert 'NicoliveDiagnostics.record("ARTWORK","candidates="' in service
     assert "programId.equals(program.id)" in service
+    assert "void cornerResizePopup(" in service, "NicoLive popup corner resizing must be preserved"
     assert "clearArtwork()" in service
 
     ambient=(staged/"AmbientLight.java").read_text()

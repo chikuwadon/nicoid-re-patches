@@ -42,6 +42,30 @@ def patch_ui(source):
                           "保存したファイルは外部の再生アプリで開けます")
     return source
 
+def balance_side_gutters(source):
+    before="""                    normalEdgeLimits[2]=Math.min(sideReach,Math.max(0,visiblePicture.left));
+                    normalEdgeLimits[3]=Math.min(sideReach,Math.max(0,parentWidth-visiblePicture.right));"""
+    after="""                    int leftGutter=Math.max(0,visiblePicture.left);
+                    int rightGutter=Math.max(0,parentWidth-visiblePicture.right);
+                    // The old sideReach value was clamped at 108dp even
+                    // when the 9:16 black gutters were 442px wide. Extend
+                    // both sides to the same actual gutter width without
+                    // painting inside the video or outside the player.
+                    if(!split && leftGutter>0 && rightGutter>0){
+                        int symmetric=Math.min(perimeterGlow.spread,
+                                Math.min(leftGutter,rightGutter));
+                        normalEdgeLimits[2]=symmetric;
+                        normalEdgeLimits[3]=symmetric;
+                    }else{
+                        normalEdgeLimits[2]=Math.min(sideReach,leftGutter);
+                        normalEdgeLimits[3]=Math.min(sideReach,rightGutter);
+                    }
+                    AmbientGeometryTrace.record("normal-gutter measured L="+leftGutter
+                            +" R="+rightGutter+" draw L="+normalEdgeLimits[2]
+                            +" R="+normalEdgeLimits[3]);"""
+    return once(source,before,after,"symmetric full-depth normal gutters")
+
+
 def stage(base,destination):
     base,destination=Path(base),Path(destination)
     previous.stage(base,destination)
@@ -64,4 +88,7 @@ def stage(base,destination):
               'public static boolean start(Object owner,Intent input){if(Mp3Save214.start(owner,input))return true;if(!(owner instanceof Service)',
               "safe Java MP3 worker dispatch")
         (destination/name).write_text(source,encoding="utf-8")
+    ambient=destination/"AmbientLight.java"
+    ambient.write_text(balance_side_gutters(ambient.read_text(encoding="utf-8")),
+                       encoding="utf-8")
     return tuple(sorted(destination.glob("*.java")))

@@ -19,8 +19,10 @@ const plugins = config.plugins.map(plugin => Array.isArray(plugin) ? plugin[0] :
 
 assert.ok(!plugins.includes('@semantic-release/npm'),
   'The project must not enable npm registry publishing without a separate review');
-assert.equal(pkg.overrides['@semantic-release/npm'], 'file:./' + stubPath,
+assert.equal(pkg.devDependencies['@semantic-release/npm'], 'file:./' + stubPath,
   'Unused npm publication plugin must be replaced by a local stub');
+assert.equal(pkg.overrides['@semantic-release/npm'], undefined,
+  'Do not use an npm override to substitute the unused plugin');
 assert.equal(pkg.overrides.npm, undefined,
   'Do not force an unused, bundled npm CLI into the dependency tree');
 assert.equal(stub.name, '@semantic-release/npm');

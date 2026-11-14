@@ -14,7 +14,8 @@ final class MergeLiveDex {
     }
 
     private static boolean updatedHelper(String type) {
-        return type.equals("Le/e/a/RetainedPlayback137;") || type.startsWith("Le/e/a/RetainedPlayback137$")
+        return type.equals("Le/e/a/AppSwitchGuard;") || type.startsWith("Le/e/a/AppSwitchGuard$")
+            || type.equals("Le/e/a/RetainedPlayback137;") || type.startsWith("Le/e/a/RetainedPlayback137$")
             || type.equals("Le/e/a/PlayerIcons;") || type.startsWith("Le/e/a/PlayerIcons$")
             || type.equals("Le/e/a/PlayerTheme;") || type.startsWith("Le/e/a/PlayerTheme$")
             || type.equals("Le/e/a/AmbientSettings;") || type.startsWith("Le/e/a/AmbientSettings$")
@@ -68,6 +69,7 @@ final class MergeLiveDex {
         }
         if (!types.containsAll(replacements)) throw new IOException("Unknown replacement class");
         Set<String> expectedHelpers = new HashSet<>();
+        expectedHelpers.add("Le/e/a/AppSwitchGuard;");
         expectedHelpers.add("Le/e/a/RetainedPlayback137;");
         expectedHelpers.add("Le/e/a/PlayerIcons;");
         expectedHelpers.add("Le/e/a/PlayerTheme;");

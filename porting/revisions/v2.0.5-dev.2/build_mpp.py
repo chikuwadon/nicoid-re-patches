@@ -278,11 +278,11 @@ def build(args, work):
         (hooks/like_file).write_text(like)
 
         # Translate native comment visual examples and spinner choices.
-        # The labels are rendered from smali, not through the Java settings title.
+        # These labels bypass the Java-based settings translations.
         preview_name="CommentSettings194$Preview.smali"
         preview=(disassembled/"e/e/a"/preview_name).read_text()
         samples={"上固定コメント","通常コメント","色付きコメント",
-                 "複数行コメント\\n2行目","下固定コメント"}
+                 "複数行コメント\n2行目","下固定コメント"}
         seen=set()
         def localize_sample(match):
             reg,encoded=match.group(1),match.group(2)
@@ -292,10 +292,10 @@ def build(args, work):
                 return match.group(0)
             if value not in samples:return match.group(0)
             seen.add(value)
-            return (match.group(0)+"\\n\\n    invoke-static {"+reg+
+            return (match.group(0)+"\n\n    invoke-static {"+reg+
                 "}, Le/e/a/UiStrings;->translate(Ljava/lang/String;)Ljava/lang/String;"+
-                "\\n    move-result-object "+reg)
-        preview=re.sub(r'(?m)^    const-string ([vp][0-9]+), ("(?:\\\\.|[^"\\\\])*")',
+                "\n    move-result-object "+reg)
+        preview=re.sub(r'(?m)^    const-string ([vp][0-9]+), ("(?:\\.|[^"\\])*")',
                        localize_sample,preview)
         if seen!=samples:
             raise ValueError("Comment preview translation labels missing: "+str(samples-seen))
@@ -303,12 +303,12 @@ def build(args, work):
         editor_name="CommentSettings194$Editor.smali"
         editor=(disassembled/"e/e/a"/editor_name).read_text()
         select_head=(".method select([Ljava/lang/String;ILe/e/a/CommentSettings194$Editor$Choice;)"
-                     "Landroid/widget/Spinner;\\n    .registers 8\\n\\n    .line 336")
+                     "Landroid/widget/Spinner;\n    .registers 8\n\n    .line 336")
         if editor.count(select_head)!=1:
             raise ValueError("Comment spinner selector changed")
         editor=editor.replace(select_head,select_head +
-            "\\n\\n    invoke-static {p1}, Le/e/a/TranslationExtras220;->array([Ljava/lang/String;)[Ljava/lang/String;"+
-            "\\n    move-result-object p1")
+            "\n\n    invoke-static {p1}, Le/e/a/TranslationExtras220;->array([Ljava/lang/String;)[Ljava/lang/String;"+
+            "\n    move-result-object p1")
         (hooks/editor_name).write_text(editor)
 
         # The native popup fullscreen control goes through PlaybackReturn.open,

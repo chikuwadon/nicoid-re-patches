@@ -1,43 +1,35 @@
-name: CodeQL Java/Kotlin extraction trial (no upload)
+name: Temporary CodeQL workflow lock generation
 on:
   push:
     branches: [audit/codeql-morphe-manual]
-  workflow_dispatch:
+    paths:
+      - .github/workflows/codeql-advanced.yml
+      - .github/workflows/codeql-manual-probe.yml
 permissions:
-  contents: read
-  packages: read
-  security-events: write
-concurrency:
-  group: codeql-manual-probe-${{ github.ref }}
-  cancel-in-progress: true
+  contents: write
 jobs:
-  java-kotlin:
-    name: Analyze Java/Kotlin with Morphe build
+  generate:
     runs-on: ubuntu-latest
-    timeout-minutes: 65
-    env:
-      GITHUB_ACTOR: ${{ github.actor }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
-        with:
-          distribution: temurin
-          java-version: '25'
-      - name: Prepare reliable Gradle downloads
+      - name: Generate official dependency lockfile without this temporary workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          sed -i 's#https\\://services.gradle.org/distributions/gradle-9.9.1-bin.zip#https\\://downloads.gradle.org/distributions/gradle-9.9.1-bin.zip#' gradle/wrapper/gradle-wrapper.properties
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
-        with:
-          languages: java-kotlin
-          build-mode: manual
-      - name: Trace full supported build
-        run: ./gradlew clean :patches:buildAndroid :patches:generatePatchesList --no-daemon --no-build-cache --rerun-tasks
-      - name: Analyze without uploading to Default setup
-        uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
-        with:
-          upload: never
-          upload-database: false
+          set -euo pipefail
+          gh extension install github/gh-actions-lock --pin v0.4.1
+          rm .github/workflows/codeql-manual-probe.yml
+          gh actions-lock --no-narrow
+          gh actions-lock --verify
+          gh actions-lock --verify-local
+      - name: Commit generated lockfile
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/workflows/actions.lock
+          if ! git diff --cached --quiet; then
+            git commit -m 'ci(codeql): regenerate official workflow lockfile'
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi

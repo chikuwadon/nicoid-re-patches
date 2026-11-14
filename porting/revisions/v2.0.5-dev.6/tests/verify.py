@@ -87,8 +87,8 @@ assert "Math.min(getWidth(), getHeight()) * .31f" in PREVIOUS_UI
 assert "PopupControl222.smali" in BUILD
 assert "PopupReturnIcon223.smali" in BUILD
 assert "PlayerButtons193.smali" in BUILD
-assert "DialogCorner242;->style" in BUILD
-assert "DialogCorner242;->install" in BUILD
+assert "DialogCorner242;" in BUILD and "->style(Landroid/app/Dialog;)V" in BUILD
+assert "DialogCorner242;" in BUILD and "->install(Landroid/preference/PreferenceActivity;)V" in BUILD
 assert "original.onPreferenceClick" in DIALOG
 assert "getDialog()" in DIALOG and "UiTheme191.window(dialog)" in DIALOG
 print("PASS: visible ambient and normal controls by default, ambient after quality")

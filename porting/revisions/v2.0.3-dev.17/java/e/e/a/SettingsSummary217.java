@@ -25,15 +25,17 @@ public final class SettingsSummary217 {
 
     public static void install(PreferenceActivity a){
         if(a==null||a.isFinishing())return;
-        // This is invoked from the LAST return of Dev111.settings(), after
-        // its sorting and summary updates have completed. Synchronous install
-        // ensures SettingsTools' search snapshot includes our new preference.
-        try {
-            attach(a);
-            android.util.Log.i("nicoid-settings217","Installed external Back setting and six summaries");
-        } catch(RuntimeException failure) {
-            android.util.Log.e("nicoid-settings217","Could not install settings",failure);
-        }
+        // The native bridge is now in the final Dev111.smali writer.
+        // Defer the actual change until Dev111 finishes sorting preferences.
+        a.getListView().post(()->{
+            if(a.isFinishing()||a.isDestroyed())return;
+            try {
+                attach(a);
+                android.util.Log.i("nicoid-settings217","Installed external Back setting and six summaries");
+            } catch(RuntimeException failure) {
+                android.util.Log.e("nicoid-settings217","Could not install settings",failure);
+            }
+        });
     }
 
     static PreferenceGroup parent(PreferenceGroup group,Preference p){

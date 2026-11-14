@@ -26,7 +26,8 @@ assert 'python3 "$official/combine_mpp.py" "$compiled" "$payload" "$bundle"' in 
 assert 'python3 "$official/verify_mpp.py"' in STAGE
 assert 'FIX_MARKER = b"Missing original nicoid 6.49 APK entry"' in COMBINE
 assert "compiled.read(entry.filename)" in COMBINE
-assert "2.0.4" in VERIFY and "2.0.4-dev.1" not in VERIFY
+assert 'expected == "2.0.4"' in VERIFY
+assert "Version: 2.0.4-dev.1" in VERIFY  # Reject development manifests
 assert 'get("resources.arsc")' in KOTLIN
 assert "binaryManifest.takeIf { it.isFile }" in KOTLIN
 assert "check(actual == expected)" in KOTLIN

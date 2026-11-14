@@ -38,7 +38,7 @@ def downloads(src):
     return src
 
 def live_program(src):
-    marker='''   public String id,title="",owner="",description="",thumbnail="",status="",provider="",socket="",quality="abr";'''
+    marker="public static final class Program {"
     src=once(src,marker,marker+'''
    // Kept separate from the thumbnail used in on-screen program listings.
    // The media notification tries actual broadcast artwork before avatars.

@@ -384,7 +384,7 @@ jobs:
         with:
           node-version: '26'
           package-manager-cache: false
-      - name: Validate updated npm lockfile and release tooling (Issue #110)
+      - name: Validate locked release tooling without npm-registry publishing
         run: |
           set -euo pipefail
           npm ci --ignore-scripts --no-audit --no-fund
@@ -392,7 +392,7 @@ jobs:
           node --input-type=module <<'NODE'
           import semanticRelease from 'semantic-release';
           if (typeof semanticRelease !== 'function') throw Error('semantic-release CLI invalid');
-          console.log('PASS: pinned npm 12.2.2 dependency, bundled undici 6.29.1, Node 26, semantic-release import');
+          console.log('PASS: unused npm publication plugin disabled, Node 26, semantic-release import');
           NODE
 
   actions-lock-verify:

@@ -106,7 +106,7 @@ jobs:
         with:
           node-version: '26'
           cache: npm
-      - name: Audit fixed npm and locked build dependencies
+      - name: Audit locked build-tool dependencies
         shell: bash
         run: |
           set -euo pipefail

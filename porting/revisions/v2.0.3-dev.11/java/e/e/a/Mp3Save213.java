@@ -144,6 +144,43 @@ public final class Mp3Save213 {
   }catch(Exception e){android.util.Log.w("nicoid-mp3","Cannot install MP3 list action",e);}
  }
 
+ /** A compiled menu row is recycled by the existing MP4/Cache manager.
+  * Set MP3 label only on MP3 jobs; leave all other rows untouched. */
+ public static void decorateRow(View view,Object adapter,int index){
+  try{
+   if(!(adapter instanceof DownloadUi115.Manager)||!(view instanceof ViewGroup))return;
+   DownloadUi115.Manager m=(DownloadUi115.Manager)adapter;
+   if(index<0||index>=m.rows.size())return;
+   DownloadUi115.Row row=m.rows.get(index);
+   if(!isMp3(row.job))return;
+   View label=((ViewGroup)view).getChildAt(1);
+   if(label instanceof TextView){
+    String text=((TextView)label).getText().toString();
+    if(text.startsWith("MP4"))((TextView)label).setText("MP3"+text.substring(3));
+   }
+  }catch(Exception e){android.util.Log.w("nicoid-mp3","Cannot update MP3 row",e);}
+ }
+
+ /** Preserve native MP4 opening but use the correct MIME for true MP3. */
+ public static boolean openIfMp3(Activity activity,DownloadJobs115.Job job,boolean share){
+  if(!isMp3(job))return false;
+  if(activity==null||job.uri==null||job.uri.isEmpty())return true;
+  try{
+   Uri uri=Uri.parse(job.uri);
+   Intent target=share
+       ?new Intent(Intent.ACTION_SEND).setType("audio/mpeg")
+          .putExtra(Intent.EXTRA_STREAM,uri)
+       :new Intent(Intent.ACTION_VIEW).setDataAndType(uri,"audio/mpeg");
+   target.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+   target.setClipData(android.content.ClipData.newRawUri(job.title,uri));
+   activity.startActivity(Intent.createChooser(target,
+       share?"MP3を共有":"音声アプリで開く"));
+  }catch(Exception e){
+   Toast.makeText(activity,"MP3を開けませんでした",Toast.LENGTH_LONG).show();
+  }
+  return true;
+ }
+
  /** Entry hook in DownloadWorker115.start before the MP4-only implementation. */
  public static boolean start(Object owner,Intent intent){
   if(!(owner instanceof Service)||intent==null)return false;

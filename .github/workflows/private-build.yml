@@ -11,7 +11,7 @@ permissions:
 
 concurrency:
   # Separate the v2.0.3-dev.7 validation queue from a stale uncancellable dev run.
-  group: private-build-v203dev15-${{ github.ref }}
+  group: private-build-v203dev16-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -613,6 +613,9 @@ jobs:
       - name: Verify v2.0.3-dev.15 queued control pre-reveal ordering
         if: github.ref == 'refs/heads/dev'
         run: python3 porting/revisions/v2.0.3-dev.15/tests/verify.py
+      - name: Verify v2.0.3-dev.16 external-link back, settings summaries and media controls
+        if: github.ref == 'refs/heads/dev'
+        run: python3 porting/revisions/v2.0.3-dev.16/tests/verify.py
       - name: Test double-Back timing boundaries
         shell: bash
         run: |
@@ -691,8 +694,8 @@ jobs:
           builder="$revision"
           version=2.0.0-dev.1-27
           if [[ "$GITHUB_REF" == "refs/heads/dev" ]]; then
-            builder=porting/revisions/v2.0.3-dev.15
-            version=2.0.3-dev.15
+            builder=porting/revisions/v2.0.3-dev.16
+            version=2.0.3-dev.16
           fi
           output="/tmp/nicoid-re-$version.mpp"
           python3 "$builder/build_mpp.py" \
@@ -721,7 +724,7 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/v2.0.0-dev'
         with:
-          name: ${{ github.ref == 'refs/heads/dev' && 'nicoid-re-v2.0.3-dev.15-mpp' || 'nicoid-re-v2.0.0-dev-mpp' }}
+          name: ${{ github.ref == 'refs/heads/dev' && 'nicoid-re-v2.0.3-dev.16-mpp' || 'nicoid-re-v2.0.0-dev-mpp' }}
           path: /tmp/nicoid-v2-delivery/*
           compression-level: 0
           if-no-files-found: error
@@ -733,7 +736,7 @@ jobs:
           set -euo pipefail
           mkdir -p /tmp/nicoid-v2-source
           version=2.0.3-dev.5
-          if [[ "$GITHUB_REF" == "refs/heads/dev" ]]; then version=2.0.3-dev.15; fi
+          if [[ "$GITHUB_REF" == "refs/heads/dev" ]]; then version=2.0.3-dev.16; fi
           git archive -9 --format=zip --output="/tmp/nicoid-v2-source/nicoid-re-$version-source.zip" HEAD
           git archive -9 --format=tar.gz --output="/tmp/nicoid-v2-source/nicoid-re-$version-source.tar.gz" HEAD
           unzip -tq "/tmp/nicoid-v2-source/nicoid-re-$version-source.zip"
@@ -741,7 +744,7 @@ jobs:
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: ${{ github.ref == 'refs/heads/dev' && 'nicoid-re-v2.0.3-dev.15-source' || 'nicoid-re-v2.0.0-dev-source' }}
+          name: ${{ github.ref == 'refs/heads/dev' && 'nicoid-re-v2.0.3-dev.16-source' || 'nicoid-re-v2.0.0-dev-source' }}
           path: /tmp/nicoid-v2-source/*-source.zip
           compression-level: 0
           if-no-files-found: error
@@ -751,7 +754,7 @@ jobs:
       # both copies when only ZIP or tar.gz is required.
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: ${{ github.ref == 'refs/heads/dev' && 'nicoid-re-v2.0.3-dev.15-source-targz' || 'nicoid-re-v2.0.0-dev-source-targz' }}
+          name: ${{ github.ref == 'refs/heads/dev' && 'nicoid-re-v2.0.3-dev.16-source-targz' || 'nicoid-re-v2.0.0-dev-source-targz' }}
           path: /tmp/nicoid-v2-source/*-source.tar.gz
           compression-level: 0
           if-no-files-found: error

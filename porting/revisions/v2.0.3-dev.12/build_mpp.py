@@ -660,7 +660,7 @@ def build(args, work):
         hook_dex = work / "hooks.dex"
         run("java", "-cp", smali, "org.jf.smali.Main", "assemble", work / "hooks", "-o", hook_dex)
         merged = work / "helpers.mpe"
-        run("java", "-jar", tools / "ecj.jar", "-21", "-proc:none", "-cp", smali_compile, "-d", work, ROOT.parent / "v2.0.2-dev.4/MergeLiveDex.java")
+        run("java", "-jar", tools / "ecj.jar", "-21", "-proc:none", "-cp", smali_compile, "-d", work, ROOT / "MergeLiveDex.java")
         run("java", "-cp", str(work) + os.pathsep + smali, "MergeLiveDex",
             original, hook_dex, live_dex, merged)
 

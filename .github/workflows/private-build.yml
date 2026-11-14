@@ -622,6 +622,9 @@ jobs:
       - name: Verify v2.0.3-dev.18 external link Back priority and MediaSession cleanup
         if: github.ref == 'refs/heads/dev'
         run: python3 porting/revisions/v2.0.3-dev.18/tests/verify.py
+      - name: Verify Morphe 2.3 on-demand RAW_ONLY manifest handling
+        if: github.ref == 'refs/heads/dev'
+        run: python3 porting/revisions/v2.0.4-dev.1/tests/verify.py
       - name: Test double-Back timing boundaries
         shell: bash
         run: |
@@ -700,8 +703,8 @@ jobs:
           builder="$revision"
           version=2.0.0-dev.1-27
           if [[ "$GITHUB_REF" == "refs/heads/dev" ]]; then
-            builder=porting/revisions/v2.0.3-dev.18
-            version=2.0.3-dev.18
+            builder=porting/revisions/v2.0.4-dev.1
+            version=2.0.4-dev.1
           fi
           output="/tmp/nicoid-re-$version.mpp"
           python3 "$builder/build_mpp.py" \
@@ -730,7 +733,7 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/v2.0.0-dev'
         with:
-          name: ${{ github.ref == 'refs/heads/dev' && 'nicoid-re-v2.0.3-dev.18-mpp' || 'nicoid-re-v2.0.0-dev-mpp' }}
+          name: ${{ github.ref == 'refs/heads/dev' && 'nicoid-re-v2.0.4-dev.1-mpp' || 'nicoid-re-v2.0.0-dev-mpp' }}
           path: /tmp/nicoid-v2-delivery/*
           compression-level: 0
           if-no-files-found: error

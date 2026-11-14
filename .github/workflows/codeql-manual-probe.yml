@@ -1,0 +1,43 @@
+name: CodeQL Java/Kotlin extraction trial (no upload)
+on:
+  push:
+    branches: [audit/codeql-morphe-manual]
+  workflow_dispatch:
+permissions:
+  contents: read
+  packages: read
+  security-events: write
+concurrency:
+  group: codeql-manual-probe-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  java-kotlin:
+    name: Analyze Java/Kotlin with Morphe build
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    env:
+      GITHUB_ACTOR: ${{ github.actor }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Prepare reliable Gradle downloads
+        run: |
+          sed -i 's#https\\://services.gradle.org/distributions/gradle-9.9.1-bin.zip#https\\://downloads.gradle.org/distributions/gradle-9.9.1-bin.zip#' gradle/wrapper/gradle-wrapper.properties
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          languages: java-kotlin
+          build-mode: manual
+      - name: Trace full supported build
+        run: ./gradlew clean :patches:buildAndroid :patches:generatePatchesList --no-daemon --no-build-cache --rerun-tasks
+      - name: Analyze without uploading to Default setup
+        uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          upload: never
+          upload-database: false

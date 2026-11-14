@@ -635,7 +635,7 @@ jobs:
           set -euo pipefail
           revision=porting/revisions/v2.0.5-dev.5
           mkdir -p /tmp/nicoid-comment-flow-tests
-          javac --release 8 -d /tmp/nicoid-comment-flow-tests "$revision/java/e/e/a/CommentFlow220.java" "$revision/tests/CommentFlow220Test.java"
+          javac --release 8 -d /tmp/nicoid-comment-flow-tests "porting/revisions/v2.0.5-dev.4/java/e/e/a/CommentFlow220.java" "$revision/tests/CommentFlow220Test.java"
           java -cp /tmp/nicoid-comment-flow-tests CommentFlow220Test
       - name: Test double-Back timing boundaries
         shell: bash

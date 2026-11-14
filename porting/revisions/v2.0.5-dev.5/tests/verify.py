@@ -46,7 +46,7 @@ assert "lane_signature" in BUILD
 assert "CommentFlow220;" in BUILD and "->fallback(Ljava/lang/Object;Ljava/lang/Object;FII)I" in BUILD
 assert "if-gez v1, :nicoid_choose_crowded_lane_220" in BUILD
 assert "fixed" in BUILD
-assert "Fixed comments are excluded" in text(REV/"java/e/e/a/CommentFlow220.java")
+assert "Fixed comments are excluded" in text(ROOT/"porting/revisions/v2.0.5-dev.4/java/e/e/a/CommentFlow220.java")
 assert "v2.0.5-dev.5" in WORKFLOW
 assert "porting/revisions/v2.0.5-dev.5/tests/verify.py" in WORKFLOW
 # Validate the 18-category / 79-setting layout without manufacturing preferences.

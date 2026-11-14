@@ -4,6 +4,7 @@ on:
     branches: [security/minimatch-bundled-risk-guard]
     paths:
       - package.json
+      - .github/scripts/verify-release-npm.cjs
       - .github/stubs/semantic-release-npm-disabled/**
       - .github/workflows/temporary-minimatch-lock.yml
 permissions:

@@ -137,6 +137,7 @@ public final class SettingsCategories241 {
   String[] labels=CATEGORIES[which];
   created.setTitle(PanelUi.tr(a,labels[0],labels[1],labels[2]));
   created.setOrder(which);
+  created.setOrderingAsAdded(false);
   root.addPreference(created);
   return created;
  }
@@ -173,12 +174,11 @@ public final class SettingsCategories241 {
     if(groups[target[0]]==null)groups[target[0]]=category(a,root,target[0]);
     PreferenceGroup targetGroup=groups[target[0]];
     PreferenceGroup from=parent(root,p);
-    if(from!=null&&from!=targetGroup){
-     from.removePreference(p);
-     targetGroup.addPreference(p);
-    }
-    // Preserve the object and its key; order is the sole modified property.
+    // The Android preference adapter sorts on insertion, not reliably on
+    // setOrder afterward. Reinsert the SAME object with its final order.
+    if(from!=null)from.removePreference(p);
     p.setOrder(target[1]);
+    targetGroup.addPreference(p);
     counts[target[0]]++;
     String marker=target[0]+":"+target[1];
     if(!duplicate.add(marker))Log.w(TAG,"More than one existing setting maps to "+marker);

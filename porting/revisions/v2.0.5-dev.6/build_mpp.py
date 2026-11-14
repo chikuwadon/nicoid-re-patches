@@ -800,10 +800,10 @@ def build(args, work):
         # The legacy popup-return control separately hides itself by default.
         popup_file="PopupControl222.smali"
         popup=(disassembled/"e/e/a"/popup_file).read_text()
-        implicit='    :catch_38\n    invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z'
+        implicit='    invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z'
         if popup.count(implicit)!=1:
-            raise ValueError("Popup return hidden-by-default block changed")
-        popup=popup.replace(implicit,'    :catch_38\n    nop')
+            raise ValueError("Popup return hidden-by-default add changed")
+        popup=popup.replace(implicit,'    nop')
         reset='    invoke-interface {p0, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z'
         if popup.count(reset)!=1:
             raise ValueError("Popup return reset default changed")

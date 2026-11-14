@@ -1,6 +1,7 @@
 """Check v2.0.2-dev.1 source contracts before Android MPP compilation."""
 from pathlib import Path
 import sys
+import re
 import tempfile
 
 HERE=Path(__file__).resolve().parent
@@ -66,10 +67,10 @@ assert "PREVIOUS_PRESETS" in light and "i % 4" in light
 assert light.count("{130, 165, 68, 155, 118, 165, 57, 58, 16, 32}") == 1
 assert 'tr("強烈", "Intense", "強烈")' in settings
 # Keep the archived v2.0.2 contracts valid when a newer dev artifact is selected.
-assert any(name in workflow for name in ('nicoid-re-v2.0.2-dev.4-mpp', 'nicoid-re-v2.0.3-dev.1-mpp', 'nicoid-re-v2.0.3-dev.2-mpp', 'nicoid-re-v2.0.3-dev.3-mpp', 'nicoid-re-v2.0.3-dev.4-mpp', 'nicoid-re-v2.0.3-dev.5-mpp', 'nicoid-re-v2.0.3-dev.6-mpp', 'nicoid-re-v2.0.3-dev.7-mpp', 'nicoid-re-v2.0.3-dev.8-mpp', 'nicoid-re-v2.0.3-dev.9-mpp', 'nicoid-re-v2.0.3-dev.10-mpp', 'nicoid-re-v2.0.3-dev.11-mpp', 'nicoid-re-v2.0.3-dev.12-mpp', 'nicoid-re-v2.0.3-dev.13-mpp', 'nicoid-re-v2.0.3-dev.14-mpp', 'nicoid-re-v2.0.3-dev.15-mpp', 'nicoid-re-v2.0.3-dev.16-mpp', 'nicoid-re-v2.0.3-dev.17-mpp', 'nicoid-re-v2.0.3-dev.18-mpp'))
-assert any(name in workflow for name in ('version=2.0.2-dev.4', 'version=2.0.3-dev.1', 'version=2.0.3-dev.2', 'version=2.0.3-dev.3', 'version=2.0.3-dev.4', 'version=2.0.3-dev.5', 'version=2.0.3-dev.6', 'version=2.0.3-dev.7', 'version=2.0.3-dev.8', 'version=2.0.3-dev.9', 'version=2.0.3-dev.10', 'version=2.0.3-dev.11', 'version=2.0.3-dev.12', 'version=2.0.3-dev.13', 'version=2.0.3-dev.14', 'version=2.0.3-dev.15', 'version=2.0.3-dev.16', 'version=2.0.3-dev.17', 'version=2.0.3-dev.18'))
+assert re.search(r"nicoid-re-v\d+\.\d+\.\d+-dev\.\d+-mpp", workflow), "Versioned development artifact routing missing"
+assert re.search(r"version=\d+\.\d+\.\d+-dev\.\d+", workflow), "Versioned development artifact routing missing"
 assert 'unzip -p "$output" META-INF/MANIFEST.MF | grep -Fq "Version: $version"' in workflow
-assert any(name in workflow for name in ('nicoid-re-v2.0.2-dev.4-source', 'nicoid-re-v2.0.3-dev.1-source', 'nicoid-re-v2.0.3-dev.2-source', 'nicoid-re-v2.0.3-dev.3-source', 'nicoid-re-v2.0.3-dev.4-source', 'nicoid-re-v2.0.3-dev.5-source', 'nicoid-re-v2.0.3-dev.6-source', 'nicoid-re-v2.0.3-dev.7-source', 'nicoid-re-v2.0.3-dev.8-source', 'nicoid-re-v2.0.3-dev.9-source', 'nicoid-re-v2.0.3-dev.10-source', 'nicoid-re-v2.0.3-dev.11-source', 'nicoid-re-v2.0.3-dev.12-source', 'nicoid-re-v2.0.3-dev.13-source', 'nicoid-re-v2.0.3-dev.14-source', 'nicoid-re-v2.0.3-dev.15-source', 'nicoid-re-v2.0.3-dev.16-source', 'nicoid-re-v2.0.3-dev.17-source', 'nicoid-re-v2.0.3-dev.18-source'))
+assert re.search(r"nicoid-re-v\d+\.\d+\.\d+-dev\.\d+-source", workflow), "Versioned development artifact routing missing"
 assert "porting/revisions/v2.0.2-dev.1/build_mpp.py" not in workflow or True
 with tempfile.TemporaryDirectory() as tmp:
     target=Path(tmp)

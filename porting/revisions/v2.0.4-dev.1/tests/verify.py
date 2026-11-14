@@ -26,6 +26,10 @@ assert 'DEVELOPMENT = ROOT.parent / "v2.0.3-dev.18"' in BUILDER
 assert 'builder.VERSION = VERSION' in BUILDER
 assert "2.0.4-dev.1" in VERIFY and "2.0.4-dev.1" in WORKFLOW
 assert "v2.0.3-dev.18/tests/verify.py" in WORKFLOW
+COMBINE = (ROOT / "porting/revisions/v2.0.4-dev.1/combine_mpp.py").read_text()
+assert 'FIX_MARKER = b"Missing original nicoid 6.49 APK entry"' in COMBINE
+assert "compiled.read(entry.filename)" in COMBINE
+assert 'python3 "$builder/combine_mpp.py"' in WORKFLOW
 hashes = (ROOT / "patches/src/main/resources/nicoid/input-hashes.txt").read_text().splitlines()
 assert {line.split(maxsplit=1)[1] for line in hashes} == {"classes.dex", "resources.arsc", "AndroidManifest.xml"}
 print("PASS: lazy RAW_ONLY hashes mandatory DEX/ARSC, safely omits unstaged manifest only")

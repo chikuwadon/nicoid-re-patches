@@ -706,6 +706,7 @@ jobs:
             builder=porting/revisions/v2.0.4-dev.1
             version=2.0.4-dev.1
           fi
+          payload="/tmp/nicoid-re-$version-payload.mpp"
           output="/tmp/nicoid-re-$version.mpp"
           python3 "$builder/build_mpp.py" \
             --base /tmp/stable-nicoid.mpp \
@@ -713,8 +714,9 @@ jobs:
             --ci-without-apk \
             --compile-jar /tmp/nicoid-v2-okhttp.jar \
             --compile-jar /tmp/nicoid-v2-okio.jar \
-            --output "$output"
-          python3 "$builder/verify_ci_candidate.py" /tmp/stable-nicoid.mpp "$output"
+            --output "$payload"
+          python3 "$builder/verify_ci_candidate.py" /tmp/stable-nicoid.mpp "$payload"
+          python3 "$builder/combine_mpp.py" "patches/build/libs/patches-$version.mpp" "$payload" "$output"
           unzip -p "$output" META-INF/MANIFEST.MF | grep -Fq "Version: $version"
           mkdir -p /tmp/nicoid-v2-delivery
           cp "$output" /tmp/nicoid-v2-delivery/

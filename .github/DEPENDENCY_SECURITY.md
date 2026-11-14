@@ -1,53 +1,66 @@
-# Build-tool minimatch advisory (2026-11-15)
+# Build-tool minimatch security remediation (2026-11-15)
 
-## Status
+## Advisory and root cause
 
-**Unresolved upstream; not an application-runtime vulnerability.** The Dependabot
-alert for GHSA-g3hv-75wg-m249 (CVE-2026-118764, Moderate) must remain open
-until the vulnerable dependency is removed from the resolved lockfile.
+Dependabot identified GHSA-g3hv-75wg-m249 (CVE-2026-118764,
+Moderate) in `minimatch@10.2.5`, with patched versions >=11.0.1.
 
-The current dependency chain is:
+The vulnerable copy was not part of the shipped Android app. It came
+from the following development-tool chain:
 
 ```
 semantic-release@25.0.9
-  -> @semantic-release/npm@13.1.5 (installed but not configured as a plugin)
+  -> @semantic-release/npm@13.1.5 (not used by our release configuration)
      -> npm@12.2.2
-        -> bundled minimatch@10.2.5 (affected: >=7.0.0 <11.0.1)
+        -> bundled minimatch@10.2.5
 ```
 
-The GitHub release configuration (`.releaserc`) explicitly omits
-`@semantic-release/npm`, so the npm-registry publishing plugin is not executed.
-This does not remove the bundled npm CLI from the release tool dependencies;
-the npm CLI is still present and can be invoked by build tooling.
+npm 12.2.2 embeds its dependency tree in the published tarball, which
+cannot be repaired using a normal root `overrides.minimatch` setting.
+Forcing an incompatible major dependency into the npm CLI or downgrading
+npm was not adopted.
 
-## Why this is not overridden
+## Implemented fix
 
-The first patched minimatch release is 11.0.1. npm 12.2.2 (the latest
-published npm CLI checked on 2026-11-15) bundles minimatch 10.2.5, and
-its dependencies request minimatch 10.x. npm's root `overrides` cannot
-replace dependencies embedded in a published npm `bundleDependencies`
-archive. Blindly forcing minimatch 11.x or downgrading npm would create
-unverified incompatibilities and could undo the earlier undici security fix.
+`.releaserc` explicitly lists the plugins used to publish MPP assets
+to GitHub and does not include `@semantic-release/npm` (npm-registry
+publication).
 
-## Containment and follow-up
+To avoid installing the otherwise-unused npm publication plugin, the
+root `devDependencies` now resolves `@semantic-release/npm` to the
+small, reviewed local stub at
+`.github/stubs/semantic-release-npm-disabled`. The stub exports no
+publication hooks and throws a clear error if it is ever imported.
+It uses the compatible package version `13.1.5`, satisfying the
+transitive dependency without downloading the upstream npm plugin.
 
-- Only the upstream npm CLI's bundled minimatch copy is accepted by
-  `.github/scripts/verify-release-npm.cjs`. Additional affected copies,
-  or a change that activates `@semantic-release/npm`, fail the check.
-- No untrusted glob patterns are intentionally passed to minimatch in
-  the project's release configuration. This limits the known exposure
-  but does not prove the bundled package safe.
-- Keep the Dependabot alert **open**; this is a scoped risk control, not
-  a patch or dismissal.
-- On an upstream npm release that bundles minimatch >=11.0.1, update
-  `overrides.npm` and regenerate `package-lock.json` with the supported
-  npm toolchain, then run `npm ci --ignore-scripts`, the npm verifier,
-  the release CLI smoke test, and existing build checks.
-- Alternatively, evaluate an upstream semantic-release version that
-  makes the unused npm-publishing plugin optional, preserving the
-  project's explicit release plugin configuration.
+The `npm@12.2.2` override was removed because no dependency on the
+npm CLI remains. Other security overrides remain unchanged.
 
-Upstream references:
+`.github/scripts/verify-release-npm.cjs` now fails if the npm
+CLI reappears, if a vulnerable minimatch copy is introduced, or if the
+npm publication plugin is enabled in `.releaserc`.
+
+## Verification
+
+The following completed successfully in the isolated security branch:
+
+- Regenerated `package-lock.json` using the supported Node 26 toolchain
+- `npm ci --ignore-scripts --no-audit --no-fund`
+- Verification of the local plugin link and no `npm` or vulnerable `minimatch`
+- `import('semantic-release')`, preserving the core release CLI
+- Version and resolution consistency via `npm ls`
+
+The generated lockfile removes the unused npm CLI and its bundled
+packages. No Android application code or published release was changed.
+
+This is an intentionally scoped workaround for an unused upstream
+plugin. If the project later needs npm registry publication, remove the
+stub, install the real plugin and re-audit the entire dependency tree
+before enabling it.
+
+## References
+
 - https://github.com/advisories/GHSA-g3hv-75wg-m249
-- https://github.com/npm/cli/releases
 - https://github.com/semantic-release/semantic-release/issues/1260
+- https://github.com/npm/cli/releases

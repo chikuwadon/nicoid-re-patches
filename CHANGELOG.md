@@ -1,3 +1,9 @@
+## 2.0.4 (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix patch application failure with Morphe Patcher 2.3.0
+
 ## 2.0.3 (2026-11-14)
 
 ### ✨ New Features

@@ -20,6 +20,10 @@ jobs:
       - name: Re-resolve the approved build tooling
         run: |
           npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          node - <<'NODE'
+          const l = require('./package-lock.json');
+          for (const p of ['node_modules/@semantic-release/npm','node_modules/npm','.github/stubs/semantic-release-npm-disabled']) console.log(p, l.packages[p]);
+          NODE
           npm ci --ignore-scripts --no-audit --no-fund
           node .github/scripts/verify-release-npm.cjs
           node --input-type=module -e "await import('semantic-release'); console.log('Release CLI import successful')"

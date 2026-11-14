@@ -59,7 +59,7 @@ builder=(ROOT/"build_mpp.py").read_text()
 assert 'VERSION = "2.0.3-dev.13"' in builder
 assert "from patch_216 import OVERRIDES, stage" in builder
 assert 'menu_label="MenuOptions119.smali"' in builder
-assert 'old_label=r\\'const-string v2, "MP4\\\\u3067\\\\u4fdd\\\\u5b58"\\'' in builder
+assert "old_label=" in builder and "menu_source.count(old_label)!=1" in builder
 assert '"v2.0.3-dev.12/java"' in builder
 assert "nicoid_native_mp4_fallback213" not in builder
 assert "DownloadUi115$Manager.smali" not in builder

@@ -59,7 +59,8 @@ builder=(ROOT/"build_mpp.py").read_text()
 for value in (
     'VERSION = "2.0.3-dev.16"',
     'from patch_219 import OVERRIDES, stage',
-    'ExternalBack216;->back(Landroid/app/Activity;)Z',
+    'Le/e/a/ExternalBack216;',
+    '->back(Landroid/app/Activity;)Z',
     'SettingsSummary216;',
     'native_back=activity_file.read_text()',
     'old_count=int(registers.group(1))',

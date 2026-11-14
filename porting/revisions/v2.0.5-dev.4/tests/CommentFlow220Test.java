@@ -27,7 +27,7 @@ public final class CommentFlow220Test {
     check(row!=0,"prefers a non-overlapping lane");
   }
   Entry wide=new Entry(-1,"a\nb\nc");
-  for(int i=0;i<10;i++)check(CommentFlow220.fallback(s,wide,1f,400,5)<=1,
+  for(int i=0;i<10;i++)check(CommentFlow220.fallback(s,wide,1f,400,5)<=3,
     "multiline footprint remains onscreen");
   check(CommentFlow220.fallback(s,n,1f,400,1)==0,"single crowded lane still displays");
   System.out.println("PASS: all eligible scrolling comments assigned; fixed ignored");

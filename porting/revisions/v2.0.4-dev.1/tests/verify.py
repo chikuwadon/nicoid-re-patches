@@ -20,8 +20,8 @@ assert 'check(inputFile.isFile)' in SOURCE
 assert "check(actual == expected)" in SOURCE
 assert 'root.resolve(path)' in SOURCE
 assert 'path == "AndroidManifest.xml" || path == "resources.arsc" || path.startsWith("res/")' in SOURCE
-assert re.search(r'^version = 2\.0\.4-dev\.1$', GRADLE, flags=re.MULTILINE)
-assert 'setOf("2.0.0", "2.0.1", "2.0.2", "2.0.3", "2.0.4-dev.1")' in BUILD
+assert re.search(r'^version = 2\.0\.(?:4-dev\.1|5-dev\.1)$', GRADLE, flags=re.MULTILINE)
+assert '"2.0.4-dev.1"' in BUILD and '"2.0.5-dev.1"' in BUILD
 assert 'DEVELOPMENT = ROOT.parent / "v2.0.3-dev.18"' in BUILDER
 assert 'builder.VERSION = VERSION' in BUILDER
 assert "2.0.4-dev.1" in VERIFY and "2.0.4-dev.1" in WORKFLOW

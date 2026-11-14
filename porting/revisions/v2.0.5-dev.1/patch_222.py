@@ -25,6 +25,4 @@ def stage(base,destination):
       'int at=Math.min(4,others.size());boolean showSave=android.preference.PreferenceManager.getDefaultSharedPreferences(a).getBoolean("video_menu_visible_"+MP4,true);if(showSave)others.add(at,mp4);if(cache!=null)others.add(Math.min(at+(showSave?1:0),others.size()),cache);MenuEditor120.sort(others,a);menu.clear();',
       "save-menu visibility/order after dynamically adding actions")
     file.write_text(source,encoding="utf-8")
-    mp3=ROOT/"java/e/e/a/Mp3Save214.java"
-    (destination/"Mp3Save214.java").write_text(mp3.read_text(encoding="utf-8"),encoding="utf-8")
     return tuple(sorted(destination.glob("*.java")))

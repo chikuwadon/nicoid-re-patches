@@ -191,8 +191,14 @@ def build(args, work):
         anchor = "    invoke-static {p0, v1}, Le/e/a/HistoryLimit120;->settings(Landroid/app/Activity;Landroid/preference/PreferenceGroup;)V"
         if settings.count(anchor) != 1:
             raise ValueError("Missing settings insertion point")
-        (hooks / "SettingsTools.smali").write_text(settings.replace(
-            anchor, anchor + "\n\n    invoke-static {p0, v1}, Le/e/a/NicoliveEntry;->settings(Landroid/preference/PreferenceActivity;Landroid/preference/PreferenceGroup;)V"))
+        settings = settings.replace(anchor, anchor +
+            "\n\n    invoke-static {p0, v1}, Le/e/a/NicoliveEntry;"
+            "->settings(Landroid/preference/PreferenceActivity;Landroid/preference/PreferenceGroup;)V"
+            "\n\n    invoke-static {p0}, Le/e/a/SettingsSummary217;"
+            "->install(Landroid/preference/PreferenceActivity;)V")
+        if settings.count("Le/e/a/SettingsSummary217;->install") != 1:
+            raise ValueError("SettingsTools final settings hook missing")
+        (hooks / "SettingsTools.smali").write_text(settings)
         # dev.11's unsafe DownloadUi115$Manager return-register patch caused
         # ART VerifyError on Android 16.  All MP4/MP3 actions are now built
         # from verified Java replacements staged by patch_215.py, including
@@ -637,15 +643,9 @@ def build(args, work):
         order = order.replace(desired, desired +
             "\n    invoke-static {v2, v9}, Le/e/a/MultiTabPlacement;->settingsOrder(Landroid/preference/PreferenceGroup;[Ljava/lang/String;)[Ljava/lang/String;\n"
             "    move-result-object v9\n")
-        # CRITICAL: Dev111 is written only once, after its tab order patch.
-        # Appending the hook in an earlier writer loses it. Use the proven
-        # add_hook method entry, which has safe register layout in stable DEX.
-        order = add_hook(order,
-            ".method public static settings(Landroid/preference/PreferenceActivity;)V",
-            "invoke-static {p0}, Le/e/a/SettingsSummary217;"
-            "->install(Landroid/preference/PreferenceActivity;)V")
-        if order.count("Le/e/a/SettingsSummary217;->install") != 1:
-            raise ValueError("Final Dev111 settings hook missing or duplicated")
+        # Dev111's original method uses complex debug/try labels and cannot
+        # safely be instrumented by raw smali insertion. Keep the previously
+        # verified tab-order rewrite; the installer is invoked from SettingsTools.
         (hooks / order_file).write_text(order)
 
         ink_file = "CommentInk192.smali"

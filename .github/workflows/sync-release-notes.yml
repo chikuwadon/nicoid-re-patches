@@ -86,7 +86,7 @@ jobs:
           : > "$temp/protected_runs"
           while IFS= read -r branch; do
             [[ -n "$branch" ]] || continue
-            gh api --method GET "repos/$GH_REPO/actions/runs" \
+            gh api --method GET "repos/$GH_REPO/actions/workflows/private-build.yml/runs" \
               -f branch="$branch" -f status='success' -F per_page=2 \
               --jq '.workflow_runs[].id' >> "$temp/protected_runs"
           done < "$temp/active_branches"

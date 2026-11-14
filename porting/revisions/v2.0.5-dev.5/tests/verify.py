@@ -66,7 +66,7 @@ assert items[9][0]=="動画再生画面の初期パネル"
 assert items[1]==["ログインせずに使用","ログイン","ログアウト"]
 assert "アンビエントモード" in items[7]
 assert items[15]==["デバッグログの保存"]
-assert "SettingsCategories241;->apply" in BUILD
+assert "SettingsCategories241;" in BUILD and "->apply(Landroid/preference/PreferenceActivity;)V" in BUILD
 assert "category_anchor" in BUILD
 assert "attach(a);" in SUMMARY_SOURCE
 assert "from.removePreference(p)" in CATEGORY_SOURCE

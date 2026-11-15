@@ -2,6 +2,7 @@
 from pathlib import Path
 import importlib.util
 import tempfile
+import re
 ROOT=Path(__file__).resolve().parents[4]
 REV=ROOT/"porting/revisions/v2.0.5-dev.17"
 PREV2=ROOT/"porting/revisions/v2.0.5-dev.2"
@@ -14,7 +15,12 @@ PATCH=text(REV/"patch_237.py")
 OLD_PATCH=text(ROOT/"porting/revisions/v2.0.5-dev.8/patch_229.py")
 LEGACY=text(PREV/"patch_222.py")
 WORKFLOW=text(ROOT/".github/workflows/private-build.yml")
-assert "version = 2.0.5-dev.17" in text(ROOT/"gradle.properties")
+# Preserve this source regression for v2.0.5 stable and later builds.
+version_match = re.search(r'^version\s*=\s*(\d+\.\d+\.\d+(?:-dev\.[1-9]\d*)?)\s*$',
+                          text(ROOT/"gradle.properties"), flags=re.MULTILINE)
+assert version_match, "Missing or malformed Gradle version"
+active_version = version_match.group(1)
+assert tuple(int(part) for part in active_version.split("-", 1)[0].split(".")) >= (2, 0, 5), active_version
 assert 'VERSION = "2.0.5-dev.17"' in BUILD
 assert "from patch_237 import OVERRIDES, stage" in BUILD
 assert 'menu = (hooks / menu_file).read_text()' in BUILD
@@ -53,7 +59,6 @@ assert "Fixed comments are excluded" in text(ROOT/"porting/revisions/v2.0.5-dev.
 assert "v2.0.5-dev.17" in WORKFLOW
 assert "porting/revisions/v2.0.5-dev.17/tests/verify.py" in WORKFLOW
 # Validate the 18-category / 78-setting layout without manufacturing preferences.
-import re
 CATEGORY_SOURCE=text(REV/"java/e/e/a/SettingsCategories241.java")
 SUMMARY_SOURCE=text(ROOT/"porting/revisions/v2.0.5-dev.5/java/e/e/a/SettingsSummary217.java")
 category_table=CATEGORY_SOURCE.split("private static final String[][] CATEGORIES={",1)[1].split("\n };",1)[0]

@@ -44,8 +44,8 @@ with ZipFile(base_path) as base,ZipFile(candidate_path) as new:
     for helper in ("ChannelFeed", "DetailData", "HistoryRules", "PlaylistPlayback", "VideoDetails"):
         assert "Le/e/a/" + helper + ";" in classes
     helper_dex = new.read("nicoid/helpers.mpe")
-    assert b"http://apache.org/xml/features/disallow-doctype-decl\\x00" in helper_dex
-    assert b"watchUrl\\x00" in helper_dex
+    assert b"http://apache.org/xml/features/disallow-doctype-decl\x00" in helper_dex
+    assert b"watchUrl\x00" in helper_dex
     assert "Le/e/a/LocalPlaylists;" in classes
     assert "Le/e/a/LocalPlaylists$Page;" in classes
     assert "Le/e/a/PlaylistGestureRouter;" in classes

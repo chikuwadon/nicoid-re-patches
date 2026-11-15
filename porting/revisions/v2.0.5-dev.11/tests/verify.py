@@ -128,7 +128,7 @@ assert "NicoidViewPager;" in BUILD and "->applyPager(Landroid/view/View;)V" in B
 assert "DefaultPanel219;->append" in BUILD
 assert "a.recreate();" in LABELS and '"app_lang".equals(key)' in LABELS
 assert "fixedIndex(choice)" in PANEL and "Native reset to Video info" in PANEL
-assert "updateSummary(activity,p,selected)" in PANEL
+assert "updateSummary(a,p,choice)" in PANEL
 assert 'KEY_ALIASES.put("mp4_tree_uri","動画・音声の保存先フォルダ")' in CATEGORY_SOURCE
 assert "SettingsLabels252.install(a)" in CATEGORY_SOURCE
 assert "public static void updateLanguage(PreferenceActivity activity)" in CATEGORY_SOURCE

@@ -12,14 +12,15 @@ def once(text,old,new,tag):
     return text.replace(old,new)
 def stage(base,destination):
     result=previous.stage(base,destination)
-    base,destination=Path(base),Path(destination)
-    original=(base/"Dev111.java").read_text(encoding="utf-8")
+    destination=Path(destination)
+    stable=ROOT.parent/"v1.11.1/java/e/e/a"
+    original=(stable/"Dev111.java").read_text(encoding="utf-8")
     updated=once(original,
       'list.setEnabled("background".equals(shared.getString("app_switch_playback", "none")));',
       'list.setEnabled("background".equals(shared.getString("app_switch_playback", "none")) || "popup".equals(shared.getString("app_switch_playback", "none")));',
       "Allow #139 popup return preference in legacy summary updater")
     (destination/"Dev111.java").write_text(updated,encoding="utf-8")
-    original=(base/"AmbientLight.java").read_text(encoding="utf-8")
+    original=(stable/"AmbientLight.java").read_text(encoding="utf-8")
     updated=once(original,
       'detailHeader.update(content == null ? null : findId(content, "buttonlay"), page, pageGlow);',
       '''// The comment sorting/follow toolbar is above the ListView and has

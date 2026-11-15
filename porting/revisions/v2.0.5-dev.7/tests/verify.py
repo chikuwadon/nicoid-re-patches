@@ -15,7 +15,7 @@ LEGACY=text(PREV/"patch_222.py")
 WORKFLOW=text(ROOT/".github/workflows/private-build.yml")
 assert "version = 2.0.5-dev.7" in text(ROOT/"gradle.properties")
 assert 'VERSION = "2.0.5-dev.7"' in BUILD
-assert "from patch_227 import OVERRIDES, stage" in BUILD
+assert "from patch_228 import OVERRIDES, stage" in BUILD
 assert 'menu = (hooks / menu_file).read_text()' in BUILD
 assert '"video_menu_visible_"+MP4,true' in LEGACY
 assert "MenuEditor120.sort(others,a)" in LEGACY
@@ -90,7 +90,7 @@ print("PASS: reparenting existing Preference instances before search snapshot")
 print("NOT VERIFIED: runtime title matching and conditional display variants")
 # Player controls use their original IDs and saved hidden preferences.
 PREVIOUS_UI=text(ROOT/"porting/revisions/v2.0.5-dev.6/patch_227.py")
-DIALOG=text(REV/"java/e/e/a/DialogCorner242.java")
+DIALOG=text(ROOT/"porting/revisions/v2.0.5-dev.6/java/e/e/a/DialogCorner242.java")
 assert "hidden.remove(ID)" in PREVIOUS_UI
 assert "after speed and quality" in PREVIOUS_UI
 assert "Math.min(getWidth(), getHeight()) * .31f" in PREVIOUS_UI
@@ -103,7 +103,7 @@ assert "original.onPreferenceClick" in DIALOG
 assert "getDialog()" in DIALOG and "UiTheme191.window(dialog)" in DIALOG
 print("PASS: visible ambient and normal controls by default, ambient after quality")
 print("PASS: aligned glyph sizes and standardized rounded settings/custom dialogs")
-spec=importlib.util.spec_from_file_location("_patch_v205_dev6",REV/"patch_228.py")
+spec=importlib.util.spec_from_file_location("_patch_v205_dev7",REV/"patch_228.py")
 module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
 with tempfile.TemporaryDirectory() as tmp:
  dest=Path(tmp)/"e/e/a"

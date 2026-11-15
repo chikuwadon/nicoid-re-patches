@@ -901,6 +901,107 @@ public final class UiStrings {
         TEXT.put("アカウント", new String[]{"Account", "帳號"});
         TEXT.put("言語", new String[]{"Language", "語言"});
         TEXT.put("全般", new String[]{"General", "一般"});
+        TEXT.put("ニコ生", new String[]{"Niconico Live", "Nico 生放送"});
+        TEXT.put("検索 / 番組を開く", new String[]{"Search / open a program", "搜尋／開啟節目"});
+        TEXT.put("戻る", new String[]{"Back", "返回"});
+        TEXT.put("一覧を更新", new String[]{"Refresh list", "重新整理清單"});
+        TEXT.put("再生中の生放送に戻る", new String[]{"Return to playing broadcast", "返回播放中的直播"});
+        TEXT.put("再生中の生放送を閉じる", new String[]{"Close playing broadcast", "關閉播放中的直播"});
+        TEXT.put("右下に更新ボタンを表示", new String[]{"Show refresh button at bottom-right", "在右下角顯示重新整理按鈕"});
+        TEXT.put("前回開いたタブ", new String[]{"Previously opened tab", "上次開啟的分頁"});
+        TEXT.put("経過時間", new String[]{"Elapsed time", "經過時間"});
+        TEXT.put("放送開始時刻", new String[]{"Broadcast start time", "直播開始時間"});
+        TEXT.put("最初に開くタブ", new String[]{"Default tab", "預設分頁"});
+        TEXT.put("放送中の時刻表示", new String[]{"Time display while live", "直播時間顯示"});
+        TEXT.put("タップ時の動作", new String[]{"Tap action", "輕觸時的行為"});
+        TEXT.put("通常再生", new String[]{"Normal playback", "一般播放"});
+        TEXT.put("ポップアップ再生", new String[]{"Popup playback", "懸浮視窗播放"});
+        TEXT.put("ニコ生を閉じるときの確認", new String[]{"Confirm before closing Live", "關閉直播前確認"});
+        TEXT.put("もう一度戻るとニコ生を閉じます", new String[]{"Press Back again to close Live", "再次按下返回即可關閉直播"});
+        TEXT.put("ニコ生を閉じますか？", new String[]{"Close Niconico Live?", "要關閉 Nico 生放送嗎？"});
+        TEXT.put("通常のニコ動画面に戻ります", new String[]{"Return to the regular video screen", "返回一般影片畫面"});
+        TEXT.put("取得中…", new String[]{"Loading…", "載入中…"});
+        TEXT.put("視聴履歴はありません", new String[]{"No watch history", "沒有觀看紀錄"});
+        TEXT.put("放送中の番組が見つかりません", new String[]{"No live broadcasts found", "找不到正在直播的節目"});
+        TEXT.put("一覧を取得できませんでした", new String[]{"Could not load the list", "無法載入清單"});
+        TEXT.put("公式番組の補完に失敗", new String[]{"Could not load additional official broadcasts", "無法補充載入官方直播"});
+        TEXT.put("取得が途中で止まりました / 更新で再試行", new String[]{"Loading interrupted / Refresh to retry", "載入中斷／請重新整理再試"});
+        TEXT.put("概要", new String[]{"Overview", "概要"});
+        TEXT.put("視聴履歴を削除", new String[]{"Delete watch history", "刪除觀看紀錄"});
+        TEXT.put("\nこの端末の視聴履歴から削除しますか？", new String[]{"\nRemove from this device's watch history?", "\n要從此裝置的觀看紀錄中刪除嗎？"});
+        TEXT.put("視聴履歴を保存できませんでした", new String[]{"Could not save watch history", "無法儲存觀看紀錄"});
+        TEXT.put("視聴履歴を削除できませんでした", new String[]{"Could not delete watch history", "無法刪除觀看紀錄"});
+        TEXT.put("予約の取消にはログインが必要です", new String[]{"Sign in to cancel a reservation", "請登入以取消預約"});
+        TEXT.put("タイムシフト予約を削除", new String[]{"Delete timeshift reservation", "刪除時光回溯預約"});
+        TEXT.put("\n予約を取り消しますか？", new String[]{"\nCancel this reservation?", "\n要取消此預約嗎？"});
+        TEXT.put("予約を削除", new String[]{"Delete reservation", "刪除預約"});
+        TEXT.put("タイムシフト予約を取り消しました", new String[]{"Timeshift reservation canceled", "已取消時光回溯預約"});
+        TEXT.put("予約を取り消せませんでした / 通信状態と予約を確認してください", new String[]{"Could not cancel. Check the connection and reservation.", "無法取消。請檢查連線與預約狀態。"});
+        TEXT.put("タイムシフト予約を見るにはログインしてください", new String[]{"Sign in to see timeshift reservations", "請登入以查看時光回溯預約"});
+        TEXT.put("タイムシフト予約はありません", new String[]{"No timeshift reservations", "沒有時光回溯預約"});
+        TEXT.put("予約リストを取得できませんでした / ログイン状態を確認してください", new String[]{"Could not load reservations. Check sign-in status.", "無法載入預約清單，請檢查登入狀態。"});
+        TEXT.put("タイムシフト予約にはログインが必要です", new String[]{"Sign in to reserve timeshift", "請登入以預約時光回溯"});
+        TEXT.put("タイムシフト予約", new String[]{"Timeshift reservation", "時光回溯預約"});
+        TEXT.put("予約する", new String[]{"Reserve", "預約"});
+        TEXT.put("タイムシフトを予約しました", new String[]{"Timeshift reserved", "已預約時光回溯"});
+        TEXT.put("予約できませんでした / 予約条件や予約リストを確認してください", new String[]{"Could not reserve. Check eligibility and reservations.", "無法預約，請確認預約資格與清單。"});
+        TEXT.put("フォロー中の番組を見るにはログインしてください", new String[]{"Sign in to see followed broadcasts", "請登入以查看追蹤的直播"});
+        TEXT.put("フォロー中の番組はありません", new String[]{"No followed broadcasts", "沒有追蹤的直播"});
+        TEXT.put("フォロー一覧を取得できませんでした", new String[]{"Could not load followed broadcasts", "無法載入追蹤的直播"});
+        TEXT.put("一部の一覧を取得できませんでした", new String[]{"Some lists could not be loaded", "部分清單無法載入"});
+        TEXT.put("ランキングの対象", new String[]{"Ranking type", "排行榜類型"});
+        TEXT.put("対象の番組はありません", new String[]{"No matching broadcasts", "沒有符合條件的直播"});
+        TEXT.put("ランキングを取得できませんでした", new String[]{"Could not load rankings", "無法載入排行榜"});
+        TEXT.put("今日", new String[]{"Today", "今天"});
+        TEXT.put("番組表を取得できませんでした", new String[]{"Could not load the schedule", "無法載入節目表"});
+        TEXT.put("ブラウザを開けませんでした", new String[]{"Could not open the browser", "無法開啟瀏覽器"});
+        TEXT.put("生放送はAndroid 9以降で利用できます", new String[]{"Live broadcasts require Android 9 or later", "直播需要 Android 9 或更新版本"});
+        TEXT.put("ポップアップ再生には重ねて表示する権限が必要です", new String[]{"Popup playback needs permission to display over other apps", "懸浮視窗播放需要在其他應用程式上層顯示的權限"});
+        TEXT.put("ポップアップを開始できませんでした", new String[]{"Could not start popup playback", "無法啟動懸浮視窗播放"});
+        TEXT.put("視聴条件の確認", new String[]{"Check viewing eligibility", "檢查觀看資格"});
+        TEXT.put("公式サイトで確認", new String[]{"Check official website", "前往官方網站確認"});
+        TEXT.put("番組情報を取得中…", new String[]{"Loading program details…", "正在載入節目資訊…"});
+        TEXT.put("接続中…", new String[]{"Connecting…", "連線中…"});
+        TEXT.put("番組情報", new String[]{"Program details", "節目資訊"});
+        TEXT.put("最新コメントへ", new String[]{"Jump to latest comments", "跳至最新留言"});
+        TEXT.put("匿名", new String[]{"Anonymous", "匿名"});
+        TEXT.put("コメントを入力…", new String[]{"Enter a comment…", "輸入留言…"});
+        TEXT.put("コメントを送信", new String[]{"Send comment", "傳送留言"});
+        TEXT.put("ログインしてコメントする", new String[]{"Sign in to comment", "登入後留言"});
+        TEXT.put("ログイン画面を開けませんでした", new String[]{"Could not open sign-in", "無法開啟登入畫面"});
+        TEXT.put("コメントは75文字以内で入力してください", new String[]{"Enter no more than 75 characters", "留言請勿超過 75 個字元"});
+        TEXT.put("現在は投稿できません。再生・接続状態を確認してください", new String[]{"Cannot comment now. Check playback and connection.", "目前無法留言，請檢查播放與連線狀態。"});
+        TEXT.put("本文をコピー", new String[]{"Copy comment", "複製留言"});
+        TEXT.put("このユーザーをNGに登録", new String[]{"Block this user", "封鎖此使用者"});
+        TEXT.put("この本文をNGワードに登録", new String[]{"Block this text", "將此內容加入封鎖字詞"});
+        TEXT.put("許可後にポップアップボタンを押してください", new String[]{"Grant permission, then tap the popup button", "授予權限後再按懸浮視窗按鈕"});
+        TEXT.put("生放送のNG設定", new String[]{"Live comment filters", "直播留言過濾設定"});
+        TEXT.put("画質と設定", new String[]{"Quality and settings", "畫質與設定"});
+        TEXT.put("ユーザー: ", new String[]{"User: ", "使用者："});
+        TEXT.put("ワード: ", new String[]{"Word: ", "字詞："});
+        TEXT.put("選択を削除", new String[]{"Delete selected", "刪除選取項目"});
+        TEXT.put("分経過", new String[]{"min elapsed", "分鐘前開始"});
+        TEXT.put("時間", new String[]{"hours", "小時"});
+        TEXT.put(" 開始", new String[]{" started", " 開始"});
+        TEXT.put("の番組", new String[]{"'s broadcast", "的直播"});
+        TEXT.put("有料", new String[]{"Paid", "付費"});
+        TEXT.put("会員無料", new String[]{"Free for members", "會員免費"});
+        TEXT.put("一部無料", new String[]{"Partly free", "部分免費"});
+        TEXT.put("音声のみ", new String[]{"Audio only", "僅音訊"});
+        TEXT.put("最低画質", new String[]{"Lowest quality", "最低畫質"});
+        TEXT.put("最高画質", new String[]{"Highest quality", "最高畫質"});
+        TEXT.put("接続できませんでした", new String[]{"Connection failed", "連線失敗"});
+        TEXT.put("放送は終了しました", new String[]{"Broadcast has ended", "直播已結束"});
+        TEXT.put("この番組の視聴条件を確認してください", new String[]{"Check this program's viewing requirements", "請檢查此節目的觀看條件"});
+        TEXT.put("番組が見つかりません", new String[]{"Program not found", "找不到節目"});
+        TEXT.put("コメントの投稿が制限されています", new String[]{"Commenting is restricted", "留言受到限制"});
+        TEXT.put("コメントを送信できませんでした。投稿済みか確認してください", new String[]{"Could not send comment. Check whether it was already posted.", "無法傳送留言，請確認是否已送出。"});
+        TEXT.put("接続できませんでした。再接続をお試しください", new String[]{"Connection failed. Try reconnecting.", "連線失敗，請嘗試重新連線。"});
+        TEXT.put("動画画面の長押し中だけ再生速度を変更します。指を離すと元に戻ります（左端で無効）", new String[]{"Change playback speed while long-pressing the video. Release to restore normal speed (disabled at the left edge).", "長按影片畫面時變更播放速度，放開後恢復原速度（左側邊緣不適用）"});
+        TEXT.put("MP4の保存先フォルダ", new String[]{"MP4 save folder", "MP4 儲存資料夾"});
+        TEXT.put("保存したファイルは外部の再生アプリで開けます", new String[]{"Saved files can be opened in external media players", "已儲存的檔案可使用外部播放器開啟"});
+        TEXT.put("本体の視聴履歴の保存数", new String[]{"Local watch history limit", "本機觀看紀錄儲存數量"});
+        TEXT.put("前回開いていたタブ", new String[]{"Last opened tab", "上次開啟的分頁"});
         buildJapaneseLookup();
     }
     private static String[] lookup(String source) {
@@ -911,6 +1012,17 @@ public final class UiStrings {
         if(canonical!=null){
             exact=TEXT.get(canonical);
             if(exact!=null)return exact;
+        }
+        // Keep numeric setting values intact while translating a known
+        // localized summary suffix, such as "2.0×：Japanese description".
+        int separator=source.indexOf('：');
+        if(separator>0&&separator<24){
+            String suffix=source.substring(separator+1).trim();
+            String[] values=TEXT.get(suffix);
+            if(values!=null){
+                String head=source.substring(0,separator);
+                return new String[]{head+": "+values[0],head+"："+values[1]};
+            }
         }
         if (source.matches("[0-9]+行")) { String n=source.substring(0,source.length()-1); return new String[]{n+("1".equals(n)?" row":" rows"),n+" 行"}; }
         if (source.matches("[0-9]+秒")) { String n=source.substring(0,source.length()-1); return new String[]{n+("1".equals(n)?" second":" seconds"),n+" 秒"}; }

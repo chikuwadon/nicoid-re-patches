@@ -51,6 +51,13 @@ def stage(base,destination):
        'new String[]{UiStrings.translate("現在の一覧を更新"),UiStrings.translate("ニコ生の設定"),UiStrings.translate("公式サイトで開く")}',"Live menu"),
     ):
       source=once(source,old,new,label)
+    # Translate status and derived provider/time labels without touching
+    # broadcast titles, video IDs, sorting keys or network parameters.
+    source=once(source,"status.setText(label);",
+        "status.setText(UiStrings.translate(label));","Live status text")
+    source=once(source,"status.setText(\"取得中…\");",
+        "status.setText(UiStrings.translate(\"取得中…\"));","Live loading status")
+    source=once(source," String programLabel(NicoliveData.Program p){String type=p.provider.equals(\"official\")?\"公式\":p.provider.equals(\"channel\")?\"CH\":p.provider.equals(\"user\")||p.provider.equals(\"community\")?\"ユーザー\":\"生放送\";if(hubTab==2)return \"視聴履歴 / \"+type;if(hubTab==TIMETABLE&&!timetableOnAir&&p.begin>0){String time=TIMETABLE_TIME.format(Instant.ofEpochSecond(p.begin).atZone(NicoliveCatalog.JAPAN));String state=p.onAir()?\"放送中\":p.ended()?\"放送終了\":\"放送予定\";return type+\" / \"+time+\" / \"+state;}if(!p.onAir()){String state=p.ended()?\"放送終了\":\"放送予定\";if(p.begin>0)state+=\" / \"+PROGRAM_TIME.format(Instant.ofEpochSecond(p.begin).atZone(NicoliveCatalog.JAPAN));return type+\" / \"+state;}if(p.begin>0&&prefs().getBoolean(START_TIME,false))return type+\" / \"+PROGRAM_TIME.format(Instant.ofEpochSecond(p.begin).atZone(NicoliveCatalog.JAPAN))+\" 開始\";long minutes=p.begin>0?Math.max(0,(System.currentTimeMillis()/1000-p.begin)/60):-1;return type+\" / \"+(minutes<0?\"放送中\":minutes<60?minutes+\"分経過\":minutes/60+\"時間\"+minutes%60+\"分経過\");}"," String programLabel(NicoliveData.Program p){String type=UiStrings.translate(p.provider.equals(\"official\")?\"公式\":p.provider.equals(\"channel\")?\"CH\":p.provider.equals(\"user\")||p.provider.equals(\"community\")?\"ユーザー\":\"生放送\");if(hubTab==2)return UiStrings.translate(\"視聴履歴\")+\" / \"+type;if(hubTab==TIMETABLE&&!timetableOnAir&&p.begin>0){String time=TIMETABLE_TIME.format(Instant.ofEpochSecond(p.begin).atZone(NicoliveCatalog.JAPAN));String state=UiStrings.translate(p.onAir()?\"放送中\":p.ended()?\"放送終了\":\"放送予定\");return type+\" / \"+time+\" / \"+state;}if(!p.onAir()){String state=UiStrings.translate(p.ended()?\"放送終了\":\"放送予定\");if(p.begin>0)state+=\" / \"+PROGRAM_TIME.format(Instant.ofEpochSecond(p.begin).atZone(NicoliveCatalog.JAPAN));return type+\" / \"+state;}if(p.begin>0&&prefs().getBoolean(START_TIME,false))return type+\" / \"+PROGRAM_TIME.format(Instant.ofEpochSecond(p.begin).atZone(NicoliveCatalog.JAPAN))+PanelUi.tr(this,\" 開始\",\" started\",\" 開始\");long minutes=p.begin>0?Math.max(0,(System.currentTimeMillis()/1000-p.begin)/60):-1;return type+\" / \"+(minutes<0?UiStrings.translate(\"放送中\"):minutes<60?minutes+PanelUi.tr(this,\"分経過\",\" min elapsed\",\" 分鐘前開始\"):minutes/60+PanelUi.tr(this,\"時間\",\" hr \",\" 小時 \")+minutes%60+PanelUi.tr(this,\"分経過\",\" min elapsed\",\" 分鐘前開始\"));}","Live program labels")
     activity.write_text(source,encoding="utf-8")
 
     chrome=destination/"AppBarPlacement202.java"
@@ -58,7 +65,7 @@ def stage(base,destination):
     source=chrome.read_text(encoding="utf-8")
     source=once(source,
         "        strip.post(c::apply);",
-        "        strip.post(()->{c.apply();AppLocale251.translate(host.getWindow().getDecorView());});",
+        "        strip.post(c::apply);\n        strip.post(()->AppLocale251.translate(host.getWindow().getDecorView()));",
         "Translate existing app bar and tab labels without editing stored user tab names")
     chrome.write_text(source,encoding="utf-8")
     return tuple(sorted(destination.glob("*.java")))

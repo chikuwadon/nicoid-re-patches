@@ -17,7 +17,14 @@ final class ChannelFeed {
  private static String counts(String html){String plain=html.replaceAll("(?i)<br\\s*/?>"," ").replaceAll("<[^>]+>"," ").replace("&nbsp;"," ").replace("&#160;"," ");String views=match(plain,"(?:再生(?:数)?|Views?)\\s*[:：]\\s*([0-9,]+)");String comments=match(plain,"(?:コメント|コメ|Comments?)\\s*[:：]\\s*([0-9,]+)");String mylists=match(plain,"(?:マイリスト|マイリス|Mylists?)\\s*[:：]\\s*([0-9,]+)");if(views.isEmpty()||comments.isEmpty()||mylists.isEmpty())return "";return "再生数:"+views+" コメント:"+comments+" マイリスト:"+mylists;}
  static List<Video> parse(String xml)throws Exception{
   if(xml.length()>2*1024*1024||Pattern.compile("<!\\s*(?:DOCTYPE|ENTITY)",Pattern.CASE_INSENSITIVE).matcher(xml).find())throw new IOException("Unsupported XML declaration");
-  DocumentBuilderFactory factory=DocumentBuilderFactory.newInstance();factory.setNamespaceAware(true);factory.setExpandEntityReferences(false);DocumentBuilder builder=factory.newDocumentBuilder();builder.setEntityResolver((publicId,systemId)->new InputSource(new StringReader("")));
+  DocumentBuilderFactory factory=DocumentBuilderFactory.newInstance();factory.setNamespaceAware(true);
+  // Reject DTDs at the parser layer: a text precheck and an empty resolver
+  // alone do not protect against all external entity/parameter entity attacks.
+  factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl",true);
+  factory.setFeature("http://xml.org/sax/features/external-general-entities",false);
+  factory.setFeature("http://xml.org/sax/features/external-parameter-entities",false);
+  factory.setExpandEntityReferences(false);
+  DocumentBuilder builder=factory.newDocumentBuilder();builder.setEntityResolver((publicId,systemId)->new InputSource(new StringReader("")));
   Document doc=builder.parse(new InputSource(new StringReader(xml)));if(!"rss".equals(doc.getDocumentElement().getTagName()))throw new IOException("Not a channel feed");
   ArrayList<Video> result=new ArrayList<>();Set<String> seen=new HashSet<>();NodeList items=doc.getElementsByTagName("item");
   for(int n=0;n<items.getLength();n++){Element item=(Element)items.item(n);Video v=new Video();v.url=text(item,"link").replace("http://","https://");if(!v.url.matches("https://www\\.nicovideo\\.jp/watch/(?:sm|so|nm)?[0-9]+"))continue;v.id=HistoryRules.id(v.url);if(!seen.add(v.id))continue;v.title=text(item,"title");v.date=date(text(item,"pubDate"));String description=text(item,"description");v.image=thumbnail(item,description);v.length=match(description,"class=[\"']nico-info-length[\"'][^>]*>([^<]+)");v.counts=counts(description);result.add(v);}

@@ -152,7 +152,7 @@ assert 'AppLocale251;' in BUILD and '->dialog(Landroid/app/Dialog;)V' in BUILD
 import subprocess
 with tempfile.TemporaryDirectory() as tmp:
   source_jar=str(ROOT/"porting/revisions/v2.0.5-dev.9/java/e/e/a/UiStrings.java")
-  test_java=str(REV/"tests/UiStrings252Test.java")
+  test_java=str(ROOT/"porting/revisions/v2.0.5-dev.11/tests/UiStrings252Test.java")
   subprocess.run(["javac","-encoding","UTF-8","-d",tmp,source_jar,test_java],check=True)
   subprocess.run(["java","-cp",tmp,"e.e.a.UiStrings252Test"],check=True)
 print("PASS: 18 categories and 78 named items preserved exactly once")

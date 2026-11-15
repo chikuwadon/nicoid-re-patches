@@ -171,7 +171,7 @@ public final class SettingsCategories241 {
  }
  private static int[] locate(Preference pref){
   String key=pref.getKey(),name=pref.getTitle()==null?"":pref.getTitle().toString();
-  // The extra dev-only setting is not one of the 79 release settings.
+  // The extra dev-only setting is not one of the 78 release settings.
   if("nicoid_storage_diagnostic".equals(key))return new int[]{15,1};
   String mapped=key==null?null:KEY_ALIASES.get(key);
   String norm=normalized(name);
@@ -200,7 +200,7 @@ public final class SettingsCategories241 {
   String key=PREFIX+(which+1);
   Preference found=a.findPreference(key);
   String[] labels=CATEGORIES[which];
-  String localized=PanelUi.tr(a,labels[0],labels[1],labels[2]);
+  String localized=UiStrings.translate(labels[0]);
   if(found instanceof PreferenceCategory){
    // In-place language changes can reuse the same preference tree.
    PreferenceCategory existing=(PreferenceCategory)found;

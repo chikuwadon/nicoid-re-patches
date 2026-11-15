@@ -83,7 +83,9 @@ public final class DefaultPanel219 {
  }
  private static void select(Object pager,View view,String target,int initial,int attempt){
   if(attempt>=36)return;
-  if(initial>=0&&current(pager)!=initial)return; // user/owner already switched tabs
+  // Native tab binding may itself change the current index while installing
+  // the adapter. The user's saved initial choice takes precedence only here,
+  // during the one-time player-entry initialization.
   Object adapter=adapter(pager);
   if(!view.isAttachedToWindow()||adapter==null||count(adapter)<2){
    again(pager,view,target,initial,attempt);return;

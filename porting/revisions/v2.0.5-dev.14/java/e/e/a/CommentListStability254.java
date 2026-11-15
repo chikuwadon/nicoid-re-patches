@@ -23,12 +23,17 @@ public final class CommentListStability254 {
    else if(child instanceof Spinner)sort=(Spinner)child;
   }
   if(toggle==null||sort==null)return;
-  // The original UI made both children 50% wide, leaving wasted space
-  // between the auto-follow checkbox and the sort selection.
-  toggle.setLayoutParams(new LinearLayout.LayoutParams(-2,-2,0f));
-  sort.setLayoutParams(new LinearLayout.LayoutParams(0,-2,1f));
+  // The original row assigned half the width to each control. The sort
+  // spinner then started near the screen center with unused space to its
+  // RIGHT. Keep auto-follow on the left and anchor the compact sort control
+  // to the right edge, without changing its listener or sort semantics.
+  toggle.setLayoutParams(new LinearLayout.LayoutParams(0,-2,1f));
+  LinearLayout.LayoutParams sortParams=new LinearLayout.LayoutParams(-2,-2,0f);
   int inset=Math.round(6*row.getResources().getDisplayMetrics().density);
-  sort.setPadding(inset,sort.getPaddingTop(),sort.getPaddingRight(),sort.getPaddingBottom());
+  sortParams.leftMargin=inset;
+  sortParams.rightMargin=Math.max(1,inset/2);
+  sort.setLayoutParams(sortParams);
+  sort.setGravity(android.view.Gravity.END|android.view.Gravity.CENTER_VERTICAL);
   new Anchor(list,toggle);
  }
  private static final class Anchor implements ViewTreeObserver.OnPreDrawListener,

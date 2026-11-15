@@ -212,7 +212,10 @@ assert 'pager.setAlpha(0f)' in PANEL and 'reveal(pager,"native tab settled")' in
 assert 'if("comments".equals(id))return 4;' in PANEL
 assert 'CommentListStability254;->attach' in BUILD
 assert 'Suppressed transient comment-list top reset' in STABLE
-assert 'new LinearLayout.LayoutParams(-2,-2,0f)' in STABLE
+assert 'toggle.setLayoutParams(new LinearLayout.LayoutParams(0,-2,1f))' in STABLE
+assert 'sortParams=new LinearLayout.LayoutParams(-2,-2,0f)' in STABLE
+assert 'sortParams.rightMargin=' in STABLE
+assert 'sort.setGravity(android.view.Gravity.END|android.view.Gravity.CENTER_VERTICAL)' in STABLE
 assert 'AmbientLight.java' in P235 and 'commentBar = page.findViewById(0xfa1731)' in P235
 assert 'list.setEnabled("background".equals(' in P235
 assert 'RetainedPlayback137.capture(activity)' in GUARD

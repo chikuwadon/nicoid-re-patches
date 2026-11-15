@@ -64,6 +64,21 @@ assert len(item_rows)==18,(len(item_rows),"item rows")
 items=[re.findall(r'"([^"]+)"',row) for row in item_rows]
 assert sum(map(len,items))==79,sum(map(len,items))
 assert len(set(x for group in items for x in group))==79,"duplicate setting names"
+
+# Every one of the 79 setting labels must have both EN and Traditional Chinese.
+# A missing entry must fail CI instead of moving the setting under General.
+dictionary=set(re.findall(r'TEXT\\.put\\("([^"]+)"',UI))
+untranslated=[label for row in items for label in row if label not in dictionary]
+assert not untranslated,("Missing localized preference labels",untranslated)
+for text_label in ("ホーム","言語","カスタムカラー","背景色","文字の基本色",
+                  "アクセント色","上部バーの色","プレビュー","生放送",
+                  "ニコ生メニュー","番組表","来場者数が多い順"):
+ assert text_label in dictionary,("Missing UI translation",text_label)
+VALUE_SOURCE=text(REV/"java/e/e/a/SettingsValue251.java")
+assert "getEntryValues()" in VALUE_SOURCE and "getString(key" in VALUE_SOURCE
+assert "startup_screen" in VALUE_SOURCE and "setSummary(label)" in VALUE_SOURCE
+assert "entry value" in VALUE_SOURCE and "valueIndex(" in VALUE_SOURCE
+
 assert items[9][0]=="動画再生画面の初期パネル"
 assert items[1]==["ログインせずに使用","ログイン","ログアウト"]
 assert "アンビエントモード" in items[7]
@@ -96,6 +111,10 @@ assert 'JAPANESE_LOOKUP.putIfAbsent(v,entry.getKey())' in UI
 assert 'v2.0.5-dev.2/java' in BUILD and 'p.name != "UiStrings.java"' in BUILD
 assert 'NicoliveActivity.java' in PATCH and 'NicoliveUi.java' in PATCH
 assert 'AppLocale251.translate' in PATCH
+assert 'NicoliveUi.java' in PATCH and 'NicoliveActivity.java' in PATCH
+assert "Live program labels" in PATCH and "Live new comments" in PATCH
+assert "Localize native live alert titles" in PATCH
+
 assert "getDefaultSharedPreferences" not in CATEGORY_SOURCE
 assert "new ListPreference" not in CATEGORY_SOURCE
 print("PASS: 18 categories and 79 named items preserved exactly once")

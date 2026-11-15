@@ -1002,6 +1002,21 @@ public final class UiStrings {
         TEXT.put("保存したファイルは外部の再生アプリで開けます", new String[]{"Saved files can be opened in external media players", "已儲存的檔案可使用外部播放器開啟"});
         TEXT.put("本体の視聴履歴の保存数", new String[]{"Local watch history limit", "本機觀看紀錄儲存數量"});
         TEXT.put("前回開いていたタブ", new String[]{"Last opened tab", "上次開啟的分頁"});
+        TEXT.put("背景色", new String[]{"Background color", "背景顏色"});
+        TEXT.put("文字の基本色", new String[]{"Primary text color", "主要文字顏色"});
+        TEXT.put("アクセント色", new String[]{"Accent color", "強調色"});
+        TEXT.put("上部バーの色", new String[]{"Top bar color", "頂部列顏色"});
+        TEXT.put("プレビュー", new String[]{"Preview", "預覽"});
+        TEXT.put("#RRGGBB形式で入力してください", new String[]{"Enter a color in #RRGGBB format", "請輸入 #RRGGBB 格式的顏色"});
+        TEXT.put("ニコ生メニュー", new String[]{"Niconico Live menu", "Nico 生放送選單"});
+        TEXT.put("一部取得できませんでした", new String[]{"Some programs could not be loaded", "部分節目無法載入"});
+        TEXT.put("この番組", new String[]{"This program", "此節目"});
+        TEXT.put("は現在のアカウントで視聴できません。", new String[]{" cannot be watched with the current account.", "目前的帳號無法觀看。"});
+        TEXT.put("\nログインが必要な場合があります。", new String[]{"\nSign-in may be required.", "\n可能需要登入。"});
+        TEXT.put("\n視聴権・購入状況・チャンネル会員資格を確認してください。", new String[]{"\nCheck viewing rights, purchases and channel membership.", "\n請檢查觀看權限、購買紀錄與頻道會員資格。"});
+        TEXT.put("ランキングの対象", new String[]{"Ranking category", "排行榜分類"});
+        TEXT.put("タイムシフト予約 %,d", new String[]{"Timeshift reservations: %,d", "時光回溯預約：%,d"});
+        TEXT.put("検索サジェスト", new String[]{"Search suggestions", "搜尋建議"});
         buildJapaneseLookup();
     }
     private static String[] lookup(String source) {

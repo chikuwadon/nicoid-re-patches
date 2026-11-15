@@ -15,7 +15,7 @@ with ZipFile(COMPILED) as compiled, ZipFile(PAYLOAD) as payload:
     assert compiled.testzip() is None and payload.testzip() is None
     assert all(name in compiled.namelist() and name in payload.namelist() for name in OVERRIDES)
     assert all(compiled.read(name) and payload.read(name) for name in OVERRIDES)
-    assert b"Version: 2.0.5-dev.14" in compiled.read("META-INF/MANIFEST.MF")
+    assert b"Version: 2.0.5-dev.15" in compiled.read("META-INF/MANIFEST.MF")
     code_entries = [name for name in compiled.namelist() if (
         name.endswith(".dex") or name.endswith(".class") or name.endswith(".jar")
     ) and not name.startswith("nicoid/")]

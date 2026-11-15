@@ -15,7 +15,7 @@ LEGACY=text(PREV/"patch_222.py")
 WORKFLOW=text(ROOT/".github/workflows/private-build.yml")
 assert "version = 2.0.5-dev.8" in text(ROOT/"gradle.properties")
 assert 'VERSION = "2.0.5-dev.8"' in BUILD
-assert "from patch_228 import OVERRIDES, stage" in BUILD
+assert "from patch_229 import OVERRIDES, stage" in BUILD
 assert 'menu = (hooks / menu_file).read_text()' in BUILD
 assert '"video_menu_visible_"+MP4,true' in LEGACY
 assert "MenuEditor120.sort(others,a)" in LEGACY
@@ -40,7 +40,8 @@ assert (PREV/"java/e/e/a/CommentFollow219.java").exists()
 assert (PREV/"java/e/e/a/LikeState219.java").exists()
 assert (PREV/"java/e/e/a/DefaultPanel219.java").exists()
 assert "CommentFlow220;" in BUILD
-assert 'v2.0.5-dev.4/java' in BUILD, "CommentFlow220.java must be compiled" and "->start(FF)F" in BUILD
+assert 'v2.0.5-dev.4/java' in BUILD, "CommentFlow220.java must be compiled"
+assert "CommentFlow220;" in BUILD and "->start(FF)F" in BUILD
 assert "CommentFlow220;" in BUILD and "->height(Ljava/lang/String;F)F" in BUILD
 assert "visuals.count(old_start)" in BUILD
 assert "lane_signature" in BUILD

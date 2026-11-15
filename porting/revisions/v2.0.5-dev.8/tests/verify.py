@@ -67,7 +67,7 @@ assert len(set(x for group in items for x in group))==79,"duplicate setting name
 
 # Every one of the 79 setting labels must have both EN and Traditional Chinese.
 # A missing entry must fail CI instead of moving the setting under General.
-dictionary=set(re.findall(r'TEXT\\.put\\("([^"]+)"',UI))
+dictionary=set(re.findall(r'TEXT\.put\("([^"]+)"',UI))
 untranslated=[label for row in items for label in row if label not in dictionary]
 assert not untranslated,("Missing localized preference labels",untranslated)
 for text_label in ("ホーム","言語","カスタムカラー","背景色","文字の基本色",

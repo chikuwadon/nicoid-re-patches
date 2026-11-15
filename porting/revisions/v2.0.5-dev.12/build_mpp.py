@@ -22,7 +22,7 @@ PREVIOUS_ROOT = Path(__file__).resolve().parent.parent / "v2.0.1-dev.1"
 
 ROOT = Path(__file__).resolve().parent
 BASE_HASH = "8920e9cdc9fc49178be5bc78cdb990627f4e7a7be83fef782eece3e7c443bcce"
-VERSION = "2.0.5-dev.11"
+VERSION = "2.0.5-dev.12"
 
 
 def run(*args):

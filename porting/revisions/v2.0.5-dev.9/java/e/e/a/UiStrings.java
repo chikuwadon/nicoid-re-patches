@@ -329,7 +329,8 @@ public final class UiStrings {
         TEXT.put("ラジオ", new String[]{"Radio", "廣播"});
         TEXT.put("スポーツ", new String[]{"Sports", "運動"});
 
-        TEXT.put("Setting", new String[]{"Settings", "設定"});
+        // Keep upstream English spelling as an alias of the canonical heading.
+        JAPANESE_ALIASES.put("Setting", "設定");
         TEXT.put("nicoidについて", new String[]{"About nicoid Re", "關於 nicoid Re"});
         TEXT.put("About nicoid", new String[]{"About nicoid Re", "關於 nicoid Re"});
         TEXT.put("關於nicoid", new String[]{"About nicoid Re", "關於 nicoid Re"});

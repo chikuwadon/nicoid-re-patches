@@ -13,8 +13,8 @@ MULTI=text(PREV2/"java/e/e/a/MultiTabPlacement.java")
 PATCH=text(REV/"patch_229.py")
 LEGACY=text(PREV/"patch_222.py")
 WORKFLOW=text(ROOT/".github/workflows/private-build.yml")
-assert "version = 2.0.5-dev.7" in text(ROOT/"gradle.properties")
-assert 'VERSION = "2.0.5-dev.7"' in BUILD
+assert "version = 2.0.5-dev.8" in text(ROOT/"gradle.properties")
+assert 'VERSION = "2.0.5-dev.8"' in BUILD
 assert "from patch_228 import OVERRIDES, stage" in BUILD
 assert 'menu = (hooks / menu_file).read_text()' in BUILD
 assert '"video_menu_visible_"+MP4,true' in LEGACY

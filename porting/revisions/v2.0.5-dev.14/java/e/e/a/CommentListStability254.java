@@ -34,6 +34,10 @@ public final class CommentListStability254 {
   sortParams.rightMargin=Math.max(1,inset/2);
   sort.setLayoutParams(sortParams);
   sort.setGravity(android.view.Gravity.END|android.view.Gravity.CENTER_VERTICAL);
+  // The opaque native header obscures the page's ambient underlay.
+  // Draw the existing controls over the inherited page background instead.
+  // When ambient is disabled, the normal dark page background remains.
+  row.setBackgroundColor(android.graphics.Color.TRANSPARENT);
   new Anchor(list,toggle);
  }
  private static final class Anchor implements ViewTreeObserver.OnPreDrawListener,

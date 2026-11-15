@@ -116,6 +116,29 @@ public final class AppResume253 {
   SharedPreferences.OnSharedPreferenceChangeListener old=OBSERVERS.remove(activity);
   if(old!=null)p.unregisterOnSharedPreferenceChangeListener(old);
   refresh(activity);
+  // The legacy Dev111 summary updater can disable the preference after
+  // our refresh when app-switch mode is "popup". Correct only the enabled
+  // bit before drawing; preserve the native ListPreference and its callback.
+  android.widget.ListView screen=activity.getListView();
+  if(screen!=null){
+   WeakReference<PreferenceActivity> owner=new WeakReference<>(activity);
+   screen.getViewTreeObserver().addOnPreDrawListener(new android.view.ViewTreeObserver.OnPreDrawListener(){
+    public boolean onPreDraw(){
+     PreferenceActivity a=owner.get();
+     if(!valid(a)){
+      android.view.ViewTreeObserver observer=screen.getViewTreeObserver();
+      if(observer.isAlive())observer.removeOnPreDrawListener(this);
+      return true;
+     }
+     Preference preference=a.findPreference(KEY);
+     if(preference!=null){
+      boolean enabled=supported(prefs(a).getString(MODE,"none"));
+      if(preference.isEnabled()!=enabled)preference.setEnabled(enabled);
+     }
+     return true;
+    }
+   });
+  }
   WeakReference<PreferenceActivity> ref=new WeakReference<>(activity);
   SharedPreferences.OnSharedPreferenceChangeListener listener=(shared,key)->{
    if(!MODE.equals(key)&&!KEY.equals(key)&&!"app_lang".equals(key))return;

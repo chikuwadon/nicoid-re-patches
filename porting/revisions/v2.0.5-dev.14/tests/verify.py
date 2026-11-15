@@ -216,8 +216,10 @@ assert 'toggle.setLayoutParams(new LinearLayout.LayoutParams(0,-2,1f))' in STABL
 assert 'sortParams=new LinearLayout.LayoutParams(-2,-2,0f)' in STABLE
 assert 'sortParams.rightMargin=' in STABLE
 assert 'sort.setGravity(android.view.Gravity.END|android.view.Gravity.CENTER_VERTICAL)' in STABLE
-assert 'AmbientLight.java' in P235 and 'commentBar = page.findViewById(0xfa1731)' in P235
-assert 'list.setEnabled("background".equals(' in P235
+assert "OVERRIDES=previous.OVERRIDES" in P235
+assert 'row.setBackgroundColor(android.graphics.Color.TRANSPARENT)' in STABLE
+assert 'preference.isEnabled()!=enabled' in RESUME
+assert 'boolean enabled=supported(prefs(a).getString(MODE,"none"))' in RESUME
 assert 'RetainedPlayback137.capture(activity)' in GUARD
 assert 'lastLanguageCheck' in DRAWER and 'DrawerLabels253.refresh(root)' in DRAWER
 print("PASS: v2.0.5-dev.14 native panel and comment bar / decoder retention contracts")

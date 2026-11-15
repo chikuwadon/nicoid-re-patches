@@ -54,10 +54,10 @@ jobs:
           set -euo pipefail
           mkdir -p /tmp/nicoid-codeql-security-tests
           curl -fLs --retry 2 https://repo.maven.apache.org/maven2/org/json/json/20260814/json-20260814.jar -o /tmp/nicoid-codeql-orgjson.jar
-          javac --release 8 -cp /tmp/nicoid-codeql-orgjson.jar -d /tmp/nicoid-codeql-security-tests \\
-            extensions/extension/src/main/java/e/e/a/HistoryRules.java \\
-            extensions/extension/src/main/java/e/e/a/ChannelFeed.java \\
-            extensions/extension/src/main/java/e/e/a/DetailData.java \\
+          javac --release 8 -cp /tmp/nicoid-codeql-orgjson.jar -d /tmp/nicoid-codeql-security-tests \
+            extensions/extension/src/main/java/e/e/a/HistoryRules.java \
+            extensions/extension/src/main/java/e/e/a/ChannelFeed.java \
+            extensions/extension/src/main/java/e/e/a/DetailData.java \
             porting/tests/CodeqlSecurityTest.java
           java -cp /tmp/nicoid-codeql-security-tests:/tmp/nicoid-codeql-orgjson.jar e.e.a.CodeqlSecurityTest
       - name: Analyze CodeQL Java/Kotlin

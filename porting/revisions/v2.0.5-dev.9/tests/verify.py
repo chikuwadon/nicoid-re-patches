@@ -16,7 +16,7 @@ LEGACY=text(PREV/"patch_222.py")
 WORKFLOW=text(ROOT/".github/workflows/private-build.yml")
 assert "version = 2.0.5-dev.9" in text(ROOT/"gradle.properties")
 assert 'VERSION = "2.0.5-dev.9"' in BUILD
-assert "from patch_229 import OVERRIDES, stage" in BUILD
+assert "from patch_230 import OVERRIDES, stage" in BUILD
 assert 'menu = (hooks / menu_file).read_text()' in BUILD
 assert '"video_menu_visible_"+MP4,true' in LEGACY
 assert "MenuEditor120.sort(others,a)" in LEGACY

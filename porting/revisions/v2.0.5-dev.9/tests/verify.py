@@ -126,6 +126,8 @@ assert "getPageTitle" in PANEL and "postDelayed" in PANEL
 assert "updateSummary(activity,p,selected)" in PANEL
 assert 'KEY_ALIASES.put("mp4_tree_uri","動画・音声の保存先フォルダ")' in CATEGORY_SOURCE
 assert "SettingsLabels252.install(a)" in CATEGORY_SOURCE
+assert "public static void updateLanguage(PreferenceActivity activity)" in CATEGORY_SOURCE
+assert "SettingsCategories241.updateLanguage(a)" in LABELS
 assert "動画・音声の保存先フォルダ" in LABELS
 assert "保存したMP4・MP3は本アプリでは再生できません" in LABELS
 assert "Long-press playback speed" in LABELS

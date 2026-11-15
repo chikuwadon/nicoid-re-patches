@@ -41,6 +41,8 @@ public final class SettingsLabels252 {
  }
  public static void refresh(PreferenceActivity a){
   if(a==null||a.isFinishing()||a.isDestroyed())return;
+  UiStrings.selectLanguage(PreferenceManager.getDefaultSharedPreferences(a).getString("app_lang","0"));
+  SettingsCategories241.updateLanguage(a);
   // Never change the storage URI or the existing storage picker callback.
   Preference location=a.findPreference("mp4_tree_uri");
   if(location!=null){

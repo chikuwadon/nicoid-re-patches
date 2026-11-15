@@ -114,6 +114,18 @@ public final class SettingsCategories241 {
     KEY_ALIASES.put("nicoid_external_back_playback","リンクから起動した場合の戻る動作");
     KEY_ALIASES.put("mp4_tree_uri","動画・音声の保存先フォルダ");
  }
+ public static void updateLanguage(PreferenceActivity activity){
+  if(activity==null||activity.isFinishing()||activity.isDestroyed())return;
+  // Repaint titles in place after an app language change. Do not rebuild,
+  // reorder, or reparent any preference when only the locale changes.
+  for(int i=0;i<CATEGORIES.length;i++){
+   Preference group=activity.findPreference(PREFIX+(i+1));
+   if(group instanceof PreferenceCategory){
+    String[] labels=CATEGORIES[i];
+    group.setTitle(PanelUi.tr(activity,labels[0],labels[1],labels[2]));
+   }
+  }
+ }
  private SettingsCategories241(){}
 
  private static String normalized(CharSequence title){

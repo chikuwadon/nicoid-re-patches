@@ -80,7 +80,7 @@ assert "SettingsCategories241;" in BUILD and "->apply(Landroid/preference/Prefer
 assert "category_anchor" in BUILD
 assert "attach(a);" in SUMMARY_SOURCE
 assert "from.removePreference(p)" in CATEGORY_SOURCE
-assert "targetGroup.addPreference(p)" in CATEGORY_SOURCE
+assert "destination.addPreference(p)" in CATEGORY_SOURCE
 assert "p.setOrder(target[1])" in CATEGORY_SOURCE
 assert "created.setOrderingAsAdded(false)" in CATEGORY_SOURCE
 assert "getDefaultSharedPreferences" not in CATEGORY_SOURCE

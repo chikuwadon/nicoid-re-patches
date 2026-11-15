@@ -10,13 +10,13 @@ text=lambda p:p.read_text(encoding="utf-8")
 BUILD=text(REV/"build_mpp.py")
 UI=text(ROOT/"porting/revisions/v2.0.5-dev.9/java/e/e/a/UiStrings.java")
 MULTI=text(PREV2/"java/e/e/a/MultiTabPlacement.java")
-PATCH=text(REV/"patch_232.py")
+PATCH=text(REV/"patch_233.py")
 OLD_PATCH=text(ROOT/"porting/revisions/v2.0.5-dev.8/patch_229.py")
 LEGACY=text(PREV/"patch_222.py")
 WORKFLOW=text(ROOT/".github/workflows/private-build.yml")
 assert "version = 2.0.5-dev.11" in text(ROOT/"gradle.properties")
 assert 'VERSION = "2.0.5-dev.11"' in BUILD
-assert "from patch_232 import OVERRIDES, stage" in BUILD
+assert "from patch_233 import OVERRIDES, stage" in BUILD
 assert 'menu = (hooks / menu_file).read_text()' in BUILD
 assert '"video_menu_visible_"+MP4,true' in LEGACY
 assert "MenuEditor120.sort(others,a)" in LEGACY
@@ -173,7 +173,7 @@ assert "original.onPreferenceClick" in DIALOG
 assert "getDialog()" in DIALOG and "UiTheme191.window(dialog)" in DIALOG
 print("PASS: visible ambient and normal controls by default, ambient after quality")
 print("PASS: aligned glyph sizes and standardized rounded settings/custom dialogs")
-spec=importlib.util.spec_from_file_location("_patch_v205_dev11",REV/"patch_232.py")
+spec=importlib.util.spec_from_file_location("_patch_v205_dev12",REV/"patch_233.py")
 module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
 with tempfile.TemporaryDirectory() as tmp:
  dest=Path(tmp)/"e/e/a"

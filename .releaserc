@@ -80,26 +80,26 @@
             {
               "type": "fix",
               "section": "🐛 Bug Fixes",
-              "hidden": false
+              "effect": "bump"
             },
             {
               "type": "feat",
               "section": "✨ New Features",
-              "hidden": false
+              "effect": "bump"
             },
             {
               "type": "bump",
               "section": "🚀 Updated App Support",
-              "hidden": false
+              "effect": "bump"
             },
             {
               "type": "perf",
               "section": "🔧 Improvements",
-              "hidden": false
+              "effect": "bump"
             },
             {
               "type": "build",
-              "hidden": true
+              "effect": "hidden"
             }
           ]
         }

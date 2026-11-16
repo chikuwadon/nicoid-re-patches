@@ -389,6 +389,7 @@ jobs:
           set -euo pipefail
           npm ci --ignore-scripts --no-audit --no-fund
           node .github/scripts/verify-release-npm.cjs
+          node .github/scripts/test-release-toolchain.cjs
           node --input-type=module <<'NODE'
           import semanticRelease from 'semantic-release';
           if (typeof semanticRelease !== 'function') throw Error('semantic-release CLI invalid');

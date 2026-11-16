@@ -1,0 +1,60 @@
+name: Temporary Maven security dependency verification
+on:
+  push:
+    branches: [security/maven-advisories-13-latest]
+permissions:
+  contents: read
+  packages: read
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      GITHUB_ACTOR: ${{ github.actor }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Verify all resolved settings classpath versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          sed -i 's#https\\://services.gradle.org/distributions/gradle-9.9.1-bin.zip#https\\://downloads.gradle.org/distributions/gradle-9.9.1-bin.zip#' gradle/wrapper/gradle-wrapper.properties
+          cat > /tmp/check-security-deps.gradle <<'GROOVY'
+          gradle.settingsEvaluated { settings ->
+            def required = [
+              'com.android.tools.build:gradle':'9.5.1',
+              'org.bouncycastle:bcprov-jdk18on':'1.87',
+              'org.bouncycastle:bcpkix-jdk18on':'1.87',
+              'org.bouncycastle:bcutil-jdk18on':'1.87',
+              'com.google.guava:guava':'33.8.0-jre',
+              'org.apache.commons:commons-lang3':'3.22.0',
+              'org.apache.httpcomponents:httpclient':'4.5.14',
+              'org.bitbucket.b_c:jose4j':'0.9.7',
+              'org.jdom:jdom2':'2.0.6.1'
+            ]
+            def resolved = [:]
+            settings.buildscript.configurations.getByName('classpath').resolvedConfiguration.resolvedArtifacts.each { a ->
+              def id = a.moduleVersion.id
+              resolved[id.group + ':' + id.name] = id.version
+            }
+            required.each { name, target ->
+              if (resolved.containsKey(name)) {
+                println "SECURITY RESOLVED: " + name + " = " + resolved[name]
+                if (resolved[name] != target)
+                  throw new GradleException("Vulnerable or unexpected version: " + name + " = " + resolved[name] + " (expected " + target + ")")
+              } else {
+                println "SECURITY ABSENT FROM SETTINGS CLASSPATH: " + name
+              }
+            }
+            if (resolved['com.android.tools.build:gradle'] != '9.5.1')
+              throw new GradleException('Android Gradle Plugin was not updated')
+            println "SECURITY SETTINGS DEPENDENCIES VERIFIED"
+          }
+          GROOVY
+          ./gradlew help --no-daemon -I /tmp/check-security-deps.gradle

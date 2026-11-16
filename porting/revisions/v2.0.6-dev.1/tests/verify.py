@@ -1,7 +1,7 @@
 """Validate the comment flow source and guarded dev-only MPP pipeline."""
 from pathlib import Path
 import re
-ROOT=Path(__file__).resolve().parents[3]
+ROOT=Path(__file__).resolve().parents[4]
 REV=ROOT/"porting/revisions/v2.0.6-dev.1"
 version=re.search(r"^version\s*=\s*([^\s]+)",(ROOT/"gradle.properties").read_text(),re.MULTILINE)
 assert version and version.group(1).startswith("2.0.6"), "Unexpected patch version"

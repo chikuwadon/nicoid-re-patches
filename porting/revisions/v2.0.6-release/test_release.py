@@ -30,5 +30,6 @@ assert (ROOT/"porting/revisions/v2.0.6-dev.13/tests/menu_test.py").is_file()
 assert (ROOT/"porting/revisions/v2.0.6-dev.11/tests/run_resume_test.py").is_file()
 assert (ROOT/"porting/revisions/v2.0.6-dev.12/verify_settings_links.py").is_file()
 assert "v2.0.6-dev.13" in build
-assert "adeaad89026553a9a6d8f28746ef34777ad14fc8f381f31b68f9567d1013748d" in stage
+assert 'verify_native.py' in stage
+assert (ROOT/"porting/revisions/v2.0.6-release/verify_native.py").is_file()
 print("PASS: approved v2.0.6 release routing and notes")

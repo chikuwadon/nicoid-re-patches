@@ -11,7 +11,8 @@ p=(ROOT/"gradle.properties").read_text()
 assert re.search(r"(?m)^version\s*=\s*2\.0\.6-dev\.10\s*$",p)
 builder=(REV/"build_mpp.py").read_text()
 ast.parse(builder)
-assert re.search(r'(?m)^VERSION\s*=\s*"2\.0\.6-dev\.10"
+assert re.search(r'(?m)^VERSION\s*=\s*"2\.0\.6-dev\.10"\s*$',builder)
+for fragment in (
                  'p.name not in ("FullscreenOptions262.java", "FullscreenOptions265.java")',
                  'v2.0.6-dev.9/java', 'v2.0.6-dev.10/java',
                  'overlay_settings_270(work, disassembled, hooks)'):

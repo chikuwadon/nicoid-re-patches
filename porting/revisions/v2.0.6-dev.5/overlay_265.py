@@ -47,7 +47,7 @@ def append_setting(body: str):
     if end < 0:
         raise RuntimeError("Missing settings method return")
     return (body[:end] +
-            "    invoke-static {p0}, Le/e/a/FullscreenOptions265;"
+            "    invoke-static/range {p0 .. p0}, Le/e/a/FullscreenOptions265;"
             "->settings(Landroid/preference/PreferenceActivity;)V\n\n" +
             body[end:])
 
@@ -57,7 +57,7 @@ def append_summary(body: str):
     if end < 0:
         raise RuntimeError("Missing summary method return")
     return (body[:end] +
-            "    invoke-static {p0}, Le/e/a/FullscreenOptions265;"
+            "    invoke-static/range {p0 .. p0}, Le/e/a/FullscreenOptions265;"
             "->resumeSummary(Landroid/preference/PreferenceActivity;)V\n\n" +
             body[end:])
 

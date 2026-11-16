@@ -14,8 +14,8 @@ assert SOURCE.count(old_version)==1
 SOURCE=SOURCE.replace(old_version,'VERSION = "2.0.6-dev.4"')
 old='        *sorted((ROOT.parent / "v2.0.6-dev.2/java").rglob("*.java")),'
 new=('        *sorted(p for p in (ROOT.parent / "v2.0.6-dev.2/java").rglob("*.java")'
-     ' if p.name != "CommentFlow220.java"),\n'
-     '        *sorted((ROOT.parent / "v2.0.6-dev.3/java").rglob("*.java")),\n'
+     ' if p.name != "CommentFlow220.java"),\\n'
+     '        *sorted((ROOT.parent / "v2.0.6-dev.3/java").rglob("*.java")),\\n'
      '        *sorted((ROOT.parent / "v2.0.6-dev.4/java").rglob("*.java")),')
 assert SOURCE.count(old)==1
 SOURCE=SOURCE.replace(old,new)

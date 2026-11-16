@@ -706,17 +706,21 @@ jobs:
           test -s /tmp/nicoid-v2-android-classes/e/e/a/NicoliveData.class
           echo "Complete live Java source compiled. No original APK was used or distributed."
 
-      - name: Verify v2.0.6-dev.5 comment flow and fullscreen settings
+      - name: Verify v2.0.6-dev.6 explicit playback menu actions
         if: github.ref == 'refs/heads/dev'
         shell: bash
         run: |
           set -euo pipefail
-          python3 porting/revisions/v2.0.6-dev.5/tests/verify.py
-          mkdir -p /tmp/nicoid-comment-v206
+          python3 porting/revisions/v2.0.6-dev.6/tests/verify.py
+          mkdir -p /tmp/nicoid-comment-v206 /tmp/nicoid-menu-v266
           javac --release 8 -d /tmp/nicoid-comment-v206 \
             porting/revisions/v2.0.6-dev.5/java/e/e/a/CommentFlow220.java \
             porting/revisions/v2.0.6-dev.5/tests/CommentFlow265Test.java
           java -cp /tmp/nicoid-comment-v206 e.e.a.CommentFlow265Test
+          javac --release 8 -d /tmp/nicoid-menu-v266 \
+            porting/revisions/v2.0.6-dev.6/java/e/e/a/PlaybackChoice266.java \
+            porting/revisions/v2.0.6-dev.6/tests/PlaybackChoice266Test.java
+          java -cp /tmp/nicoid-menu-v266 e.e.a.PlaybackChoice266Test
       - name: Build current Morphe Kotlin patch classes
         if: github.ref == 'refs/heads/dev'
         env:
@@ -739,8 +743,8 @@ jobs:
             # Stable and subsequent versions already contain the canonical compiled MPP.
             if [[ "$version" == "2.0.5-dev.17" ]]; then
               builder=porting/revisions/v2.0.5-dev.17
-            elif [[ "$version" == "2.0.6-dev.5" ]]; then
-              builder=porting/revisions/v2.0.6-dev.5
+            elif [[ "$version" == "2.0.6-dev.6" ]]; then
+              builder=porting/revisions/v2.0.6-dev.6
             else
               builder=""
             fi

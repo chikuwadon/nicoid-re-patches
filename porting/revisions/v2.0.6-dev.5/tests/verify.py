@@ -22,8 +22,8 @@ for term in ("v2.0.6-dev.3/java","v2.0.6-dev.5/java",
 assert "v2.0.6-dev.2/java" not in builder
 overlay=(REV/"overlay_265.py").read_text()
 assert "ListActions.smali" in overlay and "ListActions;->ACTIONS" in overlay
-assert "Dev111.smali" in overlay and "FullscreenOptions265;->settings" in overlay
-assert "FullscreenOptions265;->resumeSummary" in overlay
+assert "Dev111.smali" in overlay and "->settings(" in overlay and "FullscreenOptions265;" in overlay
+assert "->resumeSummary(" in overlay and "FullscreenOptions265;" in overlay
 # Exercise the smali splice on real compiled ListActions source.
 import importlib.util
 spec=importlib.util.spec_from_file_location("overlay_265",REV/"overlay_265.py")

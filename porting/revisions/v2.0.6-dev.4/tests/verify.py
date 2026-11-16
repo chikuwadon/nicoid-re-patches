@@ -19,12 +19,12 @@ builder=(REV/"build_mpp.py").read_text()
 assert "v2.0.6-dev.2" in builder and "v2.0.6-dev.4/java" in builder
 assert "overlay_262 import apply" in builder
 assert "onVideoCreated(Landroid/app/Activity;)V" in builder
-overlay=(REV/"overlay_262.py").read_text()
+overlay=(ROOT/"porting/revisions/v2.0.6-dev.3/overlay_262.py").read_text()
 for anchor in ("SettingsTools.smali","MenuOptions119.smali",
                "MenuEditor120.smali","Dev115.smali",
                "CommentVisuals.smali","0x43480000"):
  assert anchor in overlay,anchor
-fullscreen=(REV/"java/e/e/a/FullscreenOptions262.java").read_text()
+fullscreen=(ROOT/"porting/revisions/v2.0.6-dev.3/java/e/e/a/FullscreenOptions262.java").read_text()
 for key in ("videolist_tap","intent_type","nicoid_app_resume_playback",
             "Fullscreen playback","全画面再生","全螢幕播放",
             "isFullScreen","isLandscape","nicoid_fullscreen_handoff208",

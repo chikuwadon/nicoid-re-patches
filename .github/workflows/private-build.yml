@@ -707,16 +707,18 @@ jobs:
           test -s /tmp/nicoid-v2-android-classes/e/e/a/NicoliveData.class
           echo "Complete live Java source compiled. No original APK was used or distributed."
 
-      - name: Verify v2.0.6-dev.10 resume option and playback choice ordering
+      - name: Verify resume option and playback choice ordering
         if: github.ref == 'refs/heads/dev'
         shell: bash
         run: |
           set -euo pipefail
-          python3 porting/revisions/v2.0.6-dev.10/tests/verify.py
+          python3 porting/revisions/v2.0.6-dev.11/tests/verify.py
+          python3 porting/revisions/v2.0.6-dev.11/tests/run_resume_test.py
+          python3 porting/revisions/v2.0.6-dev.13/tests/menu_test.py
           mkdir -p /tmp/nicoid-settings-v270
           javac --release 8 -d /tmp/nicoid-settings-v270 \
-            porting/revisions/v2.0.6-dev.10/java/e/e/a/PlaybackChoiceOrder270.java \
-            porting/revisions/v2.0.6-dev.10/tests/PlaybackChoiceOrder270Test.java
+            porting/revisions/v2.0.6-dev.11/java/e/e/a/PlaybackChoiceOrder270.java \
+            porting/revisions/v2.0.6-dev.11/tests/PlaybackChoiceOrder270Test.java
           java -cp /tmp/nicoid-settings-v270 e.e.a.PlaybackChoiceOrder270Test
           mkdir -p /tmp/nicoid-comment-v206 /tmp/nicoid-menu-v266
           javac --release 8 -d /tmp/nicoid-comment-v206 \
@@ -755,6 +757,12 @@ jobs:
               builder=porting/revisions/v2.0.5-dev.17
             elif [[ "$version" == "2.0.6-dev.10" ]]; then
               builder=porting/revisions/v2.0.6-dev.10
+            elif [[ "$version" == "2.0.6-dev.11" ]]; then
+              builder=porting/revisions/v2.0.6-dev.11
+            elif [[ "$version" == "2.0.6-dev.12" ]]; then
+              builder=porting/revisions/v2.0.6-dev.12
+            elif [[ "$version" == "2.0.6-dev.13" ]]; then
+              builder=porting/revisions/v2.0.6-dev.13
             else
               builder=""
             fi
@@ -779,6 +787,9 @@ jobs:
             compiled="patches/build/libs/patches-$version.mpp"
             test -s "$compiled"
             cp "$compiled" "$output"
+          fi
+          if [[ "$version" == "2.0.6-dev.12" || "$version" == "2.0.6-dev.13" ]]; then
+            python3 porting/revisions/v2.0.6-dev.12/verify_settings_links.py "$output" "$revision/tools"
           fi
           unzip -tq "$output"
           unzip -p "$output" META-INF/MANIFEST.MF | grep -Fq "Version: $version"

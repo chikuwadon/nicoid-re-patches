@@ -12,6 +12,7 @@ VERSION = "2.0.6-dev.6"
 ROOT = Path(__file__).resolve().parent
 LEGACY = ROOT.parent / "v2.0.5-dev.17" / "build_mpp.py"
 sys.path.insert(0,str(ROOT.parent / "v2.0.6-dev.3"))
+sys.path.insert(0,str(ROOT.parent / "v2.0.6-dev.5"))
 sys.path.insert(0,str(ROOT))
 source = LEGACY.read_text(encoding="utf-8")
 

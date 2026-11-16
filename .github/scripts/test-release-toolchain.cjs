@@ -67,7 +67,7 @@ async function main() {
   } finally {
     fs.rmSync(temp, { recursive: true, force: true });
   }
-  console.log('PASS: latest stable release plugins import, actual fallback notes and Morphe bundle metadata');
+  console.log('PASS: peer-compatible release plugins, fallback notes and Morphe bundle metadata');
 }
 
 main().catch((error) => {

@@ -7,7 +7,7 @@ from pathlib import Path
 import importlib.util
 import sys
 
-VERSION="2.0.6-dev.10"
+VERSION = "2.0.6-dev.10"
 ROOT=Path(__file__).resolve().parent
 DEV8=ROOT.parent/"v2.0.6-dev.8"/"build_mpp.py"
 sys.path.insert(0,str(ROOT))

@@ -7,6 +7,8 @@ from pathlib import Path
 import importlib.util
 import sys
 
+VERSION = "2.0.6-dev.9"
+
 ROOT=Path(__file__).resolve().parent
 DEV8=ROOT.parent/"v2.0.6-dev.8"/"build_mpp.py"
 SOURCE=DEV8.read_text(encoding="utf-8")
@@ -25,6 +27,6 @@ spec=importlib.util.spec_from_file_location("nicoid_v206_dev9_base",DEV8)
 module=importlib.util.module_from_spec(spec)
 sys.modules[spec.name]=module
 exec(compile(SOURCE,str(DEV8),"exec"),module.__dict__)
-module.builder.VERSION="2.0.6-dev.9"
+module.builder.VERSION=VERSION
 if __name__=="__main__":
     module.builder.main()

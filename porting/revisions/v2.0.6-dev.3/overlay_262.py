@@ -76,5 +76,12 @@ def apply(work: Path, disassembled: Path, hooks: Path):
     src = visuals.read_text()
     old = "    const/high16 v16, 0x42480000    # 50.0f"
     new = "    const/high16 v16, 0x43480000    # 200.0f"
-    visuals.write_text(replace_once(src, old, new,
-                                    "clock stall vs actual seek threshold"))
+    if src.count(old)==1:
+        visuals.write_text(src.replace(old,new,1))
+    else:
+        # Different native revisions can implement this reset without the
+        # literal 50-centisecond constant. Never rewrite an unverified branch.
+        guards=re.findall(r"(?m)^\\s+const/high16 v1[56], 0x[0-9a-f]+.*$",src)
+        print("INFO: native comment clock guard differs; preserving existing "
+              "reset logic: "+repr(guards[:12]))
+

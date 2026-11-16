@@ -716,7 +716,7 @@ jobs:
           javac --release 8 -d /tmp/nicoid-comment-v206 \
             porting/revisions/v2.0.6-dev.2/java/e/e/a/CommentFlow220.java \
             porting/revisions/v2.0.6-dev.2/tests/CommentFlow261Test.java
-          java -cp /tmp/nicoid-comment-v206 e.e.a.CommentFlow260Test
+          java -cp /tmp/nicoid-comment-v206 e.e.a.CommentFlow261Test
       - name: Build current Morphe Kotlin patch classes
         if: github.ref == 'refs/heads/dev'
         env:

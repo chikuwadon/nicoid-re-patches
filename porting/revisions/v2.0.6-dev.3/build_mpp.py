@@ -12,7 +12,7 @@ old_version='VERSION = "2.0.6-dev.2"'
 assert SOURCE.count(old_version)==1
 SOURCE=SOURCE.replace(old_version,'VERSION = "2.0.6-dev.3"')
 old='        *sorted((ROOT.parent / "v2.0.6-dev.2/java").rglob("*.java")),'
-new=old+'\n'+'        *sorted((ROOT.parent / "v2.0.6-dev.3/java").rglob("*.java")),'
+new=old+'\\n'+'        *sorted((ROOT.parent / "v2.0.6-dev.3/java").rglob("*.java")),'
 assert SOURCE.count(old)==1
 SOURCE=SOURCE.replace(old,new)
 entry='spec=importlib.util.spec_from_file_location("nicoid_v206_dev1_base",LEGACY)'

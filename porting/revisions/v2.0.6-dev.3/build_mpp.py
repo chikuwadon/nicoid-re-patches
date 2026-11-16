@@ -1,6 +1,7 @@
 """Guarded v2.0.6-dev.3 MPP builder.
 Preserve the validated dev.2 comment timing fix and add fullscreen controls.
 """
+VERSION = "2.0.6-dev.3"
 from pathlib import Path
 import importlib.util
 import sys

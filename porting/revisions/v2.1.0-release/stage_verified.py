@@ -7,6 +7,7 @@ DEX, then only the three version literals are changed for stable release.
 """
 from __future__ import annotations
 import argparse
+from copy import copy
 import io
 import os
 import shutil
@@ -130,7 +131,7 @@ def main() -> None:
             args.output.parent.mkdir(parents=True,exist_ok=True)
             with ZipFile(args.output,'w',compression=ZIP_DEFLATED,compresslevel=9) as stable:
                 for entry in compiled.infolist():
-                    stable.writestr(entry,overrides.get(entry.filename,compiled.read(entry.filename)))
+                    stable.writestr(copy(entry),overrides.get(entry.filename,compiled.read(entry.filename)))
             with ZipFile(args.output) as stable:
                 require(stable.testzip() is None,'Staged MPP failed ZIP integrity')
                 require(b'Version: 2.1.0\r\n' in stable.read('META-INF/MANIFEST.MF'),'Official manifest not stable')

@@ -778,7 +778,19 @@ jobs:
             fi
           fi
           output="/tmp/nicoid-re-$version.mpp"
-          if [[ -n "$builder" ]]; then
+          if [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.0" ]]; then
+            # Stage the same reviewed dev.28 behavior as the official main build.
+            # Never distribute the raw, unstaged Gradle MPP as a verified v2.1.0 candidate.
+            compiled="patches/build/libs/patches-$version.mpp"
+            test -s "$compiled"
+            approved_base=$(mktemp /tmp/nicoid-v210-dev-compiled-XXXXXXXX.mpp)
+            trap 'rm -f "$approved_base"' EXIT
+            cp "$compiled" "$approved_base"
+            python3 porting/revisions/v2.1.0-release/verify_dev28.py
+            python3 porting/revisions/v2.1.0-release/prepare_smali_tools.py
+            python3 porting/revisions/v2.1.0-release/stage_verified.py \
+              --compiled "$approved_base" --output "$output" --tools "$revision/tools"
+          elif [[ -n "$builder" ]]; then
             payload="/tmp/nicoid-re-$version-payload.mpp"
             python3 "$builder/build_mpp.py" \
               --base /tmp/stable-nicoid.mpp \

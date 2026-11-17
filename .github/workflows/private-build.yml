@@ -712,11 +712,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # This historical verification asserts the exact 2.0.6-dev.11-13
-          # build version. Keep it for archived development versions without
-          # rejecting newer stable releases; all behavioral JVM tests below
-          # must continue running on every supported version.
-          if grep -Eq '^version[[:space:]]*=[[:space:]]*2\\.0\\.6-dev\\.(11|12|13)[[:space:]]*
+          # Historical version assertions only apply to archived 2.0.6 development builds.
+          # Keep behavioral JVM regressions enabled for the current v2.1.0 release.
+          current_version=$(sed -n 's/^version *= *//p' gradle.properties | head -n 1)
+          case "$current_version" in
+            2.0.6-dev.11|2.0.6-dev.12|2.0.6-dev.13)
+              python3 porting/revisions/v2.0.6-dev.11/tests/verify.py
+              ;;
+            *)
+              echo "Archived 2.0.6-dev version assertion skipped for $current_version"
+              ;;
+          esac
+          python3 porting/revisions/v2.0.6-dev.11/tests/run_resume_test.py
           python3 porting/revisions/v2.0.6-dev.13/tests/menu_test.py
           mkdir -p /tmp/nicoid-settings-v270
           javac --release 8 -d /tmp/nicoid-settings-v270 \

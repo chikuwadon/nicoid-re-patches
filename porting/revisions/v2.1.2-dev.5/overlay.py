@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Scoped v2.1.2-dev.2 helper/native hooks from the reviewed v2.1.0 payload."""
 from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from harden_dev5 import apply as harden_dev5
 
 

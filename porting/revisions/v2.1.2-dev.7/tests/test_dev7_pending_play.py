@@ -11,7 +11,8 @@ assert 'MAIN.removeCallbacks(pending)' in a and '++scanEpoch' in a
 assert 'Panel panel = PANELS.get(layer);' in a
 assert 'Media3Stall275;->onPlay(Ljava/lang/Object;)V' in c
 assert 'Media3Stall275;->onPause(Ljava/lang/Object;)V' in c
-assert "('.method public setVideoUri(', '.method public release()V'" in c
+assert "for name in ('setVideoUri', 'release', 'stopForReplacement'):" in c
+assert 'candidates=list(re.finditer' in c
 assert 'playing(p) || initialMediaItem==null' in b
 assert 'currentState==2 && !attempted' in b
 assert 'MAIN.postDelayed(this,SECOND_MS);' in b

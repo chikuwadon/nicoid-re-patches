@@ -654,9 +654,17 @@ def stabilize_buffering_after_manual_play(helpers: Path) -> None:
         return method[:match.end()]+'''
 
     invoke-static {p0}, Le/e/a/Media3Stall275;->cancel(Ljava/lang/Object;)V'''+method[match.end():]
-    for name in ('.method public setVideoUri(', '.method public release()V',
-                 '.method public stopForReplacement()V'):
-        source=in_method(source,name,prepend)
+    # Reviewed D8 output is allowed to retain final/synchronized access flags
+    # on these methods. Match by the exact method *name* rather than by the
+    # unstable textual modifier sequence emitted by baksmali.
+    import re
+    for name in ('setVideoUri', 'release', 'stopForReplacement'):
+        candidates=list(re.finditer(r'(?m)^\.method [^\n]*\b'+re.escape(name)+r'\(',source))
+        if len(candidates)!=1:
+            raise AssertionError(f'Media3 {name}: expected one method, got {len(candidates)}')
+        start=candidates[0].start()
+        signature=source[start:source.index('\n',start)]
+        source=in_method(source,signature,prepend)
     f.write_text(source)
 
 

@@ -37,7 +37,11 @@ def android_tools():
     home=os.environ.get('ANDROID_HOME') or os.environ.get('ANDROID_SDK_ROOT')
     require(bool(home),'ANDROID_HOME / ANDROID_SDK_ROOT is required')
     sdk=Path(home)
-    platforms=sorted((sdk/'platforms').glob('android-*/android.jar'),key=lambda p:int(p.parent.name.split('-')[-1]))
+    import re
+    def platform_key(p):
+        match=re.fullmatch(r'android-(\\d+)(?:-ext(\\d+))?',p.parent.name)
+        return (int(match.group(1)),int(match.group(2) or 0)) if match else (0,0)
+    platforms=sorted((p for p in (sdk/'platforms').glob('android-*/android.jar') if platform_key(p)[0]),key=platform_key)
     tools=sorted((sdk/'build-tools').glob('*/d8'),key=lambda p:tuple(int(q) for q in p.parent.name.split('.') if q.isdigit()))
     require(bool(platforms) and bool(tools),'Android SDK platform and D8 are required')
     return platforms[-1],tools[-1]

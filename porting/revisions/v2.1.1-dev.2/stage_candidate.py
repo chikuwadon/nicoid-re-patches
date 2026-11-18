@@ -26,7 +26,7 @@ from stage_verified import assemble, disassemble, run, semantics_equal, require
 from overlay import patch
 
 REVIEWED_VERSION='2.1.0-dev.28'
-CANDIDATE_VERSION='2.1.1-dev.1'
+CANDIDATE_VERSION='2.1.1-dev.2'
 VERSION_OWNERS={'e/e/a/PatchVersion237.smali':1,'e/e/a/ModernShorts.smali':2}
 TOUCHED={Path(name) for name in ['e/e/a/BulkSelection.smali','e/e/a/LocalPlaylists$Page.smali',
          'e/e/a/AmbientLight$Layer.smali',*VERSION_OWNERS.keys()]}

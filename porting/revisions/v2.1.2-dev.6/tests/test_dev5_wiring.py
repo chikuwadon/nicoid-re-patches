@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail the private build if v2.1.2-dev.5 regressions are no longer wired."""
+"""Fail the private build if the dev.5 regressions are no longer wired."""
 from pathlib import Path
 src=Path(__file__).resolve().parents[1]
 def contains(path,*needles):
@@ -38,9 +38,9 @@ contains('AmbientCard217.java',
     'now - lastScanAt < (now < transitionUntil ? 16 : 90)',
     '},700L);')
 contains('stage_candidate.py',
-    "CANDIDATE_VERSION='2.1.2-dev.5'",
+    "CANDIDATE_VERSION='2.1.2-dev.6'",
     "'e/e/a/SettingsCategories241.smali'",
     "'e/e/a/AppSwitchGuard.smali'",
     "'ResumeGuard273.java'",
     "'ResumeGuard273'",)
-print('PASS: dev.5 session capture and identity, mini cleanup, ambient cadence, settings classification and localization')
+print('PASS: retained dev.5 session capture and identity, mini cleanup, ambient cadence, settings classification and localization')

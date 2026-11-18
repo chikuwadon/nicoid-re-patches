@@ -39,7 +39,7 @@ def android_tools():
     sdk=Path(home)
     import re
     def platform_key(p):
-        match=re.fullmatch(r'android-(\\d+)(?:-ext(\\d+))?',p.parent.name)
+        match=re.fullmatch(r'android-(\d+)(?:-ext(\d+))?',p.parent.name)
         return (int(match.group(1)),int(match.group(2) or 0)) if match else (0,0)
     platforms=sorted((p for p in (sdk/'platforms').glob('android-*/android.jar') if platform_key(p)[0]),key=platform_key)
     tools=sorted((sdk/'build-tools').glob('*/d8'),key=lambda p:tuple(int(q) for q in p.parent.name.split('.') if q.isdigit()))

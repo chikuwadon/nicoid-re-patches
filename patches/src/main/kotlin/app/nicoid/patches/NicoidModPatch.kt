@@ -741,22 +741,5 @@ val nicoidModPatch = bytecodePatch(
                 """.trimIndent())
             }
         }
-
-        // Intercept only the original nicoid 6.49 account Mylist MOVE picker.
-        // NativeMylistMove215 keeps the authenticated i2$c transaction callback,
-        // but offers destination exclusion and a final confirmation first.
-        val nativeMovePicker = mutableClassDefBy("Le/e/a/i2;").methods.single { method ->
-            method.name == "a" && method.returnType == "V" &&
-                method.parameterTypes.map { it.toString() } ==
-                    listOf("I", "Ljava/util/ArrayList;", "Ljava/util/ArrayList;", "Ljava/lang/String;")
-        }
-        nativeMovePicker.addInstructionsWithLabels(0, """
-            invoke-static/range {p0 .. p4}, Le/e/a/NativeMylistMove215;->show(Ljava/lang/Object;ILjava/util/ArrayList;Ljava/util/ArrayList;Ljava/lang/String;)Z
-            move-result v0
-            if-eqz v0, :nicoid_original_move_picker_215
-            return-void
-            :nicoid_original_move_picker_215
-            nop
-        """.trimIndent())
     }
 }

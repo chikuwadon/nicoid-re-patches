@@ -601,9 +601,17 @@ def protect_theme_card_and_popup_handoff(helpers: Path) -> None:
     # shortens the debounce; non-popup and in-app navigation keep 500ms.
     guard = helpers/'e/e/a/AppSwitchGuard.smali'
     source = guard.read_text()
+    # Reviewed Media3 bytecode can use the 180ms debounce (0xb4), whereas
+    # older development overlays used 500ms (0x1f4). Match the actual pinned
+    # bytecode, retaining the baseline on all modes except explicit popup.
+    method_start = source.index('.method public static intercept(Ljava/lang/Object;Z)Z')
+    method_end = source.index('.end method', method_start)
+    excerpt = source[method_start:method_end]
+    baseline = '0xb4' if 'const-wide/16 v2, 0xb4' in excerpt else '0x1f4'
+    assert 'const-wide/16 v2, '+baseline in excerpt, 'App switch debounce register changed'
     old = '''    sget-object p0, Le/e/a/AppSwitchGuard;->MAIN:Landroid/os/Handler;
 
-    const-wide/16 v2, 0x1f4
+    const-wide/16 v2, '''+baseline+'''
 
     invoke-virtual {p0, v1, v2, v3}, Landroid/os/Handler;->postDelayed(Ljava/lang/Runnable;J)Z'''
     new = '''    invoke-static {p0}, Le/e/a/PopupSwitch274;->delay(Landroid/app/Activity;)J

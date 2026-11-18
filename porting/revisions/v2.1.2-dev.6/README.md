@@ -24,7 +24,7 @@ No local Android device is connected. The tests cover source code, executable JV
 ## Specific dev.6 regressions addressed
 
 - **Menu ambient**: ThemeChoice.background can replace a live ambient Card via setBackgroundColor after a ViewPager tab is re-themed. Route this recolor through AmbientCard217.themedColor to update the original base while retaining its gradient wrapper and avoiding a one-frame dark menu
-- **Popup app switch**: for explicit popup policy on the normal video Activity only, shorten the legacy 500ms switch debounce to 180ms, so handoff begins before Android's onStop pause; leave the 500ms debounce unchanged for other modes and activities
+- **Popup app switch**: for explicit popup policy on the normal video Activity only, shorten the reviewed 180ms switch debounce to 90ms, so handoff begins before Android's onStop pause; leave the 500ms debounce unchanged for other modes and activities
 - Keep dev.5 background/popup return separation, mini player close cleanup, pause preservation and translation unchanged
 - Preserve the original pause/resume intent and do not force play; popup switch timing remains subject to real Android lifecycle scheduling
 - Verify new Smali call sites in the **assembled** helpers.dex, not just in source tests

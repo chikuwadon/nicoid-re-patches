@@ -778,12 +778,12 @@ jobs:
             fi
           fi
           output="/tmp/nicoid-re-$version.mpp"
-          if [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.1-dev.3" ]]; then
+          if [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.1-dev.4" ]]; then
             # Build the new development candidate from the immutable reviewed Media3 Smali.
             compiled="patches/build/libs/patches-$version.mpp"
             test -s "$compiled"
             python3 porting/revisions/v2.1.0-release/prepare_smali_tools.py
-            python3 porting/revisions/v2.1.1-dev.3/stage_candidate.py \
+            python3 porting/revisions/v2.1.1-dev.4/stage_candidate.py \
               --compiled "$compiled" --output "$output" --tools "$revision/tools"
           elif [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.0" ]]; then
             # Stage the same reviewed dev.28 behavior as the official main build.

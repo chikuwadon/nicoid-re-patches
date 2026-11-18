@@ -5,13 +5,13 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 /**
- * Shorten only an explicit video-to-popup app switch. The reviewed 180ms
+ * Shorten only an explicit video-to-popup app switch. The reviewed 500ms
  * debounce is preserved for internal navigation, background playback and
  * any other activity to prevent spurious popup launches.
  */
 public final class PopupSwitch274 {
-    private static final long DEFAULT_DELAY_MS = 180L;
-    private static final long POPUP_DELAY_MS = 90L;
+    private static final long DEFAULT_DELAY_MS = 500L;
+    private static final long POPUP_DELAY_MS = 180L;
     private PopupSwitch274() {}
 
     public static long delay(Activity activity) {

@@ -15,8 +15,8 @@ assert "source = in_method(source,\n        '.method public static background(La
 assert 'AmbientCard217;->themedColor(Landroid/view/View;I)V' in overlay
 assert '.method public static intercept(Ljava/lang/Object;Z)Z' in overlay
 assert 'PopupSwitch274;->delay(Landroid/app/Activity;)J' in overlay
-assert 'private static final long DEFAULT_DELAY_MS = 180L;' in popup
-assert 'private static final long POPUP_DELAY_MS = 90L;' in popup
+assert 'private static final long DEFAULT_DELAY_MS = 500L;' in popup
+assert 'private static final long POPUP_DELAY_MS = 180L;' in popup
 assert '"popup".equals(selection)' in popup
 assert 'com.sauzask.nicoid.NicoidVideoActivity' in popup
 assert 'if (activity == null || activity.isFinishing() || activity.isDestroyed())' in popup

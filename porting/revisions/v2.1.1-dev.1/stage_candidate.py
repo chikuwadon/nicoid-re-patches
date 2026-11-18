@@ -47,7 +47,7 @@ def android_tools():
     return platforms[-1],tools[-1]
 
 
-def new_helpers(tmp:Path, smali:Path, tools:Path):
+def new_helpers(tmp:Path, smali:Path, tools:Path, reference:dict):
     android,d8=android_tools()
     built=tmp/'new-classes';built.mkdir()
     java=[HERE/'AmbientPanelBlend211.java',HERE/'BulkMove211.java']
@@ -60,17 +60,24 @@ def new_helpers(tmp:Path, smali:Path, tools:Path):
     require(dex.is_file(),'D8 did not emit classes.dex')
     extras=disassemble(dex,tmp/'new-smali',tools)
     require(len(extras)>=2,'Missing new helper classes')
+    added=set()
     for name,data in extras.items():
         allowed=(name.parent==Path('e/e/a') and
                  name.parts[-1].startswith(('AmbientPanelBlend211','BulkMove211')))
-        # D8 v37 emits this one compile-time annotation for synthesized lambdas.
-        allowed=allowed or name==Path('com/android/tools/r8/annotations/LambdaMethod.smali')
+        # D8 v37 emits a compile-time lambda annotation already shipped in v2.1.0.
+        shared=Path('com/android/tools/r8/annotations/LambdaMethod.smali')
+        allowed=allowed or name==shared
         require(allowed,'Unexpected compiled helper '+str(name))
         path=smali/name
+        if name==shared and path.exists():
+            require(name in reference,'Shared D8 annotation absent from approved DEX')
+            continue
         require(not path.exists(),'New helper collides with approved baseline: '+str(name))
+        path.parent.mkdir(parents=True,exist_ok=True)
         path.write_bytes(data)
-    print('PASS: added',len(extras),'compiled helper classes without replacing approved helper names')
-    return set(extras)
+        added.add(name)
+    print('PASS: added',len(added),'compiled helper classes without replacing approved helper names')
+    return added
 
 
 def main():
@@ -107,7 +114,7 @@ def main():
             require(source.count(REVIEWED_VERSION)==count,'Unexpected version literal ownership: '+name)
             file.write_text(source.replace(REVIEWED_VERSION,CANDIDATE_VERSION))
         patch(smali)
-        additions=new_helpers(tmp,smali,args.tools)
+        additions=new_helpers(tmp,smali,args.tools,reference)
         output_dex=tmp/'helpers-v211.dex'
         assemble(smali,output_dex,args.tools)
         checked=disassemble(output_dex,tmp/'candidate-smali',args.tools)

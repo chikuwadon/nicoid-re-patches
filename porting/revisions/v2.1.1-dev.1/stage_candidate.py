@@ -61,8 +61,11 @@ def new_helpers(tmp:Path, smali:Path, tools:Path):
     extras=disassemble(dex,tmp/'new-smali',tools)
     require(len(extras)>=2,'Missing new helper classes')
     for name,data in extras.items():
-        require(name.parts[-1].startswith(('AmbientPanelBlend211','BulkMove211')),
-                'Unexpected compiled helper '+str(name))
+        allowed=(name.parent==Path('e/e/a') and
+                 name.parts[-1].startswith(('AmbientPanelBlend211','BulkMove211')))
+        # D8 v37 emits this one compile-time annotation for synthesized lambdas.
+        allowed=allowed or name==Path('com/android/tools/r8/annotations/LambdaMethod.smali')
+        require(allowed,'Unexpected compiled helper '+str(name))
         path=smali/name
         require(not path.exists(),'New helper collides with approved baseline: '+str(name))
         path.write_bytes(data)

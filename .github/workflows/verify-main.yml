@@ -62,7 +62,7 @@ jobs:
           printf '\nsystemProp.org.gradle.internal.http.connectionTimeout=180000\nsystemProp.org.gradle.internal.http.socketTimeout=180000\n' >> gradle.properties
       - name: Audit release candidate source and lifecycle guards
         run: python3 porting/revisions/v1.11.1/release-readiness-audit.py
-      - name: Test release MPP immutable publication safeguards
+      - name: Test immutable release MPP publication safeguards
         run: python3 porting/tests/test_release_mpp_integrity.py
       - name: Build and run Gradle verification
         env:
@@ -98,62 +98,9 @@ jobs:
           python3 porting/tests/retained-notification-regression.py
           python3 porting/tests/tap-regions-regression.py
           python3 porting/tests/tap-region-ui-regression.py
-      - name: Verify verified v2.1.1 helper DEX is in staged MPP
+      - name: Validate staged v2.1.1 runtime DEX
         run: |
-          if grep -Eq '^version[[:space:]]*=[[:space:]]*2\\.1\\.1[[:space:]]*
-        shell: bash
-        run: |
-          set -euo pipefail
-          shopt -s nullglob
-          bundles=(patches/build/libs/*.mpp)
-          test "${#bundles[@]}" -ge 1
-          for bundle in "${bundles[@]}"; do
-            test -s "$bundle"
-            echo "Verified generated MPP: $bundle"
-          done
-
-  audit:
-    name: Report build-tool dependency vulnerabilities
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: '26'
-          cache: npm
-      - name: Audit locked build-tool dependencies
-        shell: bash
-        run: |
-          set -euo pipefail
-          npm ci --ignore-scripts
-          node .github/scripts/verify-release-npm.cjs
-          node .github/scripts/test-release-toolchain.cjs
-          node --input-type=module -e "await import('semantic-release'); console.log('Release CLI import successful')"
-          npm audit --json > /tmp/nicoid-npm-audit.json || true
-          python3 - <<'PY'
-          import json, os
-          with open("/tmp/nicoid-npm-audit.json", encoding="utf-8") as f:
-              data = json.load(f)
-          counts = data.get("metadata", {}).get("vulnerabilities", {})
-          text = "Build-tool npm audit (not an APK runtime audit): " + ", ".join(
-              f"{key}={counts.get(key, 0)}"
-              for key in ("critical", "high", "moderate", "low")
-          )
-          print(text)
-          for name, info in sorted(data.get("vulnerabilities", {}).items()):
-              if info.get("severity") in ("critical", "high"):
-                  print(f"Security advisory: {name}: {info.get('severity')}, "
-                        f"affected={info.get('range')}, fixAvailable={info.get('fixAvailable')}")
-          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
-              f.write("## Build-tool dependency audit\n\n" + text + "\n\n")
-          PY
-
- gradle.properties; then
+          if grep -Fq 'version = 2.1.1' gradle.properties; then
             python3 .github/scripts/verify-release-mpp.py record 2.1.1
           fi
       - name: Verify MPP was produced

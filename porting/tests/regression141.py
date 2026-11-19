@@ -58,3 +58,8 @@ with tempfile.TemporaryDirectory(prefix='nicoid141-') as temp:
         ('VerifyReleaseContinuity.py',[repo/'porting/revisions/v1.10.1/helpers',stage/'helpers',stage/'method-delta'])]:
         subprocess.run(['python3',str(Path(__file__).with_name(verifier)),*map(str,args)],check=True)
     print('PASS actual staged hooks, cleanup routes, worker/UI split and register formats (assembly still required)')
+
+# Exercise the active local-playlist backup Smali overlay in dev candidates.
+backup_regression = repo / "porting/revisions/v2.1.2-dev.13/tests/test_backup_playlist.py"
+if backup_regression.is_file():
+    subprocess.run(["python3", str(backup_regression)], check=True)

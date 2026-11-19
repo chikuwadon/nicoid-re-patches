@@ -76,7 +76,7 @@ class ReleaseMppIntegrityTest(unittest.TestCase):
 
     def test_gradle_patch_list_does_not_replace_android_mpp_with_jvm_jar(self):
         gradle=(ROOT/"patches/build.gradle.kts").read_text()
-        assert 'dependsOn(tasks.named("classes"))' in gradle
+        assert 'dependsOn("classes")' in gradle
         assert "dependsOn(build)\\n        dependsOn(prepareNicoidHelpers)" not in gradle
 
     def test_unstaged_mpp_is_rejected(self):

@@ -22,6 +22,11 @@
             "release": "patch"
           },
           {
+            "type": "feat",
+            "subject": "back up local playlists and edited video titles with settings",
+            "release": "patch"
+          },
+          {
             "type": "fix",
             "release": "patch"
           },

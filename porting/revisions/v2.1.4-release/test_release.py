@@ -45,7 +45,7 @@ for filename, expected_sha in approved_binary_deltas.items():
     source = ROOT / "porting/revisions/v2.1.4-release" / filename
     assert hashlib.sha256(source.read_bytes()).hexdigest() == expected_sha, filename
 assert "patches-2.1.3.mpp" in script
-assert "37d04536d8bbc4ee94f1a2909ea58b50a3f30c441929373df19e73f0a48f6e76" in script
+assert "37d04536d8bbc4ee94f1a2909ea58b50a3f30c441929373df19e73f0a48f6e76" in reconstructor
 assert "verify_android_mpp.py" in script
 
 stage = contents("porting/revisions/v2.1.4-release/stage_candidate.py")

@@ -783,7 +783,17 @@ jobs:
             fi
           fi
           output="/tmp/nicoid-re-$version.mpp"
-          if [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.2-dev.12" ]]; then
+          if [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.2-dev.13" ]]; then
+            compiled="patches/build/libs/patches-$version.mpp"
+            test -s "$compiled"
+            python3 porting/revisions/v2.1.2-dev.13/tests/test_backup_playlist.py
+            for regression in porting/revisions/v2.1.2-dev.12/tests/test_*.py; do
+              python3 "$regression"
+            done
+            python3 porting/revisions/v2.1.0-release/prepare_smali_tools.py
+            python3 porting/revisions/v2.1.2-dev.13/stage_candidate.py \
+              --compiled "$compiled" --output "$output" --tools "$revision/tools"
+          elif [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.2-dev.12" ]]; then
             compiled="patches/build/libs/patches-$version.mpp"
             test -s "$compiled"
             python3 porting/revisions/v2.1.2-dev.12/tests/test_playback_intent.py

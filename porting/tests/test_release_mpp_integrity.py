@@ -14,6 +14,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / ".github/scripts/verify-release-mpp.py"
+sys.path.insert(0,str(ROOT/".github/scripts"))
 spec = importlib.util.spec_from_file_location("verify_release_mpp", SCRIPT)
 assert spec and spec.loader
 validator = importlib.util.module_from_spec(spec)
@@ -34,7 +35,7 @@ class ReleaseMppIntegrityTest(unittest.TestCase):
     def make_manager_dex(self):
         # Minimal header fixture; production validation also needs real patch symbols.
         data=bytearray(256)
-        data[:8]=b"dex\\n038\\x00"
+        data[:8]=b"dex\n038\x00"
         data[32:36]=len(data).to_bytes(4,"little")
         data[96:100]=(1).to_bytes(4,"little")
         data.extend(b"Lapp/nicoid/patches/NicoidModPatchKt;")

@@ -11,7 +11,7 @@ def require(ok: bool, message: str) -> None:
 
 def validate_manager_dex(dex: bytes) -> dict:
     require(len(dex) >= 112, "Morphe Manager patch DEX is truncated")
-    require(dex[:4] == b"dex\\n" and dex[7] == 0 and dex[4:7].isdigit(),
+    require(dex[:4] == b"dex\n" and dex[7] == 0 and dex[4:7].isdigit(),
             "Missing or invalid root classes.dex header")
     require(int.from_bytes(dex[32:36], "little") == len(dex),
             "Root classes.dex size does not match its header")

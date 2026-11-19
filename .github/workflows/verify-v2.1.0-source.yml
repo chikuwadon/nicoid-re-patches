@@ -11,6 +11,10 @@ on:
 permissions:
   contents: read
 
+# Temporary mitigation for CVE-2026-114938 until a patched JDK is verified.
+env:
+  JAVA_TOOL_OPTIONS: '-XX:-UseBASE64Intrinsics'
+
 jobs:
   verify:
     name: Verify reviewed dev.28 Smali and stable-only version delta

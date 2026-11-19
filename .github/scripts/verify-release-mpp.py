@@ -10,9 +10,11 @@ import sys
 import tempfile
 from pathlib import Path
 from zipfile import BadZipFile, ZipFile
+from verify_android_mpp import validate_manager_dex
 
 ROOT = Path(__file__).resolve().parents[2]
 REQUIRED = (
+    "classes.dex",
     "META-INF/MANIFEST.MF",
     "nicoid/helpers.mpe",
     "nicoid/method-delta.dex",
@@ -55,6 +57,8 @@ def inspect(bundle: Path, version: str, baseline: Path | None = None) -> dict:
             require(archive.testzip() is None, "Corrupt release MPP ZIP")
             missing = set(REQUIRED) - set(archive.namelist())
             require(not missing, f"Missing MPP entries: {sorted(missing)}")
+            manager_dex = archive.read("classes.dex")
+            validate_manager_dex(manager_dex)
             manifest = archive.read("META-INF/MANIFEST.MF")
             require(("Version: " + version).encode() in manifest, "Wrong MPP manifest version")
             helpers = archive.read("nicoid/helpers.mpe")
@@ -86,6 +90,7 @@ def inspect(bundle: Path, version: str, baseline: Path | None = None) -> dict:
         "version": version,
         "sha256": sha256(bundle.read_bytes()),
         "size": bundle.stat().st_size,
+        "manager_dex_sha256": sha256(manager_dex),
         "helper_sha256": sha256(helpers),
         "native_sha256": sha256(native),
     }

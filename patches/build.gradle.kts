@@ -355,7 +355,10 @@ tasks {
     register<JavaExec>("generatePatchesList") {
         description = "Build patch with patch list"
 
-        dependsOn(build)
+        // Depend only on compiled sources. The 'build' lifecycle runs 'jar',
+        // overwriting the Android .mpp (with classes.dex) with a JVM-only archive.
+        // The release task must never erase classes.dex after buildAndroid.
+        dependsOn(tasks.named("classes"))
         dependsOn(prepareNicoidHelpers)
 
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath

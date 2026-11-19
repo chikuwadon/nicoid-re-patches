@@ -19,6 +19,15 @@ REQUIRED = (
     "nicoid/resources.zip",
     "nicoid/input-hashes.txt",
 )
+V212_MARKERS = (
+    b"PlaylistBackup213",
+    b"AppResume253",
+    b"ResumeModes272",
+    b"Media3Diagnostics276",
+    b"AmbientCard217",
+    b"NativeMylistMove215",
+    b"TabFolderNav214",
+)
 V211_MARKERS = (
     b"NativeMylistMove215",
     b"TabFolderNav214",
@@ -52,6 +61,16 @@ def inspect(bundle: Path, version: str, baseline: Path | None = None) -> dict:
             native = archive.read("nicoid/method-delta.dex")
             require(helpers.startswith(b"dex\n"), "Invalid helper DEX signature")
             require(native.startswith(b"dex\n"), "Invalid native DEX signature")
+            if version == "2.1.2":
+                require(b"2.1.2" in helpers, "v2.1.2 runtime version missing")
+                require(b"2.1.2-dev.14" not in helpers, "Development version leaked into v2.1.2 MPP")
+                require(b"2.1.0-dev.28" not in helpers, "Reviewed Media3 development version remains")
+                for marker in V212_MARKERS:
+                    require(marker in helpers, f"Missing v2.1.2 helper: {marker!r}")
+                original = baseline or ROOT / "patches/src/main/resources/nicoid/helpers.mpe"
+                if original.is_file():
+                    require(sha256(helpers) != sha256(original.read_bytes()),
+                            "Staged v2.1.2 helper DEX was replaced by repository baseline")
             if version == "2.1.1":
                 require(b"2.1.1" in helpers, "v2.1.1 runtime version is missing")
                 require(b"2.1.0-dev.28" not in helpers, "Reviewed development version remains")

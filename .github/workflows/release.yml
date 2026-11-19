@@ -203,6 +203,9 @@ jobs:
 
       - name: Audit release candidate source and lifecycle guards
         run: python3 porting/revisions/v1.11.1/release-readiness-audit.py
+      - name: Check release MPP publication integrity safeguards
+        run: python3 porting/tests/test_release_mpp_integrity.py
+
       - name: Build and verify approved release payload
         env:
           GITHUB_ACTOR: ${{ github.actor }}

@@ -14,6 +14,11 @@ concurrency:
   group: release-${{ github.repository }}
   cancel-in-progress: false
 
+# Interim mitigation for CVE-2026-114938 until patched Temurin 25 is verified.
+# Disables the vulnerable x86-64 Base64 intrinsic for all Java subprocesses.
+env:
+  JAVA_TOOL_OPTIONS: '-XX:-UseBASE64Intrinsics'
+
 jobs:
   release:
     name: Release
@@ -70,6 +75,8 @@ jobs:
             python3 porting/revisions/v2.1.0-release/test_release.py
           elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.1\.1[[:space:]]*$' gradle.properties; then
             python3 porting/revisions/v2.1.1-release/test_release.py
+          elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.1\.2[[:space:]]*$' gradle.properties; then
+            python3 porting/revisions/v2.1.2-release/test_release.py
           else
             echo "Unsupported official release version" >&2
             exit 1
@@ -231,6 +238,8 @@ jobs:
             NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.1.0-mpp.sh
           elif grep -Fq "version = 2.1.1" gradle.properties; then
             NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.1.1-mpp.sh
+          elif grep -Fq "version = 2.1.2" gradle.properties; then
+            NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.1.2-mpp.sh
           else
             python3 porting/revisions/v1.11.1/verify-mpp.py 1.11.1
           fi
@@ -282,6 +291,28 @@ jobs:
           mkdir -p "$RUNNER_TEMP/nicoid-published"
           gh release download "v$version" --pattern "patches-$version.mpp" --dir "$RUNNER_TEMP/nicoid-published"
           python3 .github/scripts/verify-release-mpp.py check "$version" "$RUNNER_TEMP/nicoid-published/patches-$version.mpp"
+
+      - name: Attach source ZIP and tar.gz archives to approved release
+        if: steps.release.outputs.new_release_published == 'true' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          version=$(sed -nE 's/^version[[:space:]]*=[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+)[[:space:]]*$/\1/p' gradle.properties)
+          test -n "$version"
+          git fetch --tags
+          mkdir -p "$RUNNER_TEMP/nicoid-source"
+          zip="$RUNNER_TEMP/nicoid-source/nicoid-re-v$version-source.zip"
+          tgz="$RUNNER_TEMP/nicoid-source/nicoid-re-v$version-source.tar.gz"
+          git archive --format=zip "v$version" > "$zip"
+          git archive --format=tar "v$version" | gzip -9 > "$tgz"
+          unzip -tq "$zip"
+          tar -tzf "$tgz" > /dev/null
+          gh release upload "v$version" "$zip" "$tgz"
+          mkdir -p "$RUNNER_TEMP/nicoid-downloaded-source"
+          gh release download "v$version" --pattern 'nicoid-re-*-source.zip' --pattern 'nicoid-re-*-source.tar.gz' --dir "$RUNNER_TEMP/nicoid-downloaded-source"
+          cmp "$zip" "$RUNNER_TEMP/nicoid-downloaded-source/$(basename "$zip")"
+          cmp "$tgz" "$RUNNER_TEMP/nicoid-downloaded-source/$(basename "$tgz")"
 
       - name: Backfill Issue #115 in previously published v2.0.0 release notes
         if: steps.release.outputs.new_release_published == 'true' && steps.release.outputs.new_release_git_tag == 'v2.0.1'

@@ -8,6 +8,9 @@ on:
       - '.github/scripts/verify-release-mpp.py'
       - 'porting/tests/test_release_mpp_integrity.py'
       - '.github/workflows/release.yml'
+      - '.github/scripts/stage-v2.1.2-mpp.sh'
+      - 'porting/revisions/v2.1.2-release/**'
+      - '.github/release-notes/v2.1.2.md'
       - '.github/workflows/verify-main.yml'
       - '.github/workflows/verify-release-mpp.yml'
   push:
@@ -17,6 +20,9 @@ on:
       - '.github/scripts/verify-release-mpp.py'
       - 'porting/tests/test_release_mpp_integrity.py'
       - '.github/workflows/release.yml'
+      - '.github/scripts/stage-v2.1.2-mpp.sh'
+      - 'porting/revisions/v2.1.2-release/**'
+      - '.github/release-notes/v2.1.2.md'
       - '.github/workflows/verify-main.yml'
       - '.github/workflows/verify-release-mpp.yml'
 
@@ -30,8 +36,14 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 0
           persist-credentials: false
       - name: Compile release guard scripts
         run: python3 -m py_compile .github/scripts/verify-release-mpp.py porting/tests/test_release_mpp_integrity.py
       - name: Reject overwritten or unstaged MPP candidates
         run: python3 porting/tests/test_release_mpp_integrity.py
+      - name: Check v2.1.2 official staging contract and approved release notes
+        run: |
+          python3 porting/revisions/v2.1.2-release/test_release.py
+          python3 porting/tests/VerifyGithubActionsSecurity.py
+          python3 porting/tests/VerifyReleaseBaseline.py

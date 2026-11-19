@@ -13,6 +13,11 @@ concurrency:
   group: verify-main-${{ github.ref }}
   cancel-in-progress: true
 
+# Interim mitigation for CVE-2026-114938 until patched Temurin 25 is verified.
+# Disables the vulnerable x86-64 Base64 intrinsic for all Java subprocesses.
+env:
+  JAVA_TOOL_OPTIONS: '-XX:-UseBASE64Intrinsics'
+
 jobs:
   verify:
     name: Verify source and compile MPP
@@ -48,6 +53,8 @@ jobs:
             python3 porting/revisions/v2.1.0-release/test_release.py
           elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.1\.1[[:space:]]*$' gradle.properties; then
             python3 porting/revisions/v2.1.1-release/test_release.py
+          elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.1\.2[[:space:]]*$' gradle.properties; then
+            python3 porting/revisions/v2.1.2-release/test_release.py
           else
             echo "Unsupported official release version" >&2
             exit 1
@@ -89,6 +96,8 @@ jobs:
             NICOID_OFFICIAL_RELEASE_APPROVED=VERIFY bash .github/scripts/stage-v2.1.0-mpp.sh
           elif grep -Fq "version = 2.1.1" gradle.properties; then
             NICOID_OFFICIAL_RELEASE_APPROVED=VERIFY bash .github/scripts/stage-v2.1.1-mpp.sh
+          elif grep -Fq "version = 2.1.2" gradle.properties; then
+            NICOID_OFFICIAL_RELEASE_APPROVED=VERIFY bash .github/scripts/stage-v2.1.2-mpp.sh
           else
             python3 porting/revisions/v1.11.1/verify-mpp.py 1.11.1
           fi
@@ -98,10 +107,12 @@ jobs:
           python3 porting/tests/retained-notification-regression.py
           python3 porting/tests/tap-regions-regression.py
           python3 porting/tests/tap-region-ui-regression.py
-      - name: Validate staged v2.1.1 runtime DEX
+      - name: Validate staged official runtime DEX
         run: |
           if grep -Fq 'version = 2.1.1' gradle.properties; then
             python3 .github/scripts/verify-release-mpp.py record 2.1.1
+          elif grep -Fq 'version = 2.1.2' gradle.properties; then
+            python3 .github/scripts/verify-release-mpp.py record 2.1.2
           fi
       - name: Verify MPP was produced
         shell: bash

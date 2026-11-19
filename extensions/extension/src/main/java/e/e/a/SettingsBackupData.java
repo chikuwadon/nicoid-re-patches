@@ -6,6 +6,8 @@ final class SettingsBackupData {
  // typed format even when the corresponding preference is not in the screen.
  // The shipped SettingsBackupData.smali receives the same keys via overlay.
  static {
+  TYPES.put("nicoid_local_playlists_v1","string");
+  TYPES.put("nicoid_video_title_overrides","string");
   TYPES.put("nicoid_single_tap_control_region","string");
   TYPES.put("nicoid_single_tap_region_open_only","boolean");
   TYPES.put("nicoid_ambient_enabled","boolean");

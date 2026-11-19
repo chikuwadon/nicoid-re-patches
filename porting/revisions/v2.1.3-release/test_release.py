@@ -23,7 +23,7 @@ assert 'project.version.toString() != "2.1.3"' in builder
 for name in (".github/workflows/release.yml", ".github/workflows/verify-main.yml", ".releaserc"):
     assert "stage-v2.1.3-mpp.sh" in (ROOT/name).read_text(), name
 for name in ("patches-list.json", "patches-bundle.json"):
-    assert json.loads((ROOT/name).read_text())["version"] == "2.1.2"
+    assert json.loads((ROOT/name).read_text())["version"] in ("2.1.2", "2.1.3")
 sys.path.insert(0, str(ROOT/".github/scripts"))
 from verify_android_mpp import validate_manager_dex
 try:

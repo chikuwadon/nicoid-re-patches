@@ -25,6 +25,7 @@ REVIEWED_SHA256 = "37d04536d8bbc4ee94f1a2909ea58b50a3f30c441929373df19e73f0a48f6
 MANIFEST = "META-INF/MANIFEST.MF"
 HELPERS = "nicoid/helpers.mpe"
 NATIVE = "nicoid/method-delta.dex"
+EXTENSION = "extensions/extension.mpe"
 VERSION_OWNERS = {
     Path("e/e/a/PatchVersion237.smali"): ('"2.1.4-dev.3"', '"2.1.4"'),
     Path("e/e/a/ModernShorts.smali"): ('"v2.1.3 @chikuwadon"', '"v2.1.4 @chikuwadon"'),
@@ -66,11 +67,35 @@ def stage(compiled: Path, reviewed: Path, output: Path, tools: Path) -> None:
         require(b"2.1.4-dev.3" not in stable_bytes, "Development patch version leaked")
         require(b"v2.1.3 @chikuwadon" not in stable_bytes, "Old Shorts version leaked")
         require(b"v2.1.4 @chikuwadon" in stable_bytes, "New Shorts version missing")
+        # The extension DEX also retains the old Shorts patch banner. Update
+        # only that version literal; no application behavior can be altered.
+        ext_src = tmp / "extension-reviewed.dex"
+        ext_src.write_bytes(approved.read(EXTENSION))
+        ext_smali = tmp / "extension-smali"
+        ext_original = disassemble(ext_src, ext_smali, tools)
+        shorts = Path("e/e/a/ModernShorts.smali")
+        require(shorts in ext_original, "Missing extension Shorts version owner")
+        ext_text = (ext_smali / shorts).read_text(encoding="utf-8")
+        from_banner = '"v2.1.3 @chikuwadon"'
+        to_banner = '"v2.1.4 @chikuwadon"'
+        require(ext_text.count(from_banner) == 1, "Unexpected extension Shorts banner count")
+        (ext_smali / shorts).write_text(ext_text.replace(from_banner, to_banner), encoding="utf-8")
+        stable_extension = tmp / "extension-stable.dex"
+        assemble(ext_smali, stable_extension, tools)
+        ext_rebuilt = disassemble(stable_extension, tmp / "extension-checked", tools)
+        require(ext_original.keys() == ext_rebuilt.keys(), "Extension class set changed")
+        require({p for p in ext_original if ext_original[p] != ext_rebuilt[p]} == {shorts},
+                "Unreviewed extension behavior changed")
+        require(ext_rebuilt[shorts].replace(to_banner.encode(), from_banner.encode()) == ext_original[shorts],
+                "Non-version extension Smali change detected")
+        extension_bytes = stable_extension.read_bytes()
+        require(b"v2.1.4 @chikuwadon" in extension_bytes and b"v2.1.3 @chikuwadon" not in extension_bytes,
+                "Extension banner was not safely updated")
         previous = approved.read(MANIFEST)
         old_version = f"Version: {REVIEWED}\r\n".encode()
         require(previous.count(old_version) == 1, "Unexpected manifest version")
         new_manifest = previous.replace(old_version, f"Version: {STABLE}\r\n".encode())
-        overrides = {HELPERS: stable_bytes, MANIFEST: new_manifest}
+        overrides = {HELPERS: stable_bytes, EXTENSION: extension_bytes, MANIFEST: new_manifest}
         output.parent.mkdir(parents=True, exist_ok=True)
         with ZipFile(output, "w") as result:
             for entry in approved.infolist():

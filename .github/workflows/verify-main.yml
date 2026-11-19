@@ -80,7 +80,7 @@ jobs:
         run: |
           set -euo pipefail
           ./gradlew clean :patches:buildAndroid --no-daemon
-          version=$(sed -nE 's/^version[[:space:]]*=[[:space:]]*([^[:space:]]+)[[:space:]]*$/\\1/p' gradle.properties)
+          version=$(sed -nE 's/^version[[:space:]]*=[[:space:]]*([^[:space:]]+)[[:space:]]*$/\1/p' gradle.properties)
           bundle="patches/build/libs/patches-$version.mpp"
           python3 .github/scripts/verify_android_mpp.py "$bundle" "$version"
           before=$(sha256sum "$bundle" | cut -d' ' -f1)

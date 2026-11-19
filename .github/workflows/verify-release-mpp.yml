@@ -60,6 +60,11 @@ jobs:
           persist-credentials: false
       - name: Compile release guard scripts
         run: python3 -m py_compile .github/scripts/verify-release-mpp.py porting/tests/test_release_mpp_integrity.py
+      - name: Compile v2.1.4 staging sources and syntax-check the release script
+        run: |
+          python3 -m py_compile porting/revisions/v2.1.4-dev.1/stage_candidate.py porting/revisions/v2.1.4-dev.2/stage_candidate.py porting/revisions/v2.1.4-dev.3/stage_candidate.py porting/revisions/v2.1.4-release/stage_candidate.py porting/revisions/v2.1.4-release/test_release.py
+          bash -n .github/scripts/stage-v2.1.4-mpp.sh
+          bash porting/revisions/v2.1.4-dev.3/test_budget.sh
       - name: Reject overwritten or unstaged MPP candidates
         run: python3 porting/tests/test_release_mpp_integrity.py
       - name: Validate canonical helper ownership and shadowed Java changes

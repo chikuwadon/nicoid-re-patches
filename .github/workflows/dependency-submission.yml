@@ -25,6 +25,10 @@ concurrency:
   group: gradle-dependency-submission-${{ github.ref }}
   cancel-in-progress: true
 
+# Temporary mitigation for CVE-2026-114938 until a patched JDK is verified.
+env:
+  JAVA_TOOL_OPTIONS: '-XX:-UseBASE64Intrinsics'
+
 jobs:
   submit:
     name: Generate and submit Gradle dependency graph

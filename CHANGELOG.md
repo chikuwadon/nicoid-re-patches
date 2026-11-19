@@ -1,3 +1,9 @@
+## 2.1.3 (2026-11-19)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix an MPP packaging issue that caused Morphe Manager to display 0 available patches and prevented patch application
+
 ## 2.1.2 (2026-11-19)
 
 ### ✨ New Features

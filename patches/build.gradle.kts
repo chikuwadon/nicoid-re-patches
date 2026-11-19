@@ -353,7 +353,7 @@ val prepareNicoidHelpers = tasks.register<Exec>("prepareNicoidHelpers") {
 
 // Never let the JVM-only Jar share the Android MPP's build/libs output path.
 // This remains safe even if a future task graph accidentally executes 'jar'.
-tasks.named<Jar>("jar") {
+val jvmPatchJar = tasks.named<Jar>("jar") {
     destinationDirectory.set(layout.buildDirectory.dir("jvm-libs"))
 }
 
@@ -361,14 +361,16 @@ tasks {
     register<JavaExec>("generatePatchesList") {
         description = "Build patch with patch list"
 
-        // Depend only on compiled sources. The 'build' lifecycle runs 'jar',
-        // overwriting the Android .mpp (with classes.dex) with a JVM-only archive.
-        // The release task must never erase classes.dex after buildAndroid.
-        dependsOn("classes")
+        // Generate metadata from the JVM patch archive, but keep that archive
+        // isolated from build/libs where buildAndroid writes its Android MPP.
+        dependsOn(jvmPatchJar)
         dependsOn(prepareNicoidHelpers)
 
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
         mainClass.set("util.PatchListGeneratorKt")
+        doFirst {
+            args(jvmPatchJar.get().archiveFile.get().asFile.absolutePath)
+        }
     }
 
     // Used by gradle-semantic-release-plugin.

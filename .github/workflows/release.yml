@@ -14,6 +14,10 @@ concurrency:
   group: release-${{ github.repository }}
   cancel-in-progress: false
 
+# Temporary mitigation for CVE-2026-114938 until a patched JDK is verified.
+env:
+  JAVA_TOOL_OPTIONS: '-XX:-UseBASE64Intrinsics'
+
 jobs:
   release:
     name: Release

@@ -17,7 +17,7 @@ public final class PlaylistBackup213 {
  static{
   for(String k:new String[]{"save_playback_position","material_you_mode","comment_bold","comment_hide","comment_limit_extended","player_isloop","continuous_play"})EXTRAS.put(k,"boolean");
   for(String k:new String[]{"legacy_comment_limit","comment_shadow_dp","continuous_play_mode"})EXTRAS.put(k,"int");
-  for(String k:new String[]{"comment_size_level","ranking_genres_v190","ranking_presets_v190","nicoid_local_playlist_last_folder_v1","nicoid_local_playlist_last_group_v1","list_gestures_map"})EXTRAS.put(k,"string");
+  for(String k:new String[]{"comment_size_level","ranking_genres_v190","ranking_presets_v190","nicoid_local_playlist_last_folder_v1","nicoid_local_playlist_last_group_v1","list_gestures_map","saveNGList"})EXTRAS.put(k,"string");
  }
  private PlaylistBackup213(){}
  private static String extra(String key){
@@ -128,7 +128,7 @@ public final class PlaylistBackup213 {
  private static boolean rollback(SharedPreferences p,Map<String,?> before){
   SharedPreferences.Editor e=p.edit().clear();
   for(Map.Entry<String,?> item:before.entrySet()){
-   Object val=item.getValue(),key=item.getKey();
+   Object val=item.getValue();String key=item.getKey();
    if(val instanceof String)e.putString(key,(String)val);
    else if(val instanceof Boolean)e.putBoolean(key,(Boolean)val);
    else if(val instanceof Integer)e.putInt(key,(Integer)val);

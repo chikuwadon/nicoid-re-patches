@@ -787,6 +787,7 @@ jobs:
             compiled="patches/build/libs/patches-$version.mpp"
             test -s "$compiled"
             python3 porting/revisions/v2.1.2-dev.14/tests/test_backup_playlist.py
+            python3 porting/revisions/v2.1.2-dev.14/tests/test_backup_runtime.py
             python3 porting/revisions/v2.1.2-dev.12/tests/test_playback_intent.py
             python3 porting/revisions/v2.1.2-dev.12/tests/test_popup_startup.py
             python3 porting/revisions/v2.1.2-dev.12/tests/test_paused_return_seek.py

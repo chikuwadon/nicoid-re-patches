@@ -49,6 +49,13 @@ jobs:
           mkdir -p "$RUNNER_TEMP/old-mpp"
           gh release download v2.1.1 --pattern patches-2.1.1.mpp --dir "$RUNNER_TEMP/old-mpp"
           printf '%s  %s\n' '7dd4890aa463a1daf6cb4e8e28175bf10f25489203288128936162d0ec907789' "$RUNNER_TEMP/old-mpp/patches-2.1.1.mpp" | sha256sum -c -
+      - name: Keep original asset for seven-day rollback
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pre-repair-v2.1.1-mpp
+          path: ${{ runner.temp }}/old-mpp/patches-2.1.1.mpp
+          retention-days: 7
+          if-no-files-found: error
       - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           distribution: temurin

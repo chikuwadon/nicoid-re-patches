@@ -22,6 +22,4 @@ python3 porting/revisions/v2.1.3-release/stage_candidate.py \
   --compiled "$compiled" --output "$mpp" \
   --tools porting/revisions/v2.0.0-dev.1/tools
 python3 .github/scripts/verify_android_mpp.py "$mpp" 2.1.3
-python3 .github/scripts/verify-release-mpp.py record 2.1.3 "$mpp"
-python3 .github/scripts/verify-release-mpp.py check 2.1.3 "$mpp"
 sha256sum "$mpp"

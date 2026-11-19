@@ -351,6 +351,12 @@ val prepareNicoidHelpers = tasks.register<Exec>("prepareNicoidHelpers") {
     commandLine("bash", revision.resolve("build-payloads.sh"), payloads, devSources.get().asFile, "", project.version.toString())
 }
 
+// Never let the JVM-only Jar share the Android MPP's build/libs output path.
+// This remains safe even if a future task graph accidentally executes 'jar'.
+tasks.named<Jar>("jar") {
+    destinationDirectory.set(layout.buildDirectory.dir("jvm-libs"))
+}
+
 tasks {
     register<JavaExec>("generatePatchesList") {
         description = "Build patch with patch list"

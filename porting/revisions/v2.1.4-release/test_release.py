@@ -32,9 +32,20 @@ for name, expected in approved.items():
     assert actual.startswith(expected), (name, actual, expected)
 
 script = contents(".github/scripts/stage-v2.1.4-mpp.sh")
-assert script.count("sha256sum -c -") >= 4
+assert script.count("sha256sum -c -") >= 1
+assert "reconstruct_dev3.py" in script
+reconstructor = contents("porting/revisions/v2.1.4-release/reconstruct_dev3.py")
+assert "reconstructed v2.1.4-dev.3 byte-identical" in reconstructor
+assert "37d04536d8bbc4ee94f1a2909ea58b50a3f30c441929373df19e73f0a48f6e76" in reconstructor
+approved_binary_deltas = {
+    "reviewed-dev3-helpers.zst": "587da0eea65401ea654377685c53cdc8c6360f91aee460a4c34b5574571b87f0",
+    "reviewed-dev3-native.zst": "cfa626733ac8d83993acf05fc7ef1a4fd7c51d715681646ff6bca8c6cb4713d4",
+}
+for filename, expected_sha in approved_binary_deltas.items():
+    source = ROOT / "porting/revisions/v2.1.4-release" / filename
+    assert hashlib.sha256(source.read_bytes()).hexdigest() == expected_sha, filename
 assert "patches-2.1.3.mpp" in script
-assert "37d04536d8bbc4ee94f1a2909ea58b50a3f30c441929373df19e73f0a48f6e76" in script
+assert "37d04536d8bbc4ee94f1a2909ea58b50a3f30c441929373df19e73f0a48f6e76" in reconstructor
 assert "verify_android_mpp.py" in script
 
 stage = contents("porting/revisions/v2.1.4-release/stage_candidate.py")

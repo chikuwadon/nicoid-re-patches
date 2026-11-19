@@ -14,6 +14,10 @@ concurrency:
   group: private-build-v203dev18-${{ github.ref }}
   cancel-in-progress: true
 
+# Temporary mitigation for CVE-2026-114938 until a patched JDK is verified.
+env:
+  JAVA_TOOL_OPTIONS: '-XX:-UseBASE64Intrinsics'
+
 jobs:
   build:
     if: >-

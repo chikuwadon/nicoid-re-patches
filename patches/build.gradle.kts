@@ -351,10 +351,20 @@ val prepareNicoidHelpers = tasks.register<Exec>("prepareNicoidHelpers") {
     commandLine("bash", revision.resolve("build-payloads.sh"), payloads, devSources.get().asFile, "", project.version.toString())
 }
 
-// Never let the JVM-only Jar share the Android MPP's build/libs output path.
-// This remains safe even if a future task graph accidentally executes 'jar'.
-val jvmPatchJar = tasks.named<Jar>("jar") {
+// The Morphe buildAndroid task uses the standard jar archive configuration.
+// Do not move that task: it also moves the Android MPP's output location.
+// Build a separate JVM-only archive for patch-list metadata instead.
+val jvmPatchJar = tasks.register<Jar>("jvmPatchJar") {
+    dependsOn("classes")
+    archiveBaseName.set("patches-metadata")
+    archiveVersion.set(project.version.toString())
+    archiveExtension.set("jar")
     destinationDirectory.set(layout.buildDirectory.dir("jvm-libs"))
+    from(sourceSets["main"].output)
+    manifest {
+        from(tasks.named<Jar>("jar").get().manifest)
+        attributes["Version"] = project.version.toString()
+    }
 }
 
 tasks {

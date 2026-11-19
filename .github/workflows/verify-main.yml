@@ -34,6 +34,9 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
+          check-latest: true
+      - name: Verify patched Java 25 runtime
+        run: python3 .github/scripts/verify-java25-cspu.py
       - name: Verify version, metadata and immutable release sources
         run: |
           python3 porting/tests/VerifyReleaseBaseline.py

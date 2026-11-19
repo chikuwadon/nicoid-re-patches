@@ -70,6 +70,10 @@ def inspect(bundle: Path, version: str, baseline: Path | None = None) -> dict:
                 require(b"2.1.4-dev.3" not in helpers, "Development version leaked into stable MPP")
                 require(b"v2.1.4 @chikuwadon" in helpers, "Shorts still displays an obsolete patch version")
                 require(b"v2.1.3 @chikuwadon" not in helpers, "v2.1.3 Shorts version remains")
+                extension = archive.read("extensions/extension.mpe")
+                require(extension.startswith(b"dex\n"), "Invalid extension DEX signature")
+                require(b"v2.1.4 @chikuwadon" in extension, "Extension still has obsolete patch version")
+                require(b"v2.1.3 @chikuwadon" not in extension, "v2.1.3 extension banner leaked")
                 for marker in (
                     b"CommentClock", b"CommentSource280", b"ScrollingComments267",
                     b"ScrollingTimeline267", b"PageCache", b"VideoCounts$CountIcon",

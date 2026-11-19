@@ -5,7 +5,7 @@ import json
 import re
 import sys
 ROOT = Path(__file__).resolve().parents[3]
-assert re.search(r"(?m)^version\\s*=\\s*2\\.1\\.3\\s*$", (ROOT/"gradle.properties").read_text())
+assert re.search(r"(?m)^version\s*=\s*2\.1\.3\s*$", (ROOT/"gradle.properties").read_text())
 notes = (ROOT/".github/release-notes/v2.1.3.md").read_text()
 assert notes.startswith("## 2.1.3")
 assert notes.count("### 🐛 Bug Fixes") == 1

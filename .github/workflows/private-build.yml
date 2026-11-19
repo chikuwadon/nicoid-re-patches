@@ -39,6 +39,9 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
+          check-latest: true
+      - name: Verify patched Java 25 runtime
+        run: python3 .github/scripts/verify-java25-cspu.py
       - name: Check short gesture policy
         run: |
           javac -d /tmp/nicoid-shorts-tests extensions/extension/src/main/java/e/e/a/ShortsRules.java porting/tests/ShortsRulesTest.java
@@ -435,6 +438,9 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
+          check-latest: true
+      - name: Verify patched Java 25 runtime
+        run: python3 .github/scripts/verify-java25-cspu.py
       - name: Check source-only v2 live regression contracts
         run: python3 porting/revisions/v2.0.0-dev.1/tests/verify-dev12.py
       - name: Verify v2.0.1 stable release configuration without publishing

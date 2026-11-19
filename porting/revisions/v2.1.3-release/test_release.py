@@ -17,7 +17,7 @@ assert 'stage.CANDIDATE_VERSION = VERSION' in stage
 assert 'validate_mpp(compiled, VERSION)' in stage
 assert 'validate_mpp(output, VERSION)' in stage
 builder = (ROOT/"patches/build.gradle.kts").read_text()
-assert 'dependsOn("classes")' in builder
+assert 'dependsOn(jvmPatchJar)' in builder
 assert 'destinationDirectory.set(layout.buildDirectory.dir("jvm-libs"))' in builder
 assert 'project.version.toString() != "2.1.3"' in builder
 for name in (".github/workflows/release.yml", ".github/workflows/verify-main.yml", ".releaserc"):

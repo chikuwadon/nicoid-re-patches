@@ -36,6 +36,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 0
           persist-credentials: false
       - name: Compile release guard scripts
         run: python3 -m py_compile .github/scripts/verify-release-mpp.py porting/tests/test_release_mpp_integrity.py

@@ -40,6 +40,7 @@ assert "verify_android_mpp.py" in script
 stage = contents("porting/revisions/v2.1.4-release/stage_candidate.py")
 assert "VERSION_OWNERS" in stage and "ModernShorts.smali" in stage
 assert "REVIEWED_SHA256" in stage and "Unapproved output entry difference" in stage
+assert "extensions/extension.mpe" in stage and "Non-version extension Smali change detected" in stage
 builder = contents("patches/build.gradle.kts")
 assert 'val jvmPatchJar = tasks.register<Jar>("jvmPatchJar")' in builder
 assert 'dependsOn(jvmPatchJar)' in builder

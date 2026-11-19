@@ -9,6 +9,7 @@ from stage_candidate import CANDIDATE_VERSION,REVIEWED_VERSION,VERSION_OWNERS,ve
 assert re.search(r'(?m)^version\s*=\s*2\.1\.2$',(ROOT/'gradle.properties').read_text())
 assert CANDIDATE_VERSION=='2.1.2' and REVIEWED_VERSION=='2.1.0-dev.28'
 assert len(VERSION_OWNERS)==2
+assert 'project.version.toString() != "2.1.2"' in (ROOT/'patches/build.gradle.kts').read_text()
 notes=(ROOT/'.github/release-notes/v2.1.2.md').read_text()
 assert notes.startswith('## 2.1.2')
 assert all(header in notes for header in ('### ✨ New Features','### 🐛 Bug Fixes','### 🔧 Improvements'))

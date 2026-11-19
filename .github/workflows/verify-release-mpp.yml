@@ -10,6 +10,7 @@ on:
       - '.github/workflows/release.yml'
       - '.github/scripts/stage-v2.1.2-mpp.sh'
       - 'porting/revisions/v2.1.2-release/**'
+      - 'porting/helper-ownership.json'
       - '.github/release-notes/v2.1.2.md'
       - '.github/workflows/verify-main.yml'
       - '.github/workflows/verify-release-mpp.yml'
@@ -22,6 +23,7 @@ on:
       - '.github/workflows/release.yml'
       - '.github/scripts/stage-v2.1.2-mpp.sh'
       - 'porting/revisions/v2.1.2-release/**'
+      - 'porting/helper-ownership.json'
       - '.github/release-notes/v2.1.2.md'
       - '.github/workflows/verify-main.yml'
       - '.github/workflows/verify-release-mpp.yml'
@@ -42,6 +44,8 @@ jobs:
         run: python3 -m py_compile .github/scripts/verify-release-mpp.py porting/tests/test_release_mpp_integrity.py
       - name: Reject overwritten or unstaged MPP candidates
         run: python3 porting/tests/test_release_mpp_integrity.py
+      - name: Validate canonical helper ownership and shadowed Java changes
+        run: python3 porting/tests/VerifyCanonicalHelpers.py
       - name: Check v2.1.2 official staging contract and approved release notes
         run: |
           python3 porting/revisions/v2.1.2-release/test_release.py

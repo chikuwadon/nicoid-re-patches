@@ -78,6 +78,7 @@ class ReleaseMppIntegrityTest(unittest.TestCase):
         gradle=(ROOT/"patches/build.gradle.kts").read_text()
         assert 'dependsOn("classes")' in gradle
         assert "dependsOn(build)\\n        dependsOn(prepareNicoidHelpers)" not in gradle
+        assert 'startsWith("2.1.3-dev.")' in gradle
 
     def test_unstaged_mpp_is_rejected(self):
         self.create_bundle(markers=False)

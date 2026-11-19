@@ -1,10 +1,8 @@
 name: Release
 
-# Releases require explicit approval; the one-time approved v2.1.2 merge marker also authorizes publication.
-# Routine pushes do not publish.
+# A release must be explicitly approved and manually started.
+# Routine pushes are verified by verify-main.yml / private-build.yml instead.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
     inputs:
       release_confirmation:
@@ -28,8 +26,8 @@ jobs:
       new_release_published: ${{ steps.release.outputs.new_release_published }}
       new_release_git_tag: ${{ steps.release.outputs.new_release_git_tag }}
     if: >-
-      ((github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') && inputs.release_confirmation == 'APPROVE')
-      || (github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[APPROVED-v2.1.2-RELEASE]')))
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
+      && inputs.release_confirmation == 'APPROVE'
     permissions:
       contents: write
       packages: write

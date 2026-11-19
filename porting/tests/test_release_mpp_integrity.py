@@ -82,8 +82,11 @@ class ReleaseMppIntegrityTest(unittest.TestCase):
 
     def test_jvm_jar_is_isolated_from_android_mpp(self):
         gradle = (ROOT / "patches/build.gradle.kts").read_text()
-        self.assertIn('val jvmPatchJar = tasks.named<Jar>("jar")', gradle)
+        self.assertIn('val jvmPatchJar = tasks.register<Jar>("jvmPatchJar")', gradle)
+        self.assertNotIn('tasks.named<Jar>("jar") {', gradle)
         self.assertIn('destinationDirectory.set(layout.buildDirectory.dir("jvm-libs"))', gradle)
+        self.assertIn('from(sourceSets["main"].output)', gradle)
+        self.assertIn('attributes["Version"] = project.version.toString()', gradle)
         self.assertIn('dependsOn(jvmPatchJar)', gradle)
         source = (ROOT / "patches/src/main/kotlin/util/PatchListGenerator.kt").read_text()
         self.assertIn('require(args.size == 1)', source)

@@ -66,19 +66,9 @@ jobs:
         run: python3 porting/tests/VerifyCanonicalHelpers.py
       - name: Check the approved stable staging contract and release notes
         run: |
-          if grep -Eq '^version[[:space:]]*=[[:space:]]*2\.1\.4[[:space:]]*          else
-            python3 porting/revisions/v2.1.2-release/test_release.py
-          fi
-          python3 porting/tests/VerifyGithubActionsSecurity.py
-          python3 porting/tests/VerifyReleaseBaseline.py
- gradle.properties; then
+          if grep -Eq '^version[[:space:]]*=[[:space:]]*2\.1\.4[[:space:]]*$' gradle.properties; then
             python3 porting/revisions/v2.1.4-release/test_release.py
-          elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.1\.3[[:space:]]*          else
-            python3 porting/revisions/v2.1.2-release/test_release.py
-          fi
-          python3 porting/tests/VerifyGithubActionsSecurity.py
-          python3 porting/tests/VerifyReleaseBaseline.py
- gradle.properties; then
+          elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.1\.3[[:space:]]*$' gradle.properties; then
             python3 porting/revisions/v2.1.3-release/test_release.py
           else
             python3 porting/revisions/v2.1.2-release/test_release.py

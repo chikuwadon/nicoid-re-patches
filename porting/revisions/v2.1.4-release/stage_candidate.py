@@ -27,8 +27,8 @@ HELPERS = "nicoid/helpers.mpe"
 NATIVE = "nicoid/method-delta.dex"
 EXTENSION = "extensions/extension.mpe"
 VERSION_OWNERS = {
-    Path("e/e/a/PatchVersion237.smali"): ('"2.1.4-dev.3"', '"2.1.4"'),
-    Path("e/e/a/ModernShorts.smali"): ('"v2.1.3 @chikuwadon"', '"v2.1.4 @chikuwadon"'),
+    Path("e/e/a/PatchVersion237.smali"): ('"2.1.4-dev.3"', '"2.1.4"', 1),
+    Path("e/e/a/ModernShorts.smali"): ('"v2.1.3 @chikuwadon"', '"v2.1.4 @chikuwadon"', 2),
 }
 
 
@@ -49,10 +49,10 @@ def stage(compiled: Path, reviewed: Path, output: Path, tools: Path) -> None:
         helper.write_bytes(approved.read(HELPERS))
         sources = tmp / "smali"
         original = disassemble(helper, sources, tools)
-        for path, (old, new) in VERSION_OWNERS.items():
+        for path, (old, new, count) in VERSION_OWNERS.items():
             require(path in original, f"Missing approved version owner {path}")
             value = (sources / path).read_text(encoding="utf-8")
-            require(value.count(old) == 1, f"Unexpected version ownership in {path}")
+            require(value.count(old) == count, f"Unexpected version ownership in {path}: expected {count}, got {value.count(old)}")
             (sources / path).write_text(value.replace(old, new), encoding="utf-8")
         stable = tmp / "stable.dex"
         assemble(sources, stable, tools)
@@ -60,7 +60,7 @@ def stage(compiled: Path, reviewed: Path, output: Path, tools: Path) -> None:
         require(rebuilt.keys() == original.keys(), "Unexpected helper class changes")
         modified = {p for p in original if original[p] != rebuilt[p]}
         require(modified == set(VERSION_OWNERS), f"Unexpected behavioral helper diff: {modified}")
-        for path, (old, new) in VERSION_OWNERS.items():
+        for path, (old, new, count) in VERSION_OWNERS.items():
             require(rebuilt[path].replace(new.encode(), old.encode()) == original[path],
                     f"Non-version Smali change in {path}")
         stable_bytes = stable.read_bytes()
@@ -78,7 +78,7 @@ def stage(compiled: Path, reviewed: Path, output: Path, tools: Path) -> None:
         ext_text = (ext_smali / shorts).read_text(encoding="utf-8")
         from_banner = '"v2.1.3 @chikuwadon"'
         to_banner = '"v2.1.4 @chikuwadon"'
-        require(ext_text.count(from_banner) == 1, "Unexpected extension Shorts banner count")
+        require(ext_text.count(from_banner) == 2, f"Unexpected extension Shorts banner count: {ext_text.count(from_banner)}")
         (ext_smali / shorts).write_text(ext_text.replace(from_banner, to_banner), encoding="utf-8")
         stable_extension = tmp / "extension-stable.dex"
         assemble(ext_smali, stable_extension, tools)

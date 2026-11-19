@@ -65,6 +65,25 @@ def inspect(bundle: Path, version: str, baseline: Path | None = None) -> dict:
             native = archive.read("nicoid/method-delta.dex")
             require(helpers.startswith(b"dex\n"), "Invalid helper DEX signature")
             require(native.startswith(b"dex\n"), "Invalid native DEX signature")
+            if version == "2.1.4":
+                require(b"2.1.4" in helpers, "v2.1.4 runtime version missing")
+                require(b"2.1.4-dev.3" not in helpers, "Development version leaked into stable MPP")
+                require(b"v2.1.4 @chikuwadon" in helpers, "Shorts still displays an obsolete patch version")
+                require(b"v2.1.3 @chikuwadon" not in helpers, "v2.1.3 Shorts version remains")
+                extension = archive.read("extensions/extension.mpe")
+                require(extension.startswith(b"dex\n"), "Invalid extension DEX signature")
+                require(b"v2.1.4 @chikuwadon" in extension, "Extension still has obsolete patch version")
+                require(b"v2.1.3 @chikuwadon" not in extension, "v2.1.3 extension banner leaked")
+                for marker in (
+                    b"CommentClock", b"CommentSource280", b"ScrollingComments267",
+                    b"ScrollingTimeline267", b"PageCache", b"VideoCounts$CountIcon",
+                    b"Media3Diagnostics276", b"AmbientCard217", b"NativeMylistMove215",
+                ):
+                    require(marker in helpers, f"Missing v2.1.4 helper: {marker!r}")
+                original = baseline or ROOT / "patches/src/main/resources/nicoid/helpers.mpe"
+                if original.is_file() and not b"2.1.4" in original.read_bytes():
+                    require(sha256(helpers) != sha256(original.read_bytes()),
+                            "Unstaged v2.1.4 MPP was used instead of approved reviewed payload")
             if version == "2.1.3":
                 require(b"2.1.3" in helpers, "v2.1.3 runtime version missing")
                 require(b"2.1.3-dev.1" not in helpers, "Development version leaked into v2.1.3 MPP")

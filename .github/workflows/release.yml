@@ -26,7 +26,7 @@ jobs:
       new_release_published: ${{ steps.release.outputs.new_release_published }}
       new_release_git_tag: ${{ steps.release.outputs.new_release_git_tag }}
     if: >-
-      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
+      github.ref == 'refs/heads/main'
       && inputs.release_confirmation == 'APPROVE'
     permissions:
       contents: write

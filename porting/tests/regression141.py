@@ -63,3 +63,8 @@ with tempfile.TemporaryDirectory(prefix='nicoid141-') as temp:
 backup_regression = repo / "porting/revisions/v2.1.2-dev.13/tests/test_backup_playlist.py"
 if backup_regression.is_file():
     subprocess.run(["python3", str(backup_regression)], check=True)
+
+# Validate the current candidate's private title/playlist backup overlay.
+backup_regression214 = repo / "porting/revisions/v2.1.2-dev.14/tests/test_backup_playlist.py"
+if backup_regression214.is_file():
+    subprocess.run(["python3", str(backup_regression214)],check=True)

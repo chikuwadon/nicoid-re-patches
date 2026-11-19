@@ -10,9 +10,11 @@ import sys
 import tempfile
 from pathlib import Path
 from zipfile import BadZipFile, ZipFile
+from verify_android_mpp import validate_manager_dex
 
 ROOT = Path(__file__).resolve().parents[2]
 REQUIRED = (
+    "classes.dex",
     "META-INF/MANIFEST.MF",
     "nicoid/helpers.mpe",
     "nicoid/method-delta.dex",
@@ -55,12 +57,24 @@ def inspect(bundle: Path, version: str, baseline: Path | None = None) -> dict:
             require(archive.testzip() is None, "Corrupt release MPP ZIP")
             missing = set(REQUIRED) - set(archive.namelist())
             require(not missing, f"Missing MPP entries: {sorted(missing)}")
+            manager_dex = archive.read("classes.dex")
+            validate_manager_dex(manager_dex)
             manifest = archive.read("META-INF/MANIFEST.MF")
             require(("Version: " + version).encode() in manifest, "Wrong MPP manifest version")
             helpers = archive.read("nicoid/helpers.mpe")
             native = archive.read("nicoid/method-delta.dex")
             require(helpers.startswith(b"dex\n"), "Invalid helper DEX signature")
             require(native.startswith(b"dex\n"), "Invalid native DEX signature")
+            if version == "2.1.3":
+                require(b"2.1.3" in helpers, "v2.1.3 runtime version missing")
+                require(b"2.1.3-dev.1" not in helpers, "Development version leaked into v2.1.3 MPP")
+                require(b"2.1.0-dev.28" not in helpers, "Reviewed Media3 development version remains")
+                for marker in V212_MARKERS:
+                    require(marker in helpers, f"Missing v2.1.3 helper: {marker!r}")
+                original = baseline or ROOT / "patches/src/main/resources/nicoid/helpers.mpe"
+                if original.is_file():
+                    require(sha256(helpers) != sha256(original.read_bytes()),
+                            "Staged v2.1.3 helper DEX was replaced by repository baseline")
             if version == "2.1.2":
                 require(b"2.1.2" in helpers, "v2.1.2 runtime version missing")
                 require(b"2.1.2-dev.14" not in helpers, "Development version leaked into v2.1.2 MPP")
@@ -86,6 +100,7 @@ def inspect(bundle: Path, version: str, baseline: Path | None = None) -> dict:
         "version": version,
         "sha256": sha256(bundle.read_bytes()),
         "size": bundle.stat().st_size,
+        "manager_dex_sha256": sha256(manager_dex),
         "helper_sha256": sha256(helpers),
         "native_sha256": sha256(native),
     }

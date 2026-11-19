@@ -26,7 +26,7 @@ jobs:
       new_release_published: ${{ steps.release.outputs.new_release_published }}
       new_release_git_tag: ${{ steps.release.outputs.new_release_git_tag }}
     if: >-
-      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
+      github.ref == 'refs/heads/main'
       && inputs.release_confirmation == 'APPROVE'
     permissions:
       contents: write
@@ -80,6 +80,8 @@ jobs:
             python3 porting/revisions/v2.1.1-release/test_release.py
           elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.1\.2[[:space:]]*$' gradle.properties; then
             python3 porting/revisions/v2.1.2-release/test_release.py
+          elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.1\.3[[:space:]]*$' gradle.properties; then
+            python3 porting/revisions/v2.1.3-release/test_release.py
           else
             echo "Unsupported official release version" >&2
             exit 1
@@ -243,6 +245,8 @@ jobs:
             NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.1.1-mpp.sh
           elif grep -Fq "version = 2.1.2" gradle.properties; then
             NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.1.2-mpp.sh
+          elif grep -Fq "version = 2.1.3" gradle.properties; then
+            NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.1.3-mpp.sh
           else
             python3 porting/revisions/v1.11.1/verify-mpp.py 1.11.1
           fi

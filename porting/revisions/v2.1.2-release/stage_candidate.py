@@ -119,7 +119,7 @@ def main():
     require(args.output.resolve()!=args.compiled.resolve(),'Do not overwrite current Gradle build in place')
     require(CANDIDATE_VERSION in (ROOT/'gradle.properties').read_text(),
             'Gradle version must identify candidate '+CANDIDATE_VERSION)
-    require(__import__('json').loads((ROOT/'patches-list.json').read_text())['version'] in ('2.1.1','2.1.2'),
+    require(__import__('json').loads((ROOT/'patches-list.json').read_text())['version'] in ('2.1.1','2.1.2',CANDIDATE_VERSION),
             'Approved v2.1.1 release metadata must remain stable during development')
     verify_dev8_contracts()
     verify()

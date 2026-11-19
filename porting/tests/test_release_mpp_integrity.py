@@ -76,15 +76,19 @@ class ReleaseMppIntegrityTest(unittest.TestCase):
 
     def test_gradle_patch_list_does_not_replace_android_mpp_with_jvm_jar(self):
         gradle=(ROOT/"patches/build.gradle.kts").read_text()
-        assert 'dependsOn("classes")' in gradle
+        assert 'dependsOn(jvmPatchJar)' in gradle
         assert "dependsOn(build)\\n        dependsOn(prepareNicoidHelpers)" not in gradle
         assert 'startsWith("2.1.3-dev.")' in gradle
 
     def test_jvm_jar_is_isolated_from_android_mpp(self):
         gradle = (ROOT / "patches/build.gradle.kts").read_text()
-        self.assertIn('tasks.named<Jar>("jar")', gradle)
+        self.assertIn('val jvmPatchJar = tasks.named<Jar>("jar")', gradle)
         self.assertIn('destinationDirectory.set(layout.buildDirectory.dir("jvm-libs"))', gradle)
-        self.assertIn('dependsOn("classes")', gradle)
+        self.assertIn('dependsOn(jvmPatchJar)', gradle)
+        source = (ROOT / "patches/src/main/kotlin/util/PatchListGenerator.kt").read_text()
+        self.assertIn('require(args.size == 1)', source)
+        self.assertIn('File(args[0])', source)
+        self.assertNotIn('File("build/libs/")', source)
         main = (ROOT / ".github/workflows/verify-main.yml").read_text()
         self.assertIn('generatePatchesList changed the compiled Android MPP', main)
         self.assertIn('python3 .github/scripts/verify_android_mpp.py "$bundle" "$version"', main)

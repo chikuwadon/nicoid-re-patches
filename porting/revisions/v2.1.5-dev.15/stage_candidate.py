@@ -251,35 +251,20 @@ def patch_cache_tab_badge(smali):
     (smali / tab).write_text(tab_source, encoding="utf-8")
 
     icon_source = (smali / icon).read_text(encoding="utf-8")
-    method = ".method public draw(Landroid/graphics/Canvas;)V"
-    start = icon_source.index(method)
-    end = icon_source.index(".end method", start)
-    draw = icon_source[start:end]
-    # Baksmali branch labels differ between source snapshots and the official
-    # v2.1.4 helper DEX. Locate the already scaled canvas instead of depending
-    # on a generated :goto_N label.
-    scale = re.search(
-        r"(?m)^    invoke-virtual \{p1,\s*[^}]+\}, "
-        r"Landroid/graphics/Canvas;->scale\(FF\)V$", draw)
-    saved = re.search(
-        r"invoke-virtual \{p1\}, "
-        r"Landroid/graphics/Canvas;->save\(\)I\s+move-result (v\d+)", draw)
-    require(scale is not None and saved is not None and
-            draw.count(":nicoid_other_tab_badge") == 0,
-            "Native tab canvas geometry contract changed")
-    icon_hook = (
-        "\n    iget v0, p0, Le/e/a/MultiTabs227$TabBadge;->kind:I\n"
-        "    const/4 v1, 0x5\n"
-        "    if-ne v0, v1, :nicoid_other_tab_badge\n"
-        "    iget-object v0, p0, Le/e/a/MultiTabs227$TabBadge;->paint:Landroid/graphics/Paint;\n"
-        "    invoke-static {p1, v0}, Le/e/a/BulkVideoActions215;->drawCacheTabBadge(Landroid/graphics/Canvas;Landroid/graphics/Paint;)V\n"
-        f"    invoke-virtual {{p1, {saved.group(1)}}}, "
-        "Landroid/graphics/Canvas;->restoreToCount(I)V\n"
-        "    return-void\n"
-        "    :nicoid_other_tab_badge\n"
-    )
-    draw = draw[:scale.end()] + icon_hook + draw[scale.end():]
-    icon_source = icon_source[:start] + draw + icon_source[end:]
+    # The stable release's method labels differ across Smali revisions.
+    # Intercept just the cache kind on method entry, keeping all native
+    # search/ranking/creator/list badge drawing paths intact.
+    icon_source = insert_batch_hook(
+        icon_source, ".method public draw(Landroid/graphics/Canvas;)V",
+        r'''    iget v0, p0, Le/e/a/MultiTabs227$TabBadge;->kind:I
+    const/4 v1, 0x5
+    if-ne v0, v1, :nicoid_native_tab_icon
+    iget-object v0, p0, Le/e/a/MultiTabs227$TabBadge;->paint:Landroid/graphics/Paint;
+    invoke-virtual {p0}, Landroid/graphics/drawable/Drawable;->getBounds()Landroid/graphics/Rect;
+    move-result-object v1
+    invoke-static {p1, v0, v1}, Le/e/a/BulkVideoActions215;->drawCacheTabBadge(Landroid/graphics/Canvas;Landroid/graphics/Paint;Landroid/graphics/Rect;)V
+    return-void
+    :nicoid_native_tab_icon''')
     (smali / icon).write_text(icon_source, encoding="utf-8")
 
     host_source = (smali / host).read_text(encoding="utf-8")

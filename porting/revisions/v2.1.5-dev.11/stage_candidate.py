@@ -16,7 +16,6 @@ from tempfile import TemporaryDirectory
 from zipfile import ZipFile
 
 HERE = Path(__file__).resolve().parent
-BASE = HERE.parent / "v2.1.5-dev.10"
 ROOT = HERE.parents[2]
 sys.path.insert(0, str(ROOT / "porting/revisions/v2.1.0-release"))
 sys.path.insert(0, str(ROOT / ".github/scripts"))
@@ -70,7 +69,7 @@ def compile_diagnostic(temp, tools):
     classes = temp / "java-classes"
     classes.mkdir()
     run("javac", "--release", "8", "-encoding", "UTF-8",
-        "-cp", android, "-d", classes, BASE / "Media3Diagnostics276.java")
+        "-cp", android, "-d", classes, HERE / "Media3Diagnostics276.java")
     generated = temp / "new-dex"
     generated.mkdir()
     run(d8, "--min-api", "28", "--lib", android, "--output", generated,
@@ -98,7 +97,7 @@ def compile_viewport_fix(temp, tools):
     classes.mkdir()
     sources = sorted((base / "stubs").rglob("*.java"))
     sources += [base / "java/e/e/a/CommentClock.java", comment / "CommentSource280.java"]
-    sources += sorted((BASE / "comments").glob("*.java"))
+    sources += sorted((HERE / "comments").glob("*.java"))
     run("javac", "--release", "8", "-encoding", "UTF-8", "-cp", android,
         "-d", classes, *sources)
     run("java", "-cp", classes, "e.e.a.CommentViewportRegression")
@@ -122,13 +121,13 @@ def compile_frame_scheduler(temp, tools):
     frame_classes = temp / "frame-classes"
     frame_classes.mkdir()
     run("javac", "--release", "8", "-encoding", "UTF-8",
-        "-cp", android, "-d", frame_classes, BASE / "CommentFrames.java")
+        "-cp", android, "-d", frame_classes, HERE / "CommentFrames.java")
     test_classes = temp / "frame-tests"
     test_classes.mkdir()
-    stub_files = sorted((BASE / "tests/stubs").rglob("*.java"))
+    stub_files = sorted((HERE / "tests/stubs").rglob("*.java"))
     run("javac", "--release", "8", "-encoding", "UTF-8",
-        "-d", test_classes, BASE / "CommentFrames.java",
-        BASE / "tests/FrameScheduleRegression.java", *stub_files)
+        "-d", test_classes, HERE / "CommentFrames.java",
+        HERE / "tests/FrameScheduleRegression.java", *stub_files)
     run("java", "-cp", test_classes, "e.e.a.FrameScheduleRegression")
     frame_dex = temp / "frame-dex"
     frame_dex.mkdir()
@@ -142,25 +141,25 @@ def compile_frame_scheduler(temp, tools):
     return compiled[owner]
 
 
-def compile_ab_controls(temp, tools):
+def compile_fps_summary(temp, tools):
     android, d8 = android_tools()
-    classes = temp / "ab-ui-classes"
+    classes = temp / "fps-summary-classes"
     classes.mkdir()
     run("javac", "--release", "8", "-encoding", "UTF-8",
-        "-cp", android, "-d", classes, BASE / "CommentRasterControls210.java")
-    generated = temp / "ab-ui-dex"
+        "-cp", android, "-d", classes, HERE / "CommentFpsSummary211.java")
+    generated = temp / "fps-summary-dex"
     generated.mkdir()
     run(d8, "--min-api", "28", "--lib", android, "--output", generated,
         *sorted(classes.rglob("*.class")))
-    result = disassemble(generated / "classes.dex", temp / "ab-ui-smali", tools)
-    owner = OWNER / "CommentRasterControls210.smali"
+    result = disassemble(generated / "classes.dex", temp / "fps-summary-smali", tools)
+    owner = OWNER / "CommentFpsSummary211.smali"
     annotation = Path("com/android/tools/r8/annotations/LambdaMethod.smali")
     require(set(result) in ({owner}, {owner, annotation}),
-            "Unexpected A/B UI class set: " + str(set(result)))
+            "Unexpected FPS summary class set: " + str(set(result)))
     return result[owner]
 
 
-def install_ab_ui_hook(source):
+def install_fps_summary(source):
     signature = ".method public static settings(Landroid/preference/PreferenceActivity;)V"
     require(source.count(signature) == 1, "Settings method is missing or ambiguous")
     start = source.index(signature)
@@ -169,59 +168,9 @@ def install_ab_ui_hook(source):
     anchor = ("    invoke-virtual {v1, v2}, Landroid/preference/ListPreference;"
               "->setSummary(Ljava/lang/CharSequence;)V")
     require(method.count(anchor) == 1, "Existing FPS summary call changed")
-    hook = ("\n\n    invoke-static {p0}, "
-            "Le/e/a/CommentRasterControls210;"
-            "->install(Landroid/preference/PreferenceActivity;)V")
-    return source[:start] + method.replace(anchor, anchor + hook, 1) + source[end:]
-
-
-
-def compile_bulk_bridge(temp, tools):
-    android, d8 = android_tools()
-    classes = temp / "bulk-classes"
-    classes.mkdir()
-    run("javac", "--release", "8", "-encoding", "UTF-8",
-        "-cp", android, "-d", classes, HERE / "BulkVideoActions215.java")
-    compiled_dex = temp / "bulk-dex"
-    compiled_dex.mkdir()
-    run(d8, "--min-api", "28", "--lib", android, "--output", compiled_dex,
-        *sorted(classes.rglob("*.class")))
-    result = disassemble(compiled_dex / "classes.dex", temp / "bulk-smali", tools)
-    scoped = {path: data for path, data in result.items()
-              if path.parent == OWNER and path.stem.startswith("BulkVideoActions215")}
-    annotation = Path("com/android/tools/r8/annotations/LambdaMethod.smali")
-    require(set(result) - set(scoped) <= {annotation},
-            "Unexpected batch-registration helper dependencies")
-    require(OWNER / "BulkVideoActions215.smali" in scoped,
-            "Batch-registration implementation is missing")
-    return scoped
-
-
-def insert_batch_hook(source, signature, code):
-    require(source.count(signature) == 1, "Missing selection/menu hook: " + signature)
-    start = source.index(signature)
-    end = source.index(".end method", start)
-    part = source[start:end]
-    registers = re.search(r"(?m)^    \.(?:registers|locals) \d+$", part)
-    require(registers is not None, "Cannot find method register declaration")
-    require(code not in part, "Batch selection already hooked")
-    part = part[:registers.end()] + "\n\n" + code + part[registers.end():]
-    return source[:start] + part + source[end:]
-
-
-def add_bulk_ui_hooks(smali):
-    native_menu = OWNER / "BulkSelection.smali"
-    local_menu = OWNER / "LocalPlaylists.smali"
-    native = (smali / native_menu).read_text(encoding="utf-8")
-    local = (smali / local_menu).read_text(encoding="utf-8")
-    native = insert_batch_hook(
-        native, ".method public static menu(Landroid/app/Activity;Landroid/view/Menu;)V",
-        "    invoke-static {p0, p1}, Le/e/a/BulkVideoActions215;->menu(Landroid/app/Activity;Landroid/view/Menu;)V")
-    local = insert_batch_hook(
-        local, ".method public static menuOrFeed(Landroid/app/Activity;Landroid/view/Menu;)Z",
-        "    invoke-static {p0, p1}, Le/e/a/BulkVideoActions215;->localMenu(Landroid/app/Activity;Landroid/view/Menu;)V")
-    (smali / native_menu).write_text(native, encoding="utf-8")
-    (smali / local_menu).write_text(local, encoding="utf-8")
+    hook = ("    invoke-static {v1, v2}, Le/e/a/CommentFpsSummary211;"
+            "->set(Landroid/preference/ListPreference;Ljava/lang/CharSequence;)V")
+    return source[:start] + method.replace(anchor, hook, 1) + source[end:]
 
 
 def limit_seek_preview(source):
@@ -323,22 +272,13 @@ def stage(compiled, approved, output, tools):
         frame_owner = OWNER / "CommentFrames.smali"
         require(frame_owner in stable, "Official v2.1.4 scheduler is missing")
         (smali / frame_owner).write_bytes(compile_frame_scheduler(temp, tools))
-        ui_owner = OWNER / "CommentRasterControls210.smali"
-        require(ui_owner not in stable, "A/B UI unexpectedly in release baseline")
-        (smali / ui_owner).write_bytes(compile_ab_controls(temp, tools))
-        added.add(ui_owner)
-        batch_classes = compile_bulk_bridge(temp, tools)
-        require(set(batch_classes).isdisjoint(stable),
-                "Bulk helper unexpectedly replaces existing code")
-        for path, contents in batch_classes.items():
-            (smali / path).write_bytes(contents)
-        added.update(batch_classes)
-        add_bulk_ui_hooks(smali)
+        fps_summary = OWNER / "CommentFpsSummary211.smali"
+        require(fps_summary not in stable, "FPS summary helper already exists")
+        (smali / fps_summary).write_bytes(compile_fps_summary(temp, tools))
+        added.add(fps_summary)
         review_owner = OWNER / "Review181.smali"
-        require(review_owner in stable, "Original settings UI missing")
-        (smali / review_owner).write_text(
-            install_ab_ui_hook((smali / review_owner).read_text(encoding="utf-8")),
-            encoding="utf-8")
+        review = smali / review_owner
+        review.write_text(install_fps_summary(review.read_text(encoding="utf-8")), encoding="utf-8")
         # Preserve the existing setting key, value and default.
         descriptions = {
             "Scrolling comments wait briefly for space. Overlap is allowed in crowded scenes. Fixed comments can also overlap.":
@@ -378,20 +318,9 @@ def stage(compiled, approved, output, tools):
                                         OWNER / "ScrollingTimeline267.smali",
                                         OWNER / "ScrollingTimeline267$Entry.smali",
                                         OWNER / "PlaybackDisplayOptions.smali",
-                                         OWNER / "CommentFrames.smali",
-                                         OWNER / "Review181.smali",
-                                         OWNER / "BulkSelection.smali",
-                                         OWNER / "LocalPlaylists.smali"}
+                                         OWNER / "CommentFrames.smali", review_owner}
         require(required <= changed <= required | set(comment_fix),
                 "Unintended helper code change: " + str(changed))
-        require(b"BulkVideoActions215;->menu" in checked[OWNER / "BulkSelection.smali"]
-                and b"BulkVideoActions215;->localMenu" in checked[OWNER / "LocalPlaylists.smali"],
-                "Batch selection and sort-bar action entry points are not wired")
-        bridge = checked[OWNER / "BulkVideoActions215.smali"].decode()
-        require("deflist" in bridge and "isselect" in bridge
-                and "MENU_ENTER" in bridge or
-                ("deflist" in bridge and "isselect" in bridge and "nicoid_multi_select_sort" in bridge),
-                "Missing registration destinations or selection UI")
         timeline_text = checked[OWNER / "ScrollingTimeline267.smali"].decode()
         require("skippedByOverlap" in timeline_text and
                 "waitOrigin" in checked[OWNER / "ScrollingTimeline267$Entry.smali"].decode(),
@@ -401,25 +330,14 @@ def stage(compiled, approved, output, tools):
                 and "Choreographer;->removeFrameCallback" in frame_source
                 and "Handler;->postAtTime" not in frame_source,
                 "VSYNC scheduling was not installed")
-        raster_text = checked[OWNER / "ScrollingComments267.smali"].decode()
-        require("Bitmap;->createBitmap" in raster_text
-                and "rasterBytes" in raster_text
-                and "rasterHits" in raster_text,
-                "Capped comment raster cache is missing")
-        require("nicoid_comment_raster_ab" in raster_text
-                and "rasterMode=" in raster_text
-                and "directDraws=" in raster_text,
-                "Direct-vs-bitmap A/B switch missing")
-        control_source = checked[ui_owner].decode()
-        require("nicoid_comment_raster_ab" in control_source
-                and "%s" in control_source,
-                "FPS prefix or A/B setting missing")
-        require("CommentRasterControls210;->install" in
-                checked[review_owner].decode(),
-                "Settings screen does not invoke A/B UI installer")
-        require("nicoid-frame-total" in frame_source
-                and "drawWholeAvgMs" in frame_source,
-                "Whole-frame diagnostics are missing")
+        renderer = checked[OWNER / "ScrollingComments267.smali"].decode()
+        require("Canvas;->drawText" in renderer
+                and "Canvas;->drawBitmap" not in renderer and "rasterMode=" not in renderer,
+                "Expected direct comment text rendering")
+        require("CommentFpsSummary211;->set" in checked[review_owner].decode()
+                and b'"%s"' in checked[fps_summary],
+                "FPS summary prefix is missing")
+        require("drawWholeAvgMs" in frame_source, "Whole draw timing is missing")
         require(checked[PLAYER].count(PREVIEW_HOOK.encode()) == 1,
                 "Local seek preview guard missing or duplicated")
         require(checked[HTTP_SOURCE].count(SESSION_CLIENT.encode()) == 1
@@ -469,7 +387,7 @@ def stage(compiled, approved, output, tools):
                 if entry not in replacements:
                     require(final.read(entry) == base.read(entry),
                             "Unintended MPP entry change: " + entry)
-        print("PASS: preserved Media3/overlap, VSYNC, raster A/B comparison and FPS description")
+        print("PASS: retained Media3/overlap behavior and installed VSYNC comment pacing")
         print("PASS: preserved all approved v2.1.4 native hooks, resource bytes and playback helpers")
     validate_mpp(output, VERSION)
     print("PASS: valid Android MPP " + str(output))

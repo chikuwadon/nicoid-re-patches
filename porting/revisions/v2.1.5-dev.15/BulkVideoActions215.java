@@ -280,6 +280,15 @@ public final class BulkVideoActions215 {
     }
 
     /** Two checked rows in normal mode; a close mark while selecting. */
+    /** Preserve native labels and avoid describing the cache tab as Ranking. */
+    public static CharSequence cacheTabAccessibility(Object tab,CharSequence nativeText) {
+        try {
+            if("cache".equals(String.valueOf(declared(tab,"screen"))))
+                return String.valueOf(declared(tab,"label"));
+        }catch(Exception e){log(e);}
+        return nativeText;
+    }
+
     /** Draw an outlined cache/storage glyph at the existing 14dp tab-badge size. */
     public static void drawCacheTabBadge(Canvas canvas,Paint paint,Rect bounds) {
         if(bounds==null||bounds.isEmpty())return;

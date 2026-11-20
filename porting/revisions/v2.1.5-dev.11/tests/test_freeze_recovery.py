@@ -5,7 +5,7 @@ from tempfile import TemporaryDirectory
 import subprocess
 
 HERE = Path(__file__).resolve().parents[1]
-CODE = HERE / "Media3Diagnostics276.java"
+CODE = HERE.parent / "v2.1.5-dev.10" / "Media3Diagnostics276.java"
 
 STUBS = {
  "android/net/Uri.java": """package android.net;

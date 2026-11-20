@@ -26,7 +26,7 @@ require("hasMoveAction(Object f)" in source
         and "return kind(f)==5 && type(f)!=4;" in source
         and "if(!history(owner))" in source,
         "Mylist/Watch Later must not gain a duplicate Register button")
-require("params.leftMargin=dp(a,12);" in source
+require("params.leftMargin=dp(a,20);" in source
         and "footer.addView(register,Math.min(1,footer.getChildCount()),params)" in source,
         "History Add must align with the existing Move spacing")
 require("new android.widget.TextView(a)" in source,

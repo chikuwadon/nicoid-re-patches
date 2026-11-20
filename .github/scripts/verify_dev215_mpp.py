@@ -70,7 +70,7 @@ def inspect(bundle: Path, version: str) -> None:
                         "batch selection bridge missing: " + marker.decode())
         if level >= 16:
             for marker in (b"LocalePatch215", b"Playback queue", b"Select multiple",
-                           b"Deselect all", b"dedupeNicorepoRefresh"):
+                           b"Deselect all", b"shouldSkipTabRefresh"):
                 require(marker in helper, "missing English/Chinese locale bridge: "+marker.decode())
     print("PASS: verified staged helper/extension runtime and UI version " + version)
 

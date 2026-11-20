@@ -22,7 +22,7 @@ def inspect(bundle: Path, version: str) -> None:
     match = re.fullmatch(r"2\.1\.5-dev\.(\d+)", version)
     require(match is not None, "invalid target version")
     level = int(match.group(1))
-    require(1 <= level <= 12, "unsupported version; update this verification first")
+    require(1 <= level <= 13, "unsupported version; update this verification first")
     with ZipFile(bundle) as z:
         require(z.testzip() is None, "corrupt ZIP")
         manifest = z.read("META-INF/MANIFEST.MF")
@@ -43,21 +43,29 @@ def inspect(bundle: Path, version: str) -> None:
         if level >= 7:
             require(b"nicoid-comment-perf" in helper, "comment FPS diagnostics missing")
         if level >= 8:
-            require(b"nicoid-frame-total" in helper
-                    and b"Choreographer" in helper,
-                    "VSYNC frame scheduler or frame diagnostics missing")
+            require(b"Le/e/a/CommentFrames;" in helper and b"Choreographer" in helper,
+                    "VSYNC frame scheduler missing")
         if level >= 9:
+            require(b"nicoid-frame-total" in helper, "Whole draw timing missing")
+        if level in (9, 10):
             require(b"rasterHits" in helper and b"Bitmap" in helper,
                     "bounded raster cache missing")
-        if level >= 10:
+        if level == 10:
             for marker in (b"CommentRasterControls210", b"nicoid_comment_raster_ab",
                            b"rasterMode=", b"directDraws=", b"%s"):
                 require(marker in helper,
                         "development A/B controls or FPS value prefix missing: "
                         + marker.decode())
-        if level >= 11:
+        if level == 11:
+            require(b"Le/e/a/CommentFpsSummary211;" in helper,
+                    "FPS summary prefix helper missing")
+            for marker in (b"Le/e/a/CommentRasterControls210;", b"nicoid_comment_raster_ab",
+                           b"rasterMode=", b"rasterHits"):
+                require(marker not in helper, "Bitmap experiment remains: " + marker.decode())
+        if level >= 12:
             for marker in (b"BulkVideoActions215", b"nicoid_multi_select_sort",
-                           b"deflist", b"BulkSelection"):
+                           b"deflist", b"BulkSelection", b"playlistDeleteMessage",
+                           b"onSelectionChanged"):
                 require(marker in helper,
                         "batch selection bridge missing: " + marker.decode())
     print("PASS: verified staged helper/extension runtime and UI version " + version)

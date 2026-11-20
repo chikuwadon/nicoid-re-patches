@@ -82,6 +82,8 @@ public final class BulkVideoActions215 {
         return kind>=0 && kind!=5 && kind!=8 && kind!=9
                 && type!=4 && type!=8 && type!=9;
     }
+    /** Same predicate as the existing BulkSelection Move command. */
+    static boolean hasMoveAction(Object f) {return kind(f)==5 && type(f)!=4;}
     static boolean selecting(Object f) {
         try{return Boolean.TRUE.equals(field(f,"k0"));}catch(Exception ignored){return false;}
     }
@@ -135,7 +137,7 @@ public final class BulkVideoActions215 {
         } else {
             // Mylist/Watch Later already have the native Move action.
             // Do not add a duplicate registration command to those screens.
-            if(kind(f)!=5) {
+            if(!hasMoveAction(f)) {
                 menu.add(0,MENU_ADD,100,tr(a,"一括登録","Add selected videos","批次加入"))
                     .setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
                 menu.findItem(MENU_ADD).setOnMenuItemClickListener(item->{
@@ -336,7 +338,7 @@ public final class BulkVideoActions215 {
                 if(container.getChildCount()==0||!(container.getChildAt(0) instanceof LinearLayout))return;
                 LinearLayout footer=(LinearLayout)container.getChildAt(0);
                 // Mylist and Watch Later already present Move for registration.
-                if(kind(owner)==5) {
+                if(hasMoveAction(owner)) {
                     View duplicate=footer.findViewWithTag(REGISTER_TAG);
                     if(duplicate!=null)footer.removeView(duplicate);
                     return;

@@ -793,7 +793,7 @@ jobs:
           if [[ ( "$GITHUB_REF" == "refs/heads/dev" || "$GITHUB_REF" == "refs/heads/feature/bulk-video-list-actions" ) && "$version" == 2.1.5-dev.* ]]; then
             # Bash ERE has no (?:...) non-capturing groups. Unsupported versions
             # must fail instead of silently uploading the unstaged Gradle MPP.
-            if [[ ! "$version" =~ ^2\.1\.5-dev\.([1-9]|10|11|12)$ ]]; then
+            if [[ ! "$version" =~ ^2\.1\.5-dev\.([1-9]|1[0-3])$ ]]; then
               echo "::error::Unsupported v2.1.5 development version: $version" >&2
               exit 1
             fi

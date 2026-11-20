@@ -6,6 +6,7 @@ settings and release asset intact except the explicitly audited bytecode.
 """
 from __future__ import annotations
 import argparse
+import hashlib
 from copy import copy
 import os
 import re
@@ -23,6 +24,7 @@ from verify_android_mpp import validate_mpp
 
 VERSION = "2.1.5-dev.1"
 PREVIOUS = "2.1.4"
+APPROVED_SHA256 = "58c9d990d36d9f05e58e29bcb4ad45da8a435a16c8f4a649d82d02a538995df4"
 HELPERS = "nicoid/helpers.mpe"
 EXTENSION = "extensions/extension.mpe"
 MANIFEST = "META-INF/MANIFEST.MF"
@@ -79,10 +81,13 @@ def compile_diagnostic(temp, tools):
     return {p: data for p, data in result.items() if p in expected}
 
 
-def stage(compiled, output, tools):
+def stage(compiled, approved, output, tools):
     require(compiled.resolve() != output.resolve(), "Do not overwrite Gradle input")
     validate_mpp(compiled, VERSION)
-    with TemporaryDirectory(prefix="nicoid-seek-freeze-") as temp_name, ZipFile(compiled) as base:
+    require(hashlib.sha256(approved.read_bytes()).hexdigest() == APPROVED_SHA256,
+            "Official v2.1.4 MPP SHA-256 mismatch")
+    validate_mpp(approved, PREVIOUS)
+    with TemporaryDirectory(prefix="nicoid-seek-freeze-") as temp_name, ZipFile(approved) as base:
         temp = Path(temp_name)
         original = temp / "stable.dex"
         original.write_bytes(base.read(HELPERS))
@@ -124,23 +129,12 @@ def stage(compiled, output, tools):
         extension.write_bytes(base.read(EXTENSION))
         original_extension = disassemble(extension, temp / "extension-original", tools)
         banner = OWNER / "ModernShorts.smali"
-        # The Gradle-compiled extension is older than the stable staged
-        # v2.1.4 DEX. Accept only known archived banners, replacing all
-        # occurrences without touching any extension behavior.
-        banner_file = temp / "extension-original" / banner
-        banner_text = banner_file.read_text(encoding="utf-8")
-        occurrences = 0
-        target = '"v2.1.5-dev.1 @chikuwadon"'
-        for old in ('"v2.1.4 @chikuwadon"',
-                    '"v2.1.3 @chikuwadon"',
-                    '"v1.10.1 @chikuwadon"'):
-            count = banner_text.count(old)
-            require(count <= 2, "Unexpected extension banner multiplicity: " + old)
-            occurrences += count
-            banner_text = banner_text.replace(old, target)
-        require(1 <= occurrences <= 2 and banner_text.count(target) == occurrences,
-                "Unexpected extension Shorts banner: no recognized version")
-        banner_file.write_text(banner_text, encoding="utf-8")
+        # Use the SHA-locked public v2.1.4 runtime, never the older
+        # Gradle-generated extension jar: only the official release is
+        # known to include the reviewed v2.1.4 Shorts and playback behavior.
+        replace_literal(temp / "extension-original", banner,
+                        '"v2.1.4 @chikuwadon"',
+                        '"v2.1.5-dev.1 @chikuwadon"', 2)
         revised_ext = temp / "extension.dex.revised"
         assemble(temp / "extension-original", revised_ext, tools)
         ext_checked = disassemble(revised_ext, temp / "extension-checked", tools)
@@ -151,9 +145,12 @@ def stage(compiled, output, tools):
         require({p for p in ext_before if ext_before[p] != ext_checked[p]} == {banner},
                 "Unexpected extension behavior change")
         manifest = base.read(MANIFEST)
-        require(manifest.count(("Version: " + VERSION + "\r\n").encode()) == 1,
-                "Compiled candidate version manifest mismatch")
-        replacements = {HELPERS: revised.read_bytes(), EXTENSION: revised_ext.read_bytes()}
+        previous = ("Version: " + PREVIOUS + "\r\n").encode()
+        require(manifest.count(previous) == 1, "Approved MPP manifest mismatch")
+        new_manifest = manifest.replace(
+            previous, ("Version: " + VERSION + "\r\n").encode())
+        replacements = {HELPERS: revised.read_bytes(), EXTENSION: revised_ext.read_bytes(),
+                        MANIFEST: new_manifest}
         output.parent.mkdir(parents=True, exist_ok=True)
         with ZipFile(output, "w") as final:
             for entry in base.infolist():
@@ -166,17 +163,17 @@ def stage(compiled, output, tools):
                     require(final.read(entry) == base.read(entry),
                             "Unintended MPP entry change: " + entry)
         print("PASS: replaced only Media3 diagnostics/recovery and version owners")
-        print("PASS: preserved all native hooks, resource bytes and existing playback helpers")
+        print("PASS: preserved all approved v2.1.4 native hooks, resource bytes and playback helpers")
     validate_mpp(output, VERSION)
     print("PASS: valid Android MPP " + str(output))
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    for name in ("compiled", "output", "tools"):
+    for name in ("compiled", "approved", "output", "tools"):
         parser.add_argument("--" + name, required=True, type=Path)
     args = parser.parse_args()
-    stage(args.compiled, args.output, args.tools)
+    stage(args.compiled, args.approved, args.output, args.tools)
 
 
 if __name__ == "__main__":

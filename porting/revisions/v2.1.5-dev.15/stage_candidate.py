@@ -257,7 +257,7 @@ def patch_cache_tab_badge(smali):
     draw = icon_source[start:end]
     anchor = ("    invoke-virtual {p1, v1, v0}, "
               "Landroid/graphics/Canvas;->scale(FF)V")
-    require(draw.count(anchor) == 1 and draw.count(":goto_93") == 1,
+    require(draw.count(anchor) == 1 and draw.count("\n    :goto_93\n") == 1,
             "Native tab icon drawing contract changed")
     icon_hook = r'''
     iget v0, p0, Le/e/a/MultiTabs227$TabBadge;->kind:I
@@ -485,11 +485,11 @@ def stage(compiled, approved, output, tools):
         require("BulkVideoActions215;->playlistDeleteMessage" in
                 checked[OWNER / "LocalPlaylists$Page.smali"].decode(),
                 "Playlist confirmation text is not installed")
-        require('nicoid_not_cache_tab' in checked[OWNER / "MultiTabs227.smali"].decode(),
+        require('"cache"' in checked[OWNER / "MultiTabs227.smali"].decode(),
                 "Cache tab badge classifier missing")
         require("drawCacheTabBadge" in checked[OWNER / "MultiTabs227$TabBadge.smali"].decode(),
                 "Cache tab icon renderer missing")
-        require("nicoid_other_tab_a11y" in checked[OWNER / "MultiTabs227$Host.smali"].decode(),
+        require("Cached videos" in checked[OWNER / "MultiTabs227$Host.smali"].decode(),
                 "Cache tab accessibility description missing")
         bridge = checked[OWNER / "BulkVideoActions215.smali"].decode()
         require("deflist" in bridge and "isselect" in bridge

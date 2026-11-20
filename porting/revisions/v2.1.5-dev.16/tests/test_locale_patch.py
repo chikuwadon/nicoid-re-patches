@@ -22,15 +22,15 @@ for jp,(en,zh) in required.items():
 assert "return LocalePatch215.label(c,ja,en,zh);" in bridge
 assert 'title.endsWith(suffix)' in src and 'String suffix = "の投稿動画"' in src
 assert '"Refresh".equals(refreshMarker)' in src and '"重新整理".equals(refreshMarker)' in src
-assert 'menu.size() != 2' in src and 'menu.removeItem(24401);' in src
-assert 'feed.getItemId() != 0' in src
+assert 'menu.size()!=1' in src and 'shouldSkipTabRefresh(Menu menu)' in src
+assert 'first.getItemId()!=0' in src
 for code in (
     "LocalePatch215;->lookup", "LocalePatch215;->title",
-    "LocalePatch215;->dedupeNicorepoRefresh",
+    "LocalePatch215;->shouldSkipTabRefresh",
 ):
     assert code in stage, code
 assert 'OWNER / "UiStrings.smali"' in stage
 assert 'OWNER / "TabChrome228.smali"' in stage
-assert 'Path("com/sauzask/nicoid/NicoidNicorepoActivity.smali")' in stage
+assert 'OWNER / "TabRecovery244.smali"' in stage
 assert '"v2.1.5-dev.11"' in stage, "Do not regress direct comment renderer"
 print("PASS: Japanese/English/Traditional Chinese labels, creator titles and single NicoRepo Refresh")

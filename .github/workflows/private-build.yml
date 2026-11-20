@@ -793,13 +793,16 @@ jobs:
           if [[ ( "$GITHUB_REF" == "refs/heads/dev" || "$GITHUB_REF" == "refs/heads/feature/bulk-video-list-actions" ) && "$version" == 2.1.5-dev.* ]]; then
             # Bash ERE has no (?:...) non-capturing groups. Unsupported versions
             # must fail instead of silently uploading the unstaged Gradle MPP.
-            if [[ ! "$version" =~ ^2\.1\.5-dev\.([1-9]|1[0-3])$ ]]; then
+            if [[ ! "$version" =~ ^2\.1\.5-dev\.([1-9]|1[0-4])$ ]]; then
               echo "::error::Unsupported v2.1.5 development version: $version" >&2
               exit 1
             fi
             compiled="patches/build/libs/patches-$version.mpp"
             test -s "$compiled"
             python3 porting/revisions/v$version/tests/test_freeze_recovery.py
+            if [[ "$version" == "2.1.5-dev.14" ]]; then
+              python3 porting/revisions/v$version/tests/test_bulk_ui.py
+            fi
             # The Gradle MPP is not the approved v2.1.4 extension payload.
             # Verify the official release by pinned SHA-256 before staging.
             approved="/tmp/nicoid-re-v2.1.4-approved.mpp"

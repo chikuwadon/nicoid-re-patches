@@ -33,7 +33,7 @@ require("new android.widget.TextView(a)" in source,
         "History Add must match existing text-style Move, not be a filled Button")
 require("register.setText(tr(a,\"登録\"" in source,
         "History Add label must remain 登録")
-require("drawCacheTabBadge(Canvas canvas,Paint paint)" in source,
+require("drawCacheTabBadge(Canvas canvas,Paint paint,Rect bounds)" in source,
         "Cache tab must have a glyph aligned with existing tab icons")
 require("return root.isShown()?(Spinner)root:null;" in source,
         "Hidden spinners must not capture the quick-selection button")

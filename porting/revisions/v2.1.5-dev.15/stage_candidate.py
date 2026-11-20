@@ -255,20 +255,30 @@ def patch_cache_tab_badge(smali):
     start = icon_source.index(method)
     end = icon_source.index(".end method", start)
     draw = icon_source[start:end]
-    anchor = ("    invoke-virtual {p1, v1, v0}, "
-              "Landroid/graphics/Canvas;->scale(FF)V")
-    require(draw.count(anchor) == 1 and draw.count("\n    :goto_93\n") == 1,
-            "Native tab icon drawing contract changed")
-    icon_hook = r'''
-    iget v0, p0, Le/e/a/MultiTabs227$TabBadge;->kind:I
-    const/4 v1, 0x5
-    if-ne v0, v1, :nicoid_other_tab_badge
-    iget-object v0, p0, Le/e/a/MultiTabs227$TabBadge;->paint:Landroid/graphics/Paint;
-    invoke-static {p1, v0}, Le/e/a/BulkVideoActions215;->drawCacheTabBadge(Landroid/graphics/Canvas;Landroid/graphics/Paint;)V
-    goto :goto_93
-    :nicoid_other_tab_badge
-'''
-    draw = draw.replace(anchor, anchor + "\n" + icon_hook, 1)
+    # Baksmali branch labels differ between source snapshots and the official
+    # v2.1.4 helper DEX. Locate the already scaled canvas instead of depending
+    # on a generated :goto_N label.
+    scale = re.search(
+        r"(?m)^    invoke-virtual \{p1,\s*[^}]+\}, "
+        r"Landroid/graphics/Canvas;->scale\(FF\)V$", draw)
+    saved = re.search(
+        r"invoke-virtual \{p1\}, "
+        r"Landroid/graphics/Canvas;->save\(\)I\s+move-result (v\d+)", draw)
+    require(scale is not None and saved is not None and
+            draw.count(":nicoid_other_tab_badge") == 0,
+            "Native tab canvas geometry contract changed")
+    icon_hook = (
+        "\n    iget v0, p0, Le/e/a/MultiTabs227$TabBadge;->kind:I\n"
+        "    const/4 v1, 0x5\n"
+        "    if-ne v0, v1, :nicoid_other_tab_badge\n"
+        "    iget-object v0, p0, Le/e/a/MultiTabs227$TabBadge;->paint:Landroid/graphics/Paint;\n"
+        "    invoke-static {p1, v0}, Le/e/a/BulkVideoActions215;->drawCacheTabBadge(Landroid/graphics/Canvas;Landroid/graphics/Paint;)V\n"
+        f"    invoke-virtual {{p1, {saved.group(1)}}}, "
+        "Landroid/graphics/Canvas;->restoreToCount(I)V\n"
+        "    return-void\n"
+        "    :nicoid_other_tab_badge\n"
+    )
+    draw = draw[:scale.end()] + icon_hook + draw[scale.end():]
     icon_source = icon_source[:start] + draw + icon_source[end:]
     (smali / icon).write_text(icon_source, encoding="utf-8")
 

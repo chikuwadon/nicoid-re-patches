@@ -789,7 +789,7 @@ jobs:
             fi
           fi
           output="/tmp/nicoid-re-$version.mpp"
-          if [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" =~ ^2\.1\.5-dev\.[12]$ ]]; then
+          if [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" =~ ^2\.1\.5-dev\.[1-3]$ ]]; then
             compiled="patches/build/libs/patches-$version.mpp"
             test -s "$compiled"
             python3 porting/revisions/v$version/tests/test_freeze_recovery.py

@@ -22,8 +22,11 @@ require(source.count("dp(a,30)") == 2,
         "Checklist icon must be 30dp in both states")
 require("dp(a,48),dp(a,48)" in source,
         "Accessible 48dp quick-selection touch target changed")
-require("if(kind(f)!=5)" in source and "if(kind(owner)==5)" in source,
-        "Mylist/Watch Later must not gain duplicate registration actions")
+require("hasMoveAction(Object f)" in source
+        and "return kind(f)==5 && type(f)!=4;" in source
+        and "if(!hasMoveAction(f))" in source
+        and "if(hasMoveAction(owner))" in source,
+        "Mylist/Watch Later must use the native Move predicate without excluding account history")
 require("footer.addView(register,Math.min(1,footer.getChildCount())" in source,
         "History Add must be between Delete and the flexible spacer")
 require("new android.widget.TextView(a)" in source,

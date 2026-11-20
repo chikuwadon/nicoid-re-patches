@@ -40,7 +40,7 @@ require("return root.isShown()?(Spinner)root:null;" in source,
 require("playlistDeleteMessage" in source and "onSelectionChanged" in source,
         "Existing deletion copy and selection lifecycle hooks missing")
 require("patch_cache_tab_badge(smali)" in stage
-        and '"MultiTabs227$Host.smali"' in stage
+        and '"MultiTabs227.smali"' in stage
         and '"MultiTabs227$TabBadge.smali"' in stage,
         "Cache badge must be added to the bottom tab strip")
 require("if(discovery(kind(owner),type(owner)))" in source

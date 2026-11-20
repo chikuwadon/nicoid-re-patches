@@ -49,6 +49,14 @@ public final class BulkVideoActions215 {
     private static final Set<Activity> BUSY = Collections.newSetFromMap(new WeakHashMap<Activity,Boolean>());
 
     static int dp(Context c, int v) { return Math.round(v*c.getResources().getDisplayMetrics().density); }
+    static int accent(Context c) {
+        TypedValue value=new TypedValue();
+        if(c.getTheme().resolveAttribute(android.R.attr.colorAccent,value,true)) {
+            if(value.resourceId!=0)return c.getResources().getColor(value.resourceId);
+            return value.data;
+        }
+        return Color.rgb(0,181,160);
+    }
     static String tr(Context c,String ja,String en,String zh) {
         String lang=c.getResources().getConfiguration().locale.getLanguage();
         return "ja".equals(lang)?ja:("zh".equals(lang)?zh:en);
@@ -152,7 +160,7 @@ public final class BulkVideoActions215 {
             if(page==null||declared(page,"folder")==null)return;
             Field mode=page.getClass().getDeclaredField("selecting");mode.setAccessible(true);
             if(mode.getBoolean(page)){
-                cls.getMethod("back",Activity.class).invoke(null,a);
+                owner.getMethod("back",Activity.class).invoke(null,a);
             }else{
                 mode.setBoolean(page,true);
                 Method changed=page.getClass().getDeclaredMethod("selectionChanged");
@@ -196,7 +204,7 @@ public final class BulkVideoActions215 {
         row.addView(spinner,new LinearLayout.LayoutParams(0,-1,1));
         ImageButton button=new ImageButton(a);
         button.setTag(BUTTON_TAG);
-        button.setImageDrawable(new SelectionIcon(false,UiDialogs.accent(a)));
+        button.setImageDrawable(new SelectionIcon(false,accent(a)));
         TypedValue color=new TypedValue();
         if(a.getTheme().resolveAttribute(android.R.attr.colorAccent,color,true)){
             int tint=color.resourceId!=0?a.getResources().getColor(color.resourceId):color.data;
@@ -235,7 +243,7 @@ public final class BulkVideoActions215 {
             }
         }catch(Exception e){log(e);}
         ImageButton button=(ImageButton)found;
-        button.setImageDrawable(new SelectionIcon(active,UiDialogs.accent(a)));
+        button.setImageDrawable(new SelectionIcon(active,accent(a)));
         button.setSelected(active);
         button.setContentDescription(active?
             tr(a,"複数選択を終了","Exit multiple selection","結束多重選取"):

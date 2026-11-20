@@ -301,7 +301,7 @@ def patch_locale_routes(smali):
     """Repair missing shared translations while preserving UiStrings' app-language logic."""
     ui = OWNER / "UiStrings.smali"
     chrome = OWNER / "TabChrome228.smali"
-    report = Path("com/sauzask/nicoid/NicoidNicorepoActivity.smali")
+    shared_menu = OWNER / "TabRecovery244.smali"
     ui_source = (smali / ui).read_text(encoding="utf-8")
     ui_source = insert_batch_hook(
         ui_source, ".method private static lookup(Ljava/lang/String;)[Ljava/lang/String;",
@@ -322,16 +322,15 @@ def patch_locale_routes(smali):
     move-result-object p2''')
     (smali / chrome).write_text(chrome_source, encoding="utf-8")
 
-    report_source = (smali / report).read_text(encoding="utf-8")
-    sig = ".method public onCreateOptionsMenu(Landroid/view/Menu;)Z"
-    require(report_source.count(sig) == 1, "NicoRepo options method changed")
-    start, end = report_source.index(sig), report_source.index(".end method", report_source.index(sig))
-    portion = report_source[start:end]
-    old = "    invoke-static {p0, p1}, Le/e/a/TabRecovery244;->menu(Landroid/app/Activity;Landroid/view/Menu;)V"
-    require(portion.count(old) == 1, "NicoRepo shared refresh hook changed")
-    portion = portion.replace(old, old + "\n    invoke-static {p1}, Le/e/a/LocalePatch215;->dedupeNicorepoRefresh(Landroid/view/Menu;)V", 1)
-    report_source = report_source[:start] + portion + report_source[end:]
-    (smali / report).write_text(report_source, encoding="utf-8")
+    shared = (smali / shared_menu).read_text(encoding="utf-8")
+    shared = insert_batch_hook(
+        shared, ".method public static menu(Landroid/app/Activity;Landroid/view/Menu;)V",
+        """    invoke-static {p1}, Le/e/a/LocalePatch215;->shouldSkipTabRefresh(Landroid/view/Menu;)Z
+    move-result v0
+    if-eqz v0, :nicoid_other_tab_refresh
+    return-void
+    :nicoid_other_tab_refresh""")
+    (smali / shared_menu).write_text(shared, encoding="utf-8")
 
 
 def limit_seek_preview(source):
@@ -495,7 +494,7 @@ def stage(compiled, approved, output, tools):
                                          OWNER / "MultiTabs227$TabBadge.smali",
                                          OWNER / "UiStrings.smali",
                                          OWNER / "TabChrome228.smali",
-                                         Path("com/sauzask/nicoid/NicoidNicorepoActivity.smali")}
+                                         OWNER / "TabRecovery244.smali"}
         require(required <= changed <= required | set(comment_fix),
                 "Unintended helper code change: " + str(changed))
         bulk_source = checked[OWNER / "BulkSelection.smali"].decode()
@@ -515,8 +514,8 @@ def stage(compiled, approved, output, tools):
                 "Batch registration bridge is missing registration or UI behavior")
         require("LocalePatch215;->lookup" in checked[OWNER / "UiStrings.smali"].decode()
                 and "LocalePatch215;->title" in checked[OWNER / "TabChrome228.smali"].decode()
-                and "LocalePatch215;->dedupeNicorepoRefresh" in
-                checked[Path("com/sauzask/nicoid/NicoidNicorepoActivity.smali")].decode(),
+                and "LocalePatch215;->shouldSkipTabRefresh" in
+                checked[OWNER / "TabRecovery244.smali"].decode(),
                 "Localization and NicoRepo menu hooks are missing")
         require("Playback queue" in checked[OWNER / "LocalePatch215.smali"].decode()
                 and "Deselect all" in checked[OWNER / "LocalePatch215.smali"].decode(),

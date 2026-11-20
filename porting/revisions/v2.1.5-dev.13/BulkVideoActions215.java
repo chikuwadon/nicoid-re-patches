@@ -110,7 +110,15 @@ public final class BulkVideoActions215 {
         }
         if(!cls.endsWith("NicoidVideoListActivity"))return;
         Object f=fragment(a);
-        if(f==null)return;
+        if(f==null) {
+            // First options menu may precede fragment attachment.
+            MAIN.post(()->{
+                Object attached=fragment(a);
+                if(attached!=null&&!discovery(kind(attached),type(attached)))
+                    installSort(a,()->toggleNative(a));
+            });
+            return;
+        }
         final boolean saved=!discovery(kind(f),type(f));
         if(saved)MAIN.post(()->installSort(a,()->toggleNative(a)));
         if(!selecting(f)) {
@@ -190,7 +198,7 @@ public final class BulkVideoActions215 {
         if(a.isFinishing()||a.isDestroyed())return;
         View root=a.getWindow().getDecorView();
         Spinner spinner=findSpinner(root);
-        if(spinner==null||!(spinner.getParent() instanceof LinearLayout))return;
+        if(spinner==null||!(spinner.getParent() instanceof ViewGroup))return;
         ViewGroup parent=(ViewGroup)spinner.getParent();
         if(parent.findViewWithTag(BUTTON_TAG)!=null){syncIcon(a);return;}
         int index=parent.indexOfChild(spinner);

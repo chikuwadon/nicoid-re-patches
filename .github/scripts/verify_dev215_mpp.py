@@ -22,7 +22,7 @@ def inspect(bundle: Path, version: str) -> None:
     match = re.fullmatch(r"2\.1\.5-dev\.(\d+)", version)
     require(match is not None, "invalid target version")
     level = int(match.group(1))
-    require(1 <= level <= 10, "unsupported version; update this verification first")
+    require(1 <= level <= 11, "unsupported version; update this verification first")
     with ZipFile(bundle) as z:
         require(z.testzip() is None, "corrupt ZIP")
         manifest = z.read("META-INF/MANIFEST.MF")
@@ -55,6 +55,11 @@ def inspect(bundle: Path, version: str) -> None:
                 require(marker in helper,
                         "development A/B controls or FPS value prefix missing: "
                         + marker.decode())
+        if level >= 11:
+            for marker in (b"BulkVideoActions215", b"nicoid_multi_select_sort",
+                           b"deflist", b"BulkSelection"):
+                require(marker in helper,
+                        "batch selection bridge missing: " + marker.decode())
     print("PASS: verified staged helper/extension runtime and UI version " + version)
 
 

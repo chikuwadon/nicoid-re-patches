@@ -230,7 +230,6 @@ def patch_cache_tab_badge(smali):
     """
     tab = OWNER / "MultiTabs227.smali"
     icon = OWNER / "MultiTabs227$TabBadge.smali"
-    host = OWNER / "MultiTabs227$Host.smali"
 
     tab_source = (smali / tab).read_text(encoding="utf-8")
     badge_signature = ".method static badge(Le/e/a/SavedTabs227$Tab;)I\n    .registers 4"
@@ -267,22 +266,6 @@ def patch_cache_tab_badge(smali):
     :nicoid_native_tab_icon''')
     (smali / icon).write_text(icon_source, encoding="utf-8")
 
-    host_source = (smali / host).read_text(encoding="utf-8")
-    anchor = "    if-ne v6, v3, :cond_214"
-    require(host_source.count(anchor) == 1,
-            "Native tab accessibility label contract changed")
-    host_hook = r'''
-    const/4 v2, 0x5
-    if-ne v6, v2, :nicoid_other_tab_a11y
-    iget-object v2, v0, Le/e/a/MultiTabs227$Host;->a:Landroid/app/Activity;
-    const-string v5, "Cached videos"
-    const-string v6, "快取影片"
-    const-string v9, "キャッシュリスト"
-    goto :goto_20f
-    :nicoid_other_tab_a11y
-'''
-    host_source = host_source.replace(anchor, host_hook + "\n" + anchor, 1)
-    (smali / host).write_text(host_source, encoding="utf-8")
 
 
 def add_bulk_ui_hooks(smali):
@@ -469,7 +452,6 @@ def stage(compiled, approved, output, tools):
                                          OWNER / "LocalPlaylists.smali",
                                          OWNER / "LocalPlaylists$Page.smali",
                                          OWNER / "MultiTabs227.smali",
-                                         OWNER / "MultiTabs227$Host.smali",
                                          OWNER / "MultiTabs227$TabBadge.smali"}
         require(required <= changed <= required | set(comment_fix),
                 "Unintended helper code change: " + str(changed))
@@ -484,8 +466,6 @@ def stage(compiled, approved, output, tools):
                 "Cache tab badge classifier missing")
         require("drawCacheTabBadge" in checked[OWNER / "MultiTabs227$TabBadge.smali"].decode(),
                 "Cache tab icon renderer missing")
-        require("Cached videos" in checked[OWNER / "MultiTabs227$Host.smali"].decode(),
-                "Cache tab accessibility description missing")
         bridge = checked[OWNER / "BulkVideoActions215.smali"].decode()
         require("deflist" in bridge and "isselect" in bridge
                 and "nicoid_multi_select_sort" in bridge,

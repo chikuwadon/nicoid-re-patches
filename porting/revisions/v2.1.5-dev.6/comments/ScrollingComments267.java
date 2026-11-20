@@ -31,6 +31,9 @@ public final class ScrollingComments267 {
         float batchVideo, batchVisual, batchPreviousVideo, batchRate;
         int batchDuration;
         long generation = Long.MIN_VALUE;
+        long windowStartedNs, lastFrameNs, frames, longGaps;
+        long renderNs, renderMaxNs, scanNs, scanMaxNs, longestGapNs;
+        final int[] intervalMs = new int[101];
     }
 
     private static final class State {
@@ -44,10 +47,7 @@ public final class ScrollingComments267 {
         final Field nativeOpacity;
         final WeakReference<Context> context;
         long generation = Long.MIN_VALUE;
-        long windowStartedNs, lastFrameNs, frames, longGaps;
-        long renderNs, renderMaxNs, scanNs, scanMaxNs, longestGapNs;
         long previousSkipped, previousShown;
-        final int[] intervalMs = new int[101];
 
         State(Object renderer) {
             context = new WeakReference<>(((View) renderer).getContext());
@@ -223,47 +223,47 @@ public final class ScrollingComments267 {
                                     boolean secondary, int sourceCount, long startNs,
                                     long sourceScanNs) {
         long endNs = System.nanoTime();
-        if (state.windowStartedNs == 0L) state.windowStartedNs = startNs;
-        if (state.lastFrameNs > 0L) {
-            long gap = Math.max(0L, startNs - state.lastFrameNs);
+        if (channel.windowStartedNs == 0L) channel.windowStartedNs = startNs;
+        if (channel.lastFrameNs > 0L) {
+            long gap = Math.max(0L, startNs - channel.lastFrameNs);
             int bucket = (int) Math.min(100L, gap / 1_000_000L);
-            state.intervalMs[bucket]++;
-            state.longestGapNs = Math.max(state.longestGapNs, gap);
-            if (gap > 50_000_000L) state.longGaps++;
+            channel.intervalMs[bucket]++;
+            channel.longestGapNs = Math.max(channel.longestGapNs, gap);
+            if (gap > 50_000_000L) channel.longGaps++;
         }
-        state.lastFrameNs = startNs;
-        state.frames++;
+        channel.lastFrameNs = startNs;
+        channel.frames++;
         long renderNs = Math.max(0L, endNs - startNs);
-        state.renderNs += renderNs;
-        state.renderMaxNs = Math.max(state.renderMaxNs, renderNs);
-        state.scanNs += sourceScanNs;
-        state.scanMaxNs = Math.max(state.scanMaxNs, sourceScanNs);
-        if (endNs - state.windowStartedNs < 10_000_000_000L) return;
-        long n = Math.max(1L, state.frames);
-        float seconds = Math.max(.001f, (endNs - state.windowStartedNs) / 1_000_000_000f);
+        channel.renderNs += renderNs;
+        channel.renderMaxNs = Math.max(channel.renderMaxNs, renderNs);
+        channel.scanNs += sourceScanNs;
+        channel.scanMaxNs = Math.max(channel.scanMaxNs, sourceScanNs);
+        if (endNs - channel.windowStartedNs < 10_000_000_000L) return;
+        long n = Math.max(1L, channel.frames);
+        float seconds = Math.max(.001f, (endNs - channel.windowStartedNs) / 1_000_000_000f);
         long skipped = state.timeline.skippedByOverlap;
         long shown = state.timeline.shownFromWaiting;
-        Log.i("nicoid-comment-perf", "draw-callback fps=" + (state.frames / seconds)
-                + " mode=" + (secondary ? "popup-channel" : "main-channel")
+        Log.i("nicoid-comment-perf", "draw-callback fps=" + (channel.frames / seconds)
+                + " mode=" + (secondary ? "secondary" : "primary")
                 + " overlap=" + strict + " source=" + sourceCount
                 + " active=" + state.timeline.active.size()
                 + " pending=" + channel.pending.size() + " waiting=" + state.waiting.size()
-                + " scanAvgMs=" + (state.scanNs / n / 1_000_000f)
-                + " scanMaxMs=" + (state.scanMaxNs / 1_000_000f)
-                + " drawAvgMs=" + (state.renderNs / n / 1_000_000f)
-                + " drawMaxMs=" + (state.renderMaxNs / 1_000_000f)
-                + " intervalP95Ms=" + percentile(state.intervalMs, .95f)
-                + " intervalP99Ms=" + percentile(state.intervalMs, .99f)
-                + " gapMaxMs=" + (state.longestGapNs / 1_000_000f)
-                + " gapsOver50ms=" + state.longGaps
-                + " skippedOverlap=" + (skipped - state.previousSkipped)
+                + " scanAvgMs=" + (channel.scanNs / n / 1_000_000f)
+                + " scanMaxMs=" + (channel.scanMaxNs / 1_000_000f)
+                + " drawAvgMs=" + (channel.renderNs / n / 1_000_000f)
+                + " drawMaxMs=" + (channel.renderMaxNs / 1_000_000f)
+                + " intervalP95Ms=" + percentile(channel.intervalMs, .95f)
+                + " intervalP99Ms=" + percentile(channel.intervalMs, .99f)
+                + " gapMaxMs=" + (channel.longestGapNs / 1_000_000f)
+                + " gapsOver50ms=" + channel.longGaps
+                + " skippedOverlapRendererDelta=" + (skipped - state.previousSkipped)
                 + " startedFromWaiting=" + (shown - state.previousShown));
         state.previousSkipped = skipped;
         state.previousShown = shown;
-        state.windowStartedNs = endNs;
-        state.frames = state.renderNs = state.renderMaxNs = state.scanNs = 0L;
-        state.scanMaxNs = state.longestGapNs = state.longGaps = 0L;
-        java.util.Arrays.fill(state.intervalMs, 0);
+        channel.windowStartedNs = endNs;
+        channel.frames = channel.renderNs = channel.renderMaxNs = channel.scanNs = 0L;
+        channel.scanMaxNs = channel.longestGapNs = channel.longGaps = 0L;
+        java.util.Arrays.fill(channel.intervalMs, 0);
     }
 
     private static int percentile(int[] histogram, float quantile) {

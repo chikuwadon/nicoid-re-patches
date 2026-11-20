@@ -67,6 +67,15 @@ public final class LocalePatch215 {
         return source;
     }
 
+    /** FollowFeed has already installed its own Refresh action. Never append a twin. */
+    public static boolean shouldSkipTabRefresh(Menu menu) {
+        if(menu==null||menu.size()!=1)return false;
+        MenuItem first=menu.getItem(0);
+        if(first.getItemId()!=0||first.getTitle()==null)return false;
+        String label=first.getTitle().toString();
+        return "更新".equals(label)||"Refresh".equals(label)||"重新整理".equals(label);
+    }
+
     /** Feed refresh is authoritative: remove only an identical tab-refresh duplicate. */
     public static void dedupeNicorepoRefresh(Menu menu) {
         if (menu == null || menu.size() != 2) return;

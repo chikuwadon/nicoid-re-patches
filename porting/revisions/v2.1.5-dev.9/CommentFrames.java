@@ -23,6 +23,7 @@ public final class CommentFrames implements Runnable, Choreographer.FrameCallbac
     private long statsStartNs, callbackCount, drawingCount, notDueCount, hiddenCount;
     private long drawTimeNs, maxDrawTimeNs, maxFrameLatenessNs, vsyncDrops;
     private long previousVsyncNs;
+    private long displayPeriodNs = 8_333_333L;
     private final int[] drawTimesMs = new int[101];
 
     private CommentFrames(TextureView view, Runnable draw, int fps) {
@@ -59,6 +60,7 @@ public final class CommentFrames implements Runnable, Choreographer.FrameCallbac
             stop(view);
             return;
         }
+        updateDisplayPeriod();
         choreographer = Choreographer.getInstance();
         choreographer.postFrameCallback(this);
     }
@@ -72,8 +74,13 @@ public final class CommentFrames implements Runnable, Choreographer.FrameCallbac
         long callbackStart = System.nanoTime();
         if (statsStartNs == 0L) statsStartNs = callbackStart;
         callbackCount++;
-        if (previousVsyncNs != 0L && frameTimeNanos > previousVsyncNs + 12_500_000L)
-            vsyncDrops++;
+        if (previousVsyncNs != 0L && frameTimeNanos > previousVsyncNs) {
+            long gap = frameTimeNanos - previousVsyncNs;
+            if (gap > displayPeriodNs * 3L / 2L) {
+                long missed = (gap + displayPeriodNs / 2L) / displayPeriodNs - 1L;
+                vsyncDrops += Math.max(1L, missed);
+            }
+        }
         previousVsyncNs = frameTimeNanos;
         maxFrameLatenessNs = Math.max(maxFrameLatenessNs,
                 Math.max(0L, callbackStart - frameTimeNanos));
@@ -109,6 +116,7 @@ public final class CommentFrames implements Runnable, Choreographer.FrameCallbac
         float durationSec = Math.max(.001f, (now - statsStartNs) / 1_000_000_000f);
         long n = Math.max(1L, drawingCount);
         Log.i("nicoid-frame-total", "requestedFps=" + fps
+                + " displayPeriodMs=" + (displayPeriodNs / 1_000_000f)
                 + " callbacksPerSec=" + callbackCount / durationSec
                 + " drawsPerSec=" + drawingCount / durationSec
                 + " notDue=" + notDueCount + " hidden=" + hiddenCount
@@ -122,6 +130,15 @@ public final class CommentFrames implements Runnable, Choreographer.FrameCallbac
         callbackCount = drawingCount = notDueCount = hiddenCount = 0L;
         drawTimeNs = maxDrawTimeNs = maxFrameLatenessNs = vsyncDrops = 0L;
         Arrays.fill(drawTimesMs, 0);
+        updateDisplayPeriod();
+    }
+
+    private void updateDisplayPeriod() {
+        android.view.Display display = view.getDisplay();
+        if (display == null) return;
+        float hz = display.getRefreshRate();
+        if (Float.isFinite(hz) && hz >= 24f && hz <= 480f)
+            displayPeriodNs = Math.max(1L, Math.round(1_000_000_000d / hz));
     }
 
     private static int percentile(int[] counts, float fraction) {

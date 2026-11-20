@@ -8,7 +8,7 @@
 
 <p>
 <a href="https://github.com/chikuwadon/nicoid-re-patches/releases/latest"><img alt="最新リリース" src="https://img.shields.io/github/v/release/chikuwadon/nicoid-re-patches?style=flat-square&amp;color=167D8D"></a>
-<img alt="対象アプリ nicoid 6.49" src="https://img.shields.io/badge/nicoid-6.49-167D8D?style=flat-square">
+<a href="#supported-apk"><img alt="対象アプリ nicoid 6.49（対応APK情報へ）" src="https://img.shields.io/badge/nicoid-6.49-167D8D?style=flat-square"></a>
 <a href="LICENSE"><img alt="ライセンス GPL v3" src="https://img.shields.io/badge/License-GPL_v3-687078?style=flat-square"></a>
 </p>
 
@@ -211,6 +211,8 @@ nicoid-re_log_yyyyMMddHHmmss.txt
 ```
 
 ---
+
+<a id="supported-apk"></a>
 
 ## 対応APK
 

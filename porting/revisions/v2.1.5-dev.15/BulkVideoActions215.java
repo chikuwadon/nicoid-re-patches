@@ -281,10 +281,14 @@ public final class BulkVideoActions215 {
 
     /** Two checked rows in normal mode; a close mark while selecting. */
     /** Draw an outlined cache/storage glyph at the existing 14dp tab-badge size. */
-    public static void drawCacheTabBadge(Canvas canvas,Paint paint) {
+    public static void drawCacheTabBadge(Canvas canvas,Paint paint,Rect bounds) {
+        if(bounds==null||bounds.isEmpty())return;
+        int saved=canvas.save();
         Paint.Style previous=paint.getStyle();
         float width=paint.getStrokeWidth();
         try {
+            canvas.translate(bounds.left,bounds.top);
+            canvas.scale(bounds.width()/16f,bounds.height()/16f);
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(1.5f);
             canvas.drawRoundRect(1.8f,2.3f,14.2f,13.7f,2f,2f,paint);
@@ -292,6 +296,7 @@ public final class BulkVideoActions215 {
         }finally {
             paint.setStyle(previous);
             paint.setStrokeWidth(width);
+            canvas.restoreToCount(saved);
         }
     }
 

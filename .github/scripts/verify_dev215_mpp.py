@@ -22,7 +22,7 @@ def inspect(bundle: Path, version: str) -> None:
     match = re.fullmatch(r"2\.1\.5-dev\.(\d+)", version)
     require(match is not None, "invalid target version")
     level = int(match.group(1))
-    require(1 <= level <= 13, "unsupported version; update this verification first")
+    require(1 <= level <= 14, "unsupported version; update this verification first")
     with ZipFile(bundle) as z:
         require(z.testzip() is None, "corrupt ZIP")
         manifest = z.read("META-INF/MANIFEST.MF")

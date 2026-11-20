@@ -789,7 +789,13 @@ jobs:
             fi
           fi
           output="/tmp/nicoid-re-$version.mpp"
-          if [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" =~ ^2\.1\.5-dev\.(?:[1-9]|10)$ ]]; then
+          if [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == 2.1.5-dev.* ]]; then
+            # Bash ERE has no (?:...) non-capturing groups. Unsupported versions
+            # must fail instead of silently uploading the unstaged Gradle MPP.
+            if [[ ! "$version" =~ ^2\.1\.5-dev\.([1-9]|10)$ ]]; then
+              echo "::error::Unsupported v2.1.5 development version: $version" >&2
+              exit 1
+            fi
             compiled="patches/build/libs/patches-$version.mpp"
             test -s "$compiled"
             python3 porting/revisions/v$version/tests/test_freeze_recovery.py
@@ -1051,6 +1057,10 @@ jobs:
             python3 porting/revisions/v2.0.6-dev.12/verify_settings_links.py "$output" "$revision/tools"
           fi
           unzip -tq "$output"
+          if [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == 2.1.5-dev.* ]]; then
+            # Validate actual runtime classes, not just root patch metadata.
+            python3 .github/scripts/verify_dev215_mpp.py "$output" "$version"
+          fi
           python3 .github/scripts/verify_android_mpp.py "$output" "$version"
           unzip -p "$output" META-INF/MANIFEST.MF | grep -Fq "Version: $version"
           mkdir -p /tmp/nicoid-v2-delivery

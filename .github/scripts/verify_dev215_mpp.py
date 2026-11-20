@@ -22,7 +22,7 @@ def inspect(bundle: Path, version: str) -> None:
     match = re.fullmatch(r"2\.1\.5-dev\.(\d+)", version)
     require(match is not None, "invalid target version")
     level = int(match.group(1))
-    require(1 <= level <= 16, "unsupported version; update this verification first")
+    require(1 <= level <= 17, "unsupported version; update this verification first")
     with ZipFile(bundle) as z:
         require(z.testzip() is None, "corrupt ZIP")
         manifest = z.read("META-INF/MANIFEST.MF")
@@ -72,6 +72,9 @@ def inspect(bundle: Path, version: str) -> None:
             for marker in (b"LocalePatch215", b"Playback queue", b"Select multiple",
                            b"Deselect all", b"shouldSkipTabRefresh"):
                 require(marker in helper, "missing English/Chinese locale bridge: "+marker.decode())
+        if level >= 17:
+            require(b"isActivePlaylist" in helper,
+                    "current-page playlist menu guard missing")
     print("PASS: verified staged helper/extension runtime and UI version " + version)
 
 

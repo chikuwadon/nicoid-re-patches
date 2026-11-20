@@ -124,9 +124,23 @@ def stage(compiled, output, tools):
         extension.write_bytes(base.read(EXTENSION))
         original_extension = disassemble(extension, temp / "extension-original", tools)
         banner = OWNER / "ModernShorts.smali"
-        replace_literal(temp / "extension-original", banner,
-                        '"v2.1.4 @chikuwadon"',
-                        '"v2.1.5-dev.1 @chikuwadon"', 2)
+        # The Gradle-compiled extension is older than the stable staged
+        # v2.1.4 DEX. Accept only known archived banners, replacing all
+        # occurrences without touching any extension behavior.
+        banner_file = temp / "extension-original" / banner
+        banner_text = banner_file.read_text(encoding="utf-8")
+        occurrences = 0
+        target = '"v2.1.5-dev.1 @chikuwadon"'
+        for old in ('"v2.1.4 @chikuwadon"',
+                    '"v2.1.3 @chikuwadon"',
+                    '"v1.10.1 @chikuwadon"'):
+            count = banner_text.count(old)
+            require(count <= 2, "Unexpected extension banner multiplicity: " + old)
+            occurrences += count
+            banner_text = banner_text.replace(old, target)
+        require(1 <= occurrences <= 2 and banner_text.count(target) == occurrences,
+                "Unexpected extension Shorts banner: no recognized version")
+        banner_file.write_text(banner_text, encoding="utf-8")
         revised_ext = temp / "extension.dex.revised"
         assemble(temp / "extension-original", revised_ext, tools)
         ext_checked = disassemble(revised_ext, temp / "extension-checked", tools)

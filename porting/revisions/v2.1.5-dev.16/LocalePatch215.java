@@ -76,14 +76,5 @@ public final class LocalePatch215 {
         return "更新".equals(label)||"Refresh".equals(label)||"重新整理".equals(label);
     }
 
-    /** Feed refresh is authoritative: remove only an identical tab-refresh duplicate. */
-    public static void dedupeNicorepoRefresh(Menu menu) {
-        if (menu == null || menu.size() != 2) return;
-        MenuItem feed = menu.getItem(0);
-        MenuItem tab = menu.findItem(24401);
-        if (tab == null || feed.getItemId() != 0 || feed == tab) return;
-        CharSequence left=feed.getTitle(),right=tab.getTitle();
-        if (left != null && right != null && left.toString().equals(right.toString()))
-            menu.removeItem(24401);
-    }
+
 }

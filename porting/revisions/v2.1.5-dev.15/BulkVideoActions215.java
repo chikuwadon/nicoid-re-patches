@@ -400,7 +400,7 @@ public final class BulkVideoActions215 {
                     // [Delete] [Add] [flex spacer] [Done] matches Move placement.
                     LinearLayout.LayoutParams params=
                             new LinearLayout.LayoutParams(-2,dp(a,48));
-                    params.leftMargin=dp(a,12);
+                    params.leftMargin=dp(a,20);
                     footer.addView(register,Math.min(1,footer.getChildCount()),params);
                 }
                 register.setEnabled(!snapshot(owner).isEmpty());

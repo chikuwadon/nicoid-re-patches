@@ -16,6 +16,7 @@ from tempfile import TemporaryDirectory
 from zipfile import ZipFile
 
 HERE = Path(__file__).resolve().parent
+BASE = HERE.parent / "v2.1.5-dev.10"
 ROOT = HERE.parents[2]
 sys.path.insert(0, str(ROOT / "porting/revisions/v2.1.0-release"))
 sys.path.insert(0, str(ROOT / ".github/scripts"))
@@ -69,7 +70,7 @@ def compile_diagnostic(temp, tools):
     classes = temp / "java-classes"
     classes.mkdir()
     run("javac", "--release", "8", "-encoding", "UTF-8",
-        "-cp", android, "-d", classes, HERE / "Media3Diagnostics276.java")
+        "-cp", android, "-d", classes, BASE / "Media3Diagnostics276.java")
     generated = temp / "new-dex"
     generated.mkdir()
     run(d8, "--min-api", "28", "--lib", android, "--output", generated,
@@ -97,7 +98,7 @@ def compile_viewport_fix(temp, tools):
     classes.mkdir()
     sources = sorted((base / "stubs").rglob("*.java"))
     sources += [base / "java/e/e/a/CommentClock.java", comment / "CommentSource280.java"]
-    sources += sorted((HERE / "comments").glob("*.java"))
+    sources += sorted((BASE / "comments").glob("*.java"))
     run("javac", "--release", "8", "-encoding", "UTF-8", "-cp", android,
         "-d", classes, *sources)
     run("java", "-cp", classes, "e.e.a.CommentViewportRegression")
@@ -121,13 +122,13 @@ def compile_frame_scheduler(temp, tools):
     frame_classes = temp / "frame-classes"
     frame_classes.mkdir()
     run("javac", "--release", "8", "-encoding", "UTF-8",
-        "-cp", android, "-d", frame_classes, HERE / "CommentFrames.java")
+        "-cp", android, "-d", frame_classes, BASE / "CommentFrames.java")
     test_classes = temp / "frame-tests"
     test_classes.mkdir()
-    stub_files = sorted((HERE / "tests/stubs").rglob("*.java"))
+    stub_files = sorted((BASE / "tests/stubs").rglob("*.java"))
     run("javac", "--release", "8", "-encoding", "UTF-8",
-        "-d", test_classes, HERE / "CommentFrames.java",
-        HERE / "tests/FrameScheduleRegression.java", *stub_files)
+        "-d", test_classes, BASE / "CommentFrames.java",
+        BASE / "tests/FrameScheduleRegression.java", *stub_files)
     run("java", "-cp", test_classes, "e.e.a.FrameScheduleRegression")
     frame_dex = temp / "frame-dex"
     frame_dex.mkdir()
@@ -146,7 +147,7 @@ def compile_ab_controls(temp, tools):
     classes = temp / "ab-ui-classes"
     classes.mkdir()
     run("javac", "--release", "8", "-encoding", "UTF-8",
-        "-cp", android, "-d", classes, HERE / "CommentRasterControls210.java")
+        "-cp", android, "-d", classes, BASE / "CommentRasterControls210.java")
     generated = temp / "ab-ui-dex"
     generated.mkdir()
     run(d8, "--min-api", "28", "--lib", android, "--output", generated,

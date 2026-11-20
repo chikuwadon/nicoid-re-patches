@@ -19,6 +19,8 @@ public final class ScrollingComments267 {
     private static final ThreadLocal<Object> CONTEXT = new ThreadLocal<>();
 
     private static final class Channel {
+        Channel() {}
+
         final CommentSource280 source = new CommentSource280();
         final ArrayDeque<CommentSource280.Item> hidden = new ArrayDeque<>();
         // Retain unprocessed arrivals when a frame runs out of time; never drop

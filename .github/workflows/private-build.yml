@@ -11,7 +11,7 @@ permissions:
 
 concurrency:
   # Separate the v2.0.3-dev.7 validation queue from a stale uncancellable dev run.
-  group: private-build-v203dev18-${{ github.ref }}
+  group: private-build-v215-bulk14-${{ github.ref }}
   cancel-in-progress: true
 
 # Interim mitigation for CVE-2026-114938 until patched Temurin 25 is verified.

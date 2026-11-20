@@ -303,7 +303,10 @@ jobs:
           gh release download "v$version" --pattern "patches-$version.mpp" --dir "$RUNNER_TEMP/nicoid-published"
           python3 .github/scripts/verify-release-mpp.py check "$version" "$RUNNER_TEMP/nicoid-published/patches-$version.mpp"
 
-      # GitHub automatically provides Source code (zip) and Source code (tar.gz)\n      # for every tagged Release; do not upload redundant source assets.\n\n      - name: Backfill Issue #115 in previously published v2.0.0 release notes
+      # GitHub automatically provides Source code (zip) and Source code (tar.gz)
+      # for every tagged Release; do not upload redundant source assets.
+
+      - name: Backfill Issue #115 in previously published v2.0.0 release notes
         if: steps.release.outputs.new_release_published == 'true' && steps.release.outputs.new_release_git_tag == 'v2.0.1'
         shell: bash
         env:

@@ -12,10 +12,13 @@ notes = read(".github/release-notes/v2.1.5.md")
 assert notes.startswith("## 2.1.5")
 for section in ("### ✨ New Features", "### 🐛 Bug Fixes", "### 🔧 Improvements"):
     assert section in notes
-for forbidden in ("directly below **Playback queue**", "30dp icons", "Strengthen development MPP packaging"):
+for forbidden in ("directly below Playback queue", "30dp icons", "Strengthen development MPP packaging"):
     assert forbidden not in notes
-for required in ("**Select multiple**", "**Select all**", "NicoReport", "Choreographer.FrameCallback"):
+for required in ("Select multiple", "Select all", "NicoReport", "Choreographer.FrameCallback"):
     assert required in notes
+for line in notes.splitlines():
+    if line.startswith("* **nicoid:** "):
+        assert "**" not in line[len("* **nicoid:** "):], "Unnecessary bold in release description"
 approved = {
     "porting/revisions/v2.1.5-dev.17/stage_candidate.py": "279e924b826960f71190587a8044ad3ecd98fcb8",
     "porting/revisions/v2.1.5-dev.17/BulkVideoActions215.java": "bb3f78273893dc384cafeed1321f8a3f653952f6",

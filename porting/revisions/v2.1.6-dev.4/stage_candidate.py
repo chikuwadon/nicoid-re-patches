@@ -62,9 +62,9 @@ def compile_sources(temp, tools):
         "-cp", android, "-d", classes,
         HERE.parent / "v2.1.6-dev.1" / "Media3Diagnostics276.java",
         HERE / "SettingsDisplay216.java",
-        HERE / "LayoutRepair216.java",
+        HERE.parent / "v2.1.6-dev.3" / "LayoutRepair216.java",
         HERE / "PopupSwitch216.java",
-        HERE / "ScreenOffAudio216.java")
+        HERE.parent / "v2.1.6-dev.3" / "ScreenOffAudio216.java")
     compiled = temp / "compiled-dex"
     compiled.mkdir()
     run(d8, "--min-api", "28", "--lib", android, "--output", compiled,

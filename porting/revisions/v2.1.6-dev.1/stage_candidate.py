@@ -163,6 +163,8 @@ def stage(compiled: Path, approved: Path, output: Path, tools: Path):
             OWNER / "SettingsTools.smali",
             OWNER / "DirectBackground235$State.smali",
             OWNER / "Media3Diagnostics276.smali",
+            OWNER / "Media3Diagnostics276$Probe.smali",
+            OWNER / "Media3Diagnostics276$Attempt.smali",
         }
         require(changed == expected, "Unreviewed runtime changes: " + str(changed ^ expected))
         require(b"LayoutRepair216;->sanitize" in checked[OWNER / "DirectBackground235$State.smali"]

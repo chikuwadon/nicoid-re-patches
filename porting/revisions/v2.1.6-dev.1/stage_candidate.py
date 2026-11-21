@@ -89,18 +89,28 @@ def patch_runtime(directory):
     replace(directory, tools_class, anchor, anchor + "\n\n" + inject)
 
     state = OWNER / "DirectBackground235$State.smali"
-    panel_attach = (
-        "    invoke-virtual {v0, v3, v4}, Landroid/widget/FrameLayout;"
-        "->addView(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V\n\n"
+    # Hook after the panel is claimed, before the first native measure.
+    # Earlier builds changed the instructions around FrameLayout.addView,
+    # so match the uniquely owned PlaybackPanels claim rather than registers.
+    content = (directory / state).read_text(encoding="utf-8")
+    method_start = content.index(".method attach(Landroid/app/Activity;)V")
+    method_end = content.index(".end method", method_start)
+    part = content[method_start:method_end]
+    import re
+    claim = re.search(
+        r"(?m)^    invoke-static [^\n]+Le/e/a/PlaybackPanels113;->claim"
+        r"\(Landroid/app/Activity;Landroid/view/View;Landroid/view/View;"
+        r"ILjava/lang/Object;\)V\n", part)
+    require(claim is not None, "Mini-player panel claim hook missing")
+    hook = (
         "    iget-object v0, p0, Le/e/a/DirectBackground235$State;"
-        "->content:Landroid/widget/FrameLayout;"
+        "->panel:Landroid/widget/FrameLayout;\n\n"
+        "    invoke-static {v0}, Le/e/a/LayoutRepair216;"
+        "->sanitize(Landroid/view/View;)V\n"
     )
-    safe_attach = panel_attach.replace(
-        "\n\n    iget-object",
-        "\n\n    invoke-static {v3}, Le/e/a/LayoutRepair216;"
-        "->sanitize(Landroid/view/View;)V\n\n    iget-object",
-        1)
-    replace(directory, state, panel_attach, safe_attach)
+    part = part[:claim.end()] + "\n" + hook + part[claim.end():]
+    content = content[:method_start] + part + content[method_end:]
+    (directory / state).write_text(content, encoding="utf-8")
     # The original host's ViewGroup must own the correct LayoutParams class.
     insertion = (
         "    iget-object v3, p0, Le/e/a/DirectBackground235$State;"

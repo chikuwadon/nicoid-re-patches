@@ -7,7 +7,7 @@ set -euo pipefail
 [[ "$NICOID_OFFICIAL_RELEASE_APPROVED" == "APPROVE" || "$NICOID_OFFICIAL_RELEASE_APPROVED" == "VERIFY" ]] || {
   echo "::error::Explicit approval or verification required" >&2; exit 1;
 }
-grep -Eq '^version[[:space:]]*=[[:space:]]*2[.]1[.]5[[:space:]]*$' gradle.properties || {
+grep -Eq '^version[[:space:]]*=[[:space:]]*2[.]1[.]6[[:space:]]*$' gradle.properties || {
   echo "::error::Expected v2.1.6" >&2; exit 1;
 }
 mpp=patches/build/libs/patches-2.1.6.mpp
@@ -30,7 +30,7 @@ source = Path("porting/revisions/v2.1.6-dev.5/stage_candidate.py").resolve()
 blob = source.read_bytes()
 actual = hashlib.sha1(b"blob " + str(len(blob)).encode() + b"\0" + blob).hexdigest()
 if actual != "8121c476d3e9c83f43441114f238f2444ec6aa67":
-    raise SystemExit("Unreviewed dev.17 source change")
+    raise SystemExit("Unreviewed dev.5 source change")
 script = blob.decode("utf-8")
 if script.count("2.1.6-dev.5") != 1:
     raise SystemExit("Unexpected version owners")

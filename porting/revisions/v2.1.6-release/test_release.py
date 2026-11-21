@@ -26,6 +26,8 @@ stage = read(".github/scripts/stage-v2.1.6-mpp.sh")
 assert "8121c476d3e9c83f43441114f238f2444ec6aa67" in stage
 assert "51a52358d568eb530075644e65ec7b3b2346c793bdf91a6ae3e93ba3fcfb700b" in stage
 assert 'script.count("2.1.6-dev.5") != 1' in stage
+assert "2[.]1[.]6[[:space:]]*$" in stage
+assert "2[.]1[.]5[[:space:]]*$" not in stage
 assert 'script.replace("2.1.6-dev.5", "2.1.6")' in stage
 for path in (".github/workflows/release.yml", ".github/workflows/verify-main.yml", ".releaserc"):
     assert "stage-v2.1.6-mpp.sh" in read(path)

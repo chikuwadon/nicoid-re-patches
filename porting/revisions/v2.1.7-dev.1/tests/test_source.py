@@ -40,7 +40,7 @@ assert all(name.rsplit(".", 1)[-1] in source for name in expected)
 with ZipFile(ROOT / "patches/src/main/resources/nicoid/resources.zip") as zip_file:
     manifest = zip_file.read("AndroidManifest.xml")
 actual = {
-    attrs.get(("", "name"))
+    next((value for (_, key), value in attrs.items() if key == "name"), None)
     for tag, attrs in elements(manifest)
     if tag == "activity"
 }

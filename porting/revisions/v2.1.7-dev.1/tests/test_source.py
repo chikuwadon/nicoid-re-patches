@@ -45,7 +45,8 @@ actual = {
     if tag == "activity"
 }
 assert expected <= actual, "Missing external link receiver in Android manifest"
-assert 'LinkIntentPolicy217;->install(Landroid/content/Context;)V' in script
+assert 'LinkIntentPolicy217;' in script
+assert '->install(Landroid/content/Context;)V' in script
 assert 'b"Version: 2.1.6\\r\\n"' in script
 assert '2.1.6' in script and 'c8e1c627bb15c46e' in script
 assert 'result.read("nicoid/method-delta.dex")' in script

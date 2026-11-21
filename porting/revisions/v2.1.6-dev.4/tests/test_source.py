@@ -35,7 +35,7 @@ assert ".edit()" not in settings
 assert "list.setValue(" not in settings
 assert "setOnPreferenceChangeListener(" not in settings
 
-layout = (HERE / "LayoutRepair216.java").read_text(encoding="utf-8")
+layout = (HERE.parent / "v2.1.6-dev.3" / "LayoutRepair216.java").read_text(encoding="utf-8")
 for required in ("FrameLayout.LayoutParams", "LinearLayout.LayoutParams",
                  "RelativeLayout.LayoutParams", "Choreographer.FrameCallback",
                  "postFrameCallback", "isLayoutRequested()"):
@@ -51,7 +51,7 @@ popup = (HERE / "PopupSwitch216.java").read_text(encoding="utf-8")
 assert "isInteractive()" in popup and "returnVideo" in popup
 assert "MAIN.postDelayed" in popup and "appIsAway()" in popup
 
-screen = (HERE / "ScreenOffAudio216.java").read_text(encoding="utf-8")
+screen = (HERE.parent / "v2.1.6-dev.3" / "ScreenOffAudio216.java").read_text(encoding="utf-8")
 for required in ("nicoid_keep_audio_screen_off", "PowerManager",
                  "RetainedPlayback137", "capture", "isInteractive()"):
     assert required in screen

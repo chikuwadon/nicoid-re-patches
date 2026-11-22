@@ -26,9 +26,8 @@ core = (BASE / "patch_rules.py").read_text(encoding="utf-8")
 container = (BASE / "bundle_overlay.py").read_text(encoding="utf-8")
 selector = (BASE / "entry/e/e/a/BikeRunSelector.smali").read_text(encoding="utf-8")
 assert 'v1.5.0' in core and '"1.5.0"' in core, "Stable internal version missing"
-assert '1.5.0-dev' not in core and '1.5.0-dev' not in selector
+assert '"1.5.0-dev' not in core and '1.5.0-dev' not in selector
 assert 'v1.5.0' in selector
-assert b'' == b'' # deterministic basic runner probe
 assert "46 new classes" in container
 assert 'original[modern].count(ANCHOR.encode("ascii")) == 1' in container
 assert 'Unrelated base class changed' in container

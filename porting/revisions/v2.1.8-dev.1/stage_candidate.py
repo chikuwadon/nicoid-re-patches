@@ -89,7 +89,9 @@ def normalized_watch(code: bytes) -> list[bytes]:
         def canonical(line):
             def translate(match):
                 label = match.group()[1:]
-                require(label in labels, "Unknown branch label inside current method")
+                if label not in labels:
+                    # Colon-bearing constants or type annotations are not branch references.
+                    return match.group()
                 return b":" + labels[label]
             return re.sub(rb":[A-Za-z_][A-Za-z_0-9]*", translate, line)
         return [canonical(line) for line in lines]

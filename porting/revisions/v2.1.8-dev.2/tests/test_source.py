@@ -29,4 +29,12 @@ wf = (ROOT / ".github/workflows/private-build.yml").read_text()
 assert '"2.1.8-dev.2"' in wf
 assert "porting/revisions/v$version/stage_candidate.py" in wf
 assert "porting/revisions/v$version/tests/test_source.py" in wf
+from hashlib import sha256
+asset = HERE / "runtime-overlay.dex.gz"
+assert asset.is_file(), "Verified runtime asset missing"
+assert sha256(asset.read_bytes()).hexdigest() == "eaa769e14bb5e29f86d83f58a19bb7d2a7b1b4b5184f5cdc839d5eea846c184f"
+merge = (HERE / "sync_payload.py").read_text()
+ast.parse(merge)
+assert "standard150" in merge and "semantics_equal" in merge
+assert "sync_payload.py" in wf
 print("PASS: pause-only center play recovery, bounded callbacks, version and payload checks")

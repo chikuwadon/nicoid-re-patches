@@ -803,6 +803,9 @@ jobs:
             python3 porting/revisions/v$version/stage_candidate.py \
               --compiled "$compiled" --approved "$approved" \
               --output "$output" --tools "$revision/tools"
+            python3 porting/revisions/v$version/sync_payload.py \
+              --input "$output" --output "${output}.verified" --tools "$revision/tools"
+            mv "${output}.verified" "$output"
           elif [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.8-dev.1" ]]; then
             python3 porting/revisions/v$version/tests/test_source.py
             compiled="patches/build/libs/patches-$version.mpp"

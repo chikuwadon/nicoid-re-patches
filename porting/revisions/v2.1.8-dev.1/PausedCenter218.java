@@ -107,7 +107,7 @@ public final class PausedCenter218 {
             // recover only an orphaned center button under a visible controller.
             if (!Boolean.TRUE.equals(stopped)
                     || host.getVisibility() != View.VISIBLE || !host.isShown()
-                    || !video.isShown() || play.getWidth() <= 0 || play.getHeight() <= 0)
+                    || !video.isShown())
                 return;
             if (state == View.INVISIBLE || state == View.GONE) {
                 play.setVisibility(View.VISIBLE);

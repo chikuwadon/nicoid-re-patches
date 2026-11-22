@@ -20,6 +20,7 @@ on:
       - '.github/scripts/stage-v2.1.7-mpp.sh'
       - 'porting/revisions/v2.1.7-release/**'
       - 'porting/revisions/v2.1.7-dev.2/**'
+      - 'porting/revisions/v2.1.7-dev.3/**'
       - '.github/release-notes/v2.1.7.md'
       - 'porting/revisions/v2.1.6-release/**'
       - 'porting/revisions/v2.1.6-dev.5/**'
@@ -53,6 +54,7 @@ on:
       - '.github/scripts/stage-v2.1.7-mpp.sh'
       - 'porting/revisions/v2.1.7-release/**'
       - 'porting/revisions/v2.1.7-dev.2/**'
+      - 'porting/revisions/v2.1.7-dev.3/**'
       - '.github/release-notes/v2.1.7.md'
       - 'porting/revisions/v2.1.6-release/**'
       - 'porting/revisions/v2.1.6-dev.5/**'
@@ -90,7 +92,7 @@ jobs:
           bash -n .github/scripts/stage-v2.1.5-mpp.sh
           python3 -m py_compile porting/revisions/v2.1.6-dev.5/stage_candidate.py porting/revisions/v2.1.6-release/test_release.py
           bash -n .github/scripts/stage-v2.1.6-mpp.sh
-          python3 -m py_compile porting/revisions/v2.1.7-dev.2/stage_candidate.py porting/revisions/v2.1.7-release/test_release.py
+          python3 -m py_compile porting/revisions/v2.1.7-dev.2/stage_candidate.py porting/revisions/v2.1.7-dev.3/stage_candidate.py porting/revisions/v2.1.7-release/test_release.py
           bash -n .github/scripts/stage-v2.1.7-mpp.sh
           bash porting/revisions/v2.1.4-dev.3/test_budget.sh
       - name: Prove SHA-256 identity of the approved v2.1.4-dev.3 MPP

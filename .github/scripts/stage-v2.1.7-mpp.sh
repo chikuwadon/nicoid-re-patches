@@ -26,15 +26,15 @@ python3 - "$scratch/compiled.mpp" "$scratch/v2.1.6.mpp" "$mpp" "$tools" <<'PY'
 from pathlib import Path
 import hashlib
 import sys
-source = Path("porting/revisions/v2.1.7-dev.2/stage_candidate.py").resolve()
+source = Path("porting/revisions/v2.1.7-dev.3/stage_candidate.py").resolve()
 blob = source.read_bytes()
 actual = hashlib.sha1(b"blob " + str(len(blob)).encode() + b"\0" + blob).hexdigest()
-if actual != "4a5311c993c96469cd973e0b90fae2ef0067760c":
+if actual != "037591be923b803b0ae66d87acb0a7a768a2e0ce":
     raise SystemExit("Reviewed development stage source checksum mismatch")
 script = blob.decode("utf-8")
-if script.count('"2.1.7-dev.2"') != 1:
+if script.count('VERSION = "2.1.7-dev.3"') != 1:
     raise SystemExit("Unexpected version declaration in reviewed source")
-script = script.replace('"2.1.7-dev.2"', '"2.1.7"')
+script = script.replace('VERSION = "2.1.7-dev.3"', 'VERSION = "2.1.7"')
 namespace = {"__file__": str(source), "__name__": "nicoid_reviewed_release_staging"}
 exec(compile(script, str(source), "exec"), namespace)
 compiled, approved, output, tools = (Path(x) for x in sys.argv[1:])

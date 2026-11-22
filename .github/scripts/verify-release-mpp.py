@@ -68,6 +68,7 @@ def inspect(bundle: Path, version: str, baseline: Path | None = None) -> dict:
             if version == "2.1.7":
                 require(b"2.1.7" in helpers, "v2.1.7 runtime version missing")
                 require(b"2.1.7-dev.2" not in helpers, "Development version leaked into released helper")
+                require(b"2.1.7-dev.3" not in helpers, "Validated dev.3 version leaked into release")
                 require(b"2.1.7-dev.1" not in helpers, "Previous development version leaked")
                 require(b"v2.1.7 @chikuwadon" in helpers, "Shorts has wrong public version")
                 require(b"v2.1.6 @chikuwadon" not in helpers, "Previous Shorts version remains")
@@ -75,10 +76,11 @@ def inspect(bundle: Path, version: str, baseline: Path | None = None) -> dict:
                 require(extension.startswith(b"dex\n"), "Invalid extension DEX")
                 require(b"v2.1.7 @chikuwadon" in extension, "Extension shows wrong version")
                 require(b"v2.1.7-dev.2 @chikuwadon" not in extension, "Development extension version remains")
+                require(b"v2.1.7-dev.3 @chikuwadon" not in extension, "Development extension version remains")
                 for marker in (
                     b"LinkIntentPolicy217", b"CommentPresentation", b"PopupSwitch216",
                     b"ScreenOffAudio216", b"LayoutRepair216", b"SettingsDisplay216",
-                    b"Media3Diagnostics276",
+                    b"Media3Diagnostics276", b"NormalVideoInsets", b"FullscreenViewport209",
                 ):
                     require(marker in helpers, f"Missing reviewed v2.1.7 helper: {marker!r}")
                 require(b"CommentPresentation" in native, "Native drawing pipeline lost")

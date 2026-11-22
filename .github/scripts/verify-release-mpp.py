@@ -65,6 +65,30 @@ def inspect(bundle: Path, version: str, baseline: Path | None = None) -> dict:
             native = archive.read("nicoid/method-delta.dex")
             require(helpers.startswith(b"dex\n"), "Invalid helper DEX signature")
             require(native.startswith(b"dex\n"), "Invalid native DEX signature")
+            if version == "2.1.7":
+                require(b"2.1.7" in helpers, "v2.1.7 runtime version missing")
+                require(b"2.1.7-dev.2" not in helpers, "Development version leaked into released helper")
+                require(b"2.1.7-dev.3" not in helpers, "Validated dev.3 version leaked into release")
+                require(b"2.1.7-dev.1" not in helpers, "Previous development version leaked")
+                require(b"v2.1.7 @chikuwadon" in helpers, "Shorts has wrong public version")
+                require(b"v2.1.6 @chikuwadon" not in helpers, "Previous Shorts version remains")
+                extension = archive.read("extensions/extension.mpe")
+                require(extension.startswith(b"dex\n"), "Invalid extension DEX")
+                require(b"v2.1.7 @chikuwadon" in extension, "Extension shows wrong version")
+                require(b"v2.1.7-dev.2 @chikuwadon" not in extension, "Development extension version remains")
+                require(b"v2.1.7-dev.3 @chikuwadon" not in extension, "Development extension version remains")
+                for marker in (
+                    b"LinkIntentPolicy217", b"CommentPresentation", b"PopupSwitch216",
+                    b"ScreenOffAudio216", b"LayoutRepair216", b"SettingsDisplay216",
+                    b"Media3Diagnostics276", b"NormalVideoInsets", b"FullscreenViewport209",
+                ):
+                    require(marker in helpers, f"Missing reviewed v2.1.7 helper: {marker!r}")
+                require(b"CommentPresentation" in native, "Native drawing pipeline lost")
+                require(b"LinkIntentPolicy217" not in native, "Unexpected native playback change")
+                previous = baseline or ROOT / "patches/src/main/resources/nicoid/helpers.mpe"
+                if previous.is_file() and b"2.1.7" not in previous.read_bytes():
+                    require(sha256(helpers) != sha256(previous.read_bytes()),
+                            "Staging output was replaced with published baseline")
             if version == "2.1.6":
                 require(b"2.1.6" in helpers, "v2.1.6 runtime version missing")
                 require(b"2.1.6-dev.5" not in helpers, "Development helper version leaked into release")

@@ -23,7 +23,7 @@ def stage(compiled: Path, approved: Path, output: Path, tools: Path) -> None:
     if len({compiled.resolve(), approved.resolve(), output.resolve()}) != 3:
         raise ValueError("Input and output MPP paths must be distinct")
     original = SOURCE.read_bytes()
-    actual = hashlib.sha1(b"blob " + str(len(original)).encode() + b"\\0" + original).hexdigest()
+    actual = hashlib.sha1(b"blob " + str(len(original)).encode() + b"\0" + original).hexdigest()
     if actual != PREVIOUS_SOURCE_SHA:
         raise ValueError("Previous reviewed development stage source changed")
     script = original.decode("utf-8")

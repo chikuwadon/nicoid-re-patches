@@ -77,19 +77,38 @@ def patch_watch(source: bytes) -> bytes:
 
 
 def normalized_watch(code: bytes) -> list[bytes]:
-    """Compare actual instructions and branch labels, ignoring only canonical text formatting."""
+    """Normalize text and branch labels per method; Smali reuses label names in each method."""
     lines = [line.strip() for line in code.splitlines() if line.strip()]
-    label_definitions = [line[1:] for line in lines if line.startswith(b":")]
-    require(len(label_definitions) == len(set(label_definitions)), "Duplicate Smali labels")
-    labels = {label: ("L" + str(i)).encode("ascii")
-              for i, label in enumerate(label_definitions)}
-    def canonical(line):
-        def translate(match):
-            label = match.group()[1:]
-            require(label in labels, "Unknown label used in first-frame method")
-            return b":" + labels[label]
-        return re.sub(rb":[A-Za-z_][A-Za-z_0-9]*", translate, line)
-    return [canonical(line) for line in lines]
+
+    def section(lines: list[bytes]) -> list[bytes]:
+        label_definitions = [line[1:] for line in lines if line.startswith(b":")]
+        require(len(label_definitions) == len(set(label_definitions)),
+                "Repeated label inside the same method")
+        labels = {label: ("L" + str(i)).encode("ascii")
+                  for i, label in enumerate(label_definitions)}
+        def canonical(line):
+            def translate(match):
+                label = match.group()[1:]
+                require(label in labels, "Unknown branch label inside current method")
+                return b":" + labels[label]
+            return re.sub(rb":[A-Za-z_][A-Za-z_0-9]*", translate, line)
+        return [canonical(line) for line in lines]
+
+    normalized = []
+    current = []
+    for line in lines:
+        if line.startswith(b".method "):
+            require(not current, "Nested Smali method section")
+            current.append(line)
+        elif current:
+            current.append(line)
+            if line == b".end method":
+                normalized.extend(section(current))
+                current = []
+        else:
+            normalized.append(line)
+    require(not current, "Unterminated Smali method")
+    return normalized
 
 
 def compile_smali(entries, work: Path, tools: Path) -> bytes:

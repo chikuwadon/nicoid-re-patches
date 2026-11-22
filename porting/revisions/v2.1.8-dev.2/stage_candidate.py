@@ -206,17 +206,17 @@ def stage(compiled: Path, approved: Path, output: Path, tools: Path):
                 ver = OWNER / "PatchVersion237.smali"
                 require(ver in classes and classes[ver].count(b'"2.1.7"') == 1,
                         "Current helper version anchor changed")
-                classes[ver] = classes[ver].replace(b'"2.1.7"', b'"2.1.8-dev.1"')
+                classes[ver] = classes[ver].replace(b'"2.1.7"', b'"2.1.8-dev.2"')
             shorts = OWNER / "ModernShorts.smali"
             require(shorts in classes and classes[shorts].count(
                 b'"v2.1.7 @chikuwadon"') == 2, "Previous Shorts metadata changed")
             classes[shorts] = classes[shorts].replace(
-                b'"v2.1.7 @chikuwadon"', b'"v2.1.8-dev.1 @chikuwadon"')
+                b'"v2.1.7 @chikuwadon"', b'"v2.1.8-dev.2 @chikuwadon"')
             result_entries[name] = compile_smali(classes, folder, tools)
         manifest = bundle.read(MANIFEST)
         previous = b"Version: 2.1.7\r\n"
         require(manifest.count(previous) == 1, "MPP manifest version changed")
-        result_entries[MANIFEST] = manifest.replace(previous, b"Version: 2.1.8-dev.1\r\n")
+        result_entries[MANIFEST] = manifest.replace(previous, b"Version: 2.1.8-dev.2\r\n")
         output.parent.mkdir(parents=True, exist_ok=True)
         with ZipFile(output, "w") as out:
             for entry in bundle.infolist():

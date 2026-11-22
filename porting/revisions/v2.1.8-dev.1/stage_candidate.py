@@ -76,6 +76,22 @@ def patch_watch(source: bytes) -> bytes:
     return source[:method.start()] + replaced + source[method.end():]
 
 
+def normalized_watch(code: bytes) -> list[bytes]:
+    """Compare actual instructions and branch labels, ignoring only canonical text formatting."""
+    lines = [line.strip() for line in code.splitlines() if line.strip()]
+    label_definitions = [line[1:] for line in lines if line.startswith(b":")]
+    require(len(label_definitions) == len(set(label_definitions)), "Duplicate Smali labels")
+    labels = {label: ("L" + str(i)).encode("ascii")
+              for i, label in enumerate(label_definitions)}
+    def canonical(line):
+        def translate(match):
+            label = match.group()[1:]
+            require(label in labels, "Unknown label used in first-frame method")
+            return b":" + labels[label]
+        return re.sub(rb":[A-Za-z_][A-Za-z_0-9]*", translate, line)
+    return [canonical(line) for line in lines]
+
+
 def compile_smali(entries, work: Path, tools: Path) -> bytes:
     path = work / "smali"
     for name, data in entries.items():
@@ -85,7 +101,21 @@ def compile_smali(entries, work: Path, tools: Path) -> bytes:
     dex = work / "updated.dex"
     assemble(path, dex, tools)
     actual = disassemble(dex, work / "confirmed", tools)
-    semantics_equal(actual, entries, str(work))
+    untouched = {p: code for p, code in entries.items() if p != WATCH}
+    require(set(actual) == set(entries), "Class set changed during Smali reassembly")
+    semantics_equal({p: code for p, code in actual.items() if p != WATCH},
+                    untouched, str(work) + " unchanged classes")
+    hook = b"Le/e/a/PausedCenter218;->afterFrame(Landroid/view/View;)V"
+    require(actual[WATCH].count(hook) == 1, "Pause recovery hook missing or duplicated")
+    if normalized_watch(actual[WATCH]) != normalized_watch(entries[WATCH]):
+        import difflib
+        actual_lines = [l.decode("utf-8", "replace") for l in normalized_watch(actual[WATCH])]
+        expected_lines = [l.decode("utf-8", "replace") for l in normalized_watch(entries[WATCH])]
+        diff = list(difflib.unified_diff(expected_lines, actual_lines,
+                                         fromfile="expected", tofile="reassembled"))
+        raise RuntimeError("Modified first-frame method differs after assembly: " +
+                           "\\n".join(diff[:48]))
+    print("PASS: first-frame Smali instructions and labels preserved after reassembly")
     return dex.read_bytes()
 
 

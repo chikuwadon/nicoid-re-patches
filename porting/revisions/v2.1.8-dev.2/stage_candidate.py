@@ -113,7 +113,7 @@ def patch_watch(source: bytes) -> bytes:
 
 def normalized_watch(code: bytes) -> list[bytes]:
     """Normalize text and branch labels per method; Smali reuses label names in each method."""
-    lines = [line.strip() for line in code.splitlines() if line.strip()]
+    lines = [line.strip() for line in code.splitlines() if line.strip() and not line.strip().startswith(b".line ")]
 
     def section(lines: list[bytes]) -> list[bytes]:
         label_definitions = [line[1:] for line in lines if line.startswith(b":")]

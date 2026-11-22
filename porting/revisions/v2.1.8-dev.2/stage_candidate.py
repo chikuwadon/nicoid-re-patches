@@ -79,10 +79,10 @@ def patch_watch(source: bytes) -> bytes:
     # existing decoded frame and produce no new update. Complete the pending
     # first-frame watcher immediately when an available retained surface is
     # positively confirmed and playback is explicitly paused.
-    run = re.search(rb"(?ms)^\\.method [^\\r\\n]*run\\(\\)V\\r?\\n.*?^\\.end method", source)
+    run = re.search(rb"(?ms)^\.method [^\r\n]*run\(\)V\r?\n.*?^\.end method", source)
     require(run is not None, "Missing PlayerStart215 Watch.run method")
     body = run.group(0)
-    directive = re.search(rb"(?m)^    \\.(registers|locals) (\\d+)\\s*$", body)
+    directive = re.search(rb"(?m)^    \.(registers|locals) (\d+)\s*$", body)
     require(directive is not None and int(directive.group(2)) >= 2,
             "Insufficient Watch.run registers for paused-frame fast path")
     require(b"canUsePausedFrame" not in body, "Paused fast path already installed")

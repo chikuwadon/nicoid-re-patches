@@ -38,5 +38,5 @@ assert "baseline + Math.max(0, statusBottom - (top - (current - baseline)))" in 
 required_margin = lambda baseline, current, top, status: baseline + max(0, status - (top - (current - baseline)))
 assert required_margin(0, 0, 0, 59) == 59
 assert required_margin(0, 59, 59, 59) == 59
-assert required_margin(0, 59, 100, 59) == 0
+assert required_margin(0, 59, 118, 59) == 0
 print("PASS: restored fullscreen-exit inset hook, delayed retry, idempotent 59px correction and baseline preservation")

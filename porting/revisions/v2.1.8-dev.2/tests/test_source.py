@@ -7,6 +7,10 @@ ROOT = HERE.parents[2]
 java = (HERE / "PausedCenter218.java").read_text()
 script = (HERE / "stage_candidate.py").read_text()
 ast.parse(script)
+assert 'VERSION = "2.1.8-dev.2"' in script
+assert '2.1.8-dev.1' not in script, "Old dev version leaked into candidate MPP metadata"
+assert 'Version: 2.1.8-dev.2' in script
+assert 'v2.1.8-dev.2 @chikuwadon' in script
 assert "version = 2.1.8-dev.2" in (ROOT / "gradle.properties").read_text()
 for term in ("getPlayWhenReady", "isPlaying", "getDuration",
              "viewbutton", "viewctrllay", "videoLayout", "postDelayed",

@@ -122,6 +122,9 @@ def compile_smali(entries, work: Path, tools: Path) -> bytes:
     dex = work / "updated.dex"
     assemble(path, dex, tools)
     actual = disassemble(dex, work / "confirmed", tools)
+    if WATCH not in entries:
+        semantics_equal(actual, entries, str(work) + " untouched extension classes")
+        return dex.read_bytes()
     untouched = {p: code for p, code in entries.items() if p != WATCH}
     require(set(actual) == set(entries), "Class set changed during Smali reassembly")
     semantics_equal({p: code for p, code in actual.items() if p != WATCH},

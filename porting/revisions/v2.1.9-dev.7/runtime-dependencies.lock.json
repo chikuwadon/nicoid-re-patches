@@ -1,6 +1,6 @@
 {
   "sdk": {
-    "platform": "android-35",
+    "platform": "android-37.2",
     "sha256": "2507cf762abe2171a8cb3c289837fc71f2e66e598f396f1cc10bb7dc10020329"
   },
   "artifacts": [

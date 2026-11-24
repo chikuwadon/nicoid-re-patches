@@ -346,7 +346,13 @@ jobs:
                   assert archive.read(name) == expected.read_bytes(), f"Stale packaged payload: {name}"
           print(f"PASS: MPP {version} ZIP, manifest and packaged helper resources")
           PY
-          if [[ "$version" == "2.1.9-dev.7" ]]; then
+          if [[ "$version" == "2.1.9" ]]; then
+            bundle="patches/build/libs/patches-$version.mpp"
+            staged="/tmp/nicoid-re-$version-staged.mpp"
+            python3 porting/revisions/v2.1.9-release/stage_candidate.py --compiled "$bundle" --output "$staged"
+            python3 .github/scripts/verify_android_mpp.py "$staged" "$version"
+            mv "$staged" "$bundle"
+          elif [[ "$version" == "2.1.9-dev.7" ]]; then
             bundle="patches/build/libs/patches-$version.mpp"
             staged="/tmp/nicoid-re-$version-staged.mpp"
             python3 porting/revisions/v2.1.9-dev.7/stage_verified.py --compiled "$bundle" --output "$staged"
@@ -800,7 +806,11 @@ jobs:
             fi
           fi
           output="/tmp/nicoid-re-$version.mpp"
-          if [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.9-dev.7" ]]; then
+          if [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.9" ]]; then
+            compiled="patches/build/libs/patches-$version.mpp"
+            test -s "$compiled"
+            python3 porting/revisions/v2.1.9-release/stage_candidate.py --compiled "$compiled" --output "$output"
+          elif [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.9-dev.7" ]]; then
             compiled="patches/build/libs/patches-$version.mpp"
             test -s "$compiled"
             python3 porting/revisions/v2.1.9-dev.7/stage_verified.py --compiled "$compiled" --output "$output"

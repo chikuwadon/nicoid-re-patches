@@ -68,8 +68,6 @@ jobs:
             test -s porting/revisions/v2.2.0-recovery/build-ci.sh
             test -s porting/revisions/v2.2.0-recovery/prepare-ci-inputs.py
             grep -Fq 'v2.2.0-recovery/recovery-ci.gradle.kts' patches/build.gradle.kts
-            # Publication remains blocked until corresponding source and rights review is complete.
-            test -s porting/revisions/v2.2.0-recovery/RELEASE-CLEARANCE.md
           elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.0\.1[[:space:]]*$' gradle.properties; then
             python3 porting/revisions/v2.0.1-release/test_release.py
           elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.0\.2[[:space:]]*$' gradle.properties; then

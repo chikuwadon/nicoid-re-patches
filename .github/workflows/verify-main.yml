@@ -128,8 +128,13 @@ jobs:
               exit 1
             fi
             echo "PASS: generatePatchesList preserved Android MPP SHA-256 $after"
-        - name: Verify release candidate MPP and regressions
-          run: |
+          fi
+      - name: Verify release candidate MPP and regressions
+        run: |
+          set -euo pipefail
+          if grep -Eq '^version[[:space:]]*=[[:space:]]*2[.]2[.]0[[:space:]]*$' gradle.properties; then
+            python3 .github/scripts/verify-v2.2.0-prepared-release.py 2.2.0
+          else
             if grep -Fq "version = 2.0.0" gradle.properties; then
               NICOID_OFFICIAL_RELEASE_APPROVED=VERIFY bash .github/scripts/stage-v2.0.0-mpp.sh
             elif grep -Fq "version = 2.0.1" gradle.properties; then

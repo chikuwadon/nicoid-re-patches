@@ -1,0 +1,55 @@
+name: Recover v2.2.0 JVM compiler inputs (no release)
+on:
+  push:
+    branches: [recovery/v2.2.0-jvm-inputs]
+permissions:
+  contents: read
+  packages: read
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      JAVA_TOOL_OPTIONS: '-XX:-UseBASE64Intrinsics'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: 28b745dbb29cea0c309d827d78c5940066bfe98d
+          persist-credentials: false
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880
+        with:
+          distribution: temurin
+          java-version: '25'
+          check-latest: true
+      - name: Resolve baseline JVM compilation dependencies
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew :patches:compileKotlin --no-daemon
+      - name: Collect compiler and baseline source inputs
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/nicoid-jvm-inputs"
+          mkdir -p "$out"
+          cp --parents patches/src/main/kotlin/app/nicoid/patches/NicoidModPatch.kt patches/src/main/kotlin/util/PatchListGenerator.kt patches/build.gradle.kts settings.gradle.kts gradle/libs.versions.toml gradle/wrapper/gradle-wrapper.properties "$out"
+          cd "$HOME/.gradle/caches/modules-2/files-2.1"
+          find org.jetbrains.kotlin org.jetbrains.kotlinx com.google.code.gson app.morphe -type f \( -name '*.jar' -o -name '*.pom' -o -name '*.module' \) -print0 | while IFS= read -r -d '' f; do
+            cp --parents "$f" "$out"
+          done
+          cd "$out"
+          find . -type f -print0 | sort -z | xargs -0 sha256sum > "$RUNNER_TEMP/jvm-SHA256SUMS"
+          mv "$RUNNER_TEMP/jvm-SHA256SUMS" SHA256SUMS
+          grep -E 'kotlin-compiler-embeddable.*\.jar$' SHA256SUMS
+          grep -E '/gson/[^/]+/[^/]+/gson-[^/]+\.jar$' SHA256SUMS
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: nicoid-v220-jvm-inputs
+          path: ${{ runner.temp }}/nicoid-jvm-inputs/
+          retention-days: 3
+          if-no-files-found: error

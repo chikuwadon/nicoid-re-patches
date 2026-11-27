@@ -13,3 +13,14 @@ Of the 26 changed helper class families lacking basename matches in the dev.5 so
 ## GitHub Actions verification completed
 
 Run 46009218871, job 140540115858, private workflow head 915f7cc359629d835832de8b84e4897a692d3d5d. All steps completed successfully. Gradle BUILD SUCCESSFUL in 2m 48s. Logs confirm all 60 locked inputs, both intermediate/final DEX pairs, original reconstructed MPP hash and the reviewed 5,594,602-byte notice-only MPP SHA-256 caa29ae2e567f9799b597b0eb144245421ebca374cb951ff1567ac06726a20f9. Android MPP validation found 21 root DEX classes. Release-integrity record/check, deliberate rejection of pre-notice MPP and identical patch metadata passed. Artifact 15202671809 (5,529,000 bytes; digest sha256:7158d22889c3db97357bce06dade97e03a646e5e94b27c81d06417189ff45d74) includes notice-only MPP and verification logs, expires 2026-11-30 13:44:13 UTC. This supersedes the earlier pending isolated CI result. No full public source integration, corresponding-source clearance, CodeQL, device test of the notice-only archive or release has occurred.
+
+## Conventional release-path rehearsal completed
+
+Verified against the actual GitHub Actions job and logs on 2026-11-27. Private review run 46010425961, job 140544219527, head 46c9b97d61d0bf5ed13ced8b8c4f2ef1a376466f, public preparation scripts at 89c9403ae3dda1712b3d1de16be15ced4413f612. All steps and post-job steps succeeded.
+
+- 60 SHA-256-locked inputs (46 distinct contents), all four cumulative DEX hashes, and reconstructed source/classpath locks passed.
+- Gradle BUILD SUCCESSFUL in 2m 52s; reproduced pre-notice MPP 5,517,602 bytes, SHA-256 151cc1e7eeed2450855de8b7f115c038a47420b6bd48ac3f5d75d28df4695aa7.
+- Canonical release output patches/build/libs/patches-2.2.0.mpp: 5,594,602 bytes, SHA-256 caa29ae2e567f9799b597b0eb144245421ebca374cb951ff1567ac06726a20f9; Android MPP validation, patch metadata generation, repeated integrity record/check and all nine legacy integrity tests passed. Baseline resources remained unchanged.
+- Artifact 15203032950, v220-conventional-release-review, 5,529,178 bytes, SHA-256 6d00933bc4fe5f47b0a45052ba4aa09a71094c1293ce0dbf45eb8c1b0504deb2; expires 2026-11-30 13:52:47 UTC.
+
+This supersedes the pending conventional-path rehearsal, but the successful job staged the private source archive into a disposable checkout and set version 2.2.0 there. The public release-preparation branch still has version 2.1.9 and does not contain the recovery build tree. Public source integration, preferred-source/provenance and licensing clearance, production CI/CodeQL, and exact final archive device confirmation remain open. No main/dev merge, tag or Release was performed. Do not publish the rehearsal artifact as a substitute for those gates.

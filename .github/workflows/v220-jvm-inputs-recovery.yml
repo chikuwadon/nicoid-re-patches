@@ -1,4 +1,4 @@
-name: Recover v2.2.0 JVM compiler inputs (no release)
+name: Recover v2.2.0 complete JVM classpaths (no release)
 on:
   push:
     branches: [recovery/v2.2.0-jvm-inputs]
@@ -21,35 +21,66 @@ jobs:
           distribution: temurin
           java-version: '25'
           check-latest: true
-      - name: Resolve baseline JVM compilation dependencies
+      - name: Resolve complete baseline patcher classpaths
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
-          ./gradlew :patches:compileKotlin --no-daemon
-      - name: Collect compiler and baseline source inputs
-        if: always()
-        shell: bash
-        run: |
-          set -euo pipefail
-          out="$RUNNER_TEMP/nicoid-jvm-inputs"
-          mkdir -p "$out"
-          cp --parents patches/src/main/kotlin/app/nicoid/patches/NicoidModPatch.kt patches/src/main/kotlin/util/PatchListGenerator.kt patches/build.gradle.kts settings.gradle.kts gradle/libs.versions.toml gradle/wrapper/gradle-wrapper.properties "$out"
-          cd "$HOME/.gradle/caches/modules-2/files-2.1"
-          find org.jetbrains.kotlin org.jetbrains.kotlinx com.google.code.gson app.morphe -type f \( -name '*.jar' -o -name '*.pom' -o -name '*.module' \) -print0 | while IFS= read -r -d '' f; do
-            cp --parents "$f" "$out"
-          done
-          cd "$out"
-          find . -type f -print0 | sort -z | xargs -0 sha256sum > "$RUNNER_TEMP/jvm-SHA256SUMS"
-          mv "$RUNNER_TEMP/jvm-SHA256SUMS" SHA256SUMS
-          grep -E 'kotlin-compiler-embeddable.*\.jar$' SHA256SUMS
-          grep -E '/gson/[^/]+/[^/]+/gson-[^/]+\.jar$' SHA256SUMS
+          export NICOID_RECOVERY_DIR="$RUNNER_TEMP/nicoid-v220-runtime-inputs"
+          mkdir -p "$NICOID_RECOVERY_DIR"
+          cat > "$RUNNER_TEMP/nicoid-recovery.init.gradle" <<'GRADLE'
+          gradle.projectsEvaluated {
+              def p = gradle.rootProject.findProject(':patches')
+              p.tasks.register('recoverV220RuntimeInputs') {
+                  doLast {
+                      def out = new File(System.getenv('NICOID_RECOVERY_DIR'))
+                      ['compileClasspath', 'runtimeClasspath', 'patchListGeneratorClasspath'].each { name ->
+                          def c = p.configurations.getByName(name)
+                          def rows = []
+                          c.resolvedConfiguration.resolvedArtifacts.each { a ->
+                              def id = a.moduleVersion.id
+                              def rel = "${name}/${id.group}/${id.name}/${id.version}/${a.file.name}"
+                              def dst = new File(out, rel)
+                              dst.parentFile.mkdirs()
+                              java.nio.file.Files.copy(a.file.toPath(), dst.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+                              rows.add(rel)
+                              def cache = new File(gradle.gradleUserHomeDir, "caches/modules-2/files-2.1/${id.group}/${id.name}/${id.version}")
+                              if (cache.isDirectory()) {
+                                  cache.eachFileRecurse { f ->
+                                      if (f.isFile() && (f.name.endsWith('.pom') || f.name.endsWith('.module'))) {
+                                          def meta = new File(out, "metadata/${id.group}/${id.name}/${id.version}/${f.name}")
+                                          meta.parentFile.mkdirs()
+                                          java.nio.file.Files.copy(f.toPath(), meta.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+                                      }
+                                  }
+                              }
+                          }
+                          new File(out, "${name}.txt").text = rows.join('\n') + '\n'
+                      }
+                  }
+              }
+          }
+          GRADLE
+          ./gradlew -I "$RUNNER_TEMP/nicoid-recovery.init.gradle" :patches:recoverV220RuntimeInputs --no-daemon
+          cd "$NICOID_RECOVERY_DIR"
+          python3 - <<'PY'
+          import pathlib, zipfile
+          paths=list(pathlib.Path('runtimeClasspath').rglob('*.jar'))
+          assert paths
+          required={'com/reandroid/archive/io/InflatingInputStream.class','com/android/tools/smali/dexlib2/Opcode.class','app/morphe/patcher/Patcher.class'}
+          for jar in paths:
+              with zipfile.ZipFile(jar) as z:
+                  required.difference_update(z.namelist())
+          assert not required, required
+          print('Verified required runtime classes')
+          PY
+          find . -type f -print0 | sort -z | xargs -0 sha256sum > "$RUNNER_TEMP/runtime-SHA256SUMS"
+          mv "$RUNNER_TEMP/runtime-SHA256SUMS" SHA256SUMS
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
-        if: always()
         with:
-          name: nicoid-v220-jvm-inputs
-          path: ${{ runner.temp }}/nicoid-jvm-inputs/
+          name: nicoid-v220-runtime-inputs
+          path: ${{ runner.temp }}/nicoid-v220-runtime-inputs/
           retention-days: 3
           if-no-files-found: error

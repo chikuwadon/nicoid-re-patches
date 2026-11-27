@@ -36,7 +36,7 @@ public final class SwipeInterfaceMerge220 {
         if (addModern) required.addAll(Arrays.asList(
             "onStartNestedScroll(Landroid/view/View;Landroid/view/View;I)Z",
             "onNestedScrollAccepted(Landroid/view/View;Landroid/view/View;I)V",
-            "onStopNestedScroll(Landroid/view/View;I)V", "onNestedScroll(Landroid/view/View;IIII)V",
+            "onStopNestedScroll(Landroid/view/View;)V", "onNestedScroll(Landroid/view/View;IIII)V",
             "onNestedPreScroll(Landroid/view/View;II[I)V", "onNestedFling(Landroid/view/View;FFZ)Z",
             "onNestedPreFling(Landroid/view/View;FF)Z", "getNestedScrollAxes()I",
             "onStartNestedScroll(Landroid/view/View;Landroid/view/View;II)Z",

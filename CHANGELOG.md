@@ -1,3 +1,94 @@
+## 2.2.0 (2026-11-27)
+
+## ✨ New Features
+
+* **nicoid:** Add pull-to-refresh support to playlists, Mylists, Watch Later, public Mylists, uploaded videos, local viewing history, and cached video lists
+* **nicoid:** Add a configurable comment length limit from 1 to 100 characters with an unlimited option ([#185](https://github.com/chikuwadon/nicoid-re-patches/issues/185))
+* **nicoid:** Add an option to apply the comment length limit to fixed comments ([#185](https://github.com/chikuwadon/nicoid-re-patches/issues/185))
+
+## 🐛 Bug Fixes
+
+* **nicoid:** Reduce unnecessary low-resolution playback when starting videos
+* **nicoid:** Reduce delays when switching to higher video quality
+* **nicoid:** Fix inaccurate network bandwidth estimation caused by local cache playback
+* **nicoid:** Fix incorrect scroll position restoration after refreshing Mylists
+* **nicoid:** Improve recovery from loading failures in Mylists, Watch Later, and account viewing history
+* **nicoid:** Fix inconsistent pull-to-refresh indicator behavior
+* **nicoid:** Fix touch and scrolling conflicts during pull-to-refresh
+* **nicoid:** Fix resource leaks when reading cached video information, comments, thumbnails, bookmarks, and viewing history
+* **nicoid:** Fix crashes caused by concurrent network response reading and closing
+* **nicoid:** Fix inconsistent like status when loading cached video information
+* **nicoid:** Fix rendering issues affecting like buttons
+* **nicoid:** Improve mini player cleanup to prevent residual black overlays
+* **nicoid:** Prevent unintended playback transitions after closing the popup or mini player
+* **nicoid:** Improve transitions between background and popup playback
+* **nicoid:** Prevent duplicate playback requests during player transitions
+* **nicoid:** Prevent socket closure errors during local server shutdown
+* **nicoid:** Improve related-video retrieval when the initial tag returns an error
+* **nicoid:** Prevent modern HLS playlist URLs from being incorrectly processed as legacy comment data
+* **nicoid:** Correct misplaced playback and comment settings
+
+## 🔧 Improvements
+
+* **nicoid:** Extensively overhaul the internal networking infrastructure
+* **nicoid:** Modernize core application libraries
+* **nicoid:** Modernize AndroidX components
+* **nicoid:** Improve Activity lifecycle compatibility
+* **nicoid:** Improve Fragment lifecycle compatibility
+* **nicoid:** Improve saved UI state handling and restoration
+* **nicoid:** Improve compatibility with modern Android versions
+* **nicoid:** Modernize the pull-to-refresh mechanism
+* **nicoid:** Improve pull-to-refresh animations
+* **nicoid:** Improve nested scrolling behavior
+* **nicoid:** Improve swipe gesture handling
+* **nicoid:** Improve fling behavior and scrolling responsiveness
+* **nicoid:** Improve touch event handling
+* **nicoid:** Improve thumbnail image quality in Android media controls and playback notifications
+* **nicoid:** Improve thumbnail retrieval and fallback handling
+* **nicoid:** Improve thumbnail response validation
+* **nicoid:** Modernize network communication for authentication
+* **nicoid:** Modernize network communication for video information retrieval
+* **nicoid:** Modernize network communication for Mylists and Watch Later
+* **nicoid:** Modernize network communication for comment retrieval
+* **nicoid:** Modernize network communication for comment posting
+* **nicoid:** Modernize video streaming session management
+* **nicoid:** Improve network handling for video downloads
+* **nicoid:** Improve authenticated request handling
+* **nicoid:** Improve authentication cookie management
+* **nicoid:** Improve cookie domain and path validation
+* **nicoid:** Improve network response validation
+* **nicoid:** Improve recovery from incomplete and malformed network responses
+* **nicoid:** Improve network connection cancellation and cleanup
+* **nicoid:** Improve network stream lifecycle management
+* **nicoid:** Improve video quality adaptation during initial playback
+* **nicoid:** Optimize scrolling comment rendering
+* **nicoid:** Optimize fixed-comment rendering
+* **nicoid:** Optimize fixed-comment collision detection
+* **nicoid:** Improve comment rendering efficiency under heavy comment loads
+* **nicoid:** Improve comment source update handling
+* **nicoid:** Reduce unnecessary object allocations during comment rendering
+* **nicoid:** Improve playback session lifecycle management
+* **nicoid:** Improve playback resource allocation and release
+* **nicoid:** Improve cached video playback handling
+* **nicoid:** Improve cached file and stream management
+* **nicoid:** Remove obsolete networking library implementations
+* **nicoid:** Remove obsolete advertising SDKs
+* **nicoid:** Remove obsolete advertising-related resources
+* **nicoid:** Remove unused AndroidX components
+* **nicoid:** Remove unused optional library components
+* **nicoid:** Remove unnecessary annotation and reflection components
+* **nicoid:** Eliminate 5,500 unnecessary classes, reducing the combined class count before cleanup by 32.5%
+* **nicoid:** Reduce unnecessary memory allocations and resource usage
+* **nicoid:** Improve compatibility with recent Morphe Manager versions
+* **nicoid:** Strengthen network security
+* **nicoid:** Improve certificate pinning security
+* **nicoid:** Strengthen input and response validation
+* **nicoid:** Improve protection against excessive memory allocation
+* **nicoid:** Address known vulnerabilities in bundled libraries
+* **nicoid:** Restrict unnecessary unencrypted network connections
+* **nicoid:** Improve privacy protection by reducing sensitive information in application logs
+* **nicoid:** Extensive stability improvements, performance optimizations, and internal cleanup
+
 ## 2.1.9 (2026-11-24)
 
 ### ✨ New Features

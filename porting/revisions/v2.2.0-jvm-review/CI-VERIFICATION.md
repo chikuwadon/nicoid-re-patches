@@ -16,3 +16,18 @@ Verified 2026-11-27. The isolated GitHub Actions reconstruction completed succes
 - Evidence artifact: 15202341489, SHA-256 07bf818620e58da60c06a258bc10d0b8abf7d4aec0ecb4d8de4e69e170470173 (build log and generated metadata, not the MPP).
 
 This verifies the isolated Gradle reconstruction task, not the standard release task, CodeQL, complete corresponding source, license compliance or a fresh Manager/Patcher 2.6.0 STRIP_SAFE device run. The local exact-MPP can be supplied privately for device verification because its SHA-256 matches the CI output. No tag, merge or release was made. Earlier recovery records describing isolated Gradle as untested are superseded by this result; other release gates remain in force.
+
+## Device verification of reconstructed candidate
+
+Maintainer reported normal operation and supplied the following Manager log on 2026-11-27 (JST). The supplied candidate was the local reconstruction previously matched against the CI MPP. The Manager log does not independently include an MPP or APK SHA-256.
+
+- Samsung SC-52D, Android 16 / API 36, arm64 JVM 25.0.5.1, Manager 2.8.0 / Patcher 2.6.0.
+- Stock nicoid 6.49, input APK 5,012,989 bytes; source version 2.2.0; one patch loaded.
+- Seven obsolete advertising root files scheduled for deletion.
+- Certified SAFE layout and full reference audits passed; STRIP_SAFE verified 16,914 -> 11,414 classes, 5,500 removed.
+- nicoid Re succeeded; actual compiler mode STRIP_SAFE, no FULL fallback.
+- Patch 5.323 s, compile 1.910 s, total 7.363 s including signing; average heap 256 MB, peak 347 MB.
+- Signed APK 8,936,049 bytes. This matches the previously reported RC.4 APK size; size equality alone is not proof of byte equality.
+- Device result: PASS within the maintainer's reported tested scope. No independent exhaustive device regression or fresh application runtime log was supplied.
+
+This closes the fresh Manager 2.8.0 / Patcher 2.6.0 STRIP_SAFE verification gate for the tested candidate. Complete corresponding-source/provenance and licensing review, standard public Gradle/release integration, CI/CodeQL and publication remain outstanding. No release or tag has been created by this documentation update.

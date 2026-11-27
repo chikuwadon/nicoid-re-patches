@@ -2,7 +2,7 @@ name: CodeQL (Java/Kotlin, Python, JavaScript, Actions)
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main, dev, release/v2.2.0-prep]
   pull_request:
     branches: [main, dev]
   schedule:

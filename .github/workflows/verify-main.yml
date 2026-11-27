@@ -2,7 +2,7 @@ name: Verify main source and patch build
 
 on:
   push:
-    branches: [main]
+    branches: [main, release/v2.2.0-prep]
   workflow_dispatch:
 
 permissions:

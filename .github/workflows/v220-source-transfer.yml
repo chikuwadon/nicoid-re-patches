@@ -1,0 +1,70 @@
+name: Integrate v2.2.0 source transfer
+on:
+  push:
+    branches: [transfer/v2.2.0-source]
+    paths: ['.github/workflows/v220-source-transfer.yml']
+permissions:
+  contents: write
+concurrency:
+  group: v220-source-transfer
+  cancel-in-progress: false
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: transfer
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: release/v2.2.0-prep
+          fetch-depth: 0
+          path: prep
+      - name: Verify transferred package and integrate sources
+        run: |
+          set -euo pipefail
+          cd prep
+          test "$(git rev-parse HEAD)" = a41bc6821b24e85b9b56e552ea76f5e795bf59b3
+          python3 - <<'PY'
+          from pathlib import Path as P, PurePosixPath
+          import hashlib,json,stat,zipfile,tempfile
+          data=P('../transfer/v220-source-transfer')
+          m=json.loads((data/'manifest.json').read_text())
+          assert m['sha256']=='709f7b3140751c4c73bd50110b9209706fdaf1c7f3748d6a07fddde8cd6d04e6'
+          target=P('porting/revisions/v2.2.0-recovery')
+          assert not target.exists()
+          with tempfile.TemporaryDirectory() as td:
+              archive=P(td)/'source.zip'
+              with archive.open('wb') as out:
+                  for i,p in enumerate(m['parts']):
+                      assert p['name']==f'part-{i:03}.b64'
+                      b=(data/f'part-{i:03}.bin').read_bytes()
+                      assert len(b)==p['size'] and hashlib.sha256(b).hexdigest()==p['sha256']
+                      out.write(b)
+              assert archive.stat().st_size==m['size'] and hashlib.sha256(archive.read_bytes()).hexdigest()==m['sha256']
+              with zipfile.ZipFile(archive) as z:
+                  assert z.testzip() is None and len(z.namelist())==len(set(z.namelist()))==3958
+                  for info in z.infolist():
+                      path=PurePosixPath(info.filename)
+                      assert not path.is_absolute() and '..' not in path.parts and '\\' not in info.filename
+                      assert not stat.S_ISLNK(info.external_attr>>16)
+                      assert path.suffix.lower() not in ('.apk','.mpp','.jks','.keystore','.p12','.pfx','.key')
+                  z.extractall(target)
+          p=P('patches/build.gradle.kts')
+          hook='apply(from = rootProject.file("porting/revisions/v2.2.0-recovery/recovery-ci.gradle.kts"))'
+          s=p.read_text();assert hook not in s;p.write_text(s+'\n'+hook+'\n')
+          p=P('gradle.properties');s=p.read_text();assert s.count('version = 2.1.9')==1;p.write_text(s.replace('version = 2.1.9','version = 2.2.0'))
+          print('PASS verified 3958 source and build files; no stock APK or release asset transferred')
+          PY
+          python3 porting/tests/VerifyReleaseBaseline.py
+          python3 porting/tests/VerifyGithubActionsSecurity.py
+          python3 porting/tests/test_release_mpp_integrity.py
+          git diff --exit-code -- patches/src/main/resources/nicoid
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f porting/revisions/v2.2.0-recovery patches/build.gradle.kts gradle.properties
+          git commit -m 'feat: integrate v2.2.0 application and library updates'
+          git push origin HEAD:refs/heads/release/v2.2.0-prep
+          git rev-parse HEAD
